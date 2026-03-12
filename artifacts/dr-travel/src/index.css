@@ -1,0 +1,362 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --font-sans: var(--app-font-sans);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --navy: #0D1B2A;
+  --blue: #00AAFF;
+  --gold: #C9A84C;
+  --silver: #C0C0C0;
+
+  --background: 210 50% 98%;
+  --foreground: 213 60% 10%;
+  --border: 213 20% 85%;
+  --input: 213 20% 85%;
+  --ring: 207 100% 50%;
+  --card: 0 0% 100%;
+  --card-foreground: 213 60% 10%;
+  --primary: 207 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 213 60% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 20% 93%;
+  --muted-foreground: 213 20% 45%;
+  --accent: 207 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --app-font-sans: 'Cairo', sans-serif;
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: #0D1B2A;
+    color: #ffffff;
+    direction: rtl;
+    overflow-x: hidden;
+    line-height: 1.8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Animations */
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
+  50% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+}
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideCarousel {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Service cards */
+.service-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 170, 255, 0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 170, 255, 0.25);
+  border-color: rgba(0, 170, 255, 0.5);
+  background: rgba(0, 170, 255, 0.08);
+}
+
+/* Package cards */
+.package-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.package-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0, 170, 255, 0.2);
+  border-color: rgba(0, 170, 255, 0.4);
+}
+
+.package-card.featured {
+  border-color: rgba(201, 168, 76, 0.5);
+  background: rgba(201, 168, 76, 0.05);
+}
+
+.package-card.featured:hover {
+  box-shadow: 0 16px 48px rgba(201, 168, 76, 0.2);
+}
+
+/* Review carousel */
+.reviews-track {
+  display: flex;
+  gap: 1.5rem;
+  animation: slideCarousel 30s linear infinite;
+}
+
+.reviews-track:hover {
+  animation-play-state: paused;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  padding: 1rem 0;
+}
+
+.navbar.scrolled {
+  background: rgba(13, 27, 42, 0.97);
+  backdrop-filter: blur(10px);
+  padding: 0.6rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Wave divider */
+.wave-container {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/* Hero */
+.hero-bg {
+  background: 
+    linear-gradient(to bottom, rgba(13, 27, 42, 0.7) 0%, rgba(13, 27, 42, 0.5) 50%, rgba(13, 27, 42, 0.8) 100%),
+    url('https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1920&q=80') center/cover no-repeat;
+}
+
+/* Stats section */
+.stats-section {
+  background: linear-gradient(135deg, #00AAFF 0%, #0078cc 100%);
+}
+
+/* Booking form */
+.form-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: white;
+  width: 100%;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  direction: rtl;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #00AAFF;
+  background: rgba(0, 170, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.15);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.form-input option {
+  background: #0D1B2A;
+  color: white;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: #0D1B2A;
+  border: 1px solid rgba(0, 170, 255, 0.3);
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: fadeInUp 0.4s ease;
+}
+
+/* Mobile hamburger */
+.hamburger-line {
+  width: 24px;
+  height: 2px;
+  background: white;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+/* Why cards */
+.why-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 170, 255, 0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.why-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(0, 170, 255, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 170, 255, 0.15);
+}
+
+/* Review cards */
+.review-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  min-width: 300px;
+  flex-shrink: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D1B2A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00AAFF;
+  border-radius: 3px;
+}
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(13, 27, 42, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 1rem;
+  border-top: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.mobile-menu.open {
+  display: block;
+}
+
+/* Section headings */
+.section-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: #C0C0C0;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-title { font-size: 1.5rem; }
+  .hero-title { font-size: 2rem !important; }
+}

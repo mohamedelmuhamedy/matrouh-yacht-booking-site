@@ -1,0 +1,212 @@
+Build a complete, professional, mobile-first Arabic travel booking 
+website for "DR Travel — Yacht Tourism & Safari" based in 
+Marsa Matruh, Egypt.
+
+=== BRAND IDENTITY ===
+- Company name: DR Travel
+- Tagline: Yacht Tourism & Safari
+- Location: Marsa Matruh, Egypt
+- Colors extracted from logo:
+  * Primary Dark Navy: #0D1B2A
+  * Accent Electric Blue: #00AAFF
+  * White: #FFFFFF
+  * Gold/Silver text: #C0C0C0
+- Logo: Display as image at top — use a placeholder circle with 
+  ship icon + "DR TRAVEL" text in navy if image not uploaded yet
+- Font: "Cairo" from Google Fonts for Arabic, 
+  "Montserrat" for English
+
+=== LANGUAGE & DIRECTION ===
+- Arabic RTL as primary language
+- <html dir="rtl" lang="ar">
+- English only for brand name and button labels like "Book Now"
+
+=== CONTACT INFO ===
+- Phone & WhatsApp: 01205756024
+- Instagram: drtravel_marsamatrouh
+- TikTok: drtravel.marsa.matrouh
+- Facebook: facebook.com/Drtrave
+- WhatsApp direct link: https://wa.me/201205756024
+
+=== SERVICES OFFERED ===
+1. سفاري صحراوية (Desert Safari)
+2. رحلات يخت (Yacht Trips)
+3. ألعاب مائية (Water Sports)
+4. براشوت (Parasailing)
+5. أكوا بارك (Aqua Park)
+6. رحلات بحت (Sea Excursions)
+7. شقق للإيجار (Holiday Apartments)
+
+=== FULL PAGE STRUCTURE ===
+
+--- SECTION 1: STICKY NAVBAR ---
+- Logo on right (RTL)
+- Nav links: الرئيسية | خدماتنا | باقاتنا | احجز الآن | تواصل معنا
+- On mobile: hamburger menu
+- Background: transparent on top → dark navy on scroll
+- WhatsApp floating button: bottom-left, always visible, 
+  pulsing green animation
+
+--- SECTION 2: HERO ---
+- Full screen height
+- Background: dark navy gradient overlaid on a beautiful 
+  Marsa Matruh sea/desert image (use a high quality 
+  Unsplash URL for Mediterranean/desert scene)
+- Centered content:
+  * Logo image (large, 120px)
+  * H1: "اكتشف جمال مرسى مطروح" in white, bold
+  * Subtitle: "سفاري | يخت | ألعاب مائية | رحلات بحرية" in 
+    electric blue
+  * Two CTA buttons side by side:
+    → "احجز الآن" (gold background, dark text)
+    → "تواصل على واتساب" (green, white text)
+- Animated wave divider at bottom of hero
+
+--- SECTION 3: ANIMATED STATS BAR ---
+Background: electric blue (#00AAFF)
+4 counters with animation on scroll:
+- 🚤 +200 رحلة يخت
+- 🏜️ +150 سفاري صحراوية  
+- 😊 +5000 عميل سعيد
+- ⭐ تقييم 5 نجوم
+
+--- SECTION 4: OUR SERVICES ---
+Title: "خدماتنا"
+Subtitle: "كل ما تحتاجه لرحلة مثالية في مرسى مطروح"
+6 cards in 2 rows (3x2 on desktop, 1 column on mobile):
+Each card has:
+- Relevant emoji icon (large, 48px)
+- Service name in Arabic
+- One-line description
+- Hover effect: card lifts with blue glow shadow
+Cards:
+1. 🏜️ سفاري صحراوية — "مغامرة لا تُنسى في صحراء مطروح"
+2. 🚢 رحلات يخت — "إبحر على متن يخت فاخر في البحر المتوسط"
+3. 🌊 ألعاب مائية — "إثارة وتشويق على شواطئ مطروح"
+4. 🪂 براشوت — "حلق فوق البحر وشاهد مطروح من الأعلى"
+5. 🎡 أكوا بارك — "مرح لا نهاية له للعائلات والأطفال"
+6. 🏠 شقق للإيجار — "إقامة مريحة بأسعار تناسب جميع الميزانيات"
+
+--- SECTION 5: PACKAGES & PRICES ---
+Title: "باقاتنا وأسعارنا"
+Subtitle: "أسعار تنافسية تناسب جميع الميزانيات"
+
+Display 4 package cards in a responsive grid:
+Each card has: package name, icon, included services list, 
+price, duration, Book Now button
+
+PACKAGE 1 — باقة السفاري الكاملة
+- Icon: 🏜️
+- يشمل: سفاري صحراوية + براشوت + غداء
+- المدة: يوم كامل (8 ساعات)
+- السعر: يبدأ من 350 جنيه/فرد
+- Badge: "الأكثر طلباً" in gold
+
+PACKAGE 2 — باقة اليخت الفاخر
+- Icon: 🚢
+- يشمل: رحلة يخت + ألعاب مائية + وجبة خفيفة
+- المدة: 4 ساعات
+- السعر: يبدأ من 500 جنيه/فرد
+
+PACKAGE 3 — الباقة الشاملة
+- Icon: ⭐
+- يشمل: سفاري + يخت + أكوا بارك + إقامة
+- المدة: يومين / ليلة
+- السعر: يبدأ من 1200 جنيه/فرد
+- Badge: "قيمة استثنائية" in blue
+
+PACKAGE 4 — باقة العائلة
+- Icon: 👨‍👩‍👧‍👦
+- يشمل: سفاري + ألعاب مائية + أكوا بارك
+- المدة: يوم كامل
+- السعر: يبدأ من 1000 جنيه للعائلة (4 أفراد)
+
+Note on all cards: "للاستفسار والتخصيص تواصل معنا على واتساب"
+All "احجز الآن" buttons scroll to booking form
+
+--- SECTION 6: BOOKING FORM ---
+Title: "احجز رحلتك الآن"
+Background: light gray (#F8F9FA)
+Card-style form, centered, max-width 600px:
+
+Fields (all RTL):
+- الاسم الكامل* (text)
+- رقم الهاتف* (tel, Egyptian format placeholder: 01X XXXX XXXX)
+- الباقة المطلوبة* (dropdown):
+  → باقة السفاري الكاملة
+  → باقة اليخت الفاخر  
+  → الباقة الشاملة
+  → باقة العائلة
+  → أخرى (اكتب في الملاحظات)
+- تاريخ الرحلة* (date picker, min = today)
+- عدد الأفراد البالغين* (number, min 1)
+- عدد الأطفال 6-12 (number, min 0)
+- عدد الرضع 0-5 (number, min 0)
+- ملاحظات إضافية (textarea)
+
+Live price estimator below form:
+- Shows estimated total based on package selected × adults
+- Label: "السعر التقديري:" in blue
+
+Submit button: "احجز الآن 🚀" — full width, gold color
+On submit:
+- Validate all required fields
+- Show success modal: "تم استلام طلبك! سنتواصل معك خلال ساعة"
+- Show WhatsApp redirect button: 
+  "تأكيد الحجز عبر واتساب" → opens wa.me/201205756024 
+  with pre-filled message containing booking details
+
+--- SECTION 7: WHY CHOOSE US ---
+Title: "ليه تختار DR Travel؟"
+3 feature cards:
+1. 🏆 خبرة وثقة — "سنوات من الخبرة في السياحة بمرسى مطروح"
+2. 💰 أفضل الأسعار — "أسعار تنافسية مع جودة لا تُقارن"  
+3. 🕐 دعم 24/7 — "فريقنا متاح دائماً للرد على استفساراتك"
+
+--- SECTION 8: CUSTOMER REVIEWS ---
+Title: "آراء عملائنا"
+Auto-scrolling carousel, 3 cards visible on desktop, 1 on mobile
+6 Arabic reviews with 5-star ratings and Egyptian names
+Each card: name, stars, review text, small avatar circle with initials
+
+--- SECTION 9: FOOTER ---
+Dark navy background (#0D1B2A), white text
+3 columns:
+LEFT: Logo + tagline + "© 2025 DR Travel. جميع الحقوق محفوظة"
+CENTER: 
+  اتصل بنا:
+  📞 01205756024
+  📱 واتساب: 01205756024
+  📍 مرسى مطروح، مصر
+RIGHT:
+  تابعنا:
+  Facebook | Instagram | TikTok icons (with correct links)
+  
+Bottom bar: payment icons (Visa, Mastercard, Meeza)
+
+=== TECHNICAL SPECS ===
+- Single HTML file with embedded CSS and JS
+- Mobile-first responsive (works perfectly at 390px)
+- Smooth scroll on all nav links
+- Scroll-triggered fade-in animations (use IntersectionObserver)
+- Sticky navbar color change on scroll
+- Form validation with Arabic error messages
+- WhatsApp floating button: pulsing animation, always visible
+- Counter animation in stats section on scroll
+- All hover effects smooth (transition: 0.3s ease)
+- No external frameworks — pure HTML, CSS, JavaScript
+- Google Fonts: Cairo + Montserrat
+- Use free Unsplash images for backgrounds 
+  (Mediterranean sea, desert dunes, yacht)
+
+=== DESIGN QUALITY STANDARDS ===
+- Professional travel agency look, NOT generic template
+- Consistent use of: Navy #0D1B2A + Blue #00AAFF + White
+- Card shadow: 0 4px 20px rgba(0,0,0,0.1)
+- Border radius: 16px on cards
+- No gradients that look cheap
+- Typography hierarchy: H1 48px → H2 32px → body 16px
+- Line height: 1.8 for Arabic readability
+- Button hover: slight scale(1.03) + deeper shadow
+
+Build the complete website now as a single HTML file.
