@@ -797,51 +797,47 @@ function Reviews() {
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3rem" }}>
             <h2 className="section-title">آراء عملائنا</h2>
-            <p className="section-subtitle">أكتر من ٢٠ عميل سعيد بيشاركوا تجربتهم مع DR Travel</p>
+            <p className="section-subtitle">عملاؤنا بيحكوا تجربتهم مع DR Travel بكل صدق</p>
           </div>
         </FadeInSection>
       </div>
 
-      {/* Row 1 — scrolls right to left */}
-      <div style={{ overflow: "hidden", padding: "0.75rem 0", marginBottom: "1.25rem" }}>
-        <div style={{
-          display: "flex", gap: "1.25rem",
-          animation: "scrollLeft 60s linear infinite",
-          width: "max-content"
-        }}>
-          {[...row1, ...row1, ...row1].map((review, i) => (
+      <style>{`
+        @keyframes scrollLeft {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes scrollRight {
+          0%   { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        .reviews-row { overflow: hidden; padding: 0.75rem 0; }
+        .reviews-row:hover .reviews-inner { animation-play-state: paused; }
+        .reviews-inner {
+          display: flex;
+          gap: 1.25rem;
+          width: max-content;
+          will-change: transform;
+        }
+      `}</style>
+
+      {/* Row 1 — left */}
+      <div className="reviews-row" style={{ marginBottom: "1.25rem" }}>
+        <div className="reviews-inner" style={{ animation: "scrollLeft 50s linear infinite" }}>
+          {[...row1, ...row1].map((review, i) => (
             <ReviewCard key={i} review={review} colorIndex={i} />
           ))}
         </div>
       </div>
 
-      {/* Row 2 — scrolls left to right */}
-      <div style={{ overflow: "hidden", padding: "0.75rem 0" }}>
-        <div style={{
-          display: "flex", gap: "1.25rem",
-          animation: "scrollRight 55s linear infinite",
-          width: "max-content"
-        }}>
-          {[...row2, ...row2, ...row2].map((review, i) => (
+      {/* Row 2 — right */}
+      <div className="reviews-row">
+        <div className="reviews-inner" style={{ animation: "scrollRight 45s linear infinite" }}>
+          {[...row2, ...row2].map((review, i) => (
             <ReviewCard key={i} review={review} colorIndex={i + 4} />
           ))}
         </div>
       </div>
-
-      <style>{`
-        @keyframes scrollLeft {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-        @keyframes scrollRight {
-          0% { transform: translateX(-33.333%); }
-          100% { transform: translateX(0); }
-        }
-        div:has(> div[style*="scrollLeft"]):hover div,
-        div:has(> div[style*="scrollRight"]):hover div {
-          animation-play-state: paused;
-        }
-      `}</style>
     </section>
   );
 }
