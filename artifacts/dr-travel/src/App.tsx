@@ -59,12 +59,28 @@ const SERVICES = [
 ];
 
 const REVIEWS = [
-  { name: "أحمد محمد", initials: "أم", review: "تجربة رائعة جداً! السفاري كانت مذهلة والفريق محترف للغاية. سنعود بالتأكيد!", stars: 5 },
-  { name: "فاطمة علي", initials: "فع", review: "رحلة اليخت كانت حلماً! المنظر من البحر لا يُوصف. شكراً DR Travel على هذه الذكرى الجميلة.", stars: 5 },
-  { name: "عمر حسين", initials: "عح", review: "أفضل سعر وأفضل خدمة. البراشوت كانت تجربة لا تُنسى فوق البحر الأبيض المتوسط.", stars: 5 },
-  { name: "نور الدين", initials: "نر", review: "عائلتي استمتعت جداً بالباقة الشاملة. الأولاد مبسوطين جداً من الأكوا بارك والألعاب المائية.", stars: 5 },
-  { name: "سارة أحمد", initials: "سأ", review: "خدمة ممتازة ومحترفة. الحجز كان سهل والفريق رد على كل استفساراتنا بسرعة عبر واتساب.", stars: 5 },
-  { name: "محمود عبد الله", initials: "مع", review: "جربت الباقة الكاملة مع أصحابي وكانت أجمل تجربة في حياتنا. مرسى مطروح جنة!", stars: 5 },
+  { name: "أحمد الشيخ", initials: "أش", review: "والله تجربة من التحفة! السفاري كانت خيال وناس DR Travel محترمين جداً وشاطرين. هنرجع تاني متأكد 💯", stars: 5 },
+  { name: "فاطمة سمير", initials: "فس", review: "اليخت كان حلم بجد! المنظر من البحر ماشفتوش في حياتي. الخدمة تمام والأسعار معقولة جداً. شكراً يا DR Travel!", stars: 5 },
+  { name: "محمد ربيع", initials: "مر", review: "صحابي وأنا رحنا على باقة السفاري وكانت أحلى يوم في الصيف ده. البراشوت فوق البحر حاجة مش طبيعية أوي 🔥", stars: 5 },
+  { name: "نورهان طارق", initials: "نط", review: "أخدت الباقة الشاملة مع عيلتي والعيال فرحوا جداً. الأكوا بارك كان تحفة والتعامل ممتاز من أول لآخر.", stars: 5 },
+  { name: "كريم الجمل", initials: "كج", review: "أول مرة أروح مطروح وبقوا عاملين الحجة ليها. السفاري والألعاب المائية في يوم واحد؟ جامدين بجد!", stars: 5 },
+  { name: "سلمى حسن", initials: "سح", review: "خدمة على مستوى عالي جداً. الواتساب بيردوا في الحال وبيشرحوا كل حاجة بالتفصيل. الرحلة عدت تمام تمام 🌊", stars: 5 },
+  { name: "عمرو فتحي", initials: "عف", review: "عملت مفاجأة لمراتي وأخدناها على اليخت. كانت أجمل مفاجأة في حياتها! شكراً للفريق على التنظيم الرائع.", stars: 5 },
+  { name: "دينا البسيوني", initials: "دب", review: "البحر في مطروح مختلف عن أي حاجة تانية. وركوب اليخت مع DR Travel زاد الموضوع جمال. هنفضل نيجي كل سنة!", stars: 5 },
+  { name: "يوسف السيد", initials: "يس", review: "الأسعار مناسبة جداً مقارنة بالخدمة اللي بيقدموها. جربت البراشوت للمرة الأولى وكانت أدرينالين خالص 🪂", stars: 5 },
+  { name: "ريم عبدالعزيز", initials: "رع", review: "رحلة اليخت كانت منظمة أوي. في وجبة وألعاب مائية وموسيقى. احساس أننا في فيلا على البحر! تجربة ٥ نجوم.", stars: 5 },
+  { name: "إسلام جابر", initials: "إج", review: "جبت عيلتي كلها، الكبار والصغار، وكلهم استمتعوا. الأولاد من الأكوا بارك والكبار من السفاري. تنظيم ممتاز!", stars: 5 },
+  { name: "منى الشرقاوي", initials: "مش", review: "كنا خايفين الأول بس لما وصلنا الفريق كان متفهم ومحترف جداً. الرحلة عدت أحسن من توقعاتنا بكتير! 🚢", stars: 5 },
+  { name: "طارق عوض", initials: "طع", review: "سنة على سنة بنيجي مطروح عند DR Travel. ناس بيستاهلوا الثقة. ما غيرناش ولا هنغير! كل سنة أحسن من اللي قبلها.", stars: 5 },
+  { name: "آية الزهراء", initials: "آز", review: "البراشوت كانت الأكشن اللي كنت محتاجاه 😂 المنظر من فوق ده فيلم حقيقي. والتعامل محترم وآمن جداً.", stars: 5 },
+  { name: "مصطفى البنا", initials: "مب", review: "حجزت للشركة بتاعتنا يوم تيم بيلدينج. الكل قال إنه أحسن نشاط عملناه في حياتنا. شكراً DR Travel على الاحترافية!", stars: 5 },
+  { name: "هدير عصام", initials: "هع", review: "الشقة كانت نضيفة وقريبة من البحر. والرحلات اللي حجزناها معاهم كانت رهيبة. الباقة الشاملة تستاهل كل قرش!", stars: 5 },
+  { name: "عبدالرحمن قاسم", initials: "عق", review: "من أحسن الشركات السياحية في مطروح بدون مجاملة. بيهتموا بكل تفصيلة ومعندكش قلق على حاجة 👍", stars: 5 },
+  { name: "لمياء إبراهيم", initials: "لإ", review: "زوجي فاجأني برحلة اليخت وكانت أجمل مفاجأة في حياتي! الغروب من على اليخت ده منظر ماشوفوش في حياتك! 🌅", stars: 5 },
+  { name: "شادي المصري", initials: "شم", review: "الألعاب المائية كانت تحفة خصوصاً الجت سكي. والسفاري في آخر النهار على الرمال كانت تجربة فريدة أوي!", stars: 5 },
+  { name: "نادين سعد", initials: "نس", review: "حجزت أونلاين وتم التواصل في نفس اليوم. فريق عمل محترم ومنظم. الرحلة كانت فوق التوقعات بكتير! ⭐⭐⭐⭐⭐", stars: 5 },
+  { name: "وليد منصور", initials: "وم", review: "عملت عيد ميلاد أختي على اليخت. كانت مفاجأة ما تتصورش. قالت أحسن عيد ميلاد في حياتها. شكراً يا DR Travel!", stars: 5 },
+  { name: "إيمان السبكي", initials: "إس", review: "كل سنة بنيجي مطروح وبنحجز مع DR Travel مباشرة. ناس موثوقة ومحترفة وأسعار مناسبة. فضلوا كده!", stars: 5 },
 ];
 
 const STATS = [
@@ -722,8 +738,58 @@ function WhyUs() {
   );
 }
 
+const AVATAR_COLORS = [
+  "linear-gradient(135deg, #00AAFF, #0066cc)",
+  "linear-gradient(135deg, #C9A84C, #9a6e1c)",
+  "linear-gradient(135deg, #25D366, #128C4E)",
+  "linear-gradient(135deg, #FF6B6B, #cc3333)",
+  "linear-gradient(135deg, #A855F7, #6d28d9)",
+  "linear-gradient(135deg, #F97316, #c2410c)",
+  "linear-gradient(135deg, #06B6D4, #0e7490)",
+  "linear-gradient(135deg, #EC4899, #be185d)",
+];
+
+function ReviewCard({ review, colorIndex }: { review: typeof REVIEWS[0]; colorIndex: number }) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.05)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "16px",
+      padding: "1.5rem",
+      minWidth: "300px",
+      maxWidth: "320px",
+      flexShrink: 0,
+      transition: "transform 0.3s, box-shadow 0.3s",
+    }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.2)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+        <div style={{
+          width: 46, height: 46, borderRadius: "50%",
+          background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length],
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "0.95rem", fontWeight: 800, color: "white", flexShrink: 0,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+        }}>
+          {review.initials}
+        </div>
+        <div>
+          <div style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.3 }}>{review.name}</div>
+          <div style={{ color: "#FFD700", fontSize: "0.8rem", letterSpacing: "1px" }}>
+            {"★".repeat(review.stars)}
+          </div>
+        </div>
+        <div style={{ marginRight: "auto", fontSize: "1.25rem", opacity: 0.3 }}>❝</div>
+      </div>
+      <p style={{ color: "#C8D0DB", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>{review.review}</p>
+    </div>
+  );
+}
+
 function Reviews() {
-  const doubled = [...REVIEWS, ...REVIEWS];
+  const row1 = REVIEWS.slice(0, Math.ceil(REVIEWS.length / 2));
+  const row2 = REVIEWS.slice(Math.ceil(REVIEWS.length / 2));
 
   return (
     <section style={{ padding: "5rem 0", background: "#0a1520", overflow: "hidden" }}>
@@ -731,34 +797,51 @@ function Reviews() {
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3rem" }}>
             <h2 className="section-title">آراء عملائنا</h2>
-            <p className="section-subtitle">ما يقوله عملاؤنا عن تجربتهم معنا</p>
+            <p className="section-subtitle">أكتر من ٢٠ عميل سعيد بيشاركوا تجربتهم مع DR Travel</p>
           </div>
         </FadeInSection>
       </div>
 
-      <div style={{ overflow: "hidden", padding: "1rem 0" }}>
-        <div className="reviews-track">
-          {doubled.map((review, i) => (
-            <div key={i} className="review-card">
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #00AAFF, #0078cc)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "0.9rem", fontWeight: 700, color: "white", flexShrink: 0
-                }}>
-                  {review.initials}
-                </div>
-                <div>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.95rem" }}>{review.name}</div>
-                  <div style={{ color: "#FFD700", fontSize: "0.85rem" }}>{"⭐".repeat(review.stars)}</div>
-                </div>
-              </div>
-              <p style={{ color: "#C0C0C0", fontSize: "0.9rem", lineHeight: 1.7 }}>{review.review}</p>
-            </div>
+      {/* Row 1 — scrolls right to left */}
+      <div style={{ overflow: "hidden", padding: "0.75rem 0", marginBottom: "1.25rem" }}>
+        <div style={{
+          display: "flex", gap: "1.25rem",
+          animation: "scrollLeft 60s linear infinite",
+          width: "max-content"
+        }}>
+          {[...row1, ...row1, ...row1].map((review, i) => (
+            <ReviewCard key={i} review={review} colorIndex={i} />
           ))}
         </div>
       </div>
+
+      {/* Row 2 — scrolls left to right */}
+      <div style={{ overflow: "hidden", padding: "0.75rem 0" }}>
+        <div style={{
+          display: "flex", gap: "1.25rem",
+          animation: "scrollRight 55s linear infinite",
+          width: "max-content"
+        }}>
+          {[...row2, ...row2, ...row2].map((review, i) => (
+            <ReviewCard key={i} review={review} colorIndex={i + 4} />
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes scrollLeft {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.333%); }
+        }
+        @keyframes scrollRight {
+          0% { transform: translateX(-33.333%); }
+          100% { transform: translateX(0); }
+        }
+        div:has(> div[style*="scrollLeft"]):hover div,
+        div:has(> div[style*="scrollRight"]):hover div {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 }
