@@ -185,7 +185,8 @@ function Navbar() {
           <img src={logoImg} alt="DR Travel" style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", boxShadow: "0 0 12px rgba(0,153,230,0.4)", flexShrink: 0 }} />
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, fontSize: "1rem", color: "#00AAFF", letterSpacing: "1px", whiteSpace: "nowrap" }}>DR TRAVEL</div>
-            <div style={{ fontSize: "0.65rem", color: "#C0C0C0", whiteSpace: "nowrap" }}>Yacht Tourism & Safari</div>
+            <div style={{ fontSize: "0.65rem", color: "#C0C0C0", whiteSpace: "nowrap" }}>Yacht Tourism & Safari
+            Yousef Mostafa</div>
           </div>
         </div>
 
@@ -238,7 +239,6 @@ function Navbar() {
           </button>
         )}
       </div>
-
       {/* Mobile dropdown menu */}
       {isMobile && menuOpen && (
         <div style={{ background: "rgba(13,27,42,0.98)", borderTop: "1px solid rgba(0,170,255,0.2)", padding: "0.5rem 1rem 1rem" }}>
