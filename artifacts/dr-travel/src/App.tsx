@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 
 const PACKAGES = [
   {
@@ -181,10 +182,7 @@ function Navbar() {
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #00AAFF, #0D1B2A)",
-            border: "2px solid #00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0
-          }}>🚢</div>
+          <img src={logoImg} alt="DR Travel" style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", boxShadow: "0 0 12px rgba(0,153,230,0.4)", flexShrink: 0 }} />
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, fontSize: "1rem", color: "#00AAFF", letterSpacing: "1px", whiteSpace: "nowrap" }}>DR TRAVEL</div>
             <div style={{ fontSize: "0.65rem", color: "#C0C0C0", whiteSpace: "nowrap" }}>Yacht Tourism & Safari</div>
@@ -282,13 +280,14 @@ function Hero() {
       <div style={{ textAlign: "center", padding: "2rem 1.5rem", zIndex: 1, maxWidth: "800px", margin: "0 auto" }}>
         {/* Logo */}
         <div className="animate-float" style={{ marginBottom: "1.5rem" }}>
-          <div style={{
-            width: 110, height: 110, borderRadius: "50%", margin: "0 auto",
-            background: "linear-gradient(135deg, #00AAFF 0%, #0D1B2A 100%)",
-            border: "3px solid #00AAFF",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "3rem", boxShadow: "0 0 30px rgba(0, 170, 255, 0.4)"
-          }}>🚢</div>
+          <img
+            src={logoImg}
+            alt="DR Travel"
+            style={{
+              width: 110, height: 110, borderRadius: "50%", objectFit: "cover", margin: "0 auto", display: "block",
+              border: "3px solid #00AAFF", boxShadow: "0 0 30px rgba(0, 170, 255, 0.5)"
+            }}
+          />
         </div>
 
         <h1 className="hero-title" style={{ fontSize: "3rem", fontWeight: 900, color: "white", marginBottom: "1rem", lineHeight: 1.3 }}>
@@ -850,10 +849,7 @@ function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #00AAFF, #0D1B2A)",
-                border: "2px solid #00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem"
-              }}>🚢</div>
+              <img src={logoImg} alt="DR Travel" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }} />
               <div>
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, color: "#00AAFF", fontSize: "1rem" }}>DR TRAVEL</div>
                 <div style={{ color: "#C0C0C0", fontSize: "0.7rem" }}>Yacht Tourism & Safari</div>
