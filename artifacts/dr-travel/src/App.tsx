@@ -787,9 +787,6 @@ function ReviewCard({ review, colorIndex }: { review: typeof REVIEWS[0]; colorIn
 }
 
 function Reviews() {
-  const row1 = REVIEWS.slice(0, Math.ceil(REVIEWS.length / 2));
-  const row2 = REVIEWS.slice(Math.ceil(REVIEWS.length / 2));
-
   return (
     <section style={{ padding: "5rem 0", background: "#0a1520", overflow: "hidden" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1.5rem" }}>
@@ -806,10 +803,6 @@ function Reviews() {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        @keyframes scrollRight {
-          0%   { transform: translateX(-50%); }
-          100% { transform: translateX(0); }
-        }
         .reviews-row { overflow: hidden; padding: 0.75rem 0; }
         .reviews-row:hover .reviews-inner { animation-play-state: paused; }
         .reviews-inner {
@@ -820,20 +813,10 @@ function Reviews() {
         }
       `}</style>
 
-      {/* Row 1 — left */}
-      <div className="reviews-row" style={{ marginBottom: "1.25rem" }}>
-        <div className="reviews-inner" style={{ animation: "scrollLeft 50s linear infinite" }}>
-          {[...row1, ...row1].map((review, i) => (
-            <ReviewCard key={i} review={review} colorIndex={i} />
-          ))}
-        </div>
-      </div>
-
-      {/* Row 2 — right */}
       <div className="reviews-row">
-        <div className="reviews-inner" style={{ animation: "scrollRight 45s linear infinite" }}>
-          {[...row2, ...row2].map((review, i) => (
-            <ReviewCard key={i} review={review} colorIndex={i + 4} />
+        <div className="reviews-inner" style={{ animation: "scrollLeft 70s linear infinite" }}>
+          {[...REVIEWS, ...REVIEWS].map((review, i) => (
+            <ReviewCard key={i} review={review} colorIndex={i} />
           ))}
         </div>
       </div>
