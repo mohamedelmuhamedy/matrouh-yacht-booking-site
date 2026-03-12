@@ -133,11 +133,17 @@ function FadeInSection({ children, delay = 0, className = "" }: { children: Reac
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const navLinks = [
@@ -157,31 +163,81 @@ function Navbar() {
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        {/* Logo right side (RTL) */}
+        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div style={{
             width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #00AAFF, #0D1B2A)",
-            border: "2px solid #00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem"
+            border: "2px solid #00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0
           }}>🚢</div>
           <div>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, fontSize: "1rem", color: "#00AAFF", letterSpacing: "1px" }}>DR TRAVEL</div>
-            <div style={{ fontSize: "0.65rem", color: "#C0C0C0", letterSpacing: "0.5px" }}>Yacht Tourism & Safari</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, fontSize: "1rem", color: "#00AAFF", letterSpacing: "1px", whiteSpace: "nowrap" }}>DR TRAVEL</div>
+            <div style={{ fontSize: "0.65rem", color: "#C0C0C0", whiteSpace: "nowrap" }}>Yacht Tourism & Safari</div>
           </div>
         </div>
 
         {/* Desktop nav links */}
-        <div style={{ display: "flex", gap: "2rem", alignItems: "center" }} className="hidden md:flex">
+        {!isMobile && (
+          <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
+            {navLinks.map((link) => (
+              <button
+                key={link.href}
+                onClick={() => scrollTo(link.href)}
+                style={{
+                  background: "none", border: "none", color: "#ffffff", fontSize: "0.9rem",
+                  cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600,
+                  transition: "color 0.3s", padding: "0.25rem 0", whiteSpace: "nowrap"
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#00AAFF")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#ffffff")}
+              >
+                {link.label}
+              </button>
+            ))}
+            <a
+              href="https://wa.me/201205756024"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                background: "#25D366", color: "white", padding: "0.5rem 1.25rem",
+                borderRadius: "50px", fontWeight: 700, fontSize: "0.85rem",
+                textDecoration: "none", fontFamily: "Montserrat, sans-serif",
+                display: "flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap",
+                transition: "transform 0.3s"
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+            >
+              <span>📱</span> واتساب
+            </a>
+          </div>
+        )}
+
+        {/* Mobile hamburger */}
+        {isMobile && (
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: "5px", padding: "5px", flexShrink: 0 }}
+          >
+            <span style={{ width: 24, height: 2, background: "white", display: "block", transition: "all 0.3s", transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
+            <span style={{ width: 24, height: 2, background: "white", display: "block", transition: "all 0.3s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ width: 24, height: 2, background: "white", display: "block", transition: "all 0.3s", transform: menuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }} />
+          </button>
+        )}
+      </div>
+
+      {/* Mobile dropdown menu */}
+      {isMobile && menuOpen && (
+        <div style={{ background: "rgba(13,27,42,0.98)", borderTop: "1px solid rgba(0,170,255,0.2)", padding: "0.5rem 1rem 1rem" }}>
           {navLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => scrollTo(link.href)}
               style={{
-                background: "none", border: "none", color: "#ffffff", fontSize: "0.9rem",
-                cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600,
-                transition: "color 0.3s", padding: "0.25rem 0"
+                display: "block", width: "100%", background: "none", border: "none",
+                color: "white", padding: "0.75rem 0.5rem", fontSize: "1rem",
+                cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign: "right",
+                borderBottom: "1px solid rgba(255,255,255,0.07)"
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#00AAFF")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#ffffff")}
             >
               {link.label}
             </button>
@@ -191,59 +247,15 @@ function Navbar() {
             target="_blank"
             rel="noreferrer"
             style={{
-              background: "#25D366", color: "white", padding: "0.5rem 1.25rem",
-              borderRadius: "50px", fontWeight: 700, fontSize: "0.85rem",
-              textDecoration: "none", fontFamily: "Montserrat, sans-serif",
-              transition: "transform 0.3s, box-shadow 0.3s", display: "flex", alignItems: "center", gap: "0.4rem"
+              display: "block", background: "#25D366", color: "white", padding: "0.75rem 1rem",
+              borderRadius: "10px", fontWeight: 700, textDecoration: "none", textAlign: "center",
+              marginTop: "0.75rem", fontFamily: "Cairo, sans-serif"
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
           >
-            <span>📱</span> واتساب
+            📱 تواصل على واتساب
           </a>
         </div>
-
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden"
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: "5px", padding: "5px" }}
-        >
-          <span className="hamburger-line" style={{ transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "" }} />
-          <span className="hamburger-line" style={{ opacity: menuOpen ? 0 : 1 }} />
-          <span className="hamburger-line" style={{ transform: menuOpen ? "rotate(-45deg) translate(5px, -5px)" : "" }} />
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
-        {navLinks.map((link) => (
-          <button
-            key={link.href}
-            onClick={() => scrollTo(link.href)}
-            style={{
-              display: "block", width: "100%", background: "none", border: "none",
-              color: "white", padding: "0.75rem 1rem", fontSize: "1rem",
-              cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign: "right",
-              borderBottom: "1px solid rgba(255,255,255,0.08)"
-            }}
-          >
-            {link.label}
-          </button>
-        ))}
-        <a
-          href="https://wa.me/201205756024"
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "block", background: "#25D366", color: "white", padding: "0.75rem 1rem",
-            borderRadius: "10px", fontWeight: 700, textDecoration: "none", textAlign: "center",
-            marginTop: "0.75rem", fontFamily: "Cairo, sans-serif"
-          }}
-        >
-          📱 تواصل على واتساب
-        </a>
-      </div>
+      )}
     </nav>
   );
 }
