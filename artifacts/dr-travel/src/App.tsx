@@ -799,23 +799,27 @@ function Reviews() {
       </div>
 
       <style>{`
-        @keyframes scrollLeft {
+        @keyframes scrollRTL {
           0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-33.333%); }
         }
-        .reviews-row { overflow: hidden; padding: 0.75rem 0; }
-        .reviews-row:hover .reviews-inner { animation-play-state: paused; }
+        .reviews-row {
+          overflow: hidden;
+          padding: 0.75rem 0;
+          direction: ltr;
+        }
         .reviews-inner {
           display: flex;
           gap: 1.25rem;
           width: max-content;
           will-change: transform;
+          animation: scrollRTL 60s linear infinite;
         }
       `}</style>
 
       <div className="reviews-row">
-        <div className="reviews-inner" style={{ animation: "scrollLeft 70s linear infinite" }}>
-          {[...REVIEWS, ...REVIEWS].map((review, i) => (
+        <div className="reviews-inner">
+          {[...REVIEWS, ...REVIEWS, ...REVIEWS].map((review, i) => (
             <ReviewCard key={i} review={review} colorIndex={i} />
           ))}
         </div>
