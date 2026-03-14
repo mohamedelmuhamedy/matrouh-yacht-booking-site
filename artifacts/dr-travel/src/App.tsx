@@ -524,10 +524,10 @@ function PackagesAndBooking() {
                 </div>
 
                 {/* Two columns: form + summary */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "start" }}>
+                <div className="booking-panel-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "start" }}>
                   <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "1.1rem" }}>
                     {/* Name + Phone */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <div className="booking-name-phone-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                       <div>
                         <label style={{ display: "block", color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>الاسم الكامل *</label>
                         <input type="text" {...inp("name")} placeholder="محمد أحمد" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
@@ -714,84 +714,6 @@ function Reviews() {
   );
 }
 
-// ===== LOCATION =====
-function Location() {
-  return (
-    <section id="location" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <FadeInSection>
-          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-            <div className="section-label">✦ موقعنا</div>
-            <h2 className="section-title">تعالى لينا في مرسى مطروح</h2>
-            <p className="section-subtitle">هتلاقينا في قلب مرسى مطروح — أجمل مدينة ساحلية على البحر الأبيض المتوسط</p>
-          </div>
-        </FadeInSection>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", alignItems: "stretch" }}>
-          {/* Map embed */}
-          <FadeInSection>
-            <div style={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,170,255,0.15)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", height: "380px" }}>
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d54706.04623631744!2d27.184556!3d31.352747!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14be5f42f68b4d61%3A0x22c14a2c29ea2a83!2sMersa%20Matruh%2C%20Egypt!5e0!3m2!1sen!2s!4v1700000000000"
-                width="100%" height="100%" style={{ border: 0, display: "block" }}
-                allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
-                title="موقع مرسى مطروح"
-              />
-            </div>
-          </FadeInSection>
-
-          {/* Info cards */}
-          <FadeInSection delay={150}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", height: "100%" }}>
-              {/* City intro */}
-              <div style={{ background: "rgba(0,170,255,0.05)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "16px", padding: "1.5rem", flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: "12px", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>📍</div>
-                  <div>
-                    <div style={{ color: "white", fontWeight: 800, fontSize: "1rem" }}>مرسى مطروح</div>
-                    <div style={{ color: "#667788", fontSize: "0.78rem" }}>شمال غرب مصر — البحر الأبيض المتوسط</div>
-                  </div>
-                </div>
-                <p style={{ color: "#8899aa", fontSize: "0.85rem", lineHeight: 1.9, margin: 0 }}>
-                  مرسى مطروح هي جوهرة الساحل الشمالي المصري — بمياهها الفيروزية الصافية ورمالها البيضاء الناعمة. وجهة أحلام كل من يبحث عن الطبيعة الخلابة والمغامرة الحقيقية.
-                </p>
-              </div>
-
-              {/* Distance info */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                {[
-                  { icon: "🏙️", label: "من القاهرة", value: "٥٠٠ كم", sub: "~٥ ساعات بالسيارة" },
-                  { icon: "✈️", label: "من الإسكندرية", value: "٢٨٠ كم", sub: "~٣ ساعات بالسيارة" },
-                ].map((item, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1rem", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{item.icon}</div>
-                    <div style={{ color: "#667788", fontSize: "0.72rem", marginBottom: "0.2rem" }}>{item.label}</div>
-                    <div style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1rem" }}>{item.value}</div>
-                    <div style={{ color: "#445566", fontSize: "0.68rem", marginTop: "0.15rem" }}>{item.sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <a href="https://maps.app.goo.gl/marsamatruh" target="_blank" rel="noreferrer"
-                style={{ background: "linear-gradient(135deg,rgba(0,170,255,0.1),rgba(0,170,255,0.05))", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "14px", padding: "1rem 1.5rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem", transition: "all 0.3s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.12)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.4)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "linear-gradient(135deg,rgba(0,170,255,0.1),rgba(0,170,255,0.05))"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.25)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-                <span style={{ fontSize: "1.25rem" }}>🗺️</span>
-                <div>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem" }}>افتح الخريطة</div>
-                  <div style={{ color: "#667788", fontSize: "0.75rem" }}>Google Maps — مرسى مطروح</div>
-                </div>
-                <span style={{ color: "#00AAFF", marginRight: "auto", fontSize: "1rem" }}>←</span>
-              </a>
-            </div>
-          </FadeInSection>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ===== FOOTER =====
 function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -805,7 +727,7 @@ function Footer() {
   return (
     <footer id="footer" style={{ background: "linear-gradient(180deg,#0a1520 0%,#060d16 100%)", borderTop: "1px solid rgba(0,170,255,0.1)" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "4rem 1.5rem 2.5rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
+        <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
 
           {/* Brand */}
           <div>
@@ -873,10 +795,13 @@ function Footer() {
                   {item.text}
                 </a>
               ))}
-              <div style={{ color: "#445566", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <a href="https://maps.google.com/?q=Mersa+Matruh,+Egypt" target="_blank" rel="noreferrer"
+                style={{ color: "#445566", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", transition: "color 0.3s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#C9A84C")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#445566")}>
                 <span style={{ width: 34, height: 34, borderRadius: "8px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9A84C", flexShrink: 0 }}><LocationIcon /></span>
                 مرسى مطروح، مصر
-              </div>
+              </a>
               <div style={{ background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.1)", borderRadius: "10px", padding: "0.85rem" }}>
                 <div style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.35rem" }}>⏰ ساعات العمل</div>
                 <div style={{ color: "#445566", fontSize: "0.78rem", lineHeight: 1.9 }}>السبت – الخميس: ٨ ص – ١٠ م<br />الجمعة: ١٠ ص – ١٠ م</div>
@@ -936,7 +861,6 @@ export default function App() {
       <PackagesAndBooking />
       <WhyUs />
       <Reviews />
-      <Location />
       <Footer />
       <WhatsAppFloat />
     </div>

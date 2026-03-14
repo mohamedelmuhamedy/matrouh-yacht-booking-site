@@ -364,6 +364,32 @@
 @media (max-width: 768px) {
   .section-title { font-size: 1.7rem; }
   .hero-title { font-size: 2.2rem !important; }
+
+  /* Booking panel: stack form + summary vertically */
+  .booking-panel-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Name + Phone: single column */
+  .booking-name-phone-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* People grid: 3 cols still OK on mobile — keep it */
+  .booking-people-grid {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+
+  /* Package cards: full width on small mobile */
+  .pkg-card {
+    min-width: 0;
+  }
+
+  /* Footer grid: single column */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
 }
 
 /* ===== WABUTTON ===== */
