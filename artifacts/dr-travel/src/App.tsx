@@ -627,39 +627,68 @@ function Reviews() {
   );
 }
 
-// ===== FOOTER — UPGRADED =====
 function Footer() {
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const socialLinks = [
-    { label: "Facebook", href: "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2" },
-    { label: "Instagram", href: "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C" },
-    { label: "TikTok", href: "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff" },
+    { label: "Facebook", href: "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
+    { label: "Instagram", href: "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C", bg: "rgba(225,48,108,0.12)" },
+    { label: "TikTok", href: "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff", bg: "rgba(255,255,255,0.08)" },
+    { label: "WhatsApp", href: "https://wa.me/201205756024", icon: <WhatsAppIcon />, color: "#25D366", bg: "rgba(37,211,102,0.12)" },
   ];
 
   return (
-    <footer id="footer" style={{ background: "#0D1B2A", borderTop: "1px solid rgba(0,170,255,0.2)", padding: "4rem 1.5rem 0" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "2.5rem", marginBottom: "3rem" }}>
+    <footer id="footer" style={{ background: "linear-gradient(180deg, #0a1520 0%, #060d16 100%)", borderTop: "1px solid rgba(0,170,255,0.12)" }}>
+
+      {/* Main content */}
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "4rem 1.5rem 2.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
 
           {/* Brand */}
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <img src={logoImg} alt="DR Travel" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "0.9rem", marginBottom: "1.25rem" }}>
+              <img src={logoImg} alt="DR Travel" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.4)", boxShadow: "0 0 20px rgba(0,170,255,0.2)" }} />
               <div>
-                <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, color: "#00AAFF", fontSize: "1rem" }}>DR TRAVEL</div>
-                <div style={{ color: "#C0C0C0", fontSize: "0.7rem" }}>Yacht Tourism & Safari</div>
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 800, color: "#00AAFF", fontSize: "1.05rem", letterSpacing: "1px" }}>DR TRAVEL</div>
+                <div style={{ color: "#667788", fontSize: "0.68rem" }}>Yacht Tourism & Safari</div>
               </div>
             </div>
-            <p style={{ color: "#C0C0C0", fontSize: "0.875rem", lineHeight: 1.8, marginBottom: "1.25rem" }}>
-              وجهتك الأولى للسياحة الفاخرة في مرسى مطروح. نقدم أفضل تجارب السفاري واليخوت والأنشطة البحرية.
+            <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 2, marginBottom: "1.5rem" }}>
+              وجهتك الأولى للسياحة الفاخرة في مرسى مطروح. نقدم أفضل تجارب السفاري واليخوت والأنشطة البحرية بأعلى معايير الجودة.
             </p>
-            {/* Social Icons */}
-            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            {/* Social icons */}
+            <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
               {socialLinks.map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
-                  style={{ width: 40, height: 40, borderRadius: "10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C0C0C0", textDecoration: "none", transition: "all 0.3s" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = s.color; (e.currentTarget as HTMLElement).style.color = "white"; (e.currentTarget as HTMLElement).style.borderColor = s.color; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 20px ${s.color}44`; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = "#C0C0C0"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
+                  style={{ width: 42, height: 42, borderRadius: "10px", background: s.bg, color: s.color, border: `1px solid ${s.color}33`, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.3s ease" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${s.color}50`; (e.currentTarget as HTMLElement).style.borderColor = s.color; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.borderColor = `${s.color}33`; }}>
                   {s.icon}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick links */}
+          <div>
+            <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ width: 3, height: 18, background: "#00AAFF", borderRadius: 2, display: "inline-block" }} />
+              روابط سريعة
+            </h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {[
+                { label: "الرئيسية", href: "#hero" },
+                { label: "خدماتنا", href: "#services" },
+                { label: "باقاتنا وأسعارنا", href: "#packages" },
+                { label: "احجز رحلتك", href: "#booking" },
+                { label: "لماذا DR Travel؟", href: "#whyus" },
+                { label: "آراء العملاء", href: "#reviews" },
+              ].map(link => (
+                <a key={link.href} href={link.href}
+                  onClick={e => { e.preventDefault(); document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" }); }}
+                  style={{ color: "#667788", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.25s", cursor: "pointer", padding: "0.15rem 0" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#00AAFF"; (e.currentTarget as HTMLElement).style.gap = "0.8rem"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#667788"; (e.currentTarget as HTMLElement).style.gap = "0.5rem"; }}>
+                  <span style={{ color: "#00AAFF", fontSize: "0.5rem", flexShrink: 0 }}>▶</span> {link.label}
                 </a>
               ))}
             </div>
@@ -667,50 +696,67 @@ function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 style={{ color: "#00AAFF", fontWeight: 700, fontSize: "1rem", marginBottom: "1.25rem" }}>اتصل بنا</h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+            <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ width: 3, height: 18, background: "#00AAFF", borderRadius: 2, display: "inline-block" }} />
+              اتصل بنا
+            </h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <a href="tel:+201205756024"
-                style={{ color: "#C0C0C0", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.6rem", transition: "color 0.3s" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#00AAFF")} onMouseLeave={e => (e.currentTarget.style.color = "#C0C0C0")}>
-                <span style={{ color: "#00AAFF" }}><PhoneIcon /></span> 01205756024
+                style={{ color: "#667788", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "color 0.3s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#00AAFF")} onMouseLeave={e => (e.currentTarget.style.color = "#667788")}>
+                <span style={{ width: 36, height: 36, borderRadius: "8px", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#00AAFF", flexShrink: 0 }}><PhoneIcon /></span>
+                01205756024
               </a>
               <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
-                style={{ color: "#C0C0C0", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.6rem", transition: "color 0.3s" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#25D366")} onMouseLeave={e => (e.currentTarget.style.color = "#C0C0C0")}>
-                <span style={{ color: "#25D366" }}><WhatsAppIcon /></span> واتساب: 01205756024
+                style={{ color: "#667788", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "color 0.3s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#25D366")} onMouseLeave={e => (e.currentTarget.style.color = "#667788")}>
+                <span style={{ width: 36, height: 36, borderRadius: "8px", background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#25D366", flexShrink: 0 }}><WhatsAppIcon /></span>
+                واتساب: 01205756024
               </a>
-              <div style={{ color: "#C0C0C0", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <span style={{ color: "#C9A84C" }}><LocationIcon /></span> مرسى مطروح، مصر
+              <div style={{ color: "#667788", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <span style={{ width: 36, height: 36, borderRadius: "8px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9A84C", flexShrink: 0 }}><LocationIcon /></span>
+                مرسى مطروح، مصر
+              </div>
+
+              {/* Working hours */}
+              <div style={{ marginTop: "0.25rem", background: "rgba(0,170,255,0.05)", border: "1px solid rgba(0,170,255,0.12)", borderRadius: "10px", padding: "0.85rem 1rem" }}>
+                <div style={{ color: "#00AAFF", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.4rem" }}>⏰ ساعات العمل</div>
+                <div style={{ color: "#667788", fontSize: "0.78rem", lineHeight: 1.9 }}>
+                  السبت – الخميس: ٨ ص – ١٠ م<br />
+                  الجمعة: ١٠ ص – ١٠ م
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Developer Contact */}
-          <div>
-            <h4 style={{ color: "#00AAFF", fontWeight: 700, fontSize: "1rem", marginBottom: "1.25rem" }}>للتواصل مع المطور</h4>
-            <p style={{ color: "#C0C0C0", fontSize: "0.82rem", lineHeight: 1.7, marginBottom: "1rem" }}>
-              هل تريد موقعاً مثل هذا لمشروعك؟ تواصل معنا الآن وسنبني لك تجربة رقمية احترافية.
-            </p>
-            <a href="https://wa.me/201007752842?text=مرحباً، رأيت موقع DR Travel وأريد الاستفسار عن تصميم موقع مشابه"
-              target="_blank" rel="noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "linear-gradient(135deg, #25D366, #128C4E)", color: "white", padding: "0.65rem 1.25rem", borderRadius: "50px", fontWeight: 700, fontSize: "0.85rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", boxShadow: "0 4px 16px rgba(37,211,102,0.3)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(37,211,102,0.45)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(37,211,102,0.3)"; }}>
-              <WhatsAppIcon /> تواصل مع المطور
-            </a>
-          </div>
-
         </div>
 
+        {/* Gradient divider */}
+        <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(0,170,255,0.25), transparent)", marginBottom: "1.5rem" }} />
+
         {/* Bottom bar */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "1.25rem 0", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-          <p style={{ color: "#555", fontSize: "0.8rem", margin: 0 }}>© 2026 DR Travel — جميع الحقوق محفوظة</p>
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {["💳 Visa", "💳 Mastercard", "💳 Meeza"].map(p => (
-              <span key={p} style={{ color: "#555", fontSize: "0.8rem", background: "rgba(255,255,255,0.05)", padding: "0.3rem 0.7rem", borderRadius: "6px" }}>{p}</span>
-            ))}
-          </div>
-          <span style={{ color: "#555", fontSize: "0.8rem" }}></span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+          <p style={{ color: "#445566", fontSize: "0.78rem", margin: 0 }}>© 2026 DR Travel — جميع الحقوق محفوظة</p>
+          <button onClick={scrollToTop}
+            style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.25)", color: "#00AAFF", width: 36, height: 36, borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", transition: "all 0.3s", flexShrink: 0 }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
+            title="العودة للأعلى">↑</button>
+        </div>
+      </div>
+
+      {/* Developer credit strip */}
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.25)", padding: "0.9rem 1.5rem" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+          <span style={{ color: "#334455", fontSize: "0.75rem" }}>تصميم وتطوير الموقع</span>
+          <a
+            href="https://wa.me/201007752842?text=مرحباً، شفت موقع DR Travel وعايز أستفسر عن تصميم موقع 🙌"
+            target="_blank" rel="noreferrer"
+            style={{ color: "#25D366", textDecoration: "none", fontSize: "0.75rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem", border: "1px solid rgba(37,211,102,0.2)", borderRadius: "20px", padding: "0.2rem 0.75rem", background: "rgba(37,211,102,0.07)", transition: "all 0.3s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.15)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(37,211,102,0.4)"; (e.currentTarget as HTMLElement).style.transform = "scale(1.04)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.07)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(37,211,102,0.2)"; (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            تواصل مع المطور
+          </a>
         </div>
       </div>
     </footer>
