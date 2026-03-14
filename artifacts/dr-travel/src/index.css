@@ -258,7 +258,7 @@
   overflow: hidden;
   transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
 }
-.booking-panel.open { max-height: 1200px; opacity: 1; }
+.booking-panel.open { max-height: 2500px; opacity: 1; }
 .booking-panel.closed { max-height: 0; opacity: 0; }
 
 /* ===== FORM INPUTS ===== */
@@ -365,31 +365,20 @@
   .section-title { font-size: 1.7rem; }
   .hero-title { font-size: 2.2rem !important; }
 
-  /* Booking panel: stack form + summary vertically */
-  .booking-panel-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Name + Phone: single column */
-  .booking-name-phone-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* People grid: 3 cols still OK on mobile — keep it */
-  .booking-people-grid {
-    grid-template-columns: 1fr 1fr 1fr !important;
-  }
+  /* Reduce section padding on mobile */
+  section { padding-left: 1rem !important; padding-right: 1rem !important; }
 
   /* Package cards: full width on small mobile */
-  .pkg-card {
-    min-width: 0;
-  }
+  .pkg-card { min-width: 0; }
 
   /* Footer grid: single column */
   .footer-grid {
     grid-template-columns: 1fr !important;
     gap: 2rem !important;
   }
+
+  /* Section subtitle narrower on mobile */
+  .section-subtitle { font-size: 0.9rem !important; }
 }
 
 /* ===== WABUTTON ===== */

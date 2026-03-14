@@ -400,7 +400,14 @@ function PackagesAndBooking() {
   const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const bookingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const today = new Date().toISOString().split("T")[0];
   const estimatedPrice = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
@@ -502,7 +509,7 @@ function PackagesAndBooking() {
 
         {/* Booking panel — slides open */}
         <div id="booking" ref={bookingRef} className={`booking-panel ${selectedPkg ? "open" : "closed"}`}>
-          <div style={{ marginTop: "2rem", background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "24px", padding: "2.5rem" }}>
+          <div style={{ marginTop: "2rem", background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "20px", padding: isMobile ? "1.25rem" : "2.5rem" }}>
             {selectedPkg && (
               <>
                 {/* Panel header */}
@@ -524,10 +531,10 @@ function PackagesAndBooking() {
                 </div>
 
                 {/* Two columns: form + summary */}
-                <div className="booking-panel-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "start" }}>
-                  <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "1.1rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: isMobile ? "1.5rem" : "2rem", alignItems: "start" }}>
+                  <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "1rem" }}>
                     {/* Name + Phone */}
-                    <div className="booking-name-phone-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0.85rem" }}>
                       <div>
                         <label style={{ display: "block", color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>الاسم الكامل *</label>
                         <input type="text" {...inp("name")} placeholder="محمد أحمد" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
@@ -548,7 +555,7 @@ function PackagesAndBooking() {
                     </div>
 
                     {/* People */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr", gap: "0.75rem" }}>
                       {[{ label: "بالغون *", key: "adults", min: "1" }, { label: "أطفال (٦-١٢)", key: "children", min: "0" }, { label: "رضع (٠-٥)", key: "infants", min: "0" }].map(f => (
                         <div key={f.key}>
                           <label style={{ display: "block", color: "#8899aa", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.4rem" }}>{f.label}</label>
@@ -574,7 +581,7 @@ function PackagesAndBooking() {
                   </form>
 
                   {/* Summary sidebar */}
-                  <div style={{ minWidth: "200px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "16px", padding: "1.5rem" }}>
+                  <div style={{ width: isMobile ? "100%" : "210px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "16px", padding: "1.25rem" }}>
                     <div style={{ color: "#8899aa", fontSize: "0.75rem", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>ملخص الحجز</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                       {selectedPkg.includes.map((item, i) => (
