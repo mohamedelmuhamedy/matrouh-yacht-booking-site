@@ -326,10 +326,12 @@ function Hero() {
           </div>
         </FadeInSection>
 
-        {/* Scroll indicator */}
-        <div style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.35rem", opacity: 0.4, animation: "float 2s ease-in-out infinite" }}>
-          <div style={{ fontSize: "0.7rem", color: "white", letterSpacing: "2px" }}>SCROLL</div>
-          <div style={{ width: "1px", height: "40px", background: "linear-gradient(to bottom, white, transparent)" }} />
+      </div>
+
+      {/* Scroll indicator — fixed to bottom of section */}
+      <div style={{ position: "absolute", bottom: "2.5rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5 }}>
+        <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
+          <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
         </div>
       </div>
 
@@ -712,6 +714,84 @@ function Reviews() {
   );
 }
 
+// ===== LOCATION =====
+function Location() {
+  return (
+    <section id="location" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+        <FadeInSection>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <div className="section-label">✦ موقعنا</div>
+            <h2 className="section-title">تعالى لينا في مرسى مطروح</h2>
+            <p className="section-subtitle">هتلاقينا في قلب مرسى مطروح — أجمل مدينة ساحلية على البحر الأبيض المتوسط</p>
+          </div>
+        </FadeInSection>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", alignItems: "stretch" }}>
+          {/* Map embed */}
+          <FadeInSection>
+            <div style={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,170,255,0.15)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", height: "380px" }}>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d54706.04623631744!2d27.184556!3d31.352747!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14be5f42f68b4d61%3A0x22c14a2c29ea2a83!2sMersa%20Matruh%2C%20Egypt!5e0!3m2!1sen!2s!4v1700000000000"
+                width="100%" height="100%" style={{ border: 0, display: "block" }}
+                allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                title="موقع مرسى مطروح"
+              />
+            </div>
+          </FadeInSection>
+
+          {/* Info cards */}
+          <FadeInSection delay={150}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", height: "100%" }}>
+              {/* City intro */}
+              <div style={{ background: "rgba(0,170,255,0.05)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "16px", padding: "1.5rem", flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "12px", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>📍</div>
+                  <div>
+                    <div style={{ color: "white", fontWeight: 800, fontSize: "1rem" }}>مرسى مطروح</div>
+                    <div style={{ color: "#667788", fontSize: "0.78rem" }}>شمال غرب مصر — البحر الأبيض المتوسط</div>
+                  </div>
+                </div>
+                <p style={{ color: "#8899aa", fontSize: "0.85rem", lineHeight: 1.9, margin: 0 }}>
+                  مرسى مطروح هي جوهرة الساحل الشمالي المصري — بمياهها الفيروزية الصافية ورمالها البيضاء الناعمة. وجهة أحلام كل من يبحث عن الطبيعة الخلابة والمغامرة الحقيقية.
+                </p>
+              </div>
+
+              {/* Distance info */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                {[
+                  { icon: "🏙️", label: "من القاهرة", value: "٥٠٠ كم", sub: "~٥ ساعات بالسيارة" },
+                  { icon: "✈️", label: "من الإسكندرية", value: "٢٨٠ كم", sub: "~٣ ساعات بالسيارة" },
+                ].map((item, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1rem", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{item.icon}</div>
+                    <div style={{ color: "#667788", fontSize: "0.72rem", marginBottom: "0.2rem" }}>{item.label}</div>
+                    <div style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1rem" }}>{item.value}</div>
+                    <div style={{ color: "#445566", fontSize: "0.68rem", marginTop: "0.15rem" }}>{item.sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <a href="https://maps.app.goo.gl/marsamatruh" target="_blank" rel="noreferrer"
+                style={{ background: "linear-gradient(135deg,rgba(0,170,255,0.1),rgba(0,170,255,0.05))", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "14px", padding: "1rem 1.5rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem", transition: "all 0.3s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.12)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.4)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "linear-gradient(135deg,rgba(0,170,255,0.1),rgba(0,170,255,0.05))"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.25)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+                <span style={{ fontSize: "1.25rem" }}>🗺️</span>
+                <div>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem" }}>افتح الخريطة</div>
+                  <div style={{ color: "#667788", fontSize: "0.75rem" }}>Google Maps — مرسى مطروح</div>
+                </div>
+                <span style={{ color: "#00AAFF", marginRight: "auto", fontSize: "1rem" }}>←</span>
+              </a>
+            </div>
+          </FadeInSection>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ===== FOOTER =====
 function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -856,6 +936,7 @@ export default function App() {
       <PackagesAndBooking />
       <WhyUs />
       <Reviews />
+      <Location />
       <Footer />
       <WhatsAppFloat />
     </div>

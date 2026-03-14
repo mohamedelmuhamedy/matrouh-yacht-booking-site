@@ -330,6 +330,7 @@
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes scrollRTL { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } }
+@keyframes scrollDot { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(14px); opacity: 0.3; } }
 
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-pulse-green { animation: pulse-green 2.5s infinite; }
