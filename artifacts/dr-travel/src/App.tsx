@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
+import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
+import CurrencySwitcher from "./components/CurrencySwitcher";
+import CompareModal from "./components/CompareModal";
+import AIAssistant from "./components/AIAssistant";
+import ReferralSection from "./components/ReferralSection";
+import PackageDetail from "./pages/PackageDetail";
+import { PACKAGES_DATA } from "./data/packages";
+import { formatPrice } from "./data/currencies";
+import { usePersonalization } from "./hooks/usePersonalization";
 
 const AVATAR_COLORS = [
   "linear-gradient(135deg,#00AAFF,#0066cc)", "linear-gradient(135deg,#C9A84C,#9a6e1c)",
@@ -195,6 +205,7 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            <CurrencySwitcher />
             <LangSwitcher />
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.55rem 1.25rem", borderRadius: "50px", fontWeight: 700, fontSize: "0.85rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.4rem", transition: "all 0.3s", boxShadow: "0 4px 16px rgba(37,211,102,0.3)" }}
@@ -205,9 +216,10 @@ function Navbar() {
           </div>
         )}
 
-        {/* Mobile: lang switcher + hamburger */}
+        {/* Mobile: currency + lang switcher + hamburger */}
         {isMobile && (
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <CurrencySwitcher />
             <LangSwitcher />
             <button onClick={() => setMenuOpen(!menuOpen)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
@@ -359,9 +371,118 @@ function Services() {
   );
 }
 
+// ===== PERSONALIZED SECTION =====
+function PersonalizedSection() {
+  const { lang } = useLanguage();
+  const { currency } = useCurrency();
+  const { data, isFirstVisit, hasViewedPackages } = usePersonalization();
+  const [, navigate] = useLocation();
+  const ar = lang === "ar";
+
+  const viewedPackages = data.viewedPackages.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
+  const popularPackages = PACKAGES_DATA.filter(p => p.popular || p.featured);
+  const familyPackages = PACKAGES_DATA.filter(p => p.familyFriendly);
+  const foreignerPackages = PACKAGES_DATA.filter(p => p.foreignerFriendly);
+
+  const sections = [];
+
+  if (hasViewedPackages) {
+    sections.push({
+      title: ar ? "آخر ما شاهدته" : "Recently Viewed",
+      icon: "👁️",
+      packages: viewedPackages,
+    });
+  }
+
+  if (data.lastCategory) {
+    const catPkgs = PACKAGES_DATA.filter(p => p.category === data.lastCategory && !data.viewedPackages.includes(p.id));
+    if (catPkgs.length > 0) sections.push({ title: ar ? "باقات مشابهة لاهتمامك" : "Based on Your Interest", icon: "🎯", packages: catPkgs });
+  }
+
+  sections.push({ title: ar ? "الأكثر طلباً" : "Most Popular", icon: "🏆", packages: popularPackages });
+
+  if (lang === "en") {
+    sections.push({ title: "Great for Foreign Visitors", icon: "🌍", packages: foreignerPackages });
+  } else {
+    sections.push({ title: "مثالية للعائلات", icon: "👨‍👩‍👧‍👦", packages: familyPackages });
+  }
+
+  const displaySections = sections.slice(0, 2);
+  if (displaySections.length === 0 || (displaySections.every(s => s.packages.length === 0))) return null;
+
+  return (
+    <section style={{ padding: "3rem 1.5rem 0", background: "linear-gradient(180deg,#0a1520 0%,#0a1520 100%)" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        {isFirstVisit && (
+          <div style={{ background: "rgba(0,170,255,0.06)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "14px", padding: "1rem 1.5rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>👋</span>
+            <div>
+              <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem" }}>{ar ? "أهلاً بك في DR Travel!" : "Welcome to DR Travel!"}</div>
+              <div style={{ color: "#667788", fontSize: "0.8rem" }}>{ar ? "اكتشف أفضل باقاتنا السياحية في مرسى مطروح" : "Discover our best tourism packages in Marsa Matruh"}</div>
+            </div>
+          </div>
+        )}
+        {displaySections.filter(s => s.packages.length > 0).map((section, si) => (
+          <div key={si} style={{ marginBottom: "2rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+              <span style={{ fontSize: "1.1rem" }}>{section.icon}</span>
+              <h3 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", margin: 0 }}>{section.title}</h3>
+            </div>
+            <div style={{ display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
+              {section.packages.slice(0, 4).map(pkg => (
+                <button key={pkg.id} onClick={() => navigate(`/packages/${pkg.slug}`)}
+                  style={{ flexShrink: 0, background: `${pkg.color}08`, border: `1px solid ${pkg.color}22`, borderRadius: "14px", padding: "1rem", cursor: "pointer", textAlign: "inherit", fontFamily: "Cairo, sans-serif", width: "180px", transition: "all 0.3s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}44`; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}22`; }}>
+                  <div style={{ fontSize: "1.75rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, marginBottom: "0.3rem" }}>{ar ? pkg.titleAr : pkg.titleEn}</div>
+                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{formatPrice(pkg.priceEGP, currency, lang)}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ===== COMPARE BAR =====
+function CompareBar({ compareIds, onOpen, onClear, lang }: { compareIds: number[]; onOpen: () => void; onClear: () => void; lang: string }) {
+  if (compareIds.length === 0) return null;
+  const ar = lang === "ar";
+  const pkgs = compareIds.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
+  return (
+    <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "rgba(8,16,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,170,255,0.25)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, flexWrap: "wrap" }}>
+        <span style={{ color: "#667788", fontSize: "0.82rem", flexShrink: 0 }}>
+          {ar ? `${compareIds.length} باقات للمقارنة` : `${compareIds.length} packages to compare`}
+        </span>
+        {pkgs.map(p => (
+          <span key={p.id} style={{ background: `${p.color}15`, border: `1px solid ${p.color}30`, color: p.color, padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 700 }}>
+            {p.icon} {ar ? p.titleAr : p.titleEn}
+          </span>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+        <button onClick={onClear}
+          style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#667788", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+          {ar ? "مسح" : "Clear"}
+        </button>
+        <button onClick={onOpen}
+          style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.55rem 1.5rem", borderRadius: "10px", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.88rem" }}>
+          {ar ? "قارن الآن" : "Compare Now"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ===== PACKAGES + BOOKING =====
 function PackagesAndBooking() {
   const { t, lang } = useLanguage();
+  const { currency } = useCurrency();
+  const [, navigate] = useLocation();
   const PACKAGES = t.packages.items;
   type PkgType = typeof PACKAGES[0];
 
@@ -370,7 +491,23 @@ function PackagesAndBooking() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [compareIds, setCompareIds] = useState<number[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
   const bookingRef = useRef<HTMLDivElement>(null);
+
+  const toggleCompare = (pkgId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCompareIds(prev =>
+      prev.includes(pkgId) ? prev.filter(id => id !== pkgId) : prev.length < 3 ? [...prev, pkgId] : prev
+    );
+  };
+
+  const viewDetails = (slug: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/packages/${slug}`);
+  };
+
+  const comparePkgData = compareIds.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -432,44 +569,83 @@ function PackagesAndBooking() {
 
         {/* Package cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: "1.25rem" }}>
-          {PACKAGES.map((pkg, i) => (
-            <FadeInSection key={pkg.id} delay={i * 80}>
-              <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`} onClick={() => selectPkg(pkg)}>
-                {pkg.badge && (
-                  <div style={{ position: "absolute", top: "1rem", left: "1rem", background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 800 }}>
-                    {pkg.badge}
+          {PACKAGES.map((pkg, i) => {
+            const pkgData = PACKAGES_DATA.find(p => p.id === pkg.id);
+            const inCompare = compareIds.includes(pkg.id);
+            const whyTrip = pkgData ? (lang === "ar" ? pkgData.whyThisTripAr : pkgData.whyThisTripEn) : [];
+            return (
+              <FadeInSection key={pkg.id} delay={i * 80}>
+                <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`} onClick={() => selectPkg(pkg)}>
+                  {pkg.badge && (
+                    <div style={{ position: "absolute", top: "1rem", insetInlineStart: "1rem", background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 800 }}>
+                      {pkg.badge}
+                    </div>
+                  )}
+                  {selectedPkg?.id === pkg.id && (
+                    <div style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", width: 26, height: 26, borderRadius: "50%", background: pkg.featured ? "#C9A84C" : "#00AAFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CheckIcon />
+                    </div>
+                  )}
+                  <div style={{ paddingTop: pkg.badge ? "1.75rem" : "0.25rem", textAlign: "center", marginBottom: "1.25rem" }}>
+                    <div style={{ fontSize: "2.75rem", marginBottom: "0.75rem" }}>{pkg.icon}</div>
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", marginBottom: "0.4rem" }}>{pkg.name}</h3>
+                    <p style={{ color: "#667788", fontSize: "0.82rem", lineHeight: 1.6 }}>{pkg.desc}</p>
                   </div>
-                )}
-                {selectedPkg?.id === pkg.id && (
-                  <div style={{ position: "absolute", top: "1rem", right: "1rem", width: 26, height: 26, borderRadius: "50%", background: pkg.featured ? "#C9A84C" : "#00AAFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <CheckIcon />
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {pkg.includes.map((item, j) => (
+                      <li key={j} style={{ color: "#99aabb", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", flexShrink: 0, display: "flex" }}><CheckIcon /></span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Why this trip — mini */}
+                  {whyTrip.length > 0 && (
+                    <div style={{ background: "rgba(255,255,255,0.02)", borderRadius: "10px", padding: "0.65rem 0.85rem", marginBottom: "1rem" }}>
+                      <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                        {lang === "ar" ? "لماذا هذه الرحلة؟" : "Why this trip?"}
+                      </div>
+                      {whyTrip.slice(0, 2).map((w, wi) => (
+                        <div key={wi} style={{ color: "#667788", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.2rem" }}>
+                          <span style={{ fontSize: "0.8rem" }}>{w.icon}</span> {w.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                      <div>
+                        <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
+                        <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>
+                          {formatPrice(pkg.priceNum, currency, lang)}
+                        </div>
+                      </div>
+                      <div onClick={e => selectPkg(pkg)} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+                        {selectedPkg?.id === pkg.id ? t.packages.selectedBtn : t.packages.selectBtn}
+                      </div>
+                    </div>
+                    {/* Action buttons row */}
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      {pkgData && (
+                        <button onClick={e => viewDetails(pkgData.slug, e)}
+                          style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#aabbcc"; }}>
+                          🔍 {lang === "ar" ? "التفاصيل" : "Details"}
+                        </button>
+                      )}
+                      <button onClick={e => toggleCompare(pkg.id, e)}
+                        style={{ flex: 1, background: inCompare ? `${pkg.color}20` : "rgba(255,255,255,0.04)", border: `1px solid ${inCompare ? `${pkg.color}50` : "rgba(255,255,255,0.1)"}`, color: inCompare ? pkg.color : "#aabbcc", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}>
+                        {inCompare ? "✓" : "⇆"} {lang === "ar" ? "قارن" : "Compare"}
+                      </button>
+                    </div>
                   </div>
-                )}
-                <div style={{ paddingTop: pkg.badge ? "1.75rem" : "0.25rem", textAlign: "center", marginBottom: "1.25rem" }}>
-                  <div style={{ fontSize: "2.75rem", marginBottom: "0.75rem" }}>{pkg.icon}</div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", marginBottom: "0.4rem" }}>{pkg.name}</h3>
-                  <p style={{ color: "#667788", fontSize: "0.82rem", lineHeight: 1.6 }}>{pkg.desc}</p>
                 </div>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {pkg.includes.map((item, j) => (
-                    <li key={j} style={{ color: "#99aabb", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", flexShrink: 0, display: "flex" }}><CheckIcon /></span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
-                    <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>{pkg.price}</div>
-                  </div>
-                  <div style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
-                    {selectedPkg?.id === pkg.id ? t.packages.selectedBtn : t.packages.selectBtn}
-                  </div>
-                </div>
-              </div>
-            </FadeInSection>
-          ))}
+              </FadeInSection>
+            );
+          })}
         </div>
 
         {/* Booking panel */}
@@ -580,6 +756,15 @@ function PackagesAndBooking() {
           </div>
         </div>
       </div>
+
+      {/* Compare bar */}
+      <CompareBar compareIds={compareIds} onOpen={() => setShowCompare(true)} onClear={() => setCompareIds([])} lang={lang} />
+
+      {/* Compare modal */}
+      {showCompare && comparePkgData.length > 0 && (
+        <CompareModal packages={comparePkgData} onClose={() => setShowCompare(false)}
+          onBook={(pkg) => { setShowCompare(false); const tpkg = PACKAGES.find(p => p.id === pkg.id); if (tpkg) selectPkg(tpkg); }} />
+      )}
 
       {/* Success modal */}
       {showModal && (
@@ -828,8 +1013,8 @@ function WhatsAppFloat() {
   );
 }
 
-// ===== INNER APP (uses context) =====
-function AppInner() {
+// ===== HOME PAGE =====
+function HomePage() {
   const { t } = useLanguage();
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
@@ -838,11 +1023,26 @@ function AppInner() {
       <Hero />
       <StatsBar />
       <Services />
+      <PersonalizedSection />
       <PackagesAndBooking />
       <WhyUs />
       <Reviews />
+      <ReferralSection />
       <Footer />
       <WhatsAppFloat />
+      <AIAssistant />
+    </div>
+  );
+}
+
+// ===== DETAIL PAGE WRAPPER =====
+function DetailPageWrapper() {
+  const { t } = useLanguage();
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+      <Navbar />
+      <PackageDetail />
+      <AIAssistant />
     </div>
   );
 }
@@ -851,7 +1051,12 @@ function AppInner() {
 export default function App() {
   return (
     <LanguageProvider>
-      <AppInner />
+      <CurrencyProvider>
+        <Switch>
+          <Route path="/packages/:slug" component={DetailPageWrapper} />
+          <Route component={HomePage} />
+        </Switch>
+      </CurrencyProvider>
     </LanguageProvider>
   );
 }

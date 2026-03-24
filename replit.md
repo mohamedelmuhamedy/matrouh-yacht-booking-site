@@ -95,13 +95,22 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 
 Frontend-only React + Vite tourism website for DR Travel (Marsa Matruh, Egypt).
 
-- Fully bilingual: Arabic (RTL) and English (LTR) with auto-detection from browser language
-- Language system: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
-- Translation files: `src/translations/ar.ts` and `src/translations/en.ts` — add new languages by creating a new file matching the `Translations` type from `ar.ts`
-- All text including packages, services, reviews, booking form, navbar, footer is translated
-- Features: glassmorphism design, scroll progress bar, package cards with inline booking panel, WhatsApp integration (01205756024), auto-scrolling reviews, animated counters
-- Colors: navy #0D1B2A, blue #00AAFF, gold #C9A84C
-- Fonts: Cairo (Arabic), Montserrat (brand)
+- **Routing**: `wouter` v3 — `/` (HomePage), `/packages/:slug` (PackageDetail)
+- **Bilingual**: Arabic (RTL) and English (LTR) with auto-detection from browser language
+- **Language system**: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
+- **Translation files**: `src/translations/ar.ts` and `src/translations/en.ts` — `Translations` type is `typeof ar` with `dir: "rtl" | "ltr"`
+- **Multi-currency**: EGP / USD / SAR — `src/data/currencies.ts` (rates, symbols, formatPrice), `src/context/CurrencyContext.tsx`, `src/components/CurrencySwitcher.tsx` in navbar
+- **Rich package data**: `src/data/packages.ts` — `PackageData` interface with slugs, itineraries, why-this-trip reasons, FAQs, what-to-bring, cancellation policy; 4 packages (full-safari, luxury-yacht, aqua-park, family-adventure)
+- **Package Detail pages**: `src/pages/PackageDetail.tsx` — hero images, itinerary timeline, includes/excludes, FAQ accordion, sticky booking sidebar with WhatsApp Inquiry CTA
+- **Personalization**: `src/hooks/usePersonalization.ts` (recently viewed via localStorage), `PersonalizedSection` component showing recently viewed + recommended packages
+- **Package comparison**: `src/components/CompareModal.tsx` (side-by-side grid up to 3), `CompareBar` sticky bottom; compare toggle per card
+- **AI Travel Assistant**: `src/components/AIAssistant.tsx` — 5-step rule-based flow (group type → children → budget → trip type → foreigner); floating robot button; recommends top 2 packages
+- **Referral/Loyalty**: `src/components/ReferralSection.tsx` — 3 tiers (New/Premium/VIP), referral code generator in localStorage, mock balance display
+- **"Why This Trip?"**: Per-package data + mini-section on cards + full section on detail page
+- **Design**: glassmorphism, scroll progress bar, auto-scrolling reviews, animated counters; WhatsApp integration (01205756024)
+- **Colors**: navy #0D1B2A, blue #00AAFF, gold #C9A84C
+- **Fonts**: Cairo (Arabic), Montserrat (brand)
+- **Social**: Facebook (Drtrave), Instagram (drtravel_marsamatrouh), TikTok (@drtravel.marsa.matrouh)
 
 ### `scripts` (`@workspace/scripts`)
 

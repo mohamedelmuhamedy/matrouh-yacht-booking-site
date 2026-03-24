@@ -1,5 +1,5 @@
 export const ar = {
-  dir: "rtl" as const,
+  dir: "rtl" as "rtl" | "ltr",
   lang: "ar",
   fontFamily: "Cairo, sans-serif",
 
