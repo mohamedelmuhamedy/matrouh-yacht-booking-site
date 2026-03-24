@@ -91,6 +91,18 @@ Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used b
 
 Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
 
+### `artifacts/dr-travel` (`@workspace/dr-travel`)
+
+Frontend-only React + Vite tourism website for DR Travel (Marsa Matruh, Egypt).
+
+- Fully bilingual: Arabic (RTL) and English (LTR) with auto-detection from browser language
+- Language system: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
+- Translation files: `src/translations/ar.ts` and `src/translations/en.ts` — add new languages by creating a new file matching the `Translations` type from `ar.ts`
+- All text including packages, services, reviews, booking form, navbar, footer is translated
+- Features: glassmorphism design, scroll progress bar, package cards with inline booking panel, WhatsApp integration (01205756024), auto-scrolling reviews, animated counters
+- Colors: navy #0D1B2A, blue #00AAFF, gold #C9A84C
+- Fonts: Cairo (Arabic), Montserrat (brand)
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

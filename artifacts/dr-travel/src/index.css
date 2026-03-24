@@ -32,7 +32,6 @@
     font-family: 'Cairo', sans-serif;
     background: #0D1B2A;
     color: #ffffff;
-    direction: rtl;
     overflow-x: hidden;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
@@ -272,7 +271,7 @@
   font-family: 'Cairo', sans-serif;
   font-size: 0.95rem;
   transition: all 0.25s ease;
-  direction: rtl;
+  direction: inherit;
   outline: none;
   appearance: none;
 }
