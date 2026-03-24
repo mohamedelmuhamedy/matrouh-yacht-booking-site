@@ -331,6 +331,10 @@
 @keyframes scrollRTL { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } }
 @keyframes scrollDot { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(14px); opacity: 0.3; } }
 
+/* Reviews carousel — scrollRight moves content left, scrollLeft moves content right */
+@keyframes scrollRight { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes scrollLeft  { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-pulse-green { animation: pulse-green 2.5s infinite; }
 
@@ -349,6 +353,18 @@
   width: max-content;
   will-change: transform;
   animation: scrollRTL 60s linear infinite;
+}
+
+/* Smooth infinite loop tracks — always ltr so translateX works correctly */
+.reviews-tracks-wrap { direction: ltr; }
+.reviews-track {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  will-change: transform;
+}
+@media (hover: hover) {
+  .reviews-track:hover { animation-play-state: paused; }
 }
 
 /* ===== SCROLLBAR ===== */

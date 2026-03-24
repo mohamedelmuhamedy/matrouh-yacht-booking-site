@@ -867,13 +867,13 @@ function Reviews() {
         </FadeInSection>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", overflow: "hidden" }}>
-        {/* Row 1: scroll right */}
-        <div ref={track1Ref} className="reviews-track" style={{ display: "flex", gap: "1.25rem", paddingInline: "1.5rem", animation: "scrollRight 60s linear infinite" }}>
+      <div className="reviews-tracks-wrap" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", overflow: "hidden" }}>
+        {/* Row 1: content scrolls left (scrollRight animation) — seamless via item duplication */}
+        <div ref={track1Ref} className="reviews-track" style={{ paddingInline: "1.5rem", animation: "scrollRight 50s linear infinite" }}>
           {[...row1, ...row1].map((r, i) => <ReviewCard key={i} review={r} colorIndex={i} />)}
         </div>
-        {/* Row 2: scroll left */}
-        <div ref={track2Ref} className="reviews-track" style={{ display: "flex", gap: "1.25rem", paddingInline: "1.5rem", animation: "scrollLeft 55s linear infinite" }}>
+        {/* Row 2: content scrolls right (scrollLeft animation) — seamless via item duplication */}
+        <div ref={track2Ref} className="reviews-track" style={{ paddingInline: "1.5rem", animation: "scrollLeft 45s linear infinite" }}>
           {[...row2, ...row2].map((r, i) => <ReviewCard key={i} review={r} colorIndex={i + 4} />)}
         </div>
       </div>

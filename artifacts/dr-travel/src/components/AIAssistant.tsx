@@ -190,19 +190,19 @@ export default function AIAssistant() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button — always bottom-right (physical), opposite side from WhatsApp (bottom-left) */}
       <button
         onClick={() => setOpen(!open)}
-        style={{ position: "fixed", bottom: "5.5rem", insetInlineEnd: "1.5rem", zIndex: 998, width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(99,102,241,0.5)", transition: "all 0.3s", fontSize: "1.4rem" }}
+        style={{ position: "fixed", bottom: "2rem", right: "1.5rem", zIndex: 998, width: 60, height: 60, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 24px rgba(99,102,241,0.55)", transition: "all 0.3s", fontSize: "1.5rem" }}
         title={T.title}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.12) rotate(5deg)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(99,102,241,0.7)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1) rotate(0deg)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(99,102,241,0.55)"; }}>
         {open ? "✕" : "🤖"}
       </button>
 
-      {/* Chat window */}
+      {/* Chat window — anchored to bottom-right above the button */}
       {open && (
-        <div style={{ position: "fixed", bottom: "10rem", insetInlineEnd: "1.5rem", zIndex: 997, width: "min(360px, calc(100vw - 2rem))", background: "#0a1520", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", display: "flex", flexDirection: "column", maxHeight: "520px" }}>
+        <div style={{ position: "fixed", bottom: "5.5rem", right: "1.5rem", zIndex: 997, width: "min(360px, calc(100vw - 2rem))", background: "#0a1520", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", display: "flex", flexDirection: "column", maxHeight: "520px" }}>
 
           {/* Header */}
           <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1))", borderRadius: "20px 20px 0 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
