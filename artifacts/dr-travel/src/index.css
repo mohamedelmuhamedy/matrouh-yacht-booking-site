@@ -212,11 +212,12 @@
   border: 2px solid rgba(255,255,255,0.08);
   border-radius: 24px;
   padding: 2rem;
-  cursor: pointer;
+  cursor: default;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
+/* CRITICAL: pointer-events:none ensures the overlay never blocks button clicks */
 .pkg-card::after {
   content: '';
   position: absolute;
@@ -225,6 +226,14 @@
   background: linear-gradient(135deg, rgba(0,170,255,0.04) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.35s;
+  pointer-events: none;
+}
+/* Ensure all interactive elements inside cards are always clickable */
+.pkg-card button,
+.pkg-card a {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 .pkg-card:hover {
   border-color: rgba(0,170,255,0.4);
