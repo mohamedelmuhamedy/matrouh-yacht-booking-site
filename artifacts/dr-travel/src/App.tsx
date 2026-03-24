@@ -6,8 +6,8 @@ import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
 import CurrencySwitcher from "./components/CurrencySwitcher";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
-import ReferralSection from "./components/ReferralSection";
 import PackageDetail from "./pages/PackageDetail";
+import RewardsPage from "./pages/RewardsPage";
 import { PACKAGES_DATA } from "./data/packages";
 import { formatPrice } from "./data/currencies";
 import { usePersonalization } from "./hooks/usePersonalization";
@@ -146,10 +146,12 @@ function LangSwitcher() {
 // ===== NAVBAR =====
 function Navbar() {
   const { t, lang } = useLanguage();
+  const [, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeSection, setActiveSection] = useState("#hero");
+  const ar = lang === "ar";
 
   const navLinks = [
     { label: t.nav.home, href: "#hero" },
@@ -205,6 +207,12 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            {/* Rewards page link */}
+            <button onClick={() => navigate("/rewards")}
+              className="nav-link"
+              style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
+              🎁 {ar ? "المكافآت" : "Rewards"}
+            </button>
             <CurrencySwitcher />
             <LangSwitcher />
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
@@ -235,7 +243,7 @@ function Navbar() {
 
       {/* Mobile menu */}
       {isMobile && (
-        <div style={{ overflow: "hidden", maxHeight: menuOpen ? "400px" : "0", transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)", background: "rgba(8,16,26,0.98)", backdropFilter: "blur(20px)" }}>
+        <div style={{ overflow: "hidden", maxHeight: menuOpen ? "500px" : "0", transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)", background: "rgba(8,16,26,0.98)", backdropFilter: "blur(20px)" }}>
           <div style={{ padding: "0.75rem 1.5rem 1.25rem", borderTop: "1px solid rgba(0,170,255,0.15)" }}>
             {navLinks.map(link => (
               <button key={link.href} onClick={() => scrollTo(link.href)}
@@ -243,8 +251,13 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            {/* Rewards mobile link */}
+            <button onClick={() => { navigate("/rewards"); setMenuOpen(false); }}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
+              🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
+            </button>
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "1rem", fontFamily: "Cairo, sans-serif" }}>
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "0.75rem", fontFamily: "Cairo, sans-serif" }}>
               <WhatsAppIcon /> {t.nav.whatsappMobile}
             </a>
           </div>
@@ -575,7 +588,7 @@ function PackagesAndBooking() {
             const whyTrip = pkgData ? (lang === "ar" ? pkgData.whyThisTripAr : pkgData.whyThisTripEn) : [];
             return (
               <FadeInSection key={pkg.id} delay={i * 80}>
-                <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`} onClick={() => selectPkg(pkg)}>
+                <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`}>
                   {pkg.badge && (
                     <div style={{ position: "absolute", top: "1rem", insetInlineStart: "1rem", background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 800 }}>
                       {pkg.badge}
@@ -622,9 +635,9 @@ function PackagesAndBooking() {
                           {formatPrice(pkg.priceNum, currency, lang)}
                         </div>
                       </div>
-                      <div onClick={e => selectPkg(pkg)} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+                      <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
                         {selectedPkg?.id === pkg.id ? t.packages.selectedBtn : t.packages.selectBtn}
-                      </div>
+                      </button>
                     </div>
                     {/* Action buttons row */}
                     <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -1027,7 +1040,6 @@ function HomePage() {
       <PackagesAndBooking />
       <WhyUs />
       <Reviews />
-      <ReferralSection />
       <Footer />
       <WhatsAppFloat />
       <AIAssistant />
@@ -1054,6 +1066,7 @@ export default function App() {
       <CurrencyProvider>
         <Switch>
           <Route path="/packages/:slug" component={DetailPageWrapper} />
+          <Route path="/rewards" component={RewardsPage} />
           <Route component={HomePage} />
         </Switch>
       </CurrencyProvider>
