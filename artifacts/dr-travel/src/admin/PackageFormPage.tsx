@@ -6,7 +6,7 @@ import { useToast } from "../components/Toast";
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
   longDescriptionAr: "", longDescriptionEn: "", category: "safari",
-  priceEGP: 0, maxPriceEGP: 0, durationAr: "", durationEn: "", color: "#00AAFF",
+  priceEGP: 0, maxPriceEGP: null as number | null, durationAr: "", durationEn: "", color: "#00AAFF",
   badgeAr: "", badgeEn: "", badgeColor: "#C9A84C", featured: false, popular: false,
   familyFriendly: false, foreignerFriendly: false, childrenFriendly: false,
   experienceLevel: "easy", rating: 4.5, reviewCount: 0,
@@ -20,7 +20,7 @@ const EMPTY_PKG = {
   whyThisTripAr: [] as { icon: string; text: string }[],
   whyThisTripEn: [] as { icon: string; text: string }[],
   faq: [] as { questionAr: string; questionEn: string; answerAr: string; answerEn: string }[],
-  cancellationAr: "", cancellationEn: "",
+  hasCancellationPolicy: false, cancellationAr: "", cancellationEn: "",
   includesMeals: false, includesTransport: false, includesAccommodation: false,
   minGroupSize: 1, maxGroupSize: 20, active: true, sortOrder: 0,
   status: "draft" as "draft" | "published" | "archived",
@@ -54,7 +54,7 @@ function mapApiToForm(data: Record<string, any>): FormData {
     longDescriptionEn: safeStr(data.longDescriptionEn),
     category: safeStr(data.category, "safari"),
     priceEGP: safeNum(data.priceEGP),
-    maxPriceEGP: safeNum(data.maxPriceEGP),
+    maxPriceEGP: (data.maxPriceEGP !== null && data.maxPriceEGP !== undefined && Number(data.maxPriceEGP) > 0) ? Number(data.maxPriceEGP) : null,
     durationAr: safeStr(data.durationAr),
     durationEn: safeStr(data.durationEn),
     color: safeStr(data.color, "#00AAFF"),
@@ -82,6 +82,7 @@ function mapApiToForm(data: Record<string, any>): FormData {
     whyThisTripAr: safeArr(data.whyThisTripAr) as { icon: string; text: string }[],
     whyThisTripEn: safeArr(data.whyThisTripEn) as { icon: string; text: string }[],
     faq: safeArr(data.faq) as { questionAr: string; questionEn: string; answerAr: string; answerEn: string }[],
+    hasCancellationPolicy: safeBool(data.hasCancellationPolicy),
     cancellationAr: safeStr(data.cancellationAr),
     cancellationEn: safeStr(data.cancellationEn),
     includesMeals: safeBool(data.includesMeals),
@@ -413,8 +414,17 @@ export default function PackageFormPage() {
               <F label="السعر الأدنى (جنيه)">
                 <input type="number" style={inputSt} value={form.priceEGP} onChange={e => set("priceEGP", parseInt(e.target.value) || 0)} />
               </F>
-              <F label="السعر الأقصى (جنيه)">
-                <input type="number" style={inputSt} value={form.maxPriceEGP} onChange={e => set("maxPriceEGP", parseInt(e.target.value) || 0)} />
+              <F label="السعر الأقصى (جنيه) — اتركه فارغاً إذا لم يكن هناك حد أقصى">
+                <input
+                  type="number"
+                  style={inputSt}
+                  value={form.maxPriceEGP ?? ""}
+                  placeholder="اتركه فارغاً = سعر واحد فقط"
+                  onChange={e => {
+                    const v = e.target.value;
+                    set("maxPriceEGP", v === "" ? null : (parseInt(v) || null));
+                  }}
+                />
               </F>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -450,14 +460,37 @@ export default function PackageFormPage() {
                 <input type="number" style={inputSt} value={form.sortOrder} onChange={e => set("sortOrder", parseInt(e.target.value) || 0)} />
               </F>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <F label="سياسة الإلغاء (عربي)">
-                <textarea style={{ ...inputSt, minHeight: 60, resize: "vertical" }} value={form.cancellationAr} onChange={e => set("cancellationAr", e.target.value)} />
-              </F>
-              <F label="Cancellation Policy (English)">
-                <textarea style={{ ...inputSt, minHeight: 60, resize: "vertical" }} value={form.cancellationEn} onChange={e => set("cancellationEn", e.target.value)} />
-              </F>
+            {/* Cancellation policy toggle */}
+            <div
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+              onClick={() => set("hasCancellationPolicy", !form.hasCancellationPolicy)}>
+              <div>
+                <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
+                <div style={{ color: "#99aabb", fontSize: "0.75rem", marginTop: "0.15rem" }}>عند التفعيل، تظهر سياسة الإلغاء للعميل في صفحة الرحلة</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: form.hasCancellationPolicy ? "#10B981" : "#99aabb" }}>
+                  {form.hasCancellationPolicy ? "مفعّل" : "معطّل"}
+                </span>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); set("hasCancellationPolicy", !form.hasCancellationPolicy); }}
+                  style={{ position: "relative", display: "inline-flex", alignItems: "center", width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer", background: form.hasCancellationPolicy ? "#00AAFF" : "#d0dce8", transition: "background 0.25s", flexShrink: 0, padding: 0 }}
+                  aria-checked={form.hasCancellationPolicy} role="switch">
+                  <span style={{ position: "absolute", top: 3, left: form.hasCancellationPolicy ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s" }} />
+                </button>
+              </div>
             </div>
+
+            {form.hasCancellationPolicy && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <F label="سياسة الإلغاء (عربي)">
+                  <textarea style={{ ...inputSt, minHeight: 60, resize: "vertical" }} value={form.cancellationAr} onChange={e => set("cancellationAr", e.target.value)} />
+                </F>
+                <F label="Cancellation Policy (English)">
+                  <textarea style={{ ...inputSt, minHeight: 60, resize: "vertical" }} value={form.cancellationEn} onChange={e => set("cancellationEn", e.target.value)} />
+                </F>
+              </div>
+            )}
 
             <F label="حالة النشر">
               <div style={{ display: "flex", gap: "0.75rem" }}>

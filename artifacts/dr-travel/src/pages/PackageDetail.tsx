@@ -90,7 +90,9 @@ export default function PackageDetail() {
   const itinerary = ar ? (pkg.itineraryAr || []) : (pkg.itineraryEn || []);
   const whyTrip = ar ? (pkg.whyThisTripAr || []) : (pkg.whyThisTripEn || []);
   const whatToBring = ar ? (pkg.whatToBringAr || []) : (pkg.whatToBringEn || []);
+  const showCancellation = (pkg as any).hasCancellationPolicy === true;
   const cancellation = ar ? pkg.cancellationAr : pkg.cancellationEn;
+  const hasMaxPrice = typeof pkg.maxPriceEGP === "number" && pkg.maxPriceEGP > 0;
   const duration = ar ? pkg.durationAr : pkg.durationEn;
   const faq = (pkg as any).faq || [];
 
@@ -118,10 +120,12 @@ export default function PackageDetail() {
       boxSizing: "border-box",
     }}>
       <div style={{ color: "#8899aa", fontSize: "0.75rem", marginBottom: "0.3rem" }}>
-        {ar ? "السعر / فرد يبدأ من" : "Price / Person starts from"}
+        {hasMaxPrice ? (ar ? "السعر / فرد" : "Price / Person") : (ar ? "السعر / فرد يبدأ من" : "Price / Person starts from")}
       </div>
       <div style={{ color: pkg.color, fontSize: isMobile ? "1.7rem" : "2rem", fontWeight: 900, fontFamily: "Montserrat, sans-serif", marginBottom: "0.25rem" }}>
-        {formatPrice(pkg.priceEGP, currency, lang)}
+        {hasMaxPrice
+          ? `${formatPrice(pkg.priceEGP, currency, lang)} — ${formatPrice(pkg.maxPriceEGP!, currency, lang)}`
+          : formatPrice(pkg.priceEGP, currency, lang)}
       </div>
       <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>⏱ {duration}</div>
 
@@ -288,7 +292,7 @@ export default function PackageDetail() {
               </div>
             )}
 
-            {cancellation && (
+            {showCancellation && cancellation && (
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
                 <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
                 <p style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>

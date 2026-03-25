@@ -13,7 +13,7 @@ export interface DBPackage {
   longDescriptionEn: string;
   category: string;
   priceEGP: number;
-  maxPriceEGP: number;
+  maxPriceEGP: number | null;
   durationAr: string;
   durationEn: string;
   color: string;
@@ -40,6 +40,7 @@ export interface DBPackage {
   suitableFor: string[];
   whatToBringAr: string[];
   whatToBringEn: string[];
+  hasCancellationPolicy: boolean;
   cancellationAr: string;
   cancellationEn: string;
   faq: { questionAr: string; questionEn: string; answerAr: string; answerEn: string }[];
@@ -94,6 +95,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
   feature_compare: "true",
   feature_testimonials: "true",
   feature_rewards: "true",
+  show_ai_assistant: "true",
+  show_compare_feature: "true",
+  show_testimonials: "true",
 };
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {

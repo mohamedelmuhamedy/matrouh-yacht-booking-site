@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 
 const DEFAULTS: Record<string, string> = {
   business_name_ar: "DR Travel",
@@ -144,6 +145,10 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState(false);
 
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const logoFileRef = useRef<HTMLInputElement>(null);
+
   const settingsRef = useRef<Record<string, string>>({});
 
   const loadSettings = () => {
@@ -271,6 +276,39 @@ export default function SettingsPage() {
     }
   };
 
+  const uploadLogo = async (file: File) => {
+    setLogoUploading(true);
+    setLogoError("");
+    try {
+      const reqRes = await adminFetch("/storage/uploads/request-url", {
+        method: "POST",
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+      });
+      if (!reqRes.ok) {
+        const err = await reqRes.json().catch(() => ({}));
+        setLogoError(err.error || "فشل طلب رفع الشعار");
+        return;
+      }
+      const { uploadURL, objectPath } = await reqRes.json();
+      const uploadRes = await fetch(uploadURL, {
+        method: "PUT", headers: { "Content-Type": file.type }, body: file,
+      });
+      if (!uploadRes.ok) { setLogoError("فشل رفع الملف"); return; }
+
+      const logoPath = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+      const next = { ...settingsRef.current, logo_url: logoPath };
+      settingsRef.current = next;
+      setSettings({ ...next });
+      const ok = await save(next);
+      if (ok) toastSuccess("تم رفع الشعار وحفظه ✅");
+    } catch (e: any) {
+      setLogoError(e.message || "خطأ في الرفع");
+    } finally {
+      setLogoUploading(false);
+      if (logoFileRef.current) logoFileRef.current.value = "";
+    }
+  };
+
   const totalFilled = SETTING_GROUPS.flatMap(g => g.keys).filter(({ key }) => settings[key]?.trim()).length;
   const totalKeys = SETTING_GROUPS.flatMap(g => g.keys).length;
 
@@ -340,6 +378,55 @@ export default function SettingsPage() {
           ⚠️ {saveError}
         </div>
       )}
+
+      {/* Logo upload section */}
+      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
+        <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+          🖼️ شعار الموقع (Logo)
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+          {/* Current logo preview */}
+          <div style={{ position: "relative" }}>
+            <img
+              src={settings.logo_url || logoFallback}
+              alt="Logo"
+              style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover", border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
+              onError={e => { (e.target as HTMLImageElement).src = logoFallback; }}
+            />
+            {settings.logo_url && (
+              <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: "white", fontWeight: 900, border: "2px solid white" }}>✓</div>
+            )}
+          </div>
+          <div>
+            <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+              {settings.logo_url ? "تم رفع شعار مخصص" : "لم يُرفع شعار بعد — يُستخدم الشعار الافتراضي"}
+            </div>
+            <div style={{ color: "#99aabb", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
+              ارفع صورة JPG / PNG / WebP (بحد أقصى 10MB)
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+              <input ref={logoFileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); }} />
+              <button type="button" onClick={() => logoFileRef.current?.click()} disabled={logoUploading}
+                style={{ background: logoUploading ? "#aaa" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "8px", padding: "0.55rem 1.25rem", cursor: logoUploading ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                {logoUploading ? "⏳ جاري الرفع..." : "📁 رفع شعار جديد"}
+              </button>
+              {settings.logo_url && (
+                <button type="button" onClick={() => {
+                  const next = { ...settingsRef.current, logo_url: "" };
+                  settingsRef.current = next;
+                  setSettings({ ...next });
+                  save(next);
+                }}
+                  style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "0.55rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.82rem" }}>
+                  🗑️ حذف الشعار
+                </button>
+              )}
+            </div>
+            {logoError && <div style={{ color: "#DC2626", fontSize: "0.8rem", marginTop: "0.5rem" }}>⚠️ {logoError}</div>}
+          </div>
+        </div>
+      </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         {SETTING_GROUPS.map(group => {

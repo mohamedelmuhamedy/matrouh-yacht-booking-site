@@ -201,6 +201,8 @@ function LangSwitcher() {
 // ===== NAVBAR =====
 function Navbar() {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteData();
+  const logoSrc = settings.logo_url || logoImg;
   const [, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -244,7 +246,7 @@ function Navbar() {
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", cursor: "pointer" }} onClick={() => scrollTo("#hero")}>
           <div style={{ position: "relative" }}>
-            <img src={logoImg} alt="DR Travel" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.5)", boxShadow: "0 0 16px rgba(0,170,255,0.3)" }} />
+            <img src={logoSrc} alt="DR Travel" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.5)", boxShadow: "0 0 16px rgba(0,170,255,0.3)" }} />
             <span style={{ position: "absolute", bottom: 0, left: 0, width: 11, height: 11, borderRadius: "50%", background: "#25D366", border: "2px solid #0a1520" }} />
           </div>
           <div>
@@ -326,6 +328,7 @@ function Navbar() {
 function Hero() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
+  const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
   const titleMain = ar
     ? (settings.hero_title_primary_ar || (() => {
@@ -361,7 +364,7 @@ function Hero() {
 
         <FadeInSection delay={100}>
           <div className="animate-float" style={{ marginBottom: "1.75rem" }}>
-            <img src={logoImg} alt="DR Travel" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", margin: "0 auto", display: "block", border: "3px solid rgba(0,170,255,0.6)", boxShadow: "0 0 0 8px rgba(0,170,255,0.08), 0 0 40px rgba(0,170,255,0.35)" }} />
+            <img src={logoSrc} alt="DR Travel" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", margin: "0 auto", display: "block", border: "3px solid rgba(0,170,255,0.6)", boxShadow: "0 0 0 8px rgba(0,170,255,0.08), 0 0 40px rgba(0,170,255,0.35)" }} />
           </div>
         </FadeInSection>
 
@@ -575,7 +578,8 @@ function CompareBar({ compareIds, onOpen, onClear, lang }: { compareIds: number[
 function PackagesAndBooking() {
   const { t, lang } = useLanguage();
   const { currency } = useCurrency();
-  const { packages: dbPackages } = useSiteData();
+  const { packages: dbPackages, settings } = useSiteData();
+  const showCompareFeature = settings.show_compare_feature !== "false";
   const [, navigate] = useLocation();
 
   const allDbPkgs = dbPackages.length > 0 ? dbPackages : (PACKAGES_DATA as unknown as DBPackage[]);
@@ -872,7 +876,7 @@ function PackagesAndBooking() {
       </div>
 
       {/* Compare bar */}
-      <CompareBar compareIds={compareIds} onOpen={() => setShowCompare(true)} onClear={() => setCompareIds([])} lang={lang} />
+      {showCompareFeature && <CompareBar compareIds={compareIds} onOpen={() => setShowCompare(true)} onClear={() => setCompareIds([])} lang={lang} />}
 
       {/* Compare modal */}
       {showCompare && comparePkgData.length > 0 && (
@@ -1005,6 +1009,7 @@ function Reviews() {
 function Footer() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
+  const logoSrc = settings.logo_url || logoImg;
   const f = t.footer;
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const waNum = settings.whatsapp_number || "201205756024";
@@ -1026,7 +1031,7 @@ function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.9rem", marginBottom: "1.25rem" }}>
-              <img src={logoImg} alt="DR Travel" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.4)", boxShadow: "0 0 20px rgba(0,170,255,0.2)" }} />
+              <img src={logoSrc} alt="DR Travel" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.4)", boxShadow: "0 0 20px rgba(0,170,255,0.2)" }} />
               <div>
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "1.05rem", letterSpacing: "1.5px" }}>DR TRAVEL</div>
                 <div style={{ color: "#445566", fontSize: "0.65rem" }}>Yacht Tourism & Safari</div>
@@ -1139,6 +1144,9 @@ function WhatsAppFloat() {
 // ===== HOME PAGE =====
 function HomePage() {
   const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const showAI = settings.show_ai_assistant !== "false";
+  const showTestimonials = settings.show_testimonials !== "false";
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
       <ScrollProgress />
@@ -1149,10 +1157,10 @@ function HomePage() {
       <PersonalizedSection />
       <PackagesAndBooking />
       <WhyUs />
-      <Reviews />
+      {showTestimonials && <Reviews />}
       <Footer />
       <WhatsAppFloat />
-      <AIAssistant />
+      {showAI && <AIAssistant />}
     </div>
   );
 }
@@ -1160,11 +1168,13 @@ function HomePage() {
 // ===== DETAIL PAGE WRAPPER =====
 function DetailPageWrapper() {
   const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const showAI = settings.show_ai_assistant !== "false";
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
       <Navbar />
       <PackageDetail />
-      <AIAssistant />
+      {showAI && <AIAssistant />}
     </div>
   );
 }

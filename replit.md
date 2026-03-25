@@ -128,7 +128,7 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
   - `/admin/packages/new` & `/admin/packages/:id/edit` — PackageFormPage.tsx (4-tab: basic/media/includes/flags); status radio (draft/published/archived); image upload via Object Storage + URL fallback
   - `/admin/bookings` — BookingsPage.tsx (search by name/phone, CSV export, admin notes modal)
   - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
-  - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, saved to DB)
+  - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, logo upload via Object Storage, feature toggles: show_ai_assistant/show_compare_feature/show_testimonials, change password)
 - **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded), shows admin displayName
 
 **Public Site Data from DB:**
