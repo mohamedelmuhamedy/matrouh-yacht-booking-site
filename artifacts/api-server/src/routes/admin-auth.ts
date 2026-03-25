@@ -68,4 +68,33 @@ router.get("/admin/me", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/admin/change-password", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = (req as any).admin;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "currentPassword and newPassword are required" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters" });
+    }
+
+    const [adminUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    if (!adminUser) return res.status(404).json({ error: "User not found" });
+
+    const valid = await bcrypt.compare(currentPassword, adminUser.passwordHash);
+    if (!valid) return res.status(401).json({ error: "كلمة المرور الحالية غير صحيحة" });
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await db.update(adminUsers)
+      .set({ passwordHash: newHash, updatedAt: new Date() })
+      .where(eq(adminUsers.id, userId));
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 export default router;

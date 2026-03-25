@@ -68,9 +68,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={{ textAlign: "center", color: "#99aabb", fontSize: "0.75rem", marginTop: "1.5rem" }}>
-          المستخدم الافتراضي: admin / drtravel2024
-        </p>
       </div>
     </div>
   );

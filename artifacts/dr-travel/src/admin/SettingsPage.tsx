@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -75,40 +75,12 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
     icon: "🎯",
     section: "hero",
     keys: [
-      {
-        key: "hero_title_primary_ar",
-        label: "عنوان الهيرو — الجزء الرئيسي (عربي)",
-        placeholder: "اكتشف جمال مرسى",
-        hint: "يظهر بلون أبيض في العنوان الكبير",
-      },
-      {
-        key: "hero_title_accent_ar",
-        label: "عنوان الهيرو — الجزء المميز (عربي)",
-        placeholder: "مطروح",
-        hint: "يظهر بـ gradient أزرق-ذهبي مميز",
-      },
-      {
-        key: "hero_title_primary_en",
-        label: "Hero Title — Primary Part (English)",
-        placeholder: "Discover the Beauty of",
-        hint: "Displayed in white in the large heading",
-      },
-      {
-        key: "hero_title_accent_en",
-        label: "Hero Title — Accent Part (English)",
-        placeholder: "Marsa Matruh",
-        hint: "Displayed with blue-gold gradient accent",
-      },
-      {
-        key: "hero_subtitle_ar",
-        label: "نص الهيرو الفرعي (عربي)",
-        placeholder: "سفاري الصحراء · رحلات يخت فاخرة...",
-      },
-      {
-        key: "hero_subtitle_en",
-        label: "Hero Subtitle (English)",
-        placeholder: "Desert Safari · Luxury Yacht Trips...",
-      },
+      { key: "hero_title_primary_ar", label: "عنوان الهيرو — الجزء الرئيسي (عربي)", placeholder: "اكتشف جمال مرسى", hint: "يظهر بلون أبيض في العنوان الكبير" },
+      { key: "hero_title_accent_ar", label: "عنوان الهيرو — الجزء المميز (عربي)", placeholder: "مطروح", hint: "يظهر بـ gradient أزرق-ذهبي مميز" },
+      { key: "hero_title_primary_en", label: "Hero Title — Primary Part (English)", placeholder: "Discover the Beauty of", hint: "Displayed in white" },
+      { key: "hero_title_accent_en", label: "Hero Title — Accent Part (English)", placeholder: "Marsa Matruh", hint: "Displayed with blue-gold gradient accent" },
+      { key: "hero_subtitle_ar", label: "نص الهيرو الفرعي (عربي)", placeholder: "سفاري الصحراء · رحلات يخت فاخرة..." },
+      { key: "hero_subtitle_en", label: "Hero Subtitle (English)", placeholder: "Desert Safari · Luxury Yacht Trips..." },
     ],
   },
   {
@@ -116,33 +88,26 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
     icon: "✨",
     section: "features",
     keys: [
-      {
-        key: "show_ai_assistant",
-        label: "المساعد الذكي",
-        type: "boolean",
-        hint: "إظهار أو إخفاء زر المساعد الذكي في الموقع",
-      },
-      {
-        key: "show_compare_feature",
-        label: "مقارنة الباقات",
-        type: "boolean",
-        hint: "إظهار أو إخفاء أداة مقارنة الباقات",
-      },
-      {
-        key: "show_testimonials",
-        label: "قسم التقييمات",
-        type: "boolean",
-        hint: "إظهار أو إخفاء قسم آراء العملاء",
-      },
+      { key: "show_ai_assistant", label: "المساعد الذكي", type: "boolean", hint: "إظهار أو إخفاء زر المساعد الذكي في الموقع" },
+      { key: "show_compare_feature", label: "مقارنة الباقات", type: "boolean", hint: "إظهار أو إخفاء أداة مقارنة الباقات" },
+      { key: "show_testimonials", label: "قسم التقييمات", type: "boolean", hint: "إظهار أو إخفاء قسم آراء العملاء" },
     ],
   },
 ];
+
+const inputBase: React.CSSProperties = {
+  width: "100%", padding: "0.75rem 1rem", borderRadius: "10px",
+  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.92rem",
+  fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
+  color: "#0D1B2A", background: "white",
+  transition: "border-color 0.2s, box-shadow 0.2s",
+};
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
-      onClick={() => onChange(!checked)}
+      onClick={e => { e.stopPropagation(); onChange(!checked); }}
       style={{
         position: "relative", display: "inline-flex", alignItems: "center",
         width: 52, height: 28, borderRadius: 14, border: "none", cursor: "pointer",
@@ -151,6 +116,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       }}
       aria-checked={checked}
       role="switch"
+      aria-label={checked ? "مفعّل" : "معطّل"}
     >
       <span style={{
         position: "absolute", top: 3, left: checked ? 27 : 3,
@@ -161,14 +127,6 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-const inputBase: React.CSSProperties = {
-  width: "100%", padding: "0.75rem 1rem", borderRadius: "10px",
-  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.92rem",
-  fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "#0D1B2A", background: "white",
-  transition: "border-color 0.2s, box-shadow 0.2s",
-};
-
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -176,8 +134,17 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [saveError, setSaveError] = useState("");
-  const [confirmRestore, setConfirmRestore] = useState<{ section: string | "all"; label: string } | null>(null);
+  const [pendingRestore, setPendingRestore] = useState<{ section: string | "all"; label: string } | null>(null);
   const { success: toastSuccess, error: toastError } = useToast();
+
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const settingsRef = useRef<Record<string, string>>({});
 
   const loadSettings = () => {
     setLoading(true);
@@ -190,8 +157,10 @@ export default function SettingsPage() {
       .then(data => {
         if (data && typeof data === "object" && !Array.isArray(data)) {
           setSettings(data);
+          settingsRef.current = data;
         } else {
           setSettings({});
+          settingsRef.current = {};
         }
       })
       .catch(e => setLoadError(e.message || "فشل تحميل الإعدادات"))
@@ -201,7 +170,11 @@ export default function SettingsPage() {
   useEffect(() => { loadSettings(); }, []);
 
   const update = (key: string, value: string) => {
-    setSettings(s => ({ ...s, [key]: value }));
+    setSettings(s => {
+      const next = { ...s, [key]: value };
+      settingsRef.current = next;
+      return next;
+    });
     setSaveStatus("idle");
   };
 
@@ -209,49 +182,93 @@ export default function SettingsPage() {
     update(key, value ? "true" : "false");
   };
 
-  const save = async () => {
+  const save = async (overrideSettings?: Record<string, string>) => {
+    const payload = overrideSettings ?? settingsRef.current;
     setSaving(true);
     setSaveStatus("idle");
     setSaveError("");
     try {
       const r = await adminFetch("/admin/settings", {
         method: "PUT",
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) {
         const err = await r.json().catch(() => ({}));
         setSaveError(err.error || "فشل الحفظ");
         setSaveStatus("error");
         toastError("فشل حفظ الإعدادات");
-        return;
+        return false;
       }
       setSaveStatus("success");
-      toastSuccess("تم حفظ الإعدادات بنجاح");
+      toastSuccess("تم حفظ الإعدادات بنجاح ✅");
       setTimeout(() => setSaveStatus("idle"), 3000);
+      return true;
     } catch (e: any) {
       setSaveError(e.message || "خطأ في الاتصال");
       setSaveStatus("error");
       toastError("خطأ في الاتصال");
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
-  const doRestore = (sectionOrAll: string | "all") => {
-    if (sectionOrAll === "all") {
-      setSettings(s => ({ ...s, ...DEFAULTS }));
+  const confirmAndRestore = (section: string | "all", label: string) => {
+    setPendingRestore({ section, label });
+  };
+
+  const doRestore = async () => {
+    if (!pendingRestore) return;
+    const { section } = pendingRestore;
+    setPendingRestore(null);
+
+    let restored: Record<string, string>;
+    if (section === "all") {
+      restored = { ...settingsRef.current, ...DEFAULTS };
     } else {
-      const group = SETTING_GROUPS.find(g => g.section === sectionOrAll);
+      const group = SETTING_GROUPS.find(g => g.section === section);
       if (!group) return;
       const partial: Record<string, string> = {};
       group.keys.forEach(({ key }) => {
         if (DEFAULTS[key] !== undefined) partial[key] = DEFAULTS[key];
       });
-      setSettings(s => ({ ...s, ...partial }));
+      restored = { ...settingsRef.current, ...partial };
     }
+
+    settingsRef.current = restored;
+    setSettings({ ...restored });
     setSaveStatus("idle");
-    setConfirmRestore(null);
-    toastSuccess("تم استعادة القيم الأصلية — لا تنسَ الحفظ");
+
+    await save(restored);
+    toastSuccess("تم استعادة القيم الأصلية وحفظها ✅");
+  };
+
+  const changePassword = async () => {
+    setPwError("");
+    setPwSuccess(false);
+    if (!pwCurrent.trim()) { setPwError("أدخل كلمة المرور الحالية"); return; }
+    if (!pwNew.trim() || pwNew.length < 6) { setPwError("كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل"); return; }
+    if (pwNew !== pwConfirm) { setPwError("كلمة المرور الجديدة وتأكيدها غير متطابقين"); return; }
+
+    setPwSaving(true);
+    try {
+      const r = await adminFetch("/admin/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setPwError(data.error || "فشل تغيير كلمة المرور");
+        return;
+      }
+      setPwSuccess(true);
+      setPwCurrent(""); setPwNew(""); setPwConfirm("");
+      toastSuccess("تم تغيير كلمة المرور بنجاح 🔐");
+    } catch (e: any) {
+      setPwError(e.message || "خطأ في الاتصال");
+    } finally {
+      setPwSaving(false);
+    }
   };
 
   const totalFilled = SETTING_GROUPS.flatMap(g => g.keys).filter(({ key }) => settings[key]?.trim()).length;
@@ -293,11 +310,14 @@ export default function SettingsPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button onClick={() => setConfirmRestore({ section: "all", label: "جميع الإعدادات" })}
+          <button
+            onClick={() => confirmAndRestore("all", "جميع الإعدادات")}
             style={{ background: "#f0f4f8", border: "1px solid #d0dce8", borderRadius: "10px", padding: "0.6rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "#667788", display: "flex", alignItems: "center", gap: "0.35rem" }}>
             🔄 استعادة الكل
           </button>
-          <button onClick={save} disabled={saving}
+          <button
+            onClick={() => save()}
+            disabled={saving}
             style={{
               background: saveStatus === "success"
                 ? "linear-gradient(135deg,#10B981,#059669)"
@@ -333,7 +353,7 @@ export default function SettingsPage() {
                 </h3>
                 {groupHasDefaults && (
                   <button
-                    onClick={() => setConfirmRestore({ section: group.section, label: group.title })}
+                    onClick={() => confirmAndRestore(group.section, group.title)}
                     style={{ background: "none", border: "1px solid #e0e8f0", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#99aabb", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e0e8f0"; (e.currentTarget as HTMLElement).style.color = "#99aabb"; }}>
@@ -342,14 +362,13 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              {/* boolean fields rendered separately */}
               {group.section === "features" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   {group.keys.map(({ key, label, hint }) => {
                     const isOn = settings[key] === "true";
                     return (
                       <div key={key}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s" }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
                         onClick={() => updateBool(key, !isOn)}>
                         <div>
                           <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
@@ -374,15 +393,14 @@ export default function SettingsPage() {
                     return (
                       <div key={key}>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
-                          {isAccent && <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "0.9rem" }}>✦</span>}
+                          {isAccent && (
+                            <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "0.9rem" }}>✦</span>
+                          )}
                           {label}
                           {hasValue && <span style={{ color: "#10B981", fontSize: "0.72rem", fontWeight: 800 }}>✓</span>}
                         </label>
                         {hint && (
-                          <div style={{ fontSize: "0.73rem", color: "#99aabb", marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                            {isAccent
-                              ? <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 700 }}>gradient</span>
-                              : null}
+                          <div style={{ fontSize: "0.73rem", color: "#99aabb", marginBottom: "0.35rem" }}>
                             {hint}
                           </div>
                         )}
@@ -390,42 +408,29 @@ export default function SettingsPage() {
                           style={{
                             ...inputBase,
                             borderColor: hasValue ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8",
-                            fontWeight: hasValue ? 500 : 400,
                           }}
                           value={val}
                           placeholder={placeholder}
                           onChange={e => update(key, e.target.value)}
                           onFocus={e => {
                             e.target.style.borderColor = isAccent ? "#C9A84C" : "#00AAFF";
-                            e.target.style.boxShadow = isAccent
-                              ? "0 0 0 3px rgba(201,168,76,0.12)"
-                              : "0 0 0 3px rgba(0,170,255,0.12)";
+                            e.target.style.boxShadow = isAccent ? "0 0 0 3px rgba(201,168,76,0.12)" : "0 0 0 3px rgba(0,170,255,0.12)";
                           }}
                           onBlur={e => {
-                            const v = settings[key];
-                            e.target.style.borderColor = v?.trim() ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8";
+                            e.target.style.borderColor = settings[key]?.trim() ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8";
                             e.target.style.boxShadow = "none";
                           }}
                         />
-                        {hasValue && (
-                          <div style={{ marginTop: "0.3rem", fontSize: "0.73rem", color: "#667788" }}>
-                            <span style={{ fontWeight: 700, color: "#445566" }}>الحالي: </span>
-                            {val.length > 55 ? val.substring(0, 55) + "…" : val}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {/* Hero accent preview */}
               {group.section === "hero" && (settings.hero_title_primary_ar || settings.hero_title_accent_ar) && (
                 <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "#0D1B2A", borderRadius: 10, display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>معاينة:</span>
-                  <span style={{ color: "white", fontWeight: 700, fontSize: "1rem" }}>
-                    {settings.hero_title_primary_ar}
-                  </span>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem" }}>معاينة:</span>
+                  <span style={{ color: "white", fontWeight: 700, fontSize: "1rem" }}>{settings.hero_title_primary_ar}</span>
                   <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "1.1rem" }}>
                     {settings.hero_title_accent_ar}
                   </span>
@@ -434,25 +439,126 @@ export default function SettingsPage() {
             </div>
           );
         })}
-      </div>
 
-      {/* Bottom save */}
-      <div style={{ marginTop: "1.25rem", textAlign: "center" }}>
-        <button onClick={save} disabled={saving}
-          style={{ background: saveStatus === "success" ? "linear-gradient(135deg,#10B981,#059669)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "12px", padding: "0.85rem 3rem", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", transition: "background 0.3s" }}>
-          {saving ? "⏳ جاري الحفظ..." : saveStatus === "success" ? "✅ تم الحفظ!" : "💾 حفظ جميع الإعدادات"}
-        </button>
+        {/* Bottom save */}
+        <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
+          <button
+            onClick={() => save()}
+            disabled={saving}
+            style={{
+              background: saveStatus === "success"
+                ? "linear-gradient(135deg,#10B981,#059669)"
+                : "linear-gradient(135deg,#00AAFF,#0066cc)",
+              color: "white", border: "none", borderRadius: "12px",
+              padding: "0.85rem 3rem", cursor: saving ? "not-allowed" : "pointer",
+              fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem",
+              transition: "background 0.3s",
+            }}>
+            {saving ? "⏳ جاري الحفظ..." : saveStatus === "success" ? "✅ تم الحفظ!" : "💾 حفظ جميع الإعدادات"}
+          </button>
+        </div>
+
+        {/* Change Password Section */}
+        <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #e0e8f0" }}>
+          <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+            🔐 تغيير كلمة المرور
+          </h3>
+
+          {pwSuccess && (
+            <div style={{ background: "#f0fdf4", border: "1.5px solid #10B981", borderRadius: 10, padding: "0.85rem 1rem", marginBottom: "1rem", color: "#059669", fontWeight: 700, fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              ✅ تم تغيير كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
+            </div>
+          )}
+
+          {pwError && (
+            <div style={{ background: "#FEF2F2", border: "1.5px solid #FCA5A5", borderRadius: 10, padding: "0.75rem 1rem", marginBottom: "1rem", color: "#DC2626", fontWeight: 600, fontSize: "0.88rem" }}>
+              ⚠️ {pwError}
+            </div>
+          )}
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem" }}>
+            <div>
+              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                كلمة المرور الحالية
+              </label>
+              <input
+                type="password"
+                value={pwCurrent}
+                autoComplete="current-password"
+                onChange={e => { setPwCurrent(e.target.value); setPwError(""); setPwSuccess(false); }}
+                placeholder="••••••••"
+                style={{ ...inputBase }}
+                onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
+                onBlur={e => { e.target.style.borderColor = "#d0dce8"; e.target.style.boxShadow = "none"; }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                كلمة المرور الجديدة
+              </label>
+              <input
+                type="password"
+                value={pwNew}
+                autoComplete="new-password"
+                onChange={e => { setPwNew(e.target.value); setPwError(""); setPwSuccess(false); }}
+                placeholder="6 أحرف على الأقل"
+                style={{ ...inputBase }}
+                onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
+                onBlur={e => { e.target.style.borderColor = "#d0dce8"; e.target.style.boxShadow = "none"; }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                تأكيد كلمة المرور الجديدة
+              </label>
+              <input
+                type="password"
+                value={pwConfirm}
+                autoComplete="new-password"
+                onChange={e => { setPwConfirm(e.target.value); setPwError(""); setPwSuccess(false); }}
+                placeholder="أعد كتابة كلمة المرور الجديدة"
+                style={{
+                  ...inputBase,
+                  borderColor: pwConfirm && pwNew && pwConfirm !== pwNew ? "#EF4444" : pwConfirm && pwNew && pwConfirm === pwNew ? "#10B981" : "#d0dce8",
+                }}
+                onFocus={e => { e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
+                onBlur={e => { e.target.style.boxShadow = "none"; }}
+              />
+              {pwConfirm && pwNew && pwConfirm !== pwNew && (
+                <div style={{ marginTop: "0.3rem", fontSize: "0.73rem", color: "#EF4444", fontWeight: 600 }}>كلمتا المرور غير متطابقتين</div>
+              )}
+              {pwConfirm && pwNew && pwConfirm === pwNew && (
+                <div style={{ marginTop: "0.3rem", fontSize: "0.73rem", color: "#10B981", fontWeight: 600 }}>✓ متطابقتان</div>
+              )}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "1.25rem" }}>
+            <button
+              onClick={changePassword}
+              disabled={pwSaving}
+              style={{
+                background: pwSaving ? "#aaa" : "linear-gradient(135deg,#7C3AED,#5B21B6)",
+                color: "white", border: "none", borderRadius: "10px",
+                padding: "0.7rem 2rem", cursor: pwSaving ? "not-allowed" : "pointer",
+                fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.95rem",
+                boxShadow: "0 4px 16px rgba(124,58,237,0.25)", transition: "all 0.2s",
+              }}>
+              {pwSaving ? "⏳ جاري التغيير..." : "🔐 تغيير كلمة المرور"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Restore confirm dialog */}
       <ConfirmDialog
-        isOpen={confirmRestore !== null}
+        isOpen={pendingRestore !== null}
         title="استعادة القيم الأصلية"
-        message={`هل تريد استعادة القيم الأصلية لـ "${confirmRestore?.label}"؟ ستُستبدل القيم الحالية بقيم التصميم الأصلي. لن يتم الحفظ تلقائيًا — ستحتاج للضغط على "حفظ" بعد الاستعادة.`}
-        confirmLabel="استعادة الأصل"
+        message={`هل تريد استعادة القيم الأصلية لـ "${pendingRestore?.label}"؟ سيتم الحفظ تلقائيًا فور الاستعادة.`}
+        confirmLabel="استعادة وحفظ"
         cancelLabel="إلغاء"
-        onConfirm={() => confirmRestore && doRestore(confirmRestore.section)}
-        onCancel={() => setConfirmRestore(null)}
+        onConfirm={doRestore}
+        onCancel={() => setPendingRestore(null)}
       />
     </div>
   );
