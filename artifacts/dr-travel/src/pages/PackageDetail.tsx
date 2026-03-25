@@ -42,6 +42,68 @@ export default function PackageDetail() {
   const [isXs, setIsXs] = useState(window.innerWidth < 480);
   const touchStartX = useRef(0);
 
+  // ── Booking modal state ──
+  const [showBook, setShowBook] = useState(false);
+  const [bookForm, setBookForm] = useState({ name: "", phone: "", people: "1", date: "", notes: "" });
+  const [bookErrors, setBookErrors] = useState<Record<string, string>>({});
+  const [bookSubmitting, setBookSubmitting] = useState(false);
+  const [bookDone, setBookDone] = useState(false);
+  const [bookWaUrl, setBookWaUrl] = useState("");
+
+  const closeBookModal = () => {
+    if (bookSubmitting) return;
+    setShowBook(false);
+    setTimeout(() => {
+      setBookDone(false);
+      setBookForm({ name: "", phone: "", people: "1", date: "", notes: "" });
+      setBookErrors({});
+    }, 300);
+  };
+
+  const validateBook = () => {
+    const e: Record<string, string> = {};
+    if (!bookForm.name.trim()) e.name = ar ? "الاسم مطلوب" : "Name is required";
+    if (!bookForm.phone.trim()) e.phone = ar ? "رقم الهاتف مطلوب" : "Phone is required";
+    else if (!/^01[0-9]{9}$/.test(bookForm.phone.replace(/\s/g, ""))) e.phone = ar ? "رقم غير صحيح (01XXXXXXXXX)" : "Invalid phone (01XXXXXXXXX)";
+    if (!bookForm.people || parseInt(bookForm.people) < 1) e.people = ar ? "عدد الأفراد مطلوب" : "Number of people required";
+    return e;
+  };
+
+  const handleBookSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    const errs = validateBook();
+    setBookErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    setBookSubmitting(true);
+    const pkgName = ar ? (pkg?.titleAr ?? "") : (pkg?.titleEn ?? "");
+    try {
+      await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: bookForm.name, phone: bookForm.phone,
+          packageId: pkg?.id,
+          packageName: pkgName,
+          packageNameAr: pkg?.titleAr ?? "",
+          date: bookForm.date || "",
+          adults: bookForm.people,
+          children: "0", infants: "0",
+          notes: bookForm.notes,
+          currency,
+          priceAtBooking: pkg ? pkg.priceEGP * (parseInt(bookForm.people) || 1) : null,
+        }),
+      });
+    } catch { /* WhatsApp flow continues regardless */ }
+    const waMsg = t.booking.waMessage(
+      pkgName, bookForm.name, bookForm.phone,
+      bookForm.date || (ar ? "غير محدد" : "TBD"),
+      bookForm.people, "0", "0", bookForm.notes
+    );
+    setBookWaUrl(`https://wa.me/201205756024?text=${encodeURIComponent(waMsg)}`);
+    setBookSubmitting(false);
+    setBookDone(true);
+  };
+
   // Derive a stable image count and safe index BEFORE any navigation callbacks
   const imgs = pkg?.images ?? [];
   const imgCount = imgs.length;
@@ -177,9 +239,9 @@ export default function PackageDetail() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <button
-          onClick={() => { navigate("/"); setTimeout(() => { document.querySelector("#packages")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+          onClick={() => setShowBook(true)}
           style={{ background: `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: isMobile ? "0.95rem 1rem" : "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}>
-          {ar ? "احجز الآن" : "Book Now"}
+          {ar ? "🎯 احجز الآن" : "🎯 Book Now"}
         </button>
         <a href={`https://wa.me/201205756024?text=${waMsg}`} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: isMobile ? "0.85rem 1rem" : "0.85rem", borderRadius: "12px", fontWeight: 700, fontSize: "0.88rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", boxSizing: "border-box" }}>
@@ -552,6 +614,143 @@ export default function PackageDetail() {
           </div>
         )}
       </div>
+
+    {/* ===== BOOKING MODAL ===== */}
+    {showBook && (
+      <div className="book-modal-backdrop" onClick={closeBookModal}>
+        <div className="book-modal-card" dir={ar ? "rtl" : "ltr"} onClick={e => e.stopPropagation()}>
+
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
+            <div>
+              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.25rem" }}>
+                {ar ? "🎯 احجز رحلتك الآن" : "🎯 Book Your Trip"}
+              </h3>
+              <p style={{ color: "#667788", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
+                {ar ? "أكمل البيانات وسنتواصل معك فوراً" : "Fill in your details and we'll contact you right away"}
+              </p>
+            </div>
+            <button onClick={closeBookModal}
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1rem", flexShrink: 0, fontFamily: "monospace" }}>
+              ✕
+            </button>
+          </div>
+
+          {/* Package preview chip */}
+          <div style={{ background: `${pkg.color}12`, border: `1px solid ${pkg.color}28`, borderRadius: "14px", padding: "0.9rem 1.1rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span style={{ fontSize: "1.75rem", flexShrink: 0 }}>{pkg.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+              <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", fontFamily: "Montserrat, sans-serif" }}>
+                {hasMaxPrice
+                  ? `${formatPrice(pkg.priceEGP, currency, lang)} — ${formatPrice(pkg.maxPriceEGP!, currency, lang)}`
+                  : formatPrice(pkg.priceEGP, currency, lang)}
+                <span style={{ color: "#8899aa", fontWeight: 400, fontFamily: "Cairo, sans-serif", fontSize: "0.75rem" }}> / {ar ? "فرد" : "person"}</span>
+              </div>
+            </div>
+          </div>
+
+          {!bookDone ? (
+            <form onSubmit={handleBookSubmit} noValidate>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+
+                {/* Name */}
+                <div>
+                  <label className="book-label">{ar ? "الاسم الكامل *" : "Full Name *"}</label>
+                  <input className={`book-field${bookErrors.name ? " book-error" : ""}`}
+                    placeholder={ar ? "مثال: أحمد محمد" : "e.g. Ahmed Mohamed"}
+                    value={bookForm.name}
+                    onChange={e => { setBookForm(f => ({ ...f, name: e.target.value })); setBookErrors(x => ({ ...x, name: "" })); }} />
+                  {bookErrors.name && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.name}</div>}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="book-label">{ar ? "رقم الهاتف *" : "Phone Number *"}</label>
+                  <input className={`book-field${bookErrors.phone ? " book-error" : ""}`}
+                    type="tel" dir="ltr" placeholder="01XXXXXXXXX"
+                    value={bookForm.phone}
+                    onChange={e => { setBookForm(f => ({ ...f, phone: e.target.value })); setBookErrors(x => ({ ...x, phone: "" })); }} />
+                  {bookErrors.phone && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.phone}</div>}
+                </div>
+
+                {/* People + Date */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <div>
+                    <label className="book-label">{ar ? "عدد الأفراد *" : "No. of People *"}</label>
+                    <input className={`book-field${bookErrors.people ? " book-error" : ""}`}
+                      type="number" min="1" max="50" dir="ltr"
+                      value={bookForm.people}
+                      onChange={e => { setBookForm(f => ({ ...f, people: e.target.value })); setBookErrors(x => ({ ...x, people: "" })); }} />
+                    {bookErrors.people && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.people}</div>}
+                  </div>
+                  <div>
+                    <label className="book-label">{ar ? "تاريخ الرحلة" : "Trip Date"}</label>
+                    <input className="book-field"
+                      type="date" dir="ltr"
+                      min={new Date().toISOString().split("T")[0]}
+                      value={bookForm.date}
+                      onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="book-label">{ar ? "ملاحظات (اختياري)" : "Notes (optional)"}</label>
+                  <textarea className="book-field" rows={2} style={{ resize: "vertical" }}
+                    placeholder={ar ? "أي طلبات خاصة أو ملاحظات..." : "Any special requests or notes..."}
+                    value={bookForm.notes}
+                    onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} />
+                </div>
+
+                {/* Estimated price */}
+                {bookForm.people && parseInt(bookForm.people) > 0 && (
+                  <div style={{ background: `${pkg.color}0d`, border: `1px solid ${pkg.color}22`, borderRadius: "10px", padding: "0.7rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#8899aa", fontSize: "0.8rem" }}>{ar ? "السعر التقديري" : "Estimated Price"}</span>
+                    <span style={{ color: pkg.color, fontWeight: 800, fontFamily: "Montserrat, sans-serif", fontSize: "0.95rem" }}>
+                      {formatPrice(pkg.priceEGP * (parseInt(bookForm.people) || 1), currency, lang)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Submit */}
+                <button type="submit" disabled={bookSubmitting}
+                  style={{ background: bookSubmitting ? "rgba(255,255,255,0.08)" : `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", cursor: bookSubmitting ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  {bookSubmitting ? (ar ? "⏳ جاري الإرسال..." : "⏳ Sending...") : (ar ? "📩 أرسل طلب الحجز" : "📩 Send Booking Request")}
+                </button>
+
+              </div>
+            </form>
+
+          ) : (
+            /* Success state */
+            <div style={{ textAlign: "center", padding: "0.5rem 0 0.25rem" }}>
+              <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>✅</div>
+              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.1rem", margin: "0 0 0.6rem" }}>
+                {ar ? "تم استلام طلب الحجز!" : "Booking Request Received!"}
+              </h3>
+              <p style={{ color: "#8899aa", fontSize: "0.85rem", lineHeight: 1.75, margin: "0 0 1.5rem" }}>
+                {ar
+                  ? "سيتواصل معك فريق DR Travel خلال ساعة لتأكيد الحجز. يمكنك التأكيد الفوري عبر واتساب."
+                  : "DR Travel team will contact you within an hour to confirm. You can also confirm instantly via WhatsApp."}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href={bookWaUrl} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", textDecoration: "none", fontFamily: "Cairo, sans-serif" }}>
+                  <WhatsAppIcon /> {ar ? "تأكيد عبر واتساب" : "Confirm on WhatsApp"}
+                </a>
+                <button onClick={closeBookModal}
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", padding: "0.85rem", borderRadius: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem" }}>
+                  {ar ? "إغلاق" : "Close"}
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    )}
+
     </div>
   );
 }
