@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
@@ -36,13 +36,39 @@ export default function PackageDetail() {
   const pkg: DBPackage | null = dbPkg ?? (staticPkg ? (staticPkg as unknown as DBPackage) : null);
 
   const [activeImg, setActiveImg] = useState(0);
+  const [brokenImgs, setBrokenImgs] = useState<Set<number>>(new Set());
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isXs, setIsXs] = useState(window.innerWidth < 480);
-  const touchStartX = { current: 0 };
+  const touchStartX = useRef(0);
 
-  const prevImg = () => setActiveImg(i => (i > 0 ? i - 1 : (pkg?.images?.length ?? 1) - 1));
-  const nextImg = () => setActiveImg(i => (i < (pkg?.images?.length ?? 1) - 1 ? i + 1 : 0));
+  // Derive a stable image count and safe index BEFORE any navigation callbacks
+  const imgs = pkg?.images ?? [];
+  const imgCount = imgs.length;
+  const safeImg = imgCount > 0 ? Math.min(Math.max(activeImg, 0), imgCount - 1) : 0;
+
+  // Use refs so the keyboard/swipe handlers always see the latest values
+  const imgCountRef = useRef(imgCount);
+  imgCountRef.current = imgCount;
+  const safeImgRef = useRef(safeImg);
+  safeImgRef.current = safeImg;
+
+  const prevImg = () => {
+    const n = imgCountRef.current;
+    if (n <= 1) return;
+    setActiveImg(i => {
+      const cur = Math.min(Math.max(i, 0), n - 1);
+      return cur <= 0 ? n - 1 : cur - 1;
+    });
+  };
+  const nextImg = () => {
+    const n = imgCountRef.current;
+    if (n <= 1) return;
+    setActiveImg(i => {
+      const cur = Math.min(Math.max(i, 0), n - 1);
+      return cur >= n - 1 ? 0 : cur + 1;
+    });
+  };
 
   useEffect(() => {
     const onResize = () => {
@@ -55,13 +81,19 @@ export default function PackageDetail() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!pkg?.images || pkg.images.length < 2) return;
+      if (imgCountRef.current < 2) return;
       if (e.key === "ArrowLeft") nextImg();
       if (e.key === "ArrowRight") prevImg();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pkg]);
+  }, []);
+
+  // Reset gallery state whenever the package slug changes
+  useEffect(() => {
+    setActiveImg(0);
+    setBrokenImgs(new Set());
+  }, [slug]);
 
   useEffect(() => {
     if (pkg) {
@@ -182,16 +214,23 @@ export default function PackageDetail() {
 
       {/* Hero gallery */}
       <div style={{ position: "relative" }}>
-        <div style={{ position: "relative", height: isMobile ? "42vh" : "52vh", minHeight: isMobile ? "260px" : "360px", overflow: "hidden", cursor: pkg.images && pkg.images.length > 1 ? "grab" : "default" }}
+        <div
+          style={{ position: "relative", height: isMobile ? "42vh" : "52vh", minHeight: isMobile ? "260px" : "360px", overflow: "hidden", cursor: imgCount > 1 ? "grab" : "default" }}
           onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
           onTouchEnd={e => {
             const diff = touchStartX.current - e.changedTouches[0].clientX;
             if (Math.abs(diff) > 40) { if (diff > 0) nextImg(); else prevImg(); }
-          }}>
-          {pkg.images && pkg.images.length > 0 ? (
-            <img src={pkg.images[activeImg]} alt={title}
+          }}
+        >
+          {/* Image — key forces fresh element on index change, preventing display:none bleed-over */}
+          {imgCount > 0 && !brokenImgs.has(safeImg) ? (
+            <img
+              key={safeImg}
+              src={imgs[safeImg]}
+              alt={title}
               style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)", transition: "opacity 0.3s" }}
-              onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              onError={() => setBrokenImgs(prev => new Set(prev).add(safeImg))}
+            />
           ) : (
             <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${pkg.color}20, #0D1B2A)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "6rem" }}>
               {pkg.icon}
@@ -199,8 +238,8 @@ export default function PackageDetail() {
           )}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, #0D1B2A 100%)" }} />
 
-          {/* Arrow buttons */}
-          {pkg.images && pkg.images.length > 1 && (<>
+          {/* Prev / Next arrows — only shown when there are multiple valid images */}
+          {imgCount > 1 && (<>
             <button onClick={prevImg}
               style={{ position: "absolute", top: "50%", insetInlineStart: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
               ‹
@@ -210,9 +249,9 @@ export default function PackageDetail() {
               ›
             </button>
 
-            {/* Image counter badge */}
+            {/* Counter badge: always safeImg + 1 */}
             <div style={{ position: "absolute", top: "0.85rem", insetInlineEnd: "0.85rem", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", color: "white", fontSize: "0.72rem", fontWeight: 700, padding: "0.25rem 0.65rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif" }}>
-              {activeImg + 1} / {pkg.images.length}
+              {safeImg + 1} / {imgCount}
             </div>
           </>)}
 
@@ -223,13 +262,17 @@ export default function PackageDetail() {
         </div>
 
         {/* Thumbnail strip */}
-        {pkg.images && pkg.images.length > 1 && (
+        {imgCount > 1 && (
           <div style={{ background: "#0a1520", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 1rem", display: "flex", gap: "0.5rem", overflowX: "auto" }}>
-            {pkg.images.map((img, i) => (
+            {imgs.map((img, i) => (
               <button key={i} onClick={() => setActiveImg(i)}
-                style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === activeImg ? pkg.color : "transparent"}`, cursor: "pointer", padding: 0, transition: "border-color 0.2s", opacity: i === activeImg ? 1 : 0.55 }}>
-                <img src={img} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === safeImg ? pkg.color : "transparent"}`, cursor: "pointer", padding: 0, transition: "border-color 0.2s", opacity: i === safeImg ? 1 : 0.55 }}>
+                {!brokenImgs.has(i) ? (
+                  <img src={img} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={() => setBrokenImgs(prev => new Set(prev).add(i))} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", background: `${pkg.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>{pkg.icon}</div>
+                )}
               </button>
             ))}
           </div>
