@@ -93,15 +93,17 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 
 ### `artifacts/dr-travel` (`@workspace/dr-travel`)
 
-Frontend-only React + Vite tourism website for DR Travel (Marsa Matruh, Egypt).
+Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with integrated Admin Panel.
 
-- **Routing**: `wouter` v3 — `/` (HomePage), `/packages/:slug` (PackageDetail)
+**Public Site:**
+- **Routing**: `wouter` v3 — `/` (HomePage), `/packages/:slug` (PackageDetail), `/rewards` (RewardsPage), `/admin/*` (AdminRouter)
 - **Bilingual**: Arabic (RTL) and English (LTR) with auto-detection from browser language
 - **Language system**: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
 - **Translation files**: `src/translations/ar.ts` and `src/translations/en.ts` — `Translations` type is `typeof ar` with `dir: "rtl" | "ltr"`
 - **Multi-currency**: EGP / USD / SAR — `src/data/currencies.ts` (rates, symbols, formatPrice), `src/context/CurrencyContext.tsx`, `src/components/CurrencySwitcher.tsx` in navbar
-- **Rich package data**: `src/data/packages.ts` — `PackageData` interface with slugs, itineraries, why-this-trip reasons, FAQs, what-to-bring, cancellation policy; 4 packages (full-safari, luxury-yacht, aqua-park, family-adventure)
+- **Rich package data**: `src/data/packages.ts` — `PackageData` interface with slugs, itineraries, why-this-trip reasons, FAQs, what-to-bring, cancellation policy; 4 packages (full-safari, luxury-yacht, all-inclusive, family-package)
 - **Package Detail pages**: `src/pages/PackageDetail.tsx` — hero images, itinerary timeline, includes/excludes, FAQ accordion, sticky booking sidebar with WhatsApp Inquiry CTA
+- **Booking form**: saves to `/api/bookings` (DB) and redirects to WhatsApp
 - **Personalization**: `src/hooks/usePersonalization.ts` (recently viewed via localStorage), `PersonalizedSection` component showing recently viewed + recommended packages
 - **Package comparison**: `src/components/CompareModal.tsx` (side-by-side grid up to 3), `CompareBar` sticky bottom; compare toggle per card
 - **AI Travel Assistant**: `src/components/AIAssistant.tsx` — 5-step rule-based flow (group type → children → budget → trip type → foreigner); floating robot button; recommends top 2 packages
@@ -111,6 +113,32 @@ Frontend-only React + Vite tourism website for DR Travel (Marsa Matruh, Egypt).
 - **Colors**: navy #0D1B2A, blue #00AAFF, gold #C9A84C
 - **Fonts**: Cairo (Arabic), Montserrat (brand)
 - **Social**: Facebook (Drtrave), Instagram (drtravel_marsamatrouh), TikTok (@drtravel.marsa.matrouh)
+
+**Admin Panel (`/admin`):**
+- **Auth**: JWT (7-day expiry), stored in localStorage. Default: admin/drtravel2024
+- **Auth context**: `src/admin/AdminContext.tsx` — AdminProvider, useAdmin(), adminFetch()
+- **AdminRouter**: `src/admin/AdminRouter.tsx` — rendered outside main LanguageProvider/CurrencyProvider
+- **Pages**:
+  - `/admin/login` — LoginPage.tsx
+  - `/admin/dashboard` — DashboardPage.tsx (stats cards + recent bookings table)
+  - `/admin/packages` — PackagesPage.tsx (list with thumbnail, active toggle, edit/delete)
+  - `/admin/packages/new` & `/admin/packages/:id/edit` — PackageFormPage.tsx (4-tab form: basic/media/includes/flags)
+  - `/admin/bookings` — BookingsPage.tsx (filter by status, WhatsApp quick-reply, status update)
+  - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
+  - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, saved to DB)
+- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded)
+
+**Database Schema (lib/db):**
+- `packages` — full package data (JSONB for arrays/objects)
+- `testimonials` — review entries with visibility control
+- `bookings` — customer booking records with status workflow (new→contacted→confirmed→completed→cancelled)
+- `site_settings` — key-value store for editable site config
+
+**API Server routes (artifacts/api-server):**
+- Public: `GET /api/packages`, `GET /api/packages/:slug`, `GET /api/testimonials`, `POST /api/bookings`
+- Admin auth: `POST /api/admin/login`, `GET /api/admin/me`
+- Admin CRUD: `/api/admin/packages`, `/api/admin/testimonials`, `/api/admin/bookings`, `/api/admin/settings`
+- All admin routes require Bearer JWT header
 
 ### `scripts` (`@workspace/scripts`)
 

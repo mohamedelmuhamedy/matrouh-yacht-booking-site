@@ -8,6 +8,7 @@ import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
 import PackageDetail from "./pages/PackageDetail";
 import RewardsPage from "./pages/RewardsPage";
+import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
 import { formatPrice } from "./data/currencies";
 import { usePersonalization } from "./hooks/usePersonalization";
@@ -551,11 +552,32 @@ function PackagesAndBooking() {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length === 0) setShowModal(true);
+    if (Object.keys(errs).length === 0) {
+      setShowModal(true);
+      try {
+        const pkgData = PACKAGES_DATA.find(p => p.id === selectedPkg?.id);
+        await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name, phone: form.phone,
+            packageId: selectedPkg?.id,
+            packageName: selectedPkg?.name ?? "",
+            packageNameAr: pkgData?.titleAr ?? selectedPkg?.name ?? "",
+            date: form.date, adults: form.adults,
+            children: form.children, infants: form.infants,
+            notes: form.notes, currency: "EGP",
+            priceAtBooking: estimatedPrice || null,
+          }),
+        });
+      } catch {
+        // Booking saves to DB silently — WhatsApp flow continues regardless
+      }
+    }
   };
 
   const waMessage = encodeURIComponent(
@@ -1061,6 +1083,13 @@ function DetailPageWrapper() {
 
 // ===== APP =====
 export default function App() {
+  const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
+
+  if (isAdmin) {
+    return <AdminRouter />;
+  }
+
   return (
     <LanguageProvider>
       <CurrencyProvider>
