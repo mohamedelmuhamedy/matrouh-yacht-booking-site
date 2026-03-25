@@ -366,6 +366,7 @@ function Navbar() {
 function Hero() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
+  const [, navigate] = useLocation();
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
   const titleMain = ar
@@ -433,12 +434,12 @@ function Hero() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(0,170,255,0.35)"; }}>
               {t.hero.cta1}
             </a>
-            <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
-              style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}>
-              <WhatsAppIcon /> {t.hero.cta2}
-            </a>
+            <button onClick={() => navigate("/trips")}
+              style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              🗺️ {t.nav.trips}
+            </button>
           </div>
         </FadeInSection>
       </div>
@@ -758,10 +759,10 @@ function PackagesAndBooking() {
   const labelStyle = { display: "block" as const, color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" };
 
   return (
-    <section id="packages" style={{ padding: "6rem 1.5rem", background: "linear-gradient(180deg,#0a1520 0%,#0D1B2A 100%)" }}>
+    <section id="packages" style={{ padding: `6rem 1.5rem ${showPackages ? "6rem" : "2.5rem"}`, background: "linear-gradient(180deg,#0a1520 0%,#0D1B2A 100%)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <FadeInSection>
-          <div style={{ textAlign: "center", marginBottom: showPackages ? "3.5rem" : "2.5rem" }}>
+          <div style={{ textAlign: "center", marginBottom: showPackages ? "3.5rem" : "1.5rem" }}>
             <div className="section-label">{t.packages.sectionLabel}</div>
             <h2 className="section-title">{t.packages.sectionTitle}</h2>
             <p className="section-subtitle">{t.packages.sectionSubtitle}</p>
