@@ -39,6 +39,10 @@ export default function PackageDetail() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isXs, setIsXs] = useState(window.innerWidth < 480);
+  const touchStartX = { current: 0 };
+
+  const prevImg = () => setActiveImg(i => (i > 0 ? i - 1 : (pkg?.images?.length ?? 1) - 1));
+  const nextImg = () => setActiveImg(i => (i < (pkg?.images?.length ?? 1) - 1 ? i + 1 : 0));
 
   useEffect(() => {
     const onResize = () => {
@@ -48,6 +52,16 @@ export default function PackageDetail() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!pkg?.images || pkg.images.length < 2) return;
+      if (e.key === "ArrowLeft") nextImg();
+      if (e.key === "ArrowRight") prevImg();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pkg]);
 
   useEffect(() => {
     if (pkg) {
@@ -166,32 +180,60 @@ export default function PackageDetail() {
         </button>
       </div>
 
-      {/* Hero image */}
-      <div style={{ position: "relative", height: isMobile ? "42vh" : "50vh", minHeight: isMobile ? "260px" : "340px", overflow: "hidden" }}>
-        {pkg.images && pkg.images.length > 0 ? (
-          <img src={pkg.images[activeImg]} alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)" }}
-            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${pkg.color}20, #0D1B2A)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "6rem" }}>
-            {pkg.icon}
-          </div>
-        )}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, #0D1B2A 100%)" }} />
+      {/* Hero gallery */}
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", height: isMobile ? "42vh" : "52vh", minHeight: isMobile ? "260px" : "360px", overflow: "hidden", cursor: pkg.images && pkg.images.length > 1 ? "grab" : "default" }}
+          onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+          onTouchEnd={e => {
+            const diff = touchStartX.current - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) { if (diff > 0) nextImg(); else prevImg(); }
+          }}>
+          {pkg.images && pkg.images.length > 0 ? (
+            <img src={pkg.images[activeImg]} alt={title}
+              style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)", transition: "opacity 0.3s" }}
+              onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${pkg.color}20, #0D1B2A)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "6rem" }}>
+              {pkg.icon}
+            </div>
+          )}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, #0D1B2A 100%)" }} />
 
+          {/* Arrow buttons */}
+          {pkg.images && pkg.images.length > 1 && (<>
+            <button onClick={prevImg}
+              style={{ position: "absolute", top: "50%", insetInlineStart: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
+              ‹
+            </button>
+            <button onClick={nextImg}
+              style={{ position: "absolute", top: "50%", insetInlineEnd: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
+              ›
+            </button>
+
+            {/* Image counter badge */}
+            <div style={{ position: "absolute", top: "0.85rem", insetInlineEnd: "0.85rem", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", color: "white", fontSize: "0.72rem", fontWeight: 700, padding: "0.25rem 0.65rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif" }}>
+              {activeImg + 1} / {pkg.images.length}
+            </div>
+          </>)}
+
+          <div style={{ position: "absolute", bottom: isMobile ? "2rem" : "3rem", left: 0, right: 0, padding: isMobile ? "0 1rem" : "0 2rem", textAlign: "center" }}>
+            <div style={{ fontSize: isMobile ? "2.5rem" : "3.5rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
+            <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word" }}>{title}</h1>
+          </div>
+        </div>
+
+        {/* Thumbnail strip */}
         {pkg.images && pkg.images.length > 1 && (
-          <div style={{ position: "absolute", bottom: "1.25rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "0.5rem" }}>
-            {pkg.images.map((_, i) => (
+          <div style={{ background: "#0a1520", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 1rem", display: "flex", gap: "0.5rem", overflowX: "auto" }}>
+            {pkg.images.map((img, i) => (
               <button key={i} onClick={() => setActiveImg(i)}
-                style={{ width: i === activeImg ? 24 : 7, height: 7, borderRadius: 4, background: i === activeImg ? pkg.color : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s", padding: 0 }} />
+                style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === activeImg ? pkg.color : "transparent"}`, cursor: "pointer", padding: 0, transition: "border-color 0.2s", opacity: i === activeImg ? 1 : 0.55 }}>
+                <img src={img} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+              </button>
             ))}
           </div>
         )}
-
-        <div style={{ position: "absolute", bottom: isMobile ? "2.75rem" : "3.5rem", left: 0, right: 0, padding: isMobile ? "0 1rem" : "0 2rem", textAlign: "center" }}>
-          <div style={{ fontSize: isMobile ? "2.5rem" : "3.5rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
-          <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word" }}>{title}</h1>
-        </div>
       </div>
 
       {/* Main content */}

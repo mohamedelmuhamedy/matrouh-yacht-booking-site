@@ -96,13 +96,17 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with integrated Admin Panel.
 
 **Public Site:**
-- **Routing**: `wouter` v3 — `/` (HomePage), `/packages/:slug` (PackageDetail), `/rewards` (RewardsPage), `/admin/*` (AdminRouter)
+- **Routing**: `wouter` v3 — `/` (HomePage), `/trips` (TripsPage), `/packages/:slug` (PackageDetail), `/rewards` (RewardsPage), `/admin/*` (AdminRouter)
 - **Bilingual**: Arabic (RTL) and English (LTR) with auto-detection from browser language
 - **Language system**: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
 - **Translation files**: `src/translations/ar.ts` and `src/translations/en.ts` — `Translations` type is `typeof ar` with `dir: "rtl" | "ltr"`
 - **Multi-currency**: EGP / USD / SAR — `src/data/currencies.ts` (rates, symbols, formatPrice), `src/context/CurrencyContext.tsx`, `src/components/CurrencySwitcher.tsx` in navbar
 - **Rich package data**: `src/data/packages.ts` — `PackageData` interface with slugs, itineraries, why-this-trip reasons, FAQs, what-to-bring, cancellation policy; 4 packages (full-safari, luxury-yacht, all-inclusive, family-package)
 - **Package Detail pages**: `src/pages/PackageDetail.tsx` — hero images, itinerary timeline, includes/excludes, FAQ accordion, sticky booking sidebar with WhatsApp Inquiry CTA
+- **Trips page**: `src/pages/TripsPage.tsx` — browse-all-packages page at `/trips`; search bar, category pills (All/Yacht/Safari/Water/Parasailing/AquaPark/Family), sort by price/rating; mobile-first card grid
+- **Package gallery**: TouchStart/touchEnd swipe, ← → keyboard nav, thumbnail strip, image counter badge (X/N), prev/next arrow buttons; all in `PackageDetail.tsx`
+- **Price range display**: `priceLabel` shows "min – max" when `maxPriceEGP > 0`, else "from X"
+- **PWA**: `public/manifest.json`, `public/sw.js` service worker, PWA meta tags + SW registration in `index.html`; icons at `/icon-192.png` and `/icon-512.png`
 - **Booking form**: saves to `/api/bookings` (DB) and redirects to WhatsApp
 - **Personalization**: `src/hooks/usePersonalization.ts` (recently viewed via localStorage), `PersonalizedSection` component showing recently viewed + recommended packages
 - **Package comparison**: `src/components/CompareModal.tsx` (side-by-side grid up to 3), `CompareBar` sticky bottom; compare toggle per card

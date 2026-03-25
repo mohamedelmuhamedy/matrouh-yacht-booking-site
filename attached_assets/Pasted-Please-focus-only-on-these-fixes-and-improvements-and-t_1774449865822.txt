@@ -1,0 +1,106 @@
+Please focus only on these fixes and improvements, and test everything yourself end-to-end before replying:
+
+1) Packages must actually sync with the public website
+- When I create a package in /admin, it must save correctly and appear on the public website
+- When I delete, archive, or unpublish a package, it must disappear from the public website
+- Add a real Delete action with a clear confirm dialog
+- Test this yourself by:
+  - creating a package
+  - confirming it appears publicly
+  - deleting/unpublishing it
+  - confirming it disappears publicly
+
+2) Package images upload from device
+- In package create/edit, support uploading images directly from device
+- Do not rely only on image URLs
+- Show image preview
+- Save uploaded images correctly
+- Make sure uploaded images appear on the public website
+
+3) Packages section UX
+- Make the public packages section horizontally scrollable/swipeable left-right where appropriate, especially on smaller screens, while keeping desktop clean
+- Keep package cards usable and readable
+
+4) Price logic
+- If max price is empty, treat it as “no max price” and show only one price
+- If max price exists, show min and max together
+
+5) Cancellation policy toggle per package
+- Add a switch to enable/disable cancellation policy per package
+- If disabled:
+  - hide the field in admin
+  - do not show cancellation policy on the public package page
+
+6) Reviews / testimonials readability
+- Improve review text readability in admin and public UI
+- Fix contrast, spacing, modal clarity, and input readability
+- Make edit-review modal fully usable
+
+7) Rewards / referrals system
+- Remove the fake “balance” concept
+- Replace it with a referral rewards system based on successful bookings only
+- Example logic:
+  - each referrer gets a referral code/link
+  - when a booking is marked successful/confirmed through that referral
+  - the referrer gets a reward defined by admin
+- Admin must be able to control:
+  - reward enabled/disabled
+  - reward type (fixed discount / percentage / perk / after X confirmed bookings)
+  - reward value
+  - approve/reject rewards if needed
+- Add a real Admin Rewards page that works, not just UI
+- Show referral codes, successful referred bookings, and reward status
+
+8) PWA / install app
+- Make the public website installable as a PWA on phone and laptop
+- App name must be: DR Travel
+- App icon must use the current logo
+- Add an Install button in the top area/header if appropriate
+- On phone, only for the first visit and only after the user scrolls down near the bottom for the first time, show a popup suggesting installing the app for faster access
+- Do not show this popup repeatedly after dismissal
+- Also make the admin panel installable as an app/PWA
+
+9) Mobile admin responsiveness
+- Make all admin pages work properly on mobile:
+  - login
+  - dashboard
+  - packages
+  - edit package
+  - testimonials
+  - bookings
+  - settings
+  - rewards
+- No horizontal overflow
+- Better mobile layout, inputs, buttons, tabs, modals, and sidebar/drawer
+
+10) Logo / branding persistence
+- Keep DR Travel as the app name
+- Use the uploaded/current logo correctly in navbar, footer, and PWA/app icon
+
+11) Test everything yourself
+Please test these flows yourself:
+- create package -> visible publicly
+- delete/unpublish package -> hidden publicly
+- upload package image from device
+- package price with empty max
+- cancellation policy on/off
+- review edit modal readability
+- referral reward flow after confirmed booking
+- public PWA install
+- admin PWA install
+- mobile admin pages
+
+12) After finishing
+Send me a short summary only:
+- what was broken
+- what you fixed
+- whether you tested each point yourself
+- and screenshots for:
+  - new package in admin
+  - same package visible on public site
+  - package deleted/unpublished and hidden from public site
+  - uploaded package image
+  - improved review modal
+  - admin rewards page
+  - public install prompt / PWA
+  - admin on mobile

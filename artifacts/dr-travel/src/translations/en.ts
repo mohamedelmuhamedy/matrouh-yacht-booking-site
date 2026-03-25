@@ -11,6 +11,7 @@ export const en: Translations = {
     home: "Home",
     services: "Services",
     packages: "Packages",
+    trips: "Trip Details",
     booking: "Book Now",
     contact: "Contact",
     whatsapp: "WhatsApp",

@@ -9,6 +9,7 @@ export const ar = {
     home: "الرئيسية",
     services: "خدماتنا",
     packages: "باقاتنا",
+    trips: "تفاصيل الرحلات",
     booking: "احجز الآن",
     contact: "تواصل معنا",
     whatsapp: "واتساب",

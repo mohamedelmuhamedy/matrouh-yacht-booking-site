@@ -9,6 +9,7 @@ import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
 import PackageDetail from "./pages/PackageDetail";
 import RewardsPage from "./pages/RewardsPage";
+import TripsPage from "./pages/TripsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
@@ -24,6 +25,7 @@ interface DisplayPkg {
   duration: string;
   price: string;
   priceNum: number;
+  maxPriceNum: number | null;
   badge: string | null;
   badgeColor: string | null;
   featured: boolean;
@@ -31,11 +33,16 @@ interface DisplayPkg {
   color: string;
   whyThisTripAr: { icon: string; text: string }[];
   whyThisTripEn: { icon: string; text: string }[];
+  images?: string[];
 }
 
 function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): DisplayPkg {
   const curr = currency as CurrencyCode;
   const ar = lang === "ar";
+  const hasMax = typeof pkg.maxPriceEGP === "number" && pkg.maxPriceEGP > 0;
+  const priceLabel = hasMax
+    ? `${formatPrice(pkg.priceEGP, curr, lang)} – ${formatPrice(pkg.maxPriceEGP!, curr, lang)}`
+    : formatPrice(pkg.priceEGP, curr, lang);
   return {
     id: pkg.id,
     slug: pkg.slug,
@@ -44,8 +51,9 @@ function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): Display
     titleAr: pkg.titleAr,
     includes: (ar ? pkg.includesAr : pkg.includesEn).slice(0, 5),
     duration: ar ? pkg.durationAr : pkg.durationEn,
-    price: formatPrice(pkg.priceEGP, curr, lang),
+    price: priceLabel,
     priceNum: pkg.priceEGP,
+    maxPriceNum: hasMax ? pkg.maxPriceEGP! : null,
     badge: ar ? pkg.badgeAr : pkg.badgeEn,
     badgeColor: pkg.badgeColor,
     featured: pkg.featured,
@@ -53,6 +61,7 @@ function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): Display
     color: pkg.color,
     whyThisTripAr: pkg.whyThisTripAr ?? [],
     whyThisTripEn: pkg.whyThisTripEn ?? [],
+    images: pkg.images ?? [],
   };
 }
 
@@ -217,6 +226,12 @@ function Navbar() {
     { label: t.nav.booking, href: "#booking" },
     { label: t.nav.contact, href: "#footer" },
   ];
+  const [pwaPrompt, setPwaPrompt] = useState<any>(null);
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -257,19 +272,31 @@ function Navbar() {
 
         {/* Desktop links */}
         {!isMobile && (
-          <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "1.25rem", alignItems: "center" }}>
             {navLinks.map(link => (
               <button key={link.href} onClick={() => scrollTo(link.href)}
                 className={`nav-link ${activeSection === link.href ? "active" : ""}`}>
                 {link.label}
               </button>
             ))}
+            {/* Trip Details link */}
+            <button onClick={() => navigate("/trips")}
+              className="nav-link"
+              style={{ color: "#00AAFF", fontWeight: 700 }}>
+              🗺️ {t.nav.trips}
+            </button>
             {/* Rewards page link */}
             <button onClick={() => navigate("/rewards")}
               className="nav-link"
               style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
               🎁 {ar ? "المكافآت" : "Rewards"}
             </button>
+            {pwaPrompt && (
+              <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") setPwaPrompt(null); }}
+                style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap" }}>
+                📲 {ar ? "تثبيت التطبيق" : "Install App"}
+              </button>
+            )}
             <CurrencySwitcher />
             <LangSwitcher />
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
@@ -308,11 +335,22 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            {/* Trip Details mobile link */}
+            <button onClick={() => { navigate("/trips"); setMenuOpen(false); }}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: "10px", color: "#00AAFF", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
+              🗺️ {t.nav.trips}
+            </button>
             {/* Rewards mobile link */}
             <button onClick={() => { navigate("/rewards"); setMenuOpen(false); }}
               style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
               🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
             </button>
+            {pwaPrompt && (
+              <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") { setPwaPrompt(null); setMenuOpen(false); } }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
+                📲 {ar ? "تثبيت تطبيق DR Travel" : "Install DR Travel App"}
+              </button>
+            )}
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "0.75rem", fontFamily: "Cairo, sans-serif" }}>
               <WhatsAppIcon /> {t.nav.whatsappMobile}
@@ -538,7 +576,7 @@ function PersonalizedSection() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}22`; }}>
                   <div style={{ fontSize: "1.75rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
                   <div style={{ color: "white", fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, marginBottom: "0.3rem" }}>{ar ? pkg.titleAr : pkg.titleEn}</div>
-                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{formatPrice(pkg.priceEGP, currency as CurrencyCode, lang)}</div>
+                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{pkg.price}</div>
                 </button>
               ))}
             </div>
@@ -1009,20 +1047,25 @@ function WhyUs() {
 
 // ===== REVIEWS =====
 function ReviewCard({ review, colorIndex }: { review: { name: string; initials: string; review: string; stars: number }; colorIndex: number }) {
+  const stars = Math.max(1, Math.min(5, review.stars || 5));
   return (
-    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "18px", padding: "1.5rem", minWidth: "300px", maxWidth: "320px", flexShrink: 0, transition: "all 0.3s" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.25)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.12)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-        <div style={{ width: 44, height: 44, borderRadius: "50%", background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: 800, color: "white", flexShrink: 0 }}>
+    <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "18px", padding: "1.35rem 1.5rem", minWidth: "280px", maxWidth: "340px", flexShrink: 0, transition: "all 0.3s" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.3)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.14)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.9rem" }}>
+        <div style={{ width: 46, height: 46, borderRadius: "50%", background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 800, color: "white", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
           {review.initials}
         </div>
         <div>
-          <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem" }}>{review.name}</div>
-          <div style={{ color: "#C9A84C", fontSize: "0.8rem" }}>{"★".repeat(review.stars)}</div>
+          <div style={{ color: "#e8f0f8", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.2rem" }}>{review.name}</div>
+          <div style={{ display: "flex", gap: "1px" }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span key={i} style={{ color: i < stars ? "#C9A84C" : "#2a3a4a", fontSize: "0.85rem" }}>★</span>
+            ))}
+          </div>
         </div>
       </div>
-      <p style={{ color: "#8899aa", fontSize: "0.875rem", lineHeight: 1.85, margin: 0 }}>"{review.review}"</p>
+      <p style={{ color: "#b8c8d8", fontSize: "0.875rem", lineHeight: 1.9, margin: 0, fontStyle: "italic" }}>"{review.review}"</p>
     </div>
   );
 }
@@ -1241,6 +1284,20 @@ function DetailPageWrapper() {
   );
 }
 
+// ===== TRIPS PAGE WRAPPER =====
+function TripsPageWrapper() {
+  const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const showAI = settings.show_ai_assistant !== "false";
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+      <Navbar />
+      <TripsPage />
+      {showAI && <AIAssistant />}
+    </div>
+  );
+}
+
 // ===== APP =====
 export default function App() {
   const [location] = useLocation();
@@ -1257,6 +1314,7 @@ export default function App() {
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/packages/:slug" component={DetailPageWrapper} />
+            <Route path="/trips" component={TripsPageWrapper} />
             <Route path="/rewards" component={RewardsPage} />
             <Route component={NotFoundPage} />
           </Switch>
