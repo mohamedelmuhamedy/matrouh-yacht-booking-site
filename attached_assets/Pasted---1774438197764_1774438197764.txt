@@ -1,0 +1,79 @@
+أريد إصلاح صفحة تعديل الباقة بحيث تظهر القيم الحالية الموجودة فعليًا داخل الفورم، بدل ما تكون الحقول فارغة.
+
+المشكلة الحالية:
+صفحة:
+/admin/packages/:id/edit
+
+تفتح باسم الباقة الصحيح في العنوان، لكن معظم الحقول داخل الفورم نفسها فارغة، رغم أن بيانات الباقة موجودة في قاعدة البيانات.
+
+المطلوب:
+1) عند فتح صفحة تعديل أي باقة:
+- اجلب بيانات الباقة الحالية من الـ API / DB
+- املأ كل الحقول تلقائيًا بالقيم الحالية
+- لا أريد رؤية form فارغة عند التعديل
+
+2) يجب عمل prefill لكل الحقول الموجودة في الصفحة، بما فيها:
+- slug
+- icon / emoji
+- titleAr / titleEn
+- shortDescriptionAr / shortDescriptionEn
+- fullDescriptionAr / fullDescriptionEn
+- category
+- minPrice / maxPrice
+- durationAr / durationEn
+- badgeAr / badgeEn
+- primaryColor / badgeColor
+- rating
+- reviewCount
+- sortOrder
+- cancellationPolicyAr / cancellationPolicyEn
+- status
+- featured / popular / active إن وجدت
+- includes / excludes
+- whyThisTrip
+- itinerary
+- faq
+- whatToBring
+- suitableFor
+- images
+- videos
+- أي حقول أخرى موجودة في package model
+
+3) أصلح السبب الجذري في الكود:
+راجِع الآتي:
+- هل الـ fetch يعمل ويعيد البيانات فعلًا؟
+- هل response يتم map بشكل صحيح إلى شكل الفورم؟
+- هل الفورم يستخدم defaultValues فقط مرة واحدة قبل وصول البيانات؟
+- إذا كان react-hook-form مستخدمًا:
+  - استخدم form.reset(fetchedData) بعد اكتمال الجلب
+- إذا كانت الحقول controlled:
+  - اربط state بالقيم القادمة من الـ API
+- إذا كانت بعض tabs لها state منفصلة:
+  - تأكد أنها أيضًا تتعبّى من نفس البيانات
+- تأكد أن useEffect dependencies صحيحة
+- تأكد أن القيم لا يتم overwrite عليها بـ EMPTY_PKG بعد التحميل
+
+4) أريد loading state واضح:
+- أثناء جلب بيانات الباقة، أظهر loading skeleton أو spinner
+- لو فشل الجلب، أظهر error message واضحة
+- لا تجعل الصفحة تبدو وكأنها فارغة بدون تفسير
+
+5) مهم جدًا:
+- لا تكتفِ بإظهار عنوان الباقة فقط
+- أريد كل الحقول داخل نموذج التعديل تكون مليانة بالقيم الحالية
+- عند الضغط على حفظ، لا يتم مسح أي بيانات قديمة بسبب mapping خاطئ
+- إذا كانت بعض الحقول مخزنة بصيغة JSON أو arrays:
+  - اعرضها داخل المحررات/الحقول بشكل صحيح وقابل للتعديل
+
+6) اختبر فعليًا:
+- افتح /admin/packages/1/edit
+- تأكد أن جميع الحقول الحالية ظهرت
+- غيّر قيمة واحدة واحفظ
+- أعد فتح الصفحة
+- تأكد أن القيمة المعدلة ظهرت داخل الفورم أيضًا
+
+7) بعد التنفيذ:
+أعطني ملخصًا واضحًا:
+- ما السبب الحقيقي لكون الحقول فارغة
+- ما الملفات التي عدلتها
+- كيف أصلحت prefill في صفحة تعديل الباقة
