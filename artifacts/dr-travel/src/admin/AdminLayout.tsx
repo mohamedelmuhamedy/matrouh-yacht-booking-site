@@ -3,12 +3,14 @@ import { useLocation } from "wouter";
 import { useAdmin } from "./AdminContext";
 
 const NAV = [
-  { path: "/admin/dashboard", icon: "📊", label: "لوحة التحكم" },
-  { path: "/admin/packages",  icon: "🏖️", label: "الباقات" },
-  { path: "/admin/bookings",  icon: "📅", label: "الحجوزات" },
+  { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
+  { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
+  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات" },
+  { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
-  { path: "/admin/settings",  icon: "⚙️", label: "الإعدادات" },
+  { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
 ];
+const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials");
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAdmin();
@@ -102,7 +104,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         {/* Bottom nav bar */}
         <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)" }}>
-          {NAV.map(item => {
+          {BOTTOM_NAV.map(item => {
             const active = location.startsWith(item.path);
             return (
               <button key={item.path} onClick={() => navTo(item.path)}

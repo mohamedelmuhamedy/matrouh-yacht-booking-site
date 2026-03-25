@@ -107,7 +107,8 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - **Personalization**: `src/hooks/usePersonalization.ts` (recently viewed via localStorage), `PersonalizedSection` component showing recently viewed + recommended packages
 - **Package comparison**: `src/components/CompareModal.tsx` (side-by-side grid up to 3), `CompareBar` sticky bottom; compare toggle per card
 - **AI Travel Assistant**: `src/components/AIAssistant.tsx` — 5-step rule-based flow (group type → children → budget → trip type → foreigner); floating robot button; recommends top 2 packages
-- **Referral/Loyalty**: `src/components/ReferralSection.tsx` — 3 tiers (New/Premium/VIP), referral code generator in localStorage, mock balance display
+- **Referral/Loyalty**: `src/components/ReferralSection.tsx` — real API integration: verifies code from `/api/referral/verify`, self-registration via `/api/referral/register`, shows real usedCount/approvedCount; no localStorage mock data
+- **Booking referral**: booking form has optional "كود الإحالة" field with debounced verification (green ✓ / red ✗ indicators); valid code is sent with the booking POST to trigger reward creation
 - **"Why This Trip?"**: Per-package data + mini-section on cards + full section on detail page
 - **Design**: glassmorphism, scroll progress bar, auto-scrolling reviews, animated counters; WhatsApp integration (01205756024)
 - **Colors**: navy #0D1B2A, blue #00AAFF, gold #C9A84C
@@ -129,7 +130,8 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
   - `/admin/bookings` — BookingsPage.tsx (search by name/phone, CSV export, admin notes modal)
   - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
   - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, logo upload via Object Storage, feature toggles: show_ai_assistant/show_compare_feature/show_testimonials, change password)
-- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded), shows admin displayName
+  - `/admin/rewards` — AdminRewardsPage.tsx (3 tabs: Settings / Codes / Rewards): reward settings (enabled toggle, type, value, after_x), referral codes CRUD (create/edit/deactivate/delete with auto-code generation), rewards list with approve/reject and admin notes
+- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded); mobile bottom nav shows 5 items (excludes testimonials); Testimonials accessible via drawer
 
 **Public Site Data from DB:**
 - `src/context/SiteDataContext.tsx` — `SiteDataProvider` wraps public routes; fetches `/api/packages`, `/api/testimonials`, `/api/settings` on mount; static fallback if API unavailable

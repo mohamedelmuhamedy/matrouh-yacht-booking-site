@@ -1,0 +1,64 @@
+Please focus on these fixes and improvements only, and test everything yourself end-to-end before replying:
+
+1) Package delete / hide
+- Add a real delete option for packages in admin
+- If a package is deleted, archived, or unpublished, it must disappear from the public website
+- Add a clear confirm dialog before delete
+- Test this yourself and confirm the package no longer appears publicly
+
+2) Reviews / testimonials readability
+- Fix the review text readability in admin and public UI
+- Improve text contrast, spacing, and modal/input visibility
+- Make sure edit-review modal is clear and fully usable
+
+3) Rewards system cleanup
+- The current “balance” concept is not correct for this business
+- Remove fake balance-style logic
+- Replace it with a referral rewards system based on successful bookings through a referral link/code
+
+4) Referral logic
+- Each user/referrer should have a referral code or referral link
+- When a booking is completed successfully through that referral, the referrer gets a reward
+- The reward value/type must be configurable by admin
+- Example admin-controlled reward options:
+  - fixed amount discount
+  - percentage discount
+  - free upgrade / special perk
+  - reward after X successful bookings
+
+5) Admin rewards page
+- Add a proper admin page for rewards/referrals
+- It should allow admin to:
+  - enable/disable rewards system
+  - set reward type and value
+  - view referral codes
+  - view successful referred bookings
+  - view pending / approved / rejected rewards
+  - manually approve or reject reward if needed
+- This page must actually work, not just be UI
+
+6) Package image upload
+- In package create/edit, keep support for image upload from device
+- Do not rely only on image URL fields
+- Uploaded images must save correctly and appear on the public package
+
+7) Test everything yourself
+Please test:
+- delete package → disappears from public website
+- reviews readability and edit modal
+- referral/rewards page in admin
+- referral code flow
+- successful booking through referral
+- reward rule applied correctly
+- save + refresh persistence
+
+8) After finishing
+Send me a short summary only:
+- what was broken
+- what you fixed
+- whether you tested each point yourself
+- and screenshots for:
+  - package delete / hidden from public site
+  - improved review modal/readability
+  - admin rewards page
+  - referral reward settings

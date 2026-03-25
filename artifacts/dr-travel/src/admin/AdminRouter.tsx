@@ -10,6 +10,7 @@ import PackageFormPage from "./PackageFormPage";
 import BookingsPage from "./BookingsPage";
 import TestimonialsPage from "./TestimonialsPage";
 import SettingsPage from "./SettingsPage";
+import AdminRewardsPage from "./AdminRewardsPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAdmin();
@@ -67,6 +68,9 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/settings">
         <AdminGuard><SettingsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/rewards">
+        <AdminGuard><AdminRewardsPage /></AdminGuard>
       </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>

@@ -15,6 +15,7 @@ export default function PackagesPage() {
   const [loading, setLoading] = useState(true);
   const [, navigate] = useLocation();
   const [confirmArchive, setConfirmArchive] = useState<any | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [duplicating, setDuplicating] = useState<number | null>(null);
   const { success, error: toastError } = useToast();
 
@@ -35,6 +36,16 @@ export default function PackagesPage() {
       success(`تم أرشفة "${pkg.titleAr}"`);
     } catch { toastError("فشل أرشفة الباقة"); }
     setConfirmArchive(null);
+  };
+
+  const deletePackage = async (pkg: any) => {
+    try {
+      const r = await adminFetch(`/admin/packages/${pkg.id}?force=true`, { method: "DELETE" });
+      if (!r.ok) throw new Error();
+      setPackages(prev => prev.filter(p => p.id !== pkg.id));
+      success(`تم حذف "${pkg.titleAr}" نهائياً`);
+    } catch { toastError("فشل حذف الباقة"); }
+    setConfirmDelete(null);
   };
 
   const duplicate = async (id: number, titleAr: string) => {
@@ -105,7 +116,6 @@ export default function PackagesPage() {
             return (
               <div key={pkg.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-                  {/* Thumbnail */}
                   {pkg.images?.[0] ? (
                     <img src={pkg.images[0]} alt={pkg.titleAr}
                       style={{ width: 80, height: 60, objectFit: "cover", borderRadius: "10px", flexShrink: 0 }}
@@ -116,7 +126,6 @@ export default function PackagesPage() {
                     </div>
                   )}
 
-                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
                       <span style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem" }}>{pkg.titleAr}</span>
@@ -131,17 +140,15 @@ export default function PackagesPage() {
                     </div>
                     <div style={{ color: "#667788", fontSize: "0.82rem" }}>{pkg.titleEn}</div>
                     <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.4rem", flexWrap: "wrap", fontSize: "0.82rem", color: "#99aabb" }}>
-                      <span>💰 {pkg.priceEGP?.toLocaleString()} – {pkg.maxPriceEGP?.toLocaleString()} جنيه</span>
+                      <span>💰 {pkg.priceEGP?.toLocaleString()} {pkg.maxPriceEGP ? `– ${pkg.maxPriceEGP?.toLocaleString()}` : ""} جنيه</span>
                       {pkg.durationAr && <span>⏱️ {pkg.durationAr}</span>}
                       <span>⭐ {pkg.rating} ({pkg.reviewCount})</span>
                       <span style={{ fontFamily: "monospace" }}>#{pkg.id} · {pkg.slug}</span>
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0, alignItems: "flex-end" }}>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                      {/* Status selector */}
                       <select value={pkg.status} onChange={e => setStatus(pkg, e.target.value)}
                         style={{ padding: "0.4rem 0.5rem", border: `1.5px solid ${statusBadge.color}`, borderRadius: "8px", color: statusBadge.color, fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 700, background: statusBadge.bg, cursor: "pointer", outline: "none" }}>
                         <option value="published">منشور</option>
@@ -151,7 +158,7 @@ export default function PackagesPage() {
                       {pkg.status !== "archived" && (
                         <button onClick={() => toggleActive(pkg)}
                           style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "#f9fafb" : "#25D36610", color: pkg.active ? "#667788" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
-                          {pkg.active ? "🙈" : "👁️"}
+                          {pkg.active ? "🙈 إخفاء" : "👁️ إظهار"}
                         </button>
                       )}
                     </div>
@@ -164,9 +171,13 @@ export default function PackagesPage() {
                         style={{ padding: "0.4rem 0.75rem", border: "1px solid #00AAFF30", borderRadius: "8px", cursor: "pointer", background: "#00AAFF08", color: "#00AAFF", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
                         ✏️ تعديل
                       </button>
-                      <button onClick={() => setConfirmArchive(pkg)}
-                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #FCA5A5", borderRadius: "8px", cursor: "pointer", background: "#FEF2F2", color: "#EF4444", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem" }}>
-                        🗑️
+                      <button onClick={() => setConfirmArchive(pkg)} title="أرشفة (تختفي من الموقع)"
+                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #F59E0B40", borderRadius: "8px", cursor: "pointer", background: "#FEF3C7", color: "#D97706", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
+                        📁 أرشفة
+                      </button>
+                      <button onClick={() => setConfirmDelete(pkg)} title="حذف نهائي من قاعدة البيانات"
+                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #FCA5A5", borderRadius: "8px", cursor: "pointer", background: "#FEF2F2", color: "#EF4444", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 700 }}>
+                        🗑️ حذف
                       </button>
                     </div>
                   </div>
@@ -186,13 +197,24 @@ export default function PackagesPage() {
 
       <ConfirmDialog
         isOpen={confirmArchive !== null}
-        title="أرشفة الباقة"
-        message={`هل تريد أرشفة "${confirmArchive?.titleAr}"؟ ستختفي من الموقع لكنها ستبقى في قاعدة البيانات.`}
+        title="📁 أرشفة الباقة"
+        message={`هل تريد أرشفة "${confirmArchive?.titleAr}"؟\n\nستختفي من الموقع العام لكنها تبقى في قاعدة البيانات ويمكن إعادة نشرها لاحقاً.`}
         confirmLabel="أرشفة"
         cancelLabel="إلغاء"
-        danger
+        danger={false}
         onConfirm={() => confirmArchive && archivePackage(confirmArchive)}
         onCancel={() => setConfirmArchive(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDelete !== null}
+        title="🗑️ حذف نهائي للباقة"
+        message={`هل تريد حذف "${confirmDelete?.titleAr}" نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه. ستُمحى الباقة من قاعدة البيانات تماماً.`}
+        confirmLabel="حذف نهائياً"
+        cancelLabel="إلغاء"
+        danger
+        onConfirm={() => confirmDelete && deletePackage(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   );

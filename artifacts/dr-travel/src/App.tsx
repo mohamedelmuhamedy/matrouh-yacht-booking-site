@@ -592,7 +592,9 @@ function PackagesAndBooking() {
   const PACKAGES: DisplayPkg[] = allDbPkgs.map(p => dbPkgToDisplay(p, lang, currency));
 
   const [selectedPkg, setSelectedPkg] = useState<DisplayPkg | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "" });
+  const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "", referralCode: "" });
+  const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [referralName, setReferralName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -621,6 +623,25 @@ function PackagesAndBooking() {
   }, []);
 
   useEffect(() => { setSelectedPkg(null); }, [lang]);
+
+  /* ── Referral code debounced verify ── */
+  useEffect(() => {
+    const code = form.referralCode.trim().toUpperCase();
+    if (!code) { setReferralStatus("idle"); setReferralName(""); return; }
+    if (code.length < 4) return;
+    setReferralStatus("checking");
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/referral/verify?code=${encodeURIComponent(code)}`);
+        if (r.ok) {
+          const data = await r.json();
+          setReferralStatus("valid");
+          setReferralName(lang === "ar" ? data.nameAr : (data.nameEn || data.nameAr));
+        } else { setReferralStatus("invalid"); setReferralName(""); }
+      } catch { setReferralStatus("invalid"); setReferralName(""); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [form.referralCode, lang]);
 
   const today = new Date().toISOString().split("T")[0];
   const bk = t.booking;
@@ -662,6 +683,7 @@ function PackagesAndBooking() {
             children: form.children, infants: form.infants,
             notes: form.notes, currency: "EGP",
             priceAtBooking: estimatedPrice || null,
+            referralCode: referralStatus === "valid" ? form.referralCode.trim().toUpperCase() : undefined,
           }),
         });
       } catch {
@@ -839,6 +861,40 @@ function PackagesAndBooking() {
                       <label style={labelStyle}>{bk.notes}</label>
                       <textarea className="form-input" style={{ minHeight: "90px", resize: "vertical" as const }} placeholder={bk.notesPlaceholder}
                         value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
+                    </div>
+
+                    {/* Referral code */}
+                    <div>
+                      <label style={labelStyle}>{lang === "ar" ? "كود الإحالة (اختياري)" : "Referral Code (optional)"}</label>
+                      <div style={{ position: "relative" }}>
+                        <input className="form-input"
+                          style={{ fontFamily: "Montserrat, monospace", letterSpacing: "2px", fontWeight: 700, fontSize: "0.95rem",
+                            borderColor: referralStatus === "valid" ? "#10B981" : referralStatus === "invalid" ? "#EF4444" : undefined,
+                            color: referralStatus === "valid" ? "#10B981" : undefined,
+                            paddingInlineEnd: referralStatus !== "idle" ? "2.5rem" : undefined }}
+                          placeholder="DRT-XXXXXX"
+                          value={form.referralCode}
+                          onChange={e => setForm({ ...form, referralCode: e.target.value.toUpperCase() })} />
+                        {referralStatus === "checking" && (
+                          <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#667788", fontSize: "0.75rem" }}>⏳</span>
+                        )}
+                        {referralStatus === "valid" && (
+                          <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#10B981", fontSize: "1rem" }}>✓</span>
+                        )}
+                        {referralStatus === "invalid" && (
+                          <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#EF4444", fontSize: "1rem" }}>✗</span>
+                        )}
+                      </div>
+                      {referralStatus === "valid" && referralName && (
+                        <p style={{ color: "#10B981", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                          ✅ {lang === "ar" ? `كود صحيح — إحالة ${referralName}` : `Valid code — ${referralName}'s referral`}
+                        </p>
+                      )}
+                      {referralStatus === "invalid" && (
+                        <p style={{ color: "#EF4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                          {lang === "ar" ? "كود غير صحيح أو غير مفعّل" : "Invalid or inactive code"}
+                        </p>
+                      )}
                     </div>
 
                     {/* Submit */}
