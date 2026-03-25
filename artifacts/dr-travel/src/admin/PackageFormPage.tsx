@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 
@@ -6,7 +6,7 @@ const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
   longDescriptionAr: "", longDescriptionEn: "", category: "safari",
   priceEGP: 0, maxPriceEGP: 0, durationAr: "", durationEn: "", color: "#00AAFF",
-  badgeAr: "", badgeEn: "", badgeColor: "", featured: false, popular: false,
+  badgeAr: "", badgeEn: "", badgeColor: "#C9A84C", featured: false, popular: false,
   familyFriendly: false, foreignerFriendly: false, childrenFriendly: false,
   experienceLevel: "easy", rating: 4.5, reviewCount: 0,
   images: [] as string[],
@@ -26,6 +26,73 @@ const EMPTY_PKG = {
 };
 
 type FormData = typeof EMPTY_PKG;
+
+function mapApiToForm(data: Record<string, any>): FormData {
+  const safeArr = (v: any): any[] => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") {
+      try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; }
+    }
+    return [];
+  };
+  const safeStr = (v: any, def = ""): string =>
+    v !== null && v !== undefined ? String(v) : def;
+  const safeBool = (v: any, def = false): boolean =>
+    v !== null && v !== undefined ? Boolean(v) : def;
+  const safeNum = (v: any, def = 0): number =>
+    v !== null && v !== undefined && !isNaN(Number(v)) ? Number(v) : def;
+
+  return {
+    slug: safeStr(data.slug),
+    icon: safeStr(data.icon, "🏖️"),
+    titleAr: safeStr(data.titleAr),
+    titleEn: safeStr(data.titleEn),
+    descriptionAr: safeStr(data.descriptionAr),
+    descriptionEn: safeStr(data.descriptionEn),
+    longDescriptionAr: safeStr(data.longDescriptionAr),
+    longDescriptionEn: safeStr(data.longDescriptionEn),
+    category: safeStr(data.category, "safari"),
+    priceEGP: safeNum(data.priceEGP),
+    maxPriceEGP: safeNum(data.maxPriceEGP),
+    durationAr: safeStr(data.durationAr),
+    durationEn: safeStr(data.durationEn),
+    color: safeStr(data.color, "#00AAFF"),
+    badgeAr: safeStr(data.badgeAr),
+    badgeEn: safeStr(data.badgeEn),
+    badgeColor: safeStr(data.badgeColor, "#C9A84C"),
+    featured: safeBool(data.featured),
+    popular: safeBool(data.popular),
+    familyFriendly: safeBool(data.familyFriendly),
+    foreignerFriendly: safeBool(data.foreignerFriendly),
+    childrenFriendly: safeBool(data.childrenFriendly),
+    experienceLevel: safeStr(data.experienceLevel, "easy"),
+    rating: safeNum(data.rating, 4.5),
+    reviewCount: safeNum(data.reviewCount),
+    images: safeArr(data.images) as string[],
+    includesAr: safeArr(data.includesAr) as string[],
+    includesEn: safeArr(data.includesEn) as string[],
+    excludesAr: safeArr(data.excludesAr) as string[],
+    excludesEn: safeArr(data.excludesEn) as string[],
+    whatToBringAr: safeArr(data.whatToBringAr) as string[],
+    whatToBringEn: safeArr(data.whatToBringEn) as string[],
+    suitableFor: safeArr(data.suitableFor) as string[],
+    itineraryAr: safeArr(data.itineraryAr) as { title: string; desc: string }[],
+    itineraryEn: safeArr(data.itineraryEn) as { title: string; desc: string }[],
+    whyThisTripAr: safeArr(data.whyThisTripAr) as { icon: string; text: string }[],
+    whyThisTripEn: safeArr(data.whyThisTripEn) as { icon: string; text: string }[],
+    faq: safeArr(data.faq) as { questionAr: string; questionEn: string; answerAr: string; answerEn: string }[],
+    cancellationAr: safeStr(data.cancellationAr),
+    cancellationEn: safeStr(data.cancellationEn),
+    includesMeals: safeBool(data.includesMeals),
+    includesTransport: safeBool(data.includesTransport),
+    includesAccommodation: safeBool(data.includesAccommodation),
+    minGroupSize: safeNum(data.minGroupSize, 1),
+    maxGroupSize: safeNum(data.maxGroupSize, 20),
+    active: safeBool(data.active, true),
+    sortOrder: safeNum(data.sortOrder),
+    status: (["draft", "published", "archived"].includes(data.status) ? data.status : "draft") as FormData["status"],
+  };
+}
 
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px",
@@ -79,6 +146,8 @@ export default function PackageFormPage() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const isEdit = !!params.id && params.id !== "new";
+  const pkgId = isEdit ? params.id : null;
+
   const [form, setForm] = useState<FormData>({ ...EMPTY_PKG });
   const [loading, setLoading] = useState(isEdit);
   const [loadError, setLoadError] = useState("");
@@ -86,6 +155,7 @@ export default function PackageFormPage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState("basic");
+  const [formKey, setFormKey] = useState(0);
 
   const [imgInput, setImgInput] = useState("");
   const [incArInput, setIncArInput] = useState("");
@@ -99,46 +169,31 @@ export default function PackageFormPage() {
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!isEdit) return;
+  const loadPackage = useCallback(async (id: string) => {
     setLoading(true);
     setLoadError("");
-    adminFetch(`/admin/packages/${params.id}`)
-      .then(async r => {
-        if (!r.ok) {
-          const err = await r.json().catch(() => ({}));
-          throw new Error(err.error || `HTTP ${r.status}`);
-        }
-        return r.json();
-      })
-      .then(data => {
-        setForm({
-          ...EMPTY_PKG,
-          ...data,
-          images: Array.isArray(data.images) ? data.images : [],
-          includesAr: Array.isArray(data.includesAr) ? data.includesAr : [],
-          includesEn: Array.isArray(data.includesEn) ? data.includesEn : [],
-          excludesAr: Array.isArray(data.excludesAr) ? data.excludesAr : [],
-          excludesEn: Array.isArray(data.excludesEn) ? data.excludesEn : [],
-          whatToBringAr: Array.isArray(data.whatToBringAr) ? data.whatToBringAr : [],
-          whatToBringEn: Array.isArray(data.whatToBringEn) ? data.whatToBringEn : [],
-          suitableFor: Array.isArray(data.suitableFor) ? data.suitableFor : [],
-          itineraryAr: Array.isArray(data.itineraryAr) ? data.itineraryAr : [],
-          itineraryEn: Array.isArray(data.itineraryEn) ? data.itineraryEn : [],
-          whyThisTripAr: Array.isArray(data.whyThisTripAr) ? data.whyThisTripAr : [],
-          whyThisTripEn: Array.isArray(data.whyThisTripEn) ? data.whyThisTripEn : [],
-          faq: Array.isArray(data.faq) ? data.faq : [],
-          badgeAr: data.badgeAr || "",
-          badgeEn: data.badgeEn || "",
-          badgeColor: data.badgeColor || "#C9A84C",
-          cancellationAr: data.cancellationAr || "",
-          cancellationEn: data.cancellationEn || "",
-          status: data.status || "draft",
-        });
-      })
-      .catch(e => setLoadError(e.message || "فشل تحميل بيانات الباقة"))
-      .finally(() => setLoading(false));
-  }, [params.id]);
+    try {
+      const r = await adminFetch(`/admin/packages/${id}`);
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${r.status}`);
+      }
+      const data = await r.json();
+      const mapped = mapApiToForm(data);
+      setForm(mapped);
+      setFormKey(k => k + 1);
+    } catch (e: any) {
+      setLoadError(e.message || "فشل تحميل بيانات الباقة");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pkgId) {
+      loadPackage(pkgId);
+    }
+  }, [pkgId, loadPackage]);
 
   const set = (key: keyof FormData, val: any) => {
     setForm(f => ({ ...f, [key]: val }));
@@ -160,7 +215,7 @@ export default function PackageFormPage() {
     setSaving(true);
     try {
       const method = isEdit ? "PUT" : "POST";
-      const path = isEdit ? `/admin/packages/${params.id}` : "/admin/packages";
+      const path = isEdit ? `/admin/packages/${pkgId}` : "/admin/packages";
       const r = await adminFetch(path, { method, body: JSON.stringify(form) });
       if (!r.ok) {
         const err = await r.json().catch(() => ({}));
@@ -223,13 +278,14 @@ export default function PackageFormPage() {
   if (loading) return (
     <div style={{ maxWidth: 860 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <div style={{ height: 28, width: 180, background: "#e0e8f0", borderRadius: 8 }} />
+        <div style={{ height: 28, width: 220, background: "#e0e8f0", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
         <div style={{ height: 36, width: 80, background: "#e0e8f0", borderRadius: 8 }} />
       </div>
       <div style={{ background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-        <div style={{ textAlign: "center", padding: "2rem", color: "#667788" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
-          <div>جاري تحميل بيانات الباقة...</div>
+        <div style={{ textAlign: "center", padding: "3rem 2rem", color: "#667788" }}>
+          <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>⏳</div>
+          <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem" }}>جاري تحميل بيانات الباقة...</div>
+          <div style={{ fontSize: "0.85rem", color: "#99aabb" }}>يرجى الانتظار</div>
         </div>
       </div>
     </div>
@@ -238,19 +294,25 @@ export default function PackageFormPage() {
   if (loadError) return (
     <div style={{ maxWidth: 860 }}>
       <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>⚠️</div>
-        <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "1rem" }}>فشل تحميل بيانات الباقة</div>
-        <div style={{ color: "#667788", fontSize: "0.9rem", marginBottom: "1.25rem" }}>{loadError}</div>
-        <button onClick={() => navigate("/admin/packages")}
-          style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.6rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#667788" }}>
-          ← العودة إلى الباقات
-        </button>
+        <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚠️</div>
+        <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>فشل تحميل بيانات الباقة</div>
+        <div style={{ color: "#667788", fontSize: "0.9rem", marginBottom: "1.5rem" }}>{loadError}</div>
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+          <button onClick={() => pkgId && loadPackage(pkgId)}
+            style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+            🔄 إعادة المحاولة
+          </button>
+          <button onClick={() => navigate("/admin/packages")}
+            style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#667788" }}>
+            ← العودة
+          </button>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div style={{ maxWidth: 860 }}>
+    <div style={{ maxWidth: 860 }} key={formKey}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
           {isEdit ? `تعديل باقة: ${form.titleAr || "..."}` : "إضافة باقة جديدة"}
@@ -261,7 +323,6 @@ export default function PackageFormPage() {
         </button>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "white", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", flexWrap: "wrap" }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -367,7 +428,6 @@ export default function PackageFormPage() {
               </F>
             </div>
 
-            {/* Status */}
             <F label="حالة النشر">
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 {(["draft", "published", "archived"] as const).map(s => {
@@ -457,7 +517,6 @@ export default function PackageFormPage() {
         {/* ── TAB: CONTENT ── */}
         {tab === "content" && (
           <div>
-            {/* Itinerary */}
             <div style={{ marginBottom: "1.75rem" }}>
               <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 🗓️ برنامج الرحلة (Itinerary)
@@ -507,7 +566,6 @@ export default function PackageFormPage() {
 
             <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
 
-            {/* Why This Trip */}
             <div style={{ marginBottom: "1.75rem" }}>
               <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem" }}>
                 ⭐ لماذا هذه الرحلة؟ (Why This Trip?)
@@ -550,7 +608,6 @@ export default function PackageFormPage() {
 
             <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
 
-            {/* FAQ */}
             <div>
               <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 ❓ الأسئلة الشائعة (FAQ)

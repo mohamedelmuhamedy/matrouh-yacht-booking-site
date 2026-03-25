@@ -12,7 +12,7 @@ import RewardsPage from "./pages/RewardsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
-import { formatPrice } from "./data/currencies";
+import { formatPrice, CurrencyCode } from "./data/currencies";
 
 interface DisplayPkg {
   id: number;
@@ -34,6 +34,7 @@ interface DisplayPkg {
 }
 
 function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): DisplayPkg {
+  const curr = currency as CurrencyCode;
   const ar = lang === "ar";
   return {
     id: pkg.id,
@@ -43,7 +44,7 @@ function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): Display
     titleAr: pkg.titleAr,
     includes: (ar ? pkg.includesAr : pkg.includesEn).slice(0, 5),
     duration: ar ? pkg.durationAr : pkg.durationEn,
-    price: formatPrice(pkg.priceEGP, currency, lang),
+    price: formatPrice(pkg.priceEGP, curr, lang),
     priceNum: pkg.priceEGP,
     badge: ar ? pkg.badgeAr : pkg.badgeEn,
     badgeColor: pkg.badgeColor,
@@ -516,7 +517,7 @@ function PersonalizedSection() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}22`; }}>
                   <div style={{ fontSize: "1.75rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
                   <div style={{ color: "white", fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, marginBottom: "0.3rem" }}>{ar ? pkg.titleAr : pkg.titleEn}</div>
-                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{formatPrice(pkg.priceEGP, currency, lang)}</div>
+                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{formatPrice(pkg.priceEGP, currency as CurrencyCode, lang)}</div>
                 </button>
               ))}
             </div>
@@ -603,7 +604,7 @@ function PackagesAndBooking() {
   const bk = t.booking;
   const estimatedPrice = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
 
-  const selectPkg = (pkg: PkgType) => {
+  const selectPkg = (pkg: DisplayPkg) => {
     if (selectedPkg?.id === pkg.id) { setSelectedPkg(null); return; }
     setSelectedPkg(pkg);
     setTimeout(() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 350);
@@ -720,7 +721,7 @@ function PackagesAndBooking() {
                       <div>
                         <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
                         <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>
-                          {formatPrice(pkg.priceNum, currency, lang)}
+                          {formatPrice(pkg.priceNum, currency as CurrencyCode, lang)}
                         </div>
                       </div>
                       <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
