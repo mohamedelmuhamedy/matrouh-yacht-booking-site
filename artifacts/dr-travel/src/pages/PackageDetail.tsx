@@ -51,7 +51,7 @@ export default function PackageDetail() {
 
   useEffect(() => {
     if (pkg) {
-      trackView(String(pkg.id), pkg.category);
+      trackView(Number(pkg.id), pkg.category);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [slug]);

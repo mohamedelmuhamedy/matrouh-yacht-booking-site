@@ -6,82 +6,116 @@ const SETTING_GROUPS = [
     title: "بيانات الشركة",
     icon: "🏢",
     keys: [
-      { key: "business_name_ar", label: "اسم الشركة (عربي)" },
-      { key: "business_name_en", label: "Business Name (English)" },
-      { key: "location_ar", label: "الموقع (عربي)" },
-      { key: "location_en", label: "Location (English)" },
-    ]
+      { key: "business_name_ar", label: "اسم الشركة (عربي)", placeholder: "DR Travel" },
+      { key: "business_name_en", label: "Business Name (English)", placeholder: "DR Travel" },
+      { key: "location_ar", label: "الموقع (عربي)", placeholder: "مرسى مطروح، مصر" },
+      { key: "location_en", label: "Location (English)", placeholder: "Marsa Matruh, Egypt" },
+    ],
   },
   {
     title: "معلومات التواصل",
     icon: "📞",
     keys: [
-      { key: "whatsapp_number", label: "رقم واتساب (مع كود الدولة)" },
-      { key: "phone_number", label: "رقم الهاتف (للعرض)" },
-    ]
+      { key: "whatsapp_number", label: "رقم واتساب (مع كود الدولة)", placeholder: "201205756024" },
+      { key: "phone_number", label: "رقم الهاتف (للعرض)", placeholder: "01205756024" },
+    ],
   },
   {
     title: "روابط التواصل الاجتماعي",
     icon: "📱",
     keys: [
-      { key: "facebook_url", label: "رابط Facebook" },
-      { key: "instagram_url", label: "رابط Instagram" },
-      { key: "tiktok_url", label: "رابط TikTok" },
-    ]
+      { key: "facebook_url", label: "رابط Facebook", placeholder: "https://facebook.com/Drtrave" },
+      { key: "instagram_url", label: "رابط Instagram", placeholder: "https://instagram.com/drtravel_marsamatrouh" },
+      { key: "tiktok_url", label: "رابط TikTok", placeholder: "https://tiktok.com/@drtravel.marsa.matrouh" },
+    ],
   },
   {
     title: "العملات وأسعار الصرف",
     icon: "💰",
     keys: [
-      { key: "default_currency", label: "العملة الافتراضية (EGP / USD / SAR)" },
-      { key: "usd_rate", label: "سعر الدولار (1 USD = كم جنيه)" },
-      { key: "sar_rate", label: "سعر الريال (1 SAR = كم جنيه)" },
-    ]
+      { key: "default_currency", label: "العملة الافتراضية", placeholder: "EGP" },
+      { key: "usd_rate", label: "سعر الدولار (1 USD = كم جنيه)", placeholder: "50" },
+      { key: "sar_rate", label: "سعر الريال (1 SAR = كم جنيه)", placeholder: "13.5" },
+    ],
   },
   {
     title: "نص الهيرو (الصفحة الرئيسية)",
     icon: "🎯",
     keys: [
-      { key: "hero_title_ar", label: "عنوان الهيرو (عربي)" },
-      { key: "hero_title_en", label: "Hero Title (English)" },
-      { key: "hero_subtitle_ar", label: "نص الهيرو (عربي)" },
-      { key: "hero_subtitle_en", label: "Hero Subtitle (English)" },
-    ]
+      { key: "hero_title_ar", label: "عنوان الهيرو (عربي)", placeholder: "اكتشف مرسى مطروح" },
+      { key: "hero_title_en", label: "Hero Title (English)", placeholder: "Discover Marsa Matruh" },
+      { key: "hero_subtitle_ar", label: "نص الهيرو (عربي)", placeholder: "تجارب لا تُنسى في عالم البحر الأزرق" },
+      { key: "hero_subtitle_en", label: "Hero Subtitle (English)", placeholder: "Unforgettable experiences in the blue sea" },
+    ],
   },
   {
-    title: "الميزات",
+    title: "ميزات الموقع",
     icon: "✨",
     keys: [
-      { key: "show_ai_assistant", label: "إظهار المساعد الذكي (true/false)" },
-      { key: "show_compare_feature", label: "إظهار مقارنة الباقات (true/false)" },
-      { key: "show_testimonials", label: "إظهار التقييمات (true/false)" },
-    ]
+      { key: "show_ai_assistant", label: "إظهار المساعد الذكي", placeholder: "true" },
+      { key: "show_compare_feature", label: "إظهار مقارنة الباقات", placeholder: "true" },
+      { key: "show_testimonials", label: "إظهار التقييمات", placeholder: "true" },
+    ],
   },
 ];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    adminFetch("/admin/settings").then(r => r.json()).then(data => {
-      setSettings(data || {});
-    }).finally(() => setLoading(false));
-  }, []);
+  const loadSettings = () => {
+    setLoading(true);
+    setLoadError("");
+    adminFetch("/admin/settings")
+      .then(async r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (data && typeof data === "object" && !Array.isArray(data)) {
+          setSettings(data);
+        } else {
+          setSettings({});
+        }
+      })
+      .catch(e => setLoadError(e.message || "فشل تحميل الإعدادات"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadSettings(); }, []);
 
   const update = (key: string, value: string) => {
     setSettings(s => ({ ...s, [key]: value }));
-    setSaved(false);
+    setSaveStatus("idle");
   };
 
   const save = async () => {
     setSaving(true);
-    await adminFetch("/admin/settings", { method: "PUT", body: JSON.stringify(settings) });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaveStatus("idle");
+    setSaveError("");
+    try {
+      const r = await adminFetch("/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify(settings),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        setSaveError(err.error || "فشل الحفظ");
+        setSaveStatus("error");
+        return;
+      }
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } catch (e: any) {
+      setSaveError(e.message || "خطأ في الاتصال");
+      setSaveStatus("error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -91,46 +125,115 @@ export default function SettingsPage() {
     transition: "border-color 0.2s", background: "white",
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>جاري التحميل...</div>;
+  const totalFilled = SETTING_GROUPS.flatMap(g => g.keys).filter(({ key }) => settings[key]?.trim()).length;
+  const totalKeys = SETTING_GROUPS.flatMap(g => g.keys).length;
 
-  return (
+  if (loading) return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>إعدادات الموقع</h2>
+      </div>
+      <div style={{ textAlign: "center", padding: "3rem", color: "#667788", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+        <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
+        <div>جاري تحميل الإعدادات...</div>
+      </div>
+    </div>
+  );
+
+  if (loadError) return (
+    <div>
+      <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
+      <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
+        <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>⚠️</div>
+        <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.5rem" }}>فشل تحميل الإعدادات</div>
+        <div style={{ color: "#667788", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
+        <button onClick={loadSettings}
+          style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.6rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+          إعادة المحاولة
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
+        <div>
+          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>إعدادات الموقع</h2>
+          <div style={{ color: "#667788", fontSize: "0.82rem" }}>
+            مكتمل: <strong style={{ color: "#10B981" }}>{totalFilled}</strong> / {totalKeys} حقل
+          </div>
+        </div>
         <button onClick={save} disabled={saving}
           style={{
-            background: saved ? "linear-gradient(135deg,#25D366,#128C4E)" : "linear-gradient(135deg,#00AAFF,#0066cc)",
+            background: saveStatus === "success"
+              ? "linear-gradient(135deg,#10B981,#059669)"
+              : saveStatus === "error"
+                ? "linear-gradient(135deg,#EF4444,#DC2626)"
+                : "linear-gradient(135deg,#00AAFF,#0066cc)",
             color: "white", border: "none", borderRadius: "10px",
-            padding: "0.7rem 1.5rem", cursor: saving ? "not-allowed" : "pointer",
+            padding: "0.7rem 1.75rem", cursor: saving ? "not-allowed" : "pointer",
             fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.95rem",
-            display: "flex", alignItems: "center", gap: "0.5rem", transition: "background 0.3s"
+            display: "flex", alignItems: "center", gap: "0.5rem",
+            transition: "background 0.3s", opacity: saving ? 0.7 : 1,
           }}>
-          {saving ? "جاري الحفظ..." : saved ? "✅ تم الحفظ!" : "💾 حفظ جميع الإعدادات"}
+          {saving ? "⏳ جاري الحفظ..." : saveStatus === "success" ? "✅ تم الحفظ!" : saveStatus === "error" ? "❌ فشل الحفظ" : "💾 حفظ جميع الإعدادات"}
         </button>
       </div>
 
+      {saveStatus === "error" && saveError && (
+        <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "0.75rem 1rem", marginBottom: "1rem", color: "#DC2626", fontWeight: 600, fontSize: "0.88rem" }}>
+          ⚠️ {saveError}
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         {SETTING_GROUPS.map(group => (
-          <div key={group.title} style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div key={group.title}
+            style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
               {group.icon} {group.title}
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-              {group.keys.map(({ key, label }) => (
-                <div key={key}>
-                  <label style={{ display: "block", color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.35rem" }}>{label}</label>
-                  <input
-                    style={inputStyle}
-                    value={settings[key] || ""}
-                    onChange={e => update(key, e.target.value)}
-                    onFocus={e => e.target.style.borderColor = "#00AAFF"}
-                    onBlur={e => e.target.style.borderColor = "#e0e8f0"}
-                  />
-                </div>
-              ))}
+              {group.keys.map(({ key, label, placeholder }) => {
+                const hasValue = !!settings[key]?.trim();
+                return (
+                  <div key={key}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.35rem" }}>
+                      {label}
+                      {hasValue && <span style={{ color: "#10B981", fontSize: "0.7rem" }}>✓</span>}
+                    </label>
+                    <input
+                      style={{
+                        ...inputStyle,
+                        borderColor: hasValue ? "#10B98130" : "#e0e8f0",
+                        background: hasValue ? "#f0fdf4" : "white",
+                      }}
+                      value={settings[key] ?? ""}
+                      placeholder={placeholder}
+                      onChange={e => update(key, e.target.value)}
+                      onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.background = "white"; }}
+                      onBlur={e => {
+                        const v = settings[key];
+                        e.target.style.borderColor = v?.trim() ? "#10B98130" : "#e0e8f0";
+                        e.target.style.background = v?.trim() ? "#f0fdf4" : "white";
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Bottom save button for convenience */}
+      <div style={{ marginTop: "1.25rem", textAlign: "center" }}>
+        <button onClick={save} disabled={saving}
+          style={{ background: saveStatus === "success" ? "linear-gradient(135deg,#10B981,#059669)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "12px", padding: "0.85rem 3rem", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", transition: "background 0.3s" }}>
+          {saving ? "⏳ جاري الحفظ..." : saveStatus === "success" ? "✅ تم الحفظ!" : "💾 حفظ جميع الإعدادات"}
+        </button>
       </div>
     </div>
   );
