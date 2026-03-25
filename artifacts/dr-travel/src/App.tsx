@@ -638,7 +638,23 @@ function PackagesAndBooking() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [showCompare, setShowCompare] = useState(false);
+  const [showPackages, setShowPackages] = useState(false);
+  const [pkgAnimKey, setPkgAnimKey] = useState(0);
   const bookingRef = useRef<HTMLDivElement>(null);
+  const packagesRef = useRef<HTMLDivElement>(null);
+
+  const handleShowPackages = () => {
+    if (!showPackages) {
+      setShowPackages(true);
+      setPkgAnimKey(k => k + 1);
+      setTimeout(() => {
+        packagesRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 80);
+    } else {
+      setShowPackages(false);
+      setSelectedPkg(null);
+    }
+  };
 
   const toggleCompare = (pkgId: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -745,20 +761,36 @@ function PackagesAndBooking() {
     <section id="packages" style={{ padding: "6rem 1.5rem", background: "linear-gradient(180deg,#0a1520 0%,#0D1B2A 100%)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <FadeInSection>
-          <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
+          <div style={{ textAlign: "center", marginBottom: showPackages ? "3.5rem" : "2.5rem" }}>
             <div className="section-label">{t.packages.sectionLabel}</div>
             <h2 className="section-title">{t.packages.sectionTitle}</h2>
             <p className="section-subtitle">{t.packages.sectionSubtitle}</p>
+
+            {/* Show / Hide Packages CTA */}
+            <div style={{ marginTop: "2rem" }}>
+              <button className={`show-pkg-btn ${showPackages ? "hide" : "show"}`} onClick={handleShowPackages}>
+                {showPackages
+                  ? <>{lang === "ar" ? "⬆ إخفاء الباقات" : "⬆ Hide Packages"}</>
+                  : <>{lang === "ar" ? "⬇ عرض الباقات" : "⬇ Show Packages"}</>
+                }
+              </button>
+              {!showPackages && (
+                <p style={{ color: "#445566", fontSize: "0.82rem", marginTop: "0.85rem" }}>
+                  {lang === "ar" ? `${PACKAGES.length} باقات متاحة — اضغط لاستعراضها` : `${PACKAGES.length} packages available — click to explore`}
+                </p>
+              )}
+            </div>
           </div>
         </FadeInSection>
 
-        {/* Package cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: "1.25rem" }}>
+        {/* Package cards — wrapped in animated reveal container */}
+        <div ref={packagesRef} className={`pkg-grid-wrap ${showPackages ? "pkg-visible" : "pkg-hidden"}`}>
+          <div key={pkgAnimKey} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: "1.25rem" }}>
           {PACKAGES.map((pkg, i) => {
             const inCompare = compareIds.includes(pkg.id);
             const whyTrip = lang === "ar" ? pkg.whyThisTripAr : pkg.whyThisTripEn;
             return (
-              <FadeInSection key={pkg.id} delay={i * 80}>
+              <div key={pkg.id} className="pkg-card-anim" style={{ animationDelay: `${i * 75}ms` }}>
                 <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`}>
                   {pkg.badge && (
                     <div style={{ position: "absolute", top: "1rem", insetInlineStart: "1rem", background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 800 }}>
@@ -827,9 +859,10 @@ function PackagesAndBooking() {
                     </div>
                   </div>
                 </div>
-              </FadeInSection>
+              </div>
             );
           })}
+          </div>
         </div>
 
         {/* Booking panel */}

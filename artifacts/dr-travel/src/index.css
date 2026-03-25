@@ -423,3 +423,88 @@
   transform: scale(1.12) rotate(-5deg);
   box-shadow: 0 8px 32px rgba(37,211,102,0.6);
 }
+
+/* ===== PACKAGES REVEAL ANIMATION ===== */
+@keyframes pkgCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pkgGridFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pkg-grid-wrap {
+  overflow: hidden;
+  transition: max-height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.4s ease;
+}
+
+.pkg-grid-wrap.pkg-hidden {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pkg-grid-wrap.pkg-visible {
+  max-height: 9999px;
+  opacity: 1;
+}
+
+.pkg-grid-wrap.pkg-visible .pkg-card-anim {
+  animation: pkgCardReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Show/Hide Packages Button */
+.show-pkg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 2.2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-family: Cairo, sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.show-pkg-btn.show {
+  background: linear-gradient(135deg, #00AAFF 0%, #0077cc 100%);
+  color: white;
+  box-shadow: 0 6px 32px rgba(0, 170, 255, 0.38);
+}
+
+.show-pkg-btn.hide {
+  background: rgba(255, 255, 255, 0.06);
+  color: #8899aa;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.show-pkg-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.show-pkg-btn.show:hover {
+  box-shadow: 0 10px 42px rgba(0, 170, 255, 0.55);
+}
+
+.show-pkg-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}

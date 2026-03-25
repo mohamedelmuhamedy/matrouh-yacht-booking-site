@@ -1,0 +1,80 @@
+Please implement these 2 UX changes only, and test them yourself end-to-end before replying:
+
+1) Add a dedicated “Trip Details” entry in the header
+- Add a clear top navigation item in the main navbar:
+  - Arabic: "تفاصيل الرحلات"
+  - English: "Trip Details"
+- When the user clicks it, open a dedicated trips/packages page (or section) that lists all available trips/packages
+- Each package there must open its own package details page directly when clicked
+- This should become a clean discovery flow:
+  - Header nav item
+  - Trips/packages listing
+  - Click package
+  - Open package details page
+
+Requirements:
+- Keep current design style and branding
+- Work on desktop and mobile
+- Respect current language switching
+- Do not break existing routes or package detail pages
+
+2) Hide packages by default on homepage and show them with a professional animation
+- Right now the packages are always visible on the homepage
+- Change this behavior so the packages section is hidden/collapsed by default
+- Add a clear button/CTA such as:
+  - Arabic: "عرض الباقات"
+  - English: "Show Packages"
+- When the user clicks it:
+  - reveal the packages section with a smooth premium animation
+  - scroll smoothly to it if needed
+- When clicked again, it can optionally collapse back with:
+  - Arabic: "إخفاء الباقات"
+  - English: "Hide Packages"
+
+Animation requirements:
+- Use a clean professional reveal animation
+- Example behavior:
+  - section fade in + slide up
+  - cards appear with slight stagger
+  - smooth expand/collapse
+- No janky motion
+- Keep it premium and lightweight
+
+Behavior requirements:
+- The packages section must still work exactly as before after opening:
+  - package cards
+  - compare
+  - details
+  - booking
+- On mobile, keep the browsing experience smooth and readable
+- Do not break the existing package cards or package data rendering
+
+3) Important implementation notes
+- Keep current homepage visually balanced after hiding the packages section by default
+- Place the new “Show Packages” button in a strong, logical position (for example near the section heading or after hero/intro)
+- The “Trip Details” header link should not just scroll to the same place unless that is the cleanest implementation; a dedicated trips listing page/route is preferred if possible
+- Maintain Arabic RTL and English LTR correctly
+- Do not change unrelated parts of the website
+
+4) Test it yourself
+Please test:
+- Header “Trip Details” link on desktop
+- Header “Trip Details” link on mobile
+- Open trips list
+- Open a package detail page from it
+- Show Packages button on homepage
+- Animation on first open
+- Collapse behavior if implemented
+- Ensure package cards still function normally after reveal
+
+5) After finishing
+Send me a short summary only:
+- what you changed
+- how the Trip Details flow works
+- how the Show Packages animation works
+- whether you tested both desktop and mobile
+- and include screenshots for:
+  - homepage before opening packages
+  - homepage after opening packages
+  - the Trip Details page/listing
+  - a package details page opened from that flow
