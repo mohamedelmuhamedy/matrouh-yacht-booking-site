@@ -327,12 +327,24 @@ function Hero() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
   const ar = lang === "ar";
-  const rawTitle = ar
-    ? (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`)
-    : (settings.hero_title_en || `${t.hero.title1} ${t.hero.title2}`);
-  const titleWords = rawTitle.split(" ");
-  const titleMain = titleWords.slice(0, -1).join(" ");
-  const titleHighlight = titleWords[titleWords.length - 1];
+  const titleMain = ar
+    ? (settings.hero_title_primary_ar || (() => {
+        const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
+        return w.slice(0, -1).join(" ");
+      })())
+    : (settings.hero_title_primary_en || (() => {
+        const w = (settings.hero_title_en || `${t.hero.title1} ${t.hero.title2}`).split(" ");
+        return w.slice(0, -1).join(" ");
+      })());
+  const titleHighlight = ar
+    ? (settings.hero_title_accent_ar || (() => {
+        const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
+        return w[w.length - 1];
+      })())
+    : (settings.hero_title_accent_en || (() => {
+        const w = (settings.hero_title_en || `${t.hero.title1} ${t.hero.title2}`).split(" ");
+        return w[w.length - 1];
+      })());
   const subtitle = ar
     ? (settings.hero_subtitle_ar || t.hero.subtitle)
     : (settings.hero_subtitle_en || t.hero.subtitle);
