@@ -508,3 +508,48 @@
   background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
   pointer-events: none;
 }
+
+/* ===== ADMIN PANEL — FORM FIELD READABILITY =====
+   body { color: #ffffff } causes inherited white text on all elements.
+   These rules force dark, readable text inside all admin inputs.
+   Scoped to .admin-wrap (AdminLayout) and .admin-login (LoginPage). ===== */
+
+/* Text color: class selector (.admin-wrap input) beats body inheritance (#0,1,1 > #0,0,1)
+   but does NOT override inline styles — so intentional dark-theme modals still work */
+.admin-wrap input:not([type="color"]),
+.admin-wrap textarea,
+.admin-wrap select,
+.admin-login input {
+  color: #0D1B2A;
+}
+
+/* Placeholder — visible but clearly distinct from actual typed text */
+.admin-wrap input:not([type="color"])::placeholder,
+.admin-wrap textarea::placeholder,
+.admin-login input::placeholder {
+  color: #9aabbf;
+  opacity: 1;
+}
+
+/* Disabled — muted but still readable */
+.admin-wrap input:disabled,
+.admin-wrap textarea:disabled,
+.admin-wrap select:disabled {
+  color: #667788;
+  cursor: not-allowed;
+}
+
+/* Autofill — browser can override bg to yellow/blue; force dark text + white bg */
+.admin-wrap input:-webkit-autofill,
+.admin-login input:-webkit-autofill {
+  -webkit-text-fill-color: #0D1B2A !important;
+  caret-color: #0D1B2A;
+  box-shadow: 0 0 0 1000px white inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Select dropdown options */
+.admin-wrap select option {
+  color: #0D1B2A;
+  background: white;
+}

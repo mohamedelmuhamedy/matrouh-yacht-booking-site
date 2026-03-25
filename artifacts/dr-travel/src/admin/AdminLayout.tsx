@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (isMobile) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+      <div className="admin-wrap" style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
 
         {/* Mobile top bar */}
         <header style={{ background: "linear-gradient(135deg,#0D1B2A,#0a1420)", padding: "0 1rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
@@ -125,7 +125,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+    <div className="admin-wrap" style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
       {/* Desktop sidebar */}
       <aside style={{ width: drawerOpen ? 220 : 64, minHeight: "100vh", background: "linear-gradient(180deg,#0D1B2A 0%,#0a1420 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
         <button onClick={() => setDrawerOpen(!drawerOpen)}

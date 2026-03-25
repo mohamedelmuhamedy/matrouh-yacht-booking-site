@@ -25,7 +25,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0D1B2A 0%,#0a2040 100%)", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
+    <div className="admin-login" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0D1B2A 0%,#0a2040 100%)", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
       <div style={{ background: "white", borderRadius: "20px", padding: "3rem 2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🔐</div>
