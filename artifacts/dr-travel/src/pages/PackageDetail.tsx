@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
-import { getPackageBySlug, getSimilarPackages, PACKAGES_DATA, type PackageData } from "../data/packages";
+import { useSiteData, type DBPackage } from "../context/SiteDataContext";
+import { getPackageBySlug, getSimilarPackages, PACKAGES_DATA } from "../data/packages";
 import { formatPrice } from "../data/currencies";
 import { usePersonalization } from "../hooks/usePersonalization";
 
@@ -24,9 +25,16 @@ export default function PackageDetail() {
   const { lang, t } = useLanguage();
   const { currency } = useCurrency();
   const { trackView } = usePersonalization();
+  const { packages: dbPackages, packagesLoading } = useSiteData();
   const ar = lang === "ar";
 
-  const pkg = params?.slug ? getPackageBySlug(params.slug) : null;
+  const slug = params?.slug;
+
+  // Find package: DB first, then static fallback
+  const dbPkg = dbPackages.find(p => p.slug === slug);
+  const staticPkg = slug ? getPackageBySlug(slug) : null;
+  const pkg: DBPackage | null = dbPkg ?? (staticPkg ? (staticPkg as unknown as DBPackage) : null);
+
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -43,10 +51,20 @@ export default function PackageDetail() {
 
   useEffect(() => {
     if (pkg) {
-      trackView(pkg.id, pkg.category);
+      trackView(String(pkg.id), pkg.category);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [pkg?.slug]);
+  }, [slug]);
+
+  if (packagesLoading && !staticPkg) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#00AAFF", fontSize: "1.1rem", fontFamily: "Cairo, sans-serif" }}>
+          {ar ? "جاري التحميل..." : "Loading..."}
+        </div>
+      </div>
+    );
+  }
 
   if (!pkg) {
     return (
@@ -60,16 +78,21 @@ export default function PackageDetail() {
     );
   }
 
-  const similar = getSimilarPackages(pkg);
+  // Similar packages: from DB first, then static
+  const similar = dbPackages.length > 0
+    ? dbPackages.filter(p => p.slug !== pkg.slug && p.category === pkg.category).slice(0, 3)
+    : getSimilarPackages(staticPkg!).map(p => p as unknown as DBPackage);
+
   const title = ar ? pkg.titleAr : pkg.titleEn;
   const desc = ar ? pkg.longDescriptionAr : pkg.longDescriptionEn;
-  const includes = ar ? pkg.includesAr : pkg.includesEn;
-  const excludes = ar ? pkg.excludesAr : pkg.excludesEn;
-  const itinerary = ar ? pkg.itineraryAr : pkg.itineraryEn;
-  const whyTrip = ar ? pkg.whyThisTripAr : pkg.whyThisTripEn;
-  const whatToBring = ar ? pkg.whatToBringAr : pkg.whatToBringEn;
+  const includes = ar ? (pkg.includesAr || []) : (pkg.includesEn || []);
+  const excludes = ar ? (pkg.excludesAr || []) : (pkg.excludesEn || []);
+  const itinerary = ar ? (pkg.itineraryAr || []) : (pkg.itineraryEn || []);
+  const whyTrip = ar ? (pkg.whyThisTripAr || []) : (pkg.whyThisTripEn || []);
+  const whatToBring = ar ? (pkg.whatToBringAr || []) : (pkg.whatToBringEn || []);
   const cancellation = ar ? pkg.cancellationAr : pkg.cancellationEn;
   const duration = ar ? pkg.durationAr : pkg.durationEn;
+  const faq = (pkg as any).faq || [];
 
   const waMsg = encodeURIComponent(
     ar ? `مرحباً DR Travel 👋\nأريد الاستفسار عن: ${title}\n💰 السعر: ${formatPrice(pkg.priceEGP, currency, lang)}/فرد`
@@ -79,12 +102,12 @@ export default function PackageDetail() {
   const expLabels: Record<string, { ar: string; en: string }> = {
     easy: { ar: "سهل ومريح", en: "Easy & Comfortable" },
     moderate: { ar: "متوسط المستوى", en: "Moderate" },
+    hard: { ar: "مغامرة ومثير", en: "Adventurous & Exciting" },
     adventurous: { ar: "مغامرة ومثير", en: "Adventurous & Exciting" },
   };
 
   const px = isMobile ? (isXs ? "1rem" : "1.25rem") : "1.5rem";
 
-  /* ---- Sidebar / CTA Card (shared between mobile inline & desktop sticky) ---- */
   const CTACard = () => (
     <div style={{
       background: `${pkg.color}0a`,
@@ -102,12 +125,10 @@ export default function PackageDetail() {
       </div>
       <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>⏱ {duration}</div>
 
-      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "column", gap: "0.75rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <button
           onClick={() => { navigate("/"); setTimeout(() => { document.querySelector("#packages")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
-          style={{ background: `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: isMobile ? "0.95rem 1rem" : "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+          style={{ background: `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: isMobile ? "0.95rem 1rem" : "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}>
           {ar ? "احجز الآن" : "Book Now"}
         </button>
         <a href={`https://wa.me/201205756024?text=${waMsg}`} target="_blank" rel="noreferrer"
@@ -143,18 +164,26 @@ export default function PackageDetail() {
 
       {/* Hero image */}
       <div style={{ position: "relative", height: isMobile ? "42vh" : "50vh", minHeight: isMobile ? "260px" : "340px", overflow: "hidden" }}>
-        <img src={pkg.images[activeImg]} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)" }} />
+        {pkg.images && pkg.images.length > 0 ? (
+          <img src={pkg.images[activeImg]} alt={title}
+            style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)" }}
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${pkg.color}20, #0D1B2A)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "6rem" }}>
+            {pkg.icon}
+          </div>
+        )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, #0D1B2A 100%)" }} />
 
-        {/* Image thumbnails */}
-        <div style={{ position: "absolute", bottom: "1.25rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "0.5rem" }}>
-          {pkg.images.map((_, i) => (
-            <button key={i} onClick={() => setActiveImg(i)}
-              style={{ width: i === activeImg ? 24 : 7, height: 7, borderRadius: 4, background: i === activeImg ? pkg.color : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s", padding: 0 }} />
-          ))}
-        </div>
+        {pkg.images && pkg.images.length > 1 && (
+          <div style={{ position: "absolute", bottom: "1.25rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "0.5rem" }}>
+            {pkg.images.map((_, i) => (
+              <button key={i} onClick={() => setActiveImg(i)}
+                style={{ width: i === activeImg ? 24 : 7, height: 7, borderRadius: 4, background: i === activeImg ? pkg.color : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s", padding: 0 }} />
+            ))}
+          </div>
+        )}
 
-        {/* Hero text */}
         <div style={{ position: "absolute", bottom: isMobile ? "2.75rem" : "3.5rem", left: 0, right: 0, padding: isMobile ? "0 1rem" : "0 2rem", textAlign: "center" }}>
           <div style={{ fontSize: isMobile ? "2.5rem" : "3.5rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
           <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word" }}>{title}</h1>
@@ -164,14 +193,12 @@ export default function PackageDetail() {
       {/* Main content */}
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: isMobile ? `1.5rem ${px}` : "2rem 1.5rem", boxSizing: "border-box", width: "100%" }}>
 
-        {/* ── MOBILE LAYOUT: single column, CTA card first ── */}
         {isMobile ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-            {/* Badges */}
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               {pkg.badgeAr && (
-                <span style={{ background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 800 }}>
+                <span style={{ background: pkg.badgeColor || pkg.color, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 800 }}>
                   {ar ? pkg.badgeAr : pkg.badgeEn}
                 </span>
               )}
@@ -179,100 +206,108 @@ export default function PackageDetail() {
               {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
               <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>⭐ {pkg.rating} ({pkg.reviewCount})</span>
               <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>⏱ {duration}</span>
-              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>
+              {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
             </div>
 
-            {/* CTA card — appears early on mobile */}
             <CTACard />
 
-            {/* Description */}
-            <div>
-              <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.75rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
-              <p style={{ color: "#8899aa", lineHeight: 1.85, fontSize: "0.88rem", margin: 0 }}>{desc}</p>
-            </div>
-
-            {/* Why this trip */}
-            <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "14px", padding: "1.1rem" }}>
-              <h2 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                {whyTrip.map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem", color: "#c7d2e8", fontSize: "0.85rem" }}>
-                    <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "1px" }}>{item.icon}</span>
-                    <span style={{ lineHeight: 1.5 }}>{item.text}</span>
-                  </div>
-                ))}
+            {desc && (
+              <div>
+                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.75rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
+                <p style={{ color: "#8899aa", lineHeight: 1.85, fontSize: "0.88rem", margin: 0 }}>{desc}</p>
               </div>
-            </div>
+            )}
 
-            {/* Includes / Excludes — stacked on mobile */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
-                {includes.map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
-                    <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
-                  </div>
-                ))}
-              </div>
-              <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
-                {excludes.map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
-                    <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Itinerary */}
-            <div>
-              <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {itinerary.map((step, i) => (
-                  <div key={i} style={{ display: "flex", gap: "0.85rem", paddingBottom: "1rem", position: "relative" }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${pkg.color}20`, border: `2px solid ${pkg.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: pkg.color, fontWeight: 900, fontSize: "0.75rem", fontFamily: "Montserrat, sans-serif", zIndex: 1 }}>{i + 1}</div>
-                      {i < itinerary.length - 1 && <div style={{ width: 2, flex: 1, background: `${pkg.color}20`, marginTop: "4px" }} />}
+            {whyTrip.length > 0 && (
+              <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "14px", padding: "1.1rem" }}>
+                <h2 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {whyTrip.map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem", color: "#c7d2e8", fontSize: "0.85rem" }}>
+                      <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "1px" }}>{(item as any).icon}</span>
+                      <span style={{ lineHeight: 1.5 }}>{(item as any).text}</span>
                     </div>
-                    <div style={{ paddingBottom: "0.4rem" }}>
-                      <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.25rem" }}>{step.title}</div>
-                      <div style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.65 }}>{step.desc}</div>
-                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(includes.length > 0 || excludes.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {includes.length > 0 && (
+                  <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
+                    <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
+                    {includes.map((item, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
+                        <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {excludes.length > 0 && (
+                  <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
+                    <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
+                    {excludes.map((item, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
+                        <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            {/* What to bring */}
-            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
-              <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
-              <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
-                {whatToBring.map((item, i) => (
-                  <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.3rem 0.75rem", borderRadius: "50px", fontSize: "0.75rem" }}>{item}</span>
-                ))}
+            {itinerary.length > 0 && (
+              <div>
+                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {itinerary.map((step, i) => (
+                    <div key={i} style={{ display: "flex", gap: "0.85rem", paddingBottom: "1rem", position: "relative" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${pkg.color}20`, border: `2px solid ${pkg.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: pkg.color, fontWeight: 900, fontSize: "0.75rem", fontFamily: "Montserrat, sans-serif", zIndex: 1 }}>{i + 1}</div>
+                        {i < itinerary.length - 1 && <div style={{ width: 2, flex: 1, background: `${pkg.color}20`, marginTop: "4px" }} />}
+                      </div>
+                      <div style={{ paddingBottom: "0.4rem" }}>
+                        <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.25rem" }}>{(step as any).title}</div>
+                        <div style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.65 }}>{(step as any).desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Cancellation policy */}
-            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
-              <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
-              <p style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
-            </div>
+            {whatToBring.length > 0 && (
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
+                <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
+                  {whatToBring.map((item, i) => (
+                    <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.3rem 0.75rem", borderRadius: "50px", fontSize: "0.75rem" }}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* FAQ */}
-            {pkg.faq.length > 0 && (
+            {cancellation && (
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
+                <p style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
+              </div>
+            )}
+
+            {faq.length > 0 && (
               <div>
                 <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.85rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
-                {pkg.faq.map((faq, i) => (
+                {faq.map((f: any, i: number) => (
                   <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", marginBottom: "0.5rem", overflow: "hidden" }}>
                     <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                       style={{ width: "100%", background: "transparent", border: "none", padding: "0.9rem 1rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.84rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "inherit", gap: "0.5rem" }}>
-                      <span style={{ flex: 1, textAlign: "start" }}>{ar ? faq.questionAr : faq.questionEn}</span>
+                      <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                       <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0, fontSize: "0.75rem" }}>▼</span>
                     </button>
                     {openFaq === i && (
                       <div style={{ padding: "0 1rem 0.9rem", color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8 }}>
-                        {ar ? faq.answerAr : faq.answerEn}
+                        {ar ? f.answerAr : f.answerEn}
                       </div>
                     )}
                   </div>
@@ -282,16 +317,12 @@ export default function PackageDetail() {
           </div>
 
         ) : (
-          /* ── DESKTOP LAYOUT: two-column grid ── */
           <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "2rem", alignItems: "start" }}>
 
-            {/* Left column */}
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-
-              {/* Badges + quick stats */}
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 {pkg.badgeAr && (
-                  <span style={{ background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 800 }}>
+                  <span style={{ background: pkg.badgeColor || pkg.color, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 800 }}>
                     {ar ? pkg.badgeAr : pkg.badgeEn}
                   </span>
                 )}
@@ -299,97 +330,106 @@ export default function PackageDetail() {
                 {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
                 <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>⭐ {pkg.rating} ({pkg.reviewCount})</span>
                 <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>⏱ {duration}</span>
-                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>
+                {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
               </div>
 
-              {/* Description */}
-              <div>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.85rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
-                <p style={{ color: "#8899aa", lineHeight: 2, fontSize: "0.92rem" }}>{desc}</p>
-              </div>
-
-              {/* Why this trip */}
-              <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "16px", padding: "1.5rem" }}>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
-                  {whyTrip.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "#c7d2e8", fontSize: "0.88rem" }}>
-                      <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>{item.icon}</span>
-                      <span>{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Itinerary */}
-              <div>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.25rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative" }}>
-                  {itinerary.map((step, i) => (
-                    <div key={i} style={{ display: "flex", gap: "1rem", paddingBottom: "1.25rem", position: "relative" }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${pkg.color}20`, border: `2px solid ${pkg.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: pkg.color, fontWeight: 900, fontSize: "0.8rem", fontFamily: "Montserrat, sans-serif", zIndex: 1, flexShrink: 0 }}>{i + 1}</div>
-                        {i < itinerary.length - 1 && <div style={{ width: 2, flex: 1, background: `${pkg.color}20`, marginTop: "4px" }} />}
-                      </div>
-                      <div style={{ paddingBottom: "0.5rem" }}>
-                        <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.3rem" }}>{step.title}</div>
-                        <div style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.7 }}>{step.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Includes / Excludes */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "14px", padding: "1.25rem" }}>
-                  <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
-                  {includes.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.82rem" }}>
-                      <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "14px", padding: "1.25rem" }}>
-                  <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
-                  {excludes.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.82rem" }}>
-                      <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* What to bring */}
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.25rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.85rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                  {whatToBring.map((item, i) => (
-                    <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.35rem 0.85rem", borderRadius: "50px", fontSize: "0.78rem" }}>{item}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cancellation policy */}
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.25rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.6rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
-                <p style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
-              </div>
-
-              {/* FAQ */}
-              {pkg.faq.length > 0 && (
+              {desc && (
                 <div>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
-                  {pkg.faq.map((faq, i) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", marginBottom: "0.5rem", overflow: "hidden" }}>
+                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.85rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
+                  <p style={{ color: "#8899aa", lineHeight: 2, fontSize: "0.92rem" }}>{desc}</p>
+                </div>
+              )}
+
+              {whyTrip.length > 0 && (
+                <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "16px", padding: "1.5rem" }}>
+                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+                    {whyTrip.map((item, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "#c7d2e8", fontSize: "0.88rem" }}>
+                        <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>{(item as any).icon}</span>
+                        <span>{(item as any).text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {itinerary.length > 0 && (
+                <div>
+                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.25rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative" }}>
+                    {itinerary.map((step, i) => (
+                      <div key={i} style={{ display: "flex", gap: "1rem", paddingBottom: "1.25rem", position: "relative" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${pkg.color}20`, border: `2px solid ${pkg.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: pkg.color, fontWeight: 900, fontSize: "0.8rem", fontFamily: "Montserrat, sans-serif", zIndex: 1, flexShrink: 0 }}>{i + 1}</div>
+                          {i < itinerary.length - 1 && <div style={{ width: 2, flex: 1, background: `${pkg.color}20`, marginTop: "4px" }} />}
+                        </div>
+                        <div style={{ paddingBottom: "0.5rem" }}>
+                          <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.3rem" }}>{(step as any).title}</div>
+                          <div style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.7 }}>{(step as any).desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(includes.length > 0 || excludes.length > 0) && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                  {includes.length > 0 && (
+                    <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
+                      <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
+                      {includes.map((item, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
+                          <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {excludes.length > 0 && (
+                    <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
+                      <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
+                      {excludes.map((item, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
+                          <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {whatToBring.length > 0 && (
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    {whatToBring.map((item, i) => (
+                      <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.35rem 0.85rem", borderRadius: "50px", fontSize: "0.78rem" }}>{item}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {cancellation && (
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
+                  <p style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>
+                </div>
+              )}
+
+              {faq.length > 0 && (
+                <div>
+                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
+                  {faq.map((f: any, i: number) => (
+                    <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", marginBottom: "0.6rem", overflow: "hidden" }}>
                       <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                        style={{ width: "100%", background: "transparent", border: "none", padding: "1rem 1.25rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "inherit" }}>
-                        {ar ? faq.questionAr : faq.questionEn}
+                        style={{ width: "100%", background: "transparent", border: "none", padding: "1rem 1.25rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.87rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                         <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0 }}>▼</span>
                       </button>
                       {openFaq === i && (
-                        <div style={{ padding: "0 1.25rem 1rem", color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.8 }}>
-                          {ar ? faq.answerAr : faq.answerEn}
+                        <div style={{ padding: "0 1.25rem 1rem", color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85 }}>
+                          {ar ? f.answerAr : f.answerEn}
                         </div>
                       )}
                     </div>
@@ -398,29 +438,27 @@ export default function PackageDetail() {
               )}
             </div>
 
-            {/* Sticky sidebar — desktop only */}
+            {/* Sidebar */}
             <div style={{ position: "sticky", top: "90px" }}>
               <CTACard />
-            </div>
-          </div>
-        )}
 
-        {/* Similar packages */}
-        {similar.length > 0 && (
-          <div style={{ marginTop: isMobile ? "2.5rem" : "4rem" }}>
-            <h2 style={{ color: "white", fontWeight: 700, fontSize: isMobile ? "1rem" : "1.2rem", marginBottom: "1.25rem" }}>{ar ? "رحلات مشابهة قد تعجبك" : "Similar Trips You May Like"}</h2>
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(260px, 1fr))", gap: isMobile ? "0.75rem" : "1rem" }}>
-              {similar.map(sp => (
-                <button key={sp.id} onClick={() => navigate(`/packages/${sp.slug}`)}
-                  style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${sp.color}25`, borderRadius: "16px", padding: isMobile ? "1rem" : "1.25rem", cursor: "pointer", textAlign: "inherit", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = `${sp.color}50`; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = `${sp.color}25`; }}>
-                  <div style={{ fontSize: isMobile ? "1.6rem" : "2rem", marginBottom: "0.5rem" }}>{sp.icon}</div>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: isMobile ? "0.82rem" : "0.9rem", marginBottom: "0.3rem", lineHeight: 1.3 }}>{ar ? sp.titleAr : sp.titleEn}</div>
-                  <div style={{ color: sp.color, fontWeight: 800, fontSize: isMobile ? "0.85rem" : "0.95rem" }}>{formatPrice(sp.priceEGP, currency, lang)}</div>
-                  <div style={{ color: "#667788", fontSize: "0.72rem", marginTop: "0.2rem" }}>⏱ {ar ? sp.durationAr : sp.durationEn}</div>
-                </button>
-              ))}
+              {similar.length > 0 && (
+                <div style={{ marginTop: "1.5rem" }}>
+                  <div style={{ color: "#8899aa", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.75rem" }}>{ar ? "باقات مشابهة" : "Similar Packages"}</div>
+                  {similar.map(s => (
+                    <div key={s.slug} onClick={() => navigate(`/packages/${s.slug}`)}
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "0.85rem", marginBottom: "0.6rem", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: "0.75rem" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}>
+                      <span style={{ fontSize: "1.5rem" }}>{s.icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: "white", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
+                        <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -51,6 +51,7 @@ export const packages = pgTable("packages", {
   minGroupSize: integer("min_group_size").notNull().default(1),
   maxGroupSize: integer("max_group_size").notNull().default(20),
   active: boolean("active").notNull().default(true),
+  status: text("status").notNull().default("published"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

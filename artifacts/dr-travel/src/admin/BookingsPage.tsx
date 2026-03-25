@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { adminFetch } from "./AdminContext";
+import { useToast } from "../components/Toast";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
@@ -13,31 +15,82 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState<number | null>(null);
+  const [noteBooking, setNoteBooking] = useState<any | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const { success, error: toastError } = useToast();
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = () => {
+  const load = (q?: string) => {
     setLoading(true);
-    adminFetch("/admin/bookings").then(r => r.json()).then(data => {
+    const params = new URLSearchParams();
+    if (filter !== "all") params.set("status", filter);
+    if (q !== undefined ? q : search) params.set("search", q !== undefined ? q : search);
+    adminFetch(`/admin/bookings?${params}`).then(r => r.json()).then(data => {
       setBookings(Array.isArray(data) ? data : []);
-    }).finally(() => setLoading(false));
+    }).catch(() => { toastError("فشل تحميل الحجوزات"); }).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [filter]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => load(val), 400);
+  };
 
   const updateStatus = async (id: number, status: string) => {
     setUpdating(id);
-    await adminFetch(`/admin/bookings/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) });
-    load();
+    try {
+      const r = await adminFetch(`/admin/bookings/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) });
+      if (!r.ok) throw new Error();
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b));
+      success("تم تحديث الحالة");
+    } catch { toastError("فشل تحديث الحالة"); }
     setUpdating(null);
   };
 
-  const deleteBooking = async (id: number) => {
-    if (!confirm("هل تريد حذف هذا الحجز؟")) return;
-    await adminFetch(`/admin/bookings/${id}`, { method: "DELETE" });
-    load();
+  const saveNote = async () => {
+    if (!noteBooking) return;
+    try {
+      const r = await adminFetch(`/admin/bookings/${noteBooking.id}/notes`, { method: "PUT", body: JSON.stringify({ adminNotes: noteText }) });
+      if (!r.ok) throw new Error();
+      setBookings(prev => prev.map(b => b.id === noteBooking.id ? { ...b, adminNotes: noteText } : b));
+      setNoteBooking(null);
+      success("تم حفظ الملاحظة");
+    } catch { toastError("فشل حفظ الملاحظة"); }
   };
 
-  const filtered = filter === "all" ? bookings : bookings.filter(b => b.status === filter);
+  const deleteBooking = async (id: number) => {
+    try {
+      const r = await adminFetch(`/admin/bookings/${id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error();
+      setBookings(prev => prev.filter(b => b.id !== id));
+      success("تم حذف الحجز");
+    } catch { toastError("فشل حذف الحجز"); }
+    setConfirmDelete(null);
+  };
+
+  const exportCSV = async () => {
+    setExporting(true);
+    try {
+      const r = await adminFetch("/admin/bookings/export/csv");
+      if (!r.ok) throw new Error();
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bookings-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      success("تم تصدير الحجوزات");
+    } catch { toastError("فشل تصدير الحجوزات"); }
+    setExporting(false);
+  };
+
   const counts: Record<string, number> = {};
   bookings.forEach(b => { counts[b.status] = (counts[b.status] || 0) + 1; });
 
@@ -54,34 +107,52 @@ export default function BookingsPage() {
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>
           إدارة الحجوزات <span style={{ color: "#00AAFF" }}>({bookings.length})</span>
         </h2>
-        <button onClick={load} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, color: "#667788" }}>
-          🔄 تحديث
-        </button>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <button onClick={() => load()} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, color: "#667788" }}>
+            🔄 تحديث
+          </button>
+          <button onClick={exportCSV} disabled={exporting}
+            style={{ background: "#10B981", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "white", opacity: exporting ? 0.7 : 1 }}>
+            📥 {exporting ? "جاري التصدير..." : "تصدير CSV"}
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div style={{ marginBottom: "1rem" }}>
+        <input
+          type="text" value={search} onChange={e => handleSearchChange(e.target.value)}
+          placeholder="🔍 بحث بالاسم أو الهاتف أو الباقة..."
+          style={{ width: "100%", padding: "0.65rem 1rem", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", boxSizing: "border-box", direction: "rtl" }}
+        />
       </div>
 
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={setFilter} />
+        <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={v => setFilter(v)} />
         {STATUS_OPTIONS.map(s => (
-          <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={setFilter} />
+          <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
         ))}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>جاري التحميل...</div>
-      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
+          جاري التحميل...
+        </div>
+      ) : bookings.length === 0 ? (
         <div style={{ background: "white", borderRadius: "16px", padding: "4rem", textAlign: "center", color: "#99aabb" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
-          <p>لا توجد حجوزات في هذا التصنيف</p>
+          <p style={{ fontWeight: 600 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {filtered.map(b => {
+          {bookings.map(b => {
             const sObj = STATUS_OPTIONS.find(s => s.value === b.status) || STATUS_OPTIONS[0];
             return (
               <div key={b.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${sObj.color}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem" }}>{b.name}</span>
                       <span style={{ background: `${sObj.color}15`, color: sObj.color, padding: "0.2rem 0.65rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 700 }}>
@@ -97,11 +168,16 @@ export default function BookingsPage() {
                       <span>📞 <span style={{ direction: "ltr", display: "inline-block" }}>{b.phone}</span></span>
                       <span>📅 {b.date}</span>
                       <span>👥 {b.adults} كبار {b.children > 0 ? `+ ${b.children} أطفال` : ""}</span>
-                      {b.currency && <span>💰 {b.currency}</span>}
+                      {b.priceAtBooking && <span>💰 {b.priceAtBooking.toLocaleString("ar-EG")} {b.currency}</span>}
                     </div>
                     {b.notes && (
                       <div style={{ marginTop: "0.5rem", color: "#99aabb", fontSize: "0.82rem", background: "#f9fafb", borderRadius: "6px", padding: "0.4rem 0.75rem" }}>
-                        📝 {b.notes}
+                        📝 ملاحظة العميل: {b.notes}
+                      </div>
+                    )}
+                    {b.adminNotes && (
+                      <div style={{ marginTop: "0.4rem", fontSize: "0.82rem", background: "#fffbeb", borderRadius: "6px", padding: "0.4rem 0.75rem", color: "#92400e", borderRight: "3px solid #F59E0B" }}>
+                        🔒 ملاحظة داخلية: {b.adminNotes}
                       </div>
                     )}
                     <div style={{ color: "#c0ccd8", fontSize: "0.75rem", marginTop: "0.35rem" }}>
@@ -115,12 +191,16 @@ export default function BookingsPage() {
                       style={{ padding: "0.4rem 0.75rem", borderRadius: "8px", border: `1.5px solid ${sObj.color}`, color: sObj.color, fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, background: `${sObj.color}08`, cursor: "pointer", outline: "none" }}>
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
                       <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer"
                         style={{ background: "#25D366", color: "white", border: "none", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", textDecoration: "none", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
                         💬 واتساب
                       </a>
-                      <button onClick={() => deleteBooking(b.id)}
+                      <button onClick={() => { setNoteBooking(b); setNoteText(b.adminNotes || ""); }}
+                        style={{ background: "#fffbeb", color: "#92400e", border: "1px solid #F59E0B", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        📌 ملاحظة
+                      </button>
+                      <button onClick={() => setConfirmDelete(b.id)}
                         style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         🗑️
                       </button>
@@ -132,6 +212,36 @@ export default function BookingsPage() {
           })}
         </div>
       )}
+
+      {/* Note modal */}
+      {noteBooking && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+          onClick={() => setNoteBooking(null)}>
+          <div style={{ background: "white", borderRadius: "16px", padding: "1.75rem", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 1rem", color: "#0D1B2A", fontFamily: "Cairo, sans-serif" }}>
+              ملاحظة داخلية — {noteBooking.name}
+            </h3>
+            <textarea value={noteText} onChange={e => setNoteText(e.target.value)} rows={4}
+              placeholder="أضف ملاحظة داخلية للأدمن..."
+              style={{ width: "100%", padding: "0.75rem", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical", boxSizing: "border-box", direction: "rtl" }} />
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+              <button onClick={() => setNoteBooking(null)} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600 }}>إلغاء</button>
+              <button onClick={saveNote} style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>💾 حفظ</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={confirmDelete !== null}
+        title="حذف الحجز"
+        message="هل أنت متأكد من حذف هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
+        cancelLabel="إلغاء"
+        danger
+        onConfirm={() => confirmDelete !== null && deleteBooking(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }

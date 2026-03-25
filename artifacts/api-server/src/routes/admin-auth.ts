@@ -1,12 +1,13 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../middleware/auth";
+import { db } from "@workspace/db";
+import { adminUsers } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
+import { getJwtSecret } from "../middleware/auth";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
-
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || bcrypt.hashSync(process.env.ADMIN_PASSWORD || "drtravel2024", 10);
 
 router.post("/admin/login", async (req, res) => {
   try {
@@ -14,29 +15,56 @@ router.post("/admin/login", async (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ error: "Username and password required" });
     }
-    if (username !== ADMIN_USERNAME) {
+
+    const [adminUser] = await db.select().from(adminUsers)
+      .where(eq(adminUsers.username, username));
+
+    if (!adminUser || !adminUser.isActive) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    const valid = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+
+    const valid = await bcrypt.compare(password, adminUser.passwordHash);
     if (!valid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "7d" });
-    return res.json({ token, username });
-  } catch (err) {
+
+    await db.update(adminUsers)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(adminUsers.id, adminUser.id));
+
+    const secret = getJwtSecret();
+    const token = jwt.sign(
+      { userId: adminUser.id, username: adminUser.username },
+      secret,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      token,
+      username: adminUser.username,
+      displayName: adminUser.displayName || adminUser.username,
+    });
+  } catch (err: any) {
+    console.error("Login error:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
 
-router.get("/admin/me", (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ error: "Unauthorized" });
-  const token = authHeader.substring(7);
+router.get("/admin/me", authMiddleware, async (req, res) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { username: string };
-    return res.json({ username: decoded.username });
-  } catch {
-    return res.status(401).json({ error: "Invalid token" });
+    const { userId } = (req as any).admin;
+    const [adminUser] = await db.select().from(adminUsers)
+      .where(eq(adminUsers.id, userId));
+    if (!adminUser || !adminUser.isActive) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    return res.json({
+      username: adminUser.username,
+      displayName: adminUser.displayName || adminUser.username,
+      email: adminUser.email,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Server error" });
   }
 });
 

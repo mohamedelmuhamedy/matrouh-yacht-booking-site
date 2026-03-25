@@ -115,30 +115,45 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - **Social**: Facebook (Drtrave), Instagram (drtravel_marsamatrouh), TikTok (@drtravel.marsa.matrouh)
 
 **Admin Panel (`/admin`):**
-- **Auth**: JWT (7-day expiry), stored in localStorage. Default: admin/drtravel2024
+- **Auth**: JWT (7-day expiry) querying `admin_users` DB table (bcrypt). Auto-logout on 401. JWT_SECRET from env var.
+- **Admin credentials**: username=`admin`, password=`drtravel2024` (seeded via node scripts/seed-admin.mjs)
 - **Auth context**: `src/admin/AdminContext.tsx` — AdminProvider, useAdmin(), adminFetch()
 - **AdminRouter**: `src/admin/AdminRouter.tsx` — rendered outside main LanguageProvider/CurrencyProvider
+- **Toast system**: `src/admin/hooks/useToast.tsx` — `useToast()` → success/error/info/warning
+- **Confirm dialog**: `src/admin/components/ConfirmDialog.tsx` — reusable confirmation modal
 - **Pages**:
   - `/admin/login` — LoginPage.tsx
-  - `/admin/dashboard` — DashboardPage.tsx (stats cards + recent bookings table)
-  - `/admin/packages` — PackagesPage.tsx (list with thumbnail, active toggle, edit/delete)
-  - `/admin/packages/new` & `/admin/packages/:id/edit` — PackageFormPage.tsx (4-tab form: basic/media/includes/flags)
-  - `/admin/bookings` — BookingsPage.tsx (filter by status, WhatsApp quick-reply, status update)
+  - `/admin/dashboard` — DashboardPage.tsx (stats: published/draft/archived counts + recent bookings)
+  - `/admin/packages` — PackagesPage.tsx (status badges, status selector, duplicate, soft-delete/archive)
+  - `/admin/packages/new` & `/admin/packages/:id/edit` — PackageFormPage.tsx (4-tab: basic/media/includes/flags); status radio (draft/published/archived); image upload via Object Storage + URL fallback
+  - `/admin/bookings` — BookingsPage.tsx (search by name/phone, CSV export, admin notes modal)
   - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
   - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, saved to DB)
-- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded)
+- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded), shows admin displayName
+
+**Public Site Data from DB:**
+- `src/context/SiteDataContext.tsx` — `SiteDataProvider` wraps public routes; fetches `/api/packages`, `/api/testimonials`, `/api/settings` on mount; static fallback if API unavailable
+- `useSiteData()` hook provides: `packages`, `testimonials`, `settings`, `packagesLoading`, `refetchPackages()`
+- `PackageDetail.tsx` — reads package from DB context first, falls back to static data; shows 404 state if not found
+- `NotFoundPage.tsx` — full 404 page with home/packages CTAs (catch-all for unknown routes)
+- App routing: `/` → HomePage, `/packages/:slug` → DetailPageWrapper, `/rewards` → RewardsPage, `*` → NotFoundPage
 
 **Database Schema (lib/db):**
-- `packages` — full package data (JSONB for arrays/objects)
+- `packages` — full package data (JSONB for arrays/objects); `status` col: draft/published/archived; `active` bool
 - `testimonials` — review entries with visibility control
-- `bookings` — customer booking records with status workflow (new→contacted→confirmed→completed→cancelled)
+- `bookings` — customer booking records with status workflow (new→contacted→confirmed→completed→cancelled); `admin_notes` text
 - `site_settings` — key-value store for editable site config
+- `admin_users` — admin accounts (username, password_hash bcrypt, display_name, email, is_active)
 
 **API Server routes (artifacts/api-server):**
-- Public: `GET /api/packages`, `GET /api/packages/:slug`, `GET /api/testimonials`, `POST /api/bookings`
+- Public: `GET /api/packages` (published+active only), `GET /api/packages/:slug`, `GET /api/testimonials`, `GET /api/settings`, `POST /api/bookings`
 - Admin auth: `POST /api/admin/login`, `GET /api/admin/me`
-- Admin CRUD: `/api/admin/packages`, `/api/admin/testimonials`, `/api/admin/bookings`, `/api/admin/settings`
+- Admin packages: GET/POST/PUT /api/admin/packages; DELETE = soft archive; `?force=true` = hard delete; POST /api/admin/packages/:id/duplicate
+- Admin bookings: search (`?q=`), CSV export (`?csv=true`), PATCH admin notes
+- Admin settings: GET/PUT `/api/admin/settings`
+- Object Storage: POST `/api/storage/uploads/request-url` (signed URL for upload, auth required); GET `/api/storage/public-objects?path=...`; GET `/api/storage/objects?objectPath=...`
 - All admin routes require Bearer JWT header
+- `getJwtSecret()` throws if JWT_SECRET env var not set (no hardcoded secrets)
 
 ### `scripts` (`@workspace/scripts`)
 

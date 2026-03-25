@@ -14,6 +14,7 @@ export const bookings = pgTable("bookings", {
   children: integer("children").notNull().default(0),
   infants: integer("infants").notNull().default(0),
   notes: text("notes").notNull().default(""),
+  adminNotes: text("admin_notes").notNull().default(""),
   currency: text("currency").notNull().default("EGP"),
   priceAtBooking: integer("price_at_booking"),
   status: text("status").notNull().default("new"),

@@ -3,11 +3,13 @@ import { Switch, Route, useLocation } from "wouter";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
 import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
+import { SiteDataProvider, useSiteData } from "./context/SiteDataContext";
 import CurrencySwitcher from "./components/CurrencySwitcher";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
 import PackageDetail from "./pages/PackageDetail";
 import RewardsPage from "./pages/RewardsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
 import { formatPrice } from "./data/currencies";
@@ -1093,11 +1095,14 @@ export default function App() {
   return (
     <LanguageProvider>
       <CurrencyProvider>
-        <Switch>
-          <Route path="/packages/:slug" component={DetailPageWrapper} />
-          <Route path="/rewards" component={RewardsPage} />
-          <Route component={HomePage} />
-        </Switch>
+        <SiteDataProvider>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/packages/:slug" component={DetailPageWrapper} />
+            <Route path="/rewards" component={RewardsPage} />
+            <Route component={NotFoundPage} />
+          </Switch>
+        </SiteDataProvider>
       </CurrencyProvider>
     </LanguageProvider>
   );

@@ -1,13 +1,16 @@
 import { Router } from "express";
-import { db, packages, testimonials } from "@workspace/db";
-import { eq, asc } from "drizzle-orm";
+import { db, packages, testimonials, siteSettings } from "@workspace/db";
+import { eq, asc, and } from "drizzle-orm";
 
 const router = Router();
 
 router.get("/packages", async (_req, res) => {
   try {
     const rows = await db.select().from(packages)
-      .where(eq(packages.active, true))
+      .where(and(
+        eq(packages.status, "published"),
+        eq(packages.active, true),
+      ))
       .orderBy(asc(packages.sortOrder));
     return res.json(rows);
   } catch {
@@ -34,6 +37,19 @@ router.get("/testimonials", async (_req, res) => {
     return res.json(rows);
   } catch {
     return res.status(500).json({ error: "Failed to fetch testimonials" });
+  }
+});
+
+router.get("/settings", async (_req, res) => {
+  try {
+    const rows = await db.select().from(siteSettings).orderBy(asc(siteSettings.key));
+    const result: Record<string, string> = {};
+    for (const row of rows) {
+      result[row.key] = row.value;
+    }
+    return res.json(result);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch settings" });
   }
 });
 

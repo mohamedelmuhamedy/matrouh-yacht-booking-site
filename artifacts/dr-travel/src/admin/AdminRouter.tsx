@@ -1,6 +1,7 @@
 import { Switch, Route, useLocation } from "wouter";
 import { useEffect } from "react";
 import { AdminProvider, useAdmin } from "./AdminContext";
+import { ToastProvider } from "../components/Toast";
 import AdminLayout from "./AdminLayout";
 import LoginPage from "./LoginPage";
 import DashboardPage from "./DashboardPage";
@@ -21,7 +22,10 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", fontFamily: "Cairo, sans-serif" }}>
-        <div style={{ color: "#00AAFF", fontSize: "1.2rem" }}>جاري التحميل...</div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
+          <div style={{ color: "#00AAFF", fontSize: "1.1rem" }}>جاري التحميل...</div>
+        </div>
       </div>
     );
   }
@@ -35,10 +39,7 @@ function AdminRoutes() {
   const [location, navigate] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && user && location === "/admin") {
-      navigate("/admin/dashboard");
-    }
-    if (!isLoading && user && location === "/admin/login") {
+    if (!isLoading && user && (location === "/admin" || location === "/admin/login")) {
       navigate("/admin/dashboard");
     }
   }, [user, isLoading, location]);
@@ -77,7 +78,9 @@ function AdminRoutes() {
 export default function AdminRouter() {
   return (
     <AdminProvider>
-      <AdminRoutes />
+      <ToastProvider>
+        <AdminRoutes />
+      </ToastProvider>
     </AdminProvider>
   );
 }

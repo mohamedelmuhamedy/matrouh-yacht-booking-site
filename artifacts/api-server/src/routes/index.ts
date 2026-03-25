@@ -7,6 +7,7 @@ import adminBookingsRouter from "./admin-bookings";
 import adminSettingsRouter from "./admin-settings";
 import publicPackagesRouter from "./public-packages";
 import publicBookingsRouter from "./public-bookings";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(adminBookingsRouter);
 router.use(adminSettingsRouter);
 router.use(publicPackagesRouter);
 router.use(publicBookingsRouter);
+router.use(storageRouter);
 
 export default router;

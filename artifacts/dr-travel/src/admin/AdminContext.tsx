@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-interface AdminUser { username: string; }
+interface AdminUser { username: string; displayName: string; }
 interface AdminContextType {
   user: AdminUser | null;
   token: string | null;
@@ -16,14 +16,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const doLogout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("admin_token");
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("admin_token");
     if (saved) {
       fetch("/api/admin/me", { headers: { Authorization: `Bearer ${saved}` } })
-        .then(r => r.ok ? r.json() : null)
+        .then(async r => {
+          if (r.status === 401) {
+            localStorage.removeItem("admin_token");
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
         .then(data => {
-          if (data?.username) { setToken(saved); setUser({ username: data.username }); }
-          else localStorage.removeItem("admin_token");
+          if (data?.username) {
+            setToken(saved);
+            setUser({ username: data.username, displayName: data.displayName || data.username });
+          } else {
+            localStorage.removeItem("admin_token");
+          }
         })
         .catch(() => localStorage.removeItem("admin_token"))
         .finally(() => setIsLoading(false));
@@ -44,15 +60,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     const data = await r.json();
     setToken(data.token);
-    setUser({ username: data.username });
+    setUser({ username: data.username, displayName: data.displayName || data.username });
     localStorage.setItem("admin_token", data.token);
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("admin_token");
-  };
+  const logout = () => { doLogout(); };
 
   return (
     <AdminContext.Provider value={{ user, token, login, logout, isLoading }}>
@@ -67,14 +79,22 @@ export function useAdmin() {
   return ctx;
 }
 
-export function adminFetch(path: string, options: RequestInit = {}) {
+export function adminFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem("admin_token");
-  return fetch(`/api${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
-      ...(options.headers || {}),
-    },
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  return fetch(`/api${path}`, { ...options, headers }).then(async r => {
+    if (r.status === 401) {
+      const body = await r.clone().json().catch(() => ({}));
+      if (body.code === "TOKEN_EXPIRED" || body.code === "INVALID_TOKEN") {
+        localStorage.removeItem("admin_token");
+        window.location.href = "/admin/login";
+      }
+    }
+    return r;
   });
 }

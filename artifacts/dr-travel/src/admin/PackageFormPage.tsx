@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 
@@ -15,6 +15,7 @@ const EMPTY_PKG = {
   cancellationAr: "", cancellationEn: "",
   includesMeals: false, includesTransport: false, includesAccommodation: false,
   minGroupSize: 1, maxGroupSize: 20, active: true, sortOrder: 0,
+  status: "draft" as "draft" | "published" | "archived",
 };
 
 type FormData = typeof EMPTY_PKG;
@@ -34,6 +35,9 @@ export default function PackageFormPage() {
   const [incEnInput, setIncEnInput] = useState("");
   const [excArInput, setExcArInput] = useState("");
   const [excEnInput, setExcEnInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEdit) {
@@ -82,6 +86,36 @@ export default function PackageFormPage() {
   };
   const removeFromArr = (key: keyof FormData, idx: number) => {
     setForm(f => ({ ...f, [key]: (f[key] as string[]).filter((_, i) => i !== idx) }));
+  };
+
+  const uploadImage = async (file: File) => {
+    setUploading(true);
+    setUploadError("");
+    try {
+      const reqRes = await adminFetch("/storage/uploads/request-url", {
+        method: "POST",
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+      });
+      if (!reqRes.ok) {
+        const err = await reqRes.json();
+        setUploadError(err.error || "فشل طلب رفع الصورة");
+        return;
+      }
+      const { uploadURL, objectPath } = await reqRes.json();
+      const uploadRes = await fetch(uploadURL, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) { setUploadError("فشل رفع الملف إلى التخزين"); return; }
+      const publicUrl = `/api/storage/public-objects?path=${encodeURIComponent(objectPath.replace(/^\//, ""))}`;
+      setForm(f => ({ ...f, images: [...f.images, publicUrl] }));
+    } catch (e: any) {
+      setUploadError(e.message || "خطأ في الرفع");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const inputSt: React.CSSProperties = { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box" };
@@ -233,20 +267,66 @@ export default function PackageFormPage() {
                 <textarea style={{ ...inputSt, minHeight: "60px" }} value={form.cancellationEn} onChange={e => set("cancellationEn", e.target.value)} />
               </F>
             </div>
+            <F label="حالة النشر">
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                {(["draft", "published", "archived"] as const).map(s => {
+                  const labels = { draft: "مسودة 📝", published: "منشور ✅", archived: "مؤرشف 🗃️" };
+                  const colors = { draft: "#F59E0B", published: "#10B981", archived: "#6B7280" };
+                  return (
+                    <label key={s} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 0.9rem", borderRadius: "8px", border: `2px solid ${form.status === s ? colors[s] : "#e0e8f0"}`, background: form.status === s ? `${colors[s]}12` : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
+                      <input type="radio" name="status" value={s} checked={form.status === s} onChange={() => set("status", s)} style={{ accentColor: colors[s] }} />
+                      <span style={{ fontWeight: 700, fontSize: "0.82rem", color: form.status === s ? colors[s] : "#667788" }}>{labels[s]}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </F>
           </div>
         )}
 
         {/* Media Tab */}
         {tab === "media" && (
           <div>
-            <ArrField label="روابط الصور (URL)" items={form.images}
+            {/* File Upload */}
+            <div style={{ marginBottom: "1.25rem", background: "#f0f7ff", border: "2px dashed #00AAFF40", borderRadius: "12px", padding: "1.25rem" }}>
+              <div style={{ color: "#0066cc", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>📁 رفع صورة من الجهاز</div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(f); }}
+              />
+              <button type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                style={{ background: uploading ? "#aaa" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: "8px", cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+                {uploading ? "جاري الرفع..." : "اختر صورة"}
+              </button>
+              <span style={{ color: "#8899aa", fontSize: "0.78rem", marginRight: "0.75rem" }}>JPG / PNG / WebP — حد أقصى 10MB</span>
+              {uploadError && <div style={{ color: "#DC2626", fontSize: "0.8rem", marginTop: "0.5rem" }}>{uploadError}</div>}
+            </div>
+
+            {/* URL Input */}
+            <ArrField label="أو أضف رابط صورة (URL)" items={form.images}
               onAdd={(v: string) => addToArr("images", v)} onRemove={(i: number) => removeFromArr("images", i)}
               inputVal={imgInput} setInputVal={setImgInput} placeholder="https://images.unsplash.com/..." />
-            {form.images.map((url, i) => (
-              <img key={i} src={url} alt={`img-${i}`}
-                style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: "10px", marginBottom: "0.75rem" }}
-                onError={e => { (e.target as HTMLImageElement).src = "data:image/svg+xml,..."; }} />
-            ))}
+
+            {/* Previews */}
+            {form.images.length > 0 && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px,1fr))", gap: "0.75rem", marginTop: "0.5rem" }}>
+                {form.images.map((url, i) => (
+                  <div key={i} style={{ position: "relative", borderRadius: "10px", overflow: "hidden" }}>
+                    <img src={url} alt={`img-${i}`}
+                      style={{ width: "100%", height: 130, objectFit: "cover", display: "block" }}
+                      onError={e => { (e.target as HTMLImageElement).parentElement!.style.background = "#f0f4f8"; (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <button type="button" onClick={() => removeFromArr("images", i)}
+                      style={{ position: "absolute", top: 4, insetInlineEnd: 4, background: "rgba(220,38,38,0.9)", border: "none", borderRadius: "50%", width: 22, height: 22, color: "white", cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>×</button>
+                    {i === 0 && <div style={{ position: "absolute", bottom: 4, insetInlineStart: 4, background: "#00AAFF", color: "white", fontSize: "0.65rem", padding: "0.15rem 0.5rem", borderRadius: "4px", fontWeight: 700 }}>رئيسية</div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
