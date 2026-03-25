@@ -3,7 +3,7 @@ import { Switch, Route, useLocation } from "wouter";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
 import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
-import { SiteDataProvider, useSiteData } from "./context/SiteDataContext";
+import { SiteDataProvider, useSiteData, type DBPackage, type DBTestimonial } from "./context/SiteDataContext";
 import CurrencySwitcher from "./components/CurrencySwitcher";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
@@ -13,6 +13,57 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
 import { formatPrice } from "./data/currencies";
+
+interface DisplayPkg {
+  id: number;
+  slug: string;
+  icon: string;
+  name: string;
+  titleAr: string;
+  includes: string[];
+  duration: string;
+  price: string;
+  priceNum: number;
+  badge: string | null;
+  badgeColor: string | null;
+  featured: boolean;
+  desc: string;
+  color: string;
+  whyThisTripAr: { icon: string; text: string }[];
+  whyThisTripEn: { icon: string; text: string }[];
+}
+
+function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): DisplayPkg {
+  const ar = lang === "ar";
+  return {
+    id: pkg.id,
+    slug: pkg.slug,
+    icon: pkg.icon,
+    name: ar ? pkg.titleAr : pkg.titleEn,
+    titleAr: pkg.titleAr,
+    includes: (ar ? pkg.includesAr : pkg.includesEn).slice(0, 5),
+    duration: ar ? pkg.durationAr : pkg.durationEn,
+    price: formatPrice(pkg.priceEGP, currency, lang),
+    priceNum: pkg.priceEGP,
+    badge: ar ? pkg.badgeAr : pkg.badgeEn,
+    badgeColor: pkg.badgeColor,
+    featured: pkg.featured,
+    desc: ar ? pkg.descriptionAr : pkg.descriptionEn,
+    color: pkg.color,
+    whyThisTripAr: pkg.whyThisTripAr ?? [],
+    whyThisTripEn: pkg.whyThisTripEn ?? [],
+  };
+}
+
+function testimonialToReview(t: DBTestimonial, lang: string) {
+  const ar = lang === "ar";
+  return {
+    name: ar ? t.nameAr : (t.nameEn || t.nameAr),
+    initials: t.avatar || t.nameAr.slice(0, 2),
+    review: ar ? t.textAr : (t.textEn || t.textAr),
+    stars: t.rating,
+  };
+}
 import { usePersonalization } from "./hooks/usePersonalization";
 
 const AVATAR_COLORS = [
@@ -272,7 +323,18 @@ function Navbar() {
 
 // ===== HERO =====
 function Hero() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const { settings } = useSiteData();
+  const ar = lang === "ar";
+  const rawTitle = ar
+    ? (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`)
+    : (settings.hero_title_en || `${t.hero.title1} ${t.hero.title2}`);
+  const titleWords = rawTitle.split(" ");
+  const titleMain = titleWords.slice(0, -1).join(" ");
+  const titleHighlight = titleWords[titleWords.length - 1];
+  const subtitle = ar
+    ? (settings.hero_subtitle_ar || t.hero.subtitle)
+    : (settings.hero_subtitle_en || t.hero.subtitle);
   return (
     <section id="hero" className="hero-bg" style={{ paddingTop: "80px" }}>
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 5rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
@@ -292,14 +354,14 @@ function Hero() {
 
         <FadeInSection delay={200}>
           <h1 style={{ fontSize: "3.5rem", fontWeight: 900, color: "white", marginBottom: "1rem", lineHeight: 1.15, letterSpacing: "-0.5px" }} className="hero-title">
-            {t.hero.title1}<br />
-            <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{t.hero.title2}</span>
+            {titleMain}<br />
+            <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{titleHighlight}</span>
           </h1>
         </FadeInSection>
 
         <FadeInSection delay={300}>
           <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.6)", marginBottom: "2.5rem", lineHeight: 1.8 }}>
-            {t.hero.subtitle}
+            {subtitle}
           </p>
         </FadeInSection>
 
@@ -391,14 +453,16 @@ function Services() {
 function PersonalizedSection() {
   const { lang } = useLanguage();
   const { currency } = useCurrency();
+  const { packages: dbPackages } = useSiteData();
   const { data, isFirstVisit, hasViewedPackages } = usePersonalization();
   const [, navigate] = useLocation();
   const ar = lang === "ar";
 
-  const viewedPackages = data.viewedPackages.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
-  const popularPackages = PACKAGES_DATA.filter(p => p.popular || p.featured);
-  const familyPackages = PACKAGES_DATA.filter(p => p.familyFriendly);
-  const foreignerPackages = PACKAGES_DATA.filter(p => p.foreignerFriendly);
+  const allDbPkgs = dbPackages.length > 0 ? dbPackages : (PACKAGES_DATA as unknown as DBPackage[]);
+  const viewedPackages = data.viewedPackages.map(id => allDbPkgs.find(p => p.id === id)).filter(Boolean) as DBPackage[];
+  const popularPackages = allDbPkgs.filter(p => p.popular || p.featured);
+  const familyPackages = allDbPkgs.filter(p => p.familyFriendly);
+  const foreignerPackages = allDbPkgs.filter(p => p.foreignerFriendly);
 
   const sections = [];
 
@@ -498,11 +562,13 @@ function CompareBar({ compareIds, onOpen, onClear, lang }: { compareIds: number[
 function PackagesAndBooking() {
   const { t, lang } = useLanguage();
   const { currency } = useCurrency();
+  const { packages: dbPackages } = useSiteData();
   const [, navigate] = useLocation();
-  const PACKAGES = t.packages.items;
-  type PkgType = typeof PACKAGES[0];
 
-  const [selectedPkg, setSelectedPkg] = useState<PkgType | null>(null);
+  const allDbPkgs = dbPackages.length > 0 ? dbPackages : (PACKAGES_DATA as unknown as DBPackage[]);
+  const PACKAGES: DisplayPkg[] = allDbPkgs.map(p => dbPkgToDisplay(p, lang, currency));
+
+  const [selectedPkg, setSelectedPkg] = useState<DisplayPkg | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
@@ -561,7 +627,6 @@ function PackagesAndBooking() {
     if (Object.keys(errs).length === 0) {
       setShowModal(true);
       try {
-        const pkgData = PACKAGES_DATA.find(p => p.id === selectedPkg?.id);
         await fetch("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -569,7 +634,7 @@ function PackagesAndBooking() {
             name: form.name, phone: form.phone,
             packageId: selectedPkg?.id,
             packageName: selectedPkg?.name ?? "",
-            packageNameAr: pkgData?.titleAr ?? selectedPkg?.name ?? "",
+            packageNameAr: selectedPkg?.titleAr ?? selectedPkg?.name ?? "",
             date: form.date, adults: form.adults,
             children: form.children, infants: form.infants,
             notes: form.notes, currency: "EGP",
@@ -607,9 +672,8 @@ function PackagesAndBooking() {
         {/* Package cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: "1.25rem" }}>
           {PACKAGES.map((pkg, i) => {
-            const pkgData = PACKAGES_DATA.find(p => p.id === pkg.id);
             const inCompare = compareIds.includes(pkg.id);
-            const whyTrip = pkgData ? (lang === "ar" ? pkgData.whyThisTripAr : pkgData.whyThisTripEn) : [];
+            const whyTrip = lang === "ar" ? pkg.whyThisTripAr : pkg.whyThisTripEn;
             return (
               <FadeInSection key={pkg.id} delay={i * 80}>
                 <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`}>
@@ -665,8 +729,8 @@ function PackagesAndBooking() {
                     </div>
                     {/* Action buttons row */}
                     <div style={{ display: "flex", gap: "0.5rem" }}>
-                      {pkgData && (
-                        <button onClick={e => viewDetails(pkgData.slug, e)}
+                      {pkg.slug && (
+                        <button onClick={e => viewDetails(pkg.slug, e)}
                           style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#aabbcc"; }}>
@@ -885,12 +949,18 @@ function ReviewCard({ review, colorIndex }: { review: { name: string; initials: 
 }
 
 function Reviews() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const { testimonials: dbTestimonials } = useSiteData();
   const track1Ref = useRef<HTMLDivElement>(null);
   const track2Ref = useRef<HTMLDivElement>(null);
-  const half = Math.ceil(t.reviews.items.length / 2);
-  const row1 = t.reviews.items.slice(0, half);
-  const row2 = t.reviews.items.slice(half);
+
+  const reviews = dbTestimonials.length > 0
+    ? dbTestimonials.filter(t => t.isVisible).map(t => testimonialToReview(t, lang))
+    : t.reviews.items;
+
+  const half = Math.ceil(reviews.length / 2);
+  const row1 = reviews.slice(0, half);
+  const row2 = reviews.slice(half);
 
   return (
     <section id="reviews" style={{ padding: "6rem 0", background: "linear-gradient(180deg,#0D1B2A,#0a1520)", overflow: "hidden" }}>
@@ -921,13 +991,16 @@ function Reviews() {
 // ===== FOOTER =====
 function Footer() {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteData();
   const f = t.footer;
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const waNum = settings.whatsapp_number || "201205756024";
+  const phone = settings.phone_number || "+20 120 575 6024";
   const socialLinks = [
-    { label: "Facebook", href: "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
-    { label: "Instagram", href: "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C", bg: "rgba(225,48,108,0.12)" },
-    { label: "TikTok", href: "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff", bg: "rgba(255,255,255,0.08)" },
-    { label: "WhatsApp", href: "https://wa.me/201205756024", icon: <WhatsAppIcon />, color: "#25D366", bg: "rgba(37,211,102,0.12)" },
+    { label: "Facebook", href: settings.facebook_url || "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
+    { label: "Instagram", href: settings.instagram_url || "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C", bg: "rgba(225,48,108,0.12)" },
+    { label: "TikTok", href: settings.tiktok_url || "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff", bg: "rgba(255,255,255,0.08)" },
+    { label: "WhatsApp", href: `https://wa.me/${waNum}`, icon: <WhatsAppIcon />, color: "#25D366", bg: "rgba(37,211,102,0.12)" },
   ];
 
   const arrowChar = lang === "ar" ? "▶" : "▷";
@@ -984,8 +1057,8 @@ function Footer() {
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[
-                { href: "tel:+201205756024", icon: <PhoneIcon />, text: "01205756024", hoverColor: "#00AAFF", bg: "rgba(0,170,255,0.08)", borderColor: "rgba(0,170,255,0.2)", iconColor: "#00AAFF" },
-                { href: "https://wa.me/201205756024", icon: <WhatsAppIcon />, text: f.whatsappLabel, hoverColor: "#25D366", bg: "rgba(37,211,102,0.08)", borderColor: "rgba(37,211,102,0.2)", iconColor: "#25D366" },
+                { href: `tel:${phone}`, icon: <PhoneIcon />, text: phone, hoverColor: "#00AAFF", bg: "rgba(0,170,255,0.08)", borderColor: "rgba(0,170,255,0.2)", iconColor: "#00AAFF" },
+                { href: `https://wa.me/${waNum}`, icon: <WhatsAppIcon />, text: lang === "ar" ? `واتساب: ${phone}` : `WhatsApp: ${phone}`, hoverColor: "#25D366", bg: "rgba(37,211,102,0.08)", borderColor: "rgba(37,211,102,0.2)", iconColor: "#25D366" },
               ].map((item, i) => (
                 <a key={i} href={item.href} target={i === 1 ? "_blank" : undefined} rel="noreferrer"
                   style={{ color: "#445566", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "color 0.3s" }}
