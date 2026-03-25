@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
       <div style={{
-        position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
+        position: "fixed", bottom: "5.5rem", left: "50%", transform: "translateX(-50%)",
         zIndex: 99999, display: "flex", flexDirection: "column", gap: "0.5rem",
         alignItems: "center", pointerEvents: "none",
       }}>

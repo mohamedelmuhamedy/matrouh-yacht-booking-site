@@ -1,0 +1,80 @@
+Please focus on fixing these admin + website issues end-to-end, and test them yourself before replying:
+
+1) Add package → show on public website
+- When I create a new package in /admin, it must be saved correctly in DB
+- It must appear on the public website immediately in the correct packages section
+- Test this yourself by creating a package, saving it, refreshing the public site, and confirming it appears
+- If it does not appear, fix the root cause (DB save / API / public fetch / filters / cache / fallback data)
+
+2) Delete / unpublish package → hide from public website
+- If a package is deleted, archived, or unpublished, it must disappear from the public website
+- Test this yourself and confirm it no longer shows for visitors
+
+3) Restore defaults
+- Fix “Restore Default” so it actually restores the correct original values and saves them
+- Especially for hero title, hero subtitle, feature toggles, and hero background
+
+4) Mobile responsive admin
+- Make all admin pages work properly on phone:
+  - login
+  - dashboard
+  - packages
+  - edit package
+  - testimonials
+  - bookings
+  - settings
+- No horizontal overflow
+- Better mobile layout, inputs, buttons, tabs, modals, and sidebar/drawer
+- Test on 360px, 390px, and 430px
+
+5) Change hero background image from admin
+- Add ability in admin/settings to upload a new hero background image from device
+- Show preview of current image
+- Save it properly to storage/DB
+- Make it appear on the public website after save and refresh
+- Keep fallback to default image if none exists
+
+6) Upload package images from device
+- In package edit/create, do not require only image URLs
+- Add file upload from device for package images
+- Support:
+  - upload image from computer
+  - preview image
+  - save image correctly
+  - show uploaded image in the package on the public website
+- Keep URL option only if useful, but file upload must be supported
+
+7) Package price behavior
+- If max price is empty, treat it as “no max price”
+- In that case show only one price on the website
+- If max price exists, show min and max together
+
+8) Cancellation policy toggle
+- Add a switch per package to enable/disable cancellation policy
+- If disabled:
+  - hide the field in admin
+  - do not show cancellation policy on the public package page
+
+9) Test everything yourself
+Please test these flows end-to-end yourself:
+- add package
+- package appears publicly
+- upload package image from device
+- delete/unpublish package and confirm it disappears
+- restore defaults
+- change hero background
+- mobile admin pages
+
+10) After finishing
+Send me a short summary only:
+- what was broken
+- what you fixed
+- whether you tested each point yourself
+- and screenshots for:
+  - new package in admin
+  - same package visible on public site
+  - uploaded package image
+  - package removed from public site after delete/unpublish
+  - admin settings on mobile
+  - edit package on mobile
+  - hero background changed successfully

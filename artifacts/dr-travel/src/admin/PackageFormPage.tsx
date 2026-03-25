@@ -23,7 +23,7 @@ const EMPTY_PKG = {
   hasCancellationPolicy: false, cancellationAr: "", cancellationEn: "",
   includesMeals: false, includesTransport: false, includesAccommodation: false,
   minGroupSize: 1, maxGroupSize: 20, active: true, sortOrder: 0,
-  status: "draft" as "draft" | "published" | "archived",
+  status: "published" as "draft" | "published" | "archived",
 };
 
 type FormData = typeof EMPTY_PKG;
@@ -355,10 +355,10 @@ export default function PackageFormPage() {
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "white", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "white", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ flex: 1, minWidth: 80, padding: "0.55rem", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: tab === t.id ? "#00AAFF" : "transparent", color: tab === t.id ? "white" : "#667788", transition: "all 0.2s" }}>
+            style={{ flexShrink: 0, padding: "0.55rem 0.85rem", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: tab === t.id ? "#00AAFF" : "transparent", color: tab === t.id ? "white" : "#667788", transition: "all 0.2s", whiteSpace: "nowrap" }}>
             {t.label}
           </button>
         ))}

@@ -149,6 +149,10 @@ export default function SettingsPage() {
   const [logoError, setLogoError] = useState("");
   const logoFileRef = useRef<HTMLInputElement>(null);
 
+  const [heroBgUploading, setHeroBgUploading] = useState(false);
+  const [heroBgError, setHeroBgError] = useState("");
+  const heroBgFileRef = useRef<HTMLInputElement>(null);
+
   const settingsRef = useRef<Record<string, string>>({});
 
   const loadSettings = () => {
@@ -187,7 +191,7 @@ export default function SettingsPage() {
     update(key, value ? "true" : "false");
   };
 
-  const save = async (overrideSettings?: Record<string, string>) => {
+  const save = async (overrideSettings?: Record<string, string>, silent = false) => {
     const payload = overrideSettings ?? settingsRef.current;
     setSaving(true);
     setSaveStatus("idle");
@@ -201,17 +205,17 @@ export default function SettingsPage() {
         const err = await r.json().catch(() => ({}));
         setSaveError(err.error || "فشل الحفظ");
         setSaveStatus("error");
-        toastError("فشل حفظ الإعدادات");
+        if (!silent) toastError("فشل حفظ الإعدادات");
         return false;
       }
       setSaveStatus("success");
-      toastSuccess("تم حفظ الإعدادات بنجاح ✅");
+      if (!silent) toastSuccess("تم حفظ الإعدادات بنجاح ✅");
       setTimeout(() => setSaveStatus("idle"), 3000);
       return true;
     } catch (e: any) {
       setSaveError(e.message || "خطأ في الاتصال");
       setSaveStatus("error");
-      toastError("خطأ في الاتصال");
+      if (!silent) toastError("خطأ في الاتصال");
       return false;
     } finally {
       setSaving(false);
@@ -244,8 +248,9 @@ export default function SettingsPage() {
     setSettings({ ...restored });
     setSaveStatus("idle");
 
-    await save(restored);
-    toastSuccess("تم استعادة القيم الأصلية وحفظها ✅");
+    const ok = await save(restored, true);
+    if (ok) toastSuccess("تم استعادة القيم الأصلية وحفظها ✅");
+    else toastError("فشل حفظ القيم الأصلية");
   };
 
   const changePassword = async () => {
@@ -306,6 +311,39 @@ export default function SettingsPage() {
     } finally {
       setLogoUploading(false);
       if (logoFileRef.current) logoFileRef.current.value = "";
+    }
+  };
+
+  const uploadHeroBg = async (file: File) => {
+    setHeroBgUploading(true);
+    setHeroBgError("");
+    try {
+      const reqRes = await adminFetch("/storage/uploads/request-url", {
+        method: "POST",
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+      });
+      if (!reqRes.ok) {
+        const err = await reqRes.json().catch(() => ({}));
+        setHeroBgError(err.error || "فشل طلب رفع الصورة");
+        return;
+      }
+      const { uploadURL, objectPath } = await reqRes.json();
+      const uploadRes = await fetch(uploadURL, {
+        method: "PUT", headers: { "Content-Type": file.type }, body: file,
+      });
+      if (!uploadRes.ok) { setHeroBgError("فشل رفع الملف"); return; }
+
+      const bgPath = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+      const next = { ...settingsRef.current, hero_bg_url: bgPath };
+      settingsRef.current = next;
+      setSettings({ ...next });
+      const ok = await save(next, true);
+      if (ok) toastSuccess("تم رفع صورة الخلفية وحفظها ✅");
+    } catch (e: any) {
+      setHeroBgError(e.message || "خطأ في الرفع");
+    } finally {
+      setHeroBgUploading(false);
+      if (heroBgFileRef.current) heroBgFileRef.current.value = "";
     }
   };
 
@@ -424,6 +462,60 @@ export default function SettingsPage() {
               )}
             </div>
             {logoError && <div style={{ color: "#DC2626", fontSize: "0.8rem", marginTop: "0.5rem" }}>⚠️ {logoError}</div>}
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Background Upload */}
+      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
+        <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+          🏞️ صورة خلفية الهيرو (Hero Background)
+        </h3>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <div style={{
+              width: 140, height: 80, borderRadius: "10px", overflow: "hidden",
+              border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+              background: settings.hero_bg_url
+                ? `url('${settings.hero_bg_url}') center/cover`
+                : "linear-gradient(135deg,#0D1B2A,#00AAFF40)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {!settings.hero_bg_url && (
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.5rem" }}>🏖️</span>
+              )}
+            </div>
+            {settings.hero_bg_url && (
+              <div style={{ position: "absolute", top: 4, right: 4, width: 20, height: 20, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.55rem", color: "white", fontWeight: 900, border: "2px solid white" }}>✓</div>
+            )}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+              {settings.hero_bg_url ? "تم رفع صورة خلفية مخصصة" : "لم تُرفع خلفية بعد — يُستخدم صورة البحر الافتراضية"}
+            </div>
+            <div style={{ color: "#99aabb", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
+              ارفع صورة JPG / PNG / WebP عالية الجودة (بحد أقصى 10MB) للظهور في خلفية الصفحة الرئيسية
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+              <input ref={heroBgFileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadHeroBg(f); }} />
+              <button type="button" onClick={() => heroBgFileRef.current?.click()} disabled={heroBgUploading}
+                style={{ background: heroBgUploading ? "#aaa" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "8px", padding: "0.55rem 1.25rem", cursor: heroBgUploading ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
+                {heroBgUploading ? "⏳ جاري الرفع..." : "📁 رفع صورة خلفية"}
+              </button>
+              {settings.hero_bg_url && (
+                <button type="button" onClick={() => {
+                  const next = { ...settingsRef.current, hero_bg_url: "" };
+                  settingsRef.current = next;
+                  setSettings({ ...next });
+                  save(next, true).then(ok => ok && toastSuccess("تم حذف الخلفية المخصصة ✅"));
+                }}
+                  style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "0.55rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.82rem", flexShrink: 0 }}>
+                  🗑️ حذف الخلفية
+                </button>
+              )}
+            </div>
+            {heroBgError && <div style={{ color: "#DC2626", fontSize: "0.8rem", marginTop: "0.5rem" }}>⚠️ {heroBgError}</div>}
           </div>
         </div>
       </div>

@@ -78,6 +78,7 @@ interface SiteDataContextType {
   packagesLoading: boolean;
   settingsLoading: boolean;
   refetchPackages: () => void;
+  refetchSettings: () => void;
 }
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
@@ -91,10 +92,6 @@ const DEFAULT_SETTINGS: SiteSettings = {
   facebook_url: "https://facebook.com/Drtrave",
   instagram_url: "https://instagram.com/drtravel_marsamatrouh",
   tiktok_url: "https://tiktok.com/@drtravel.marsa.matrouh",
-  feature_ai_assistant: "true",
-  feature_compare: "true",
-  feature_testimonials: "true",
-  feature_rewards: "true",
   show_ai_assistant: "true",
   show_compare_feature: "true",
   show_testimonials: "true",
@@ -106,6 +103,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
+  const [apiFailed, setApiFailed] = useState(false);
 
   const fetchPackages = useCallback(async () => {
     setPackagesLoading(true);
@@ -113,22 +111,26 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       const r = await fetch("/api/packages");
       if (r.ok) {
         const data = await r.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setPackages(data);
+          setApiFailed(false);
         } else {
           setPackages(PACKAGES_DATA as unknown as DBPackage[]);
+          setApiFailed(true);
         }
       } else {
         setPackages(PACKAGES_DATA as unknown as DBPackage[]);
+        setApiFailed(true);
       }
     } catch {
       setPackages(PACKAGES_DATA as unknown as DBPackage[]);
+      setApiFailed(true);
     } finally {
       setPackagesLoading(false);
     }
   }, []);
 
-  const fetchTestimonials = async () => {
+  const fetchTestimonials = useCallback(async () => {
     try {
       const r = await fetch("/api/testimonials");
       if (r.ok) {
@@ -136,9 +138,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         if (Array.isArray(data)) setTestimonials(data);
       }
     } catch {}
-  };
+  }, []);
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
       const r = await fetch("/api/settings");
@@ -148,13 +150,22 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
     setSettingsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchPackages();
     fetchTestimonials();
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const onFocus = () => {
+      fetchPackages();
+      fetchSettings();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [fetchPackages, fetchSettings]);
 
   return (
     <SiteDataContext.Provider value={{
@@ -164,6 +175,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       packagesLoading,
       settingsLoading,
       refetchPackages: fetchPackages,
+      refetchSettings: fetchSettings,
     }}>
       {children}
     </SiteDataContext.Provider>

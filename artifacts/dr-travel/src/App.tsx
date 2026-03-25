@@ -351,8 +351,14 @@ function Hero() {
   const subtitle = ar
     ? (settings.hero_subtitle_ar || t.hero.subtitle)
     : (settings.hero_subtitle_en || t.hero.subtitle);
+  const heroBg = settings.hero_bg_url
+    ? {
+        background: `linear-gradient(135deg, rgba(13,27,42,0.85) 0%, rgba(13,27,42,0.4) 50%, rgba(13,27,42,0.85) 100%), url('${settings.hero_bg_url}') center/cover no-repeat`,
+      }
+    : undefined;
+
   return (
-    <section id="hero" className="hero-bg" style={{ paddingTop: "80px" }}>
+    <section id="hero" className="hero-bg" style={{ paddingTop: "80px", ...(heroBg ?? {}) }}>
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 5rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: "1.75rem" }}>
