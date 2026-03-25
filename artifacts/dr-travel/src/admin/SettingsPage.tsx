@@ -118,11 +118,18 @@ export default function SettingsPage() {
     }
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "0.7rem 1rem", borderRadius: "10px",
-    border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.9rem",
-    fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-    transition: "border-color 0.2s", background: "white",
+  const inputBase: React.CSSProperties = {
+    width: "100%",
+    padding: "0.75rem 1rem",
+    borderRadius: "10px",
+    border: "1.5px solid #d0dce8",
+    outline: "none",
+    fontSize: "0.92rem",
+    fontFamily: "Cairo, sans-serif",
+    boxSizing: "border-box",
+    color: "#0D1B2A",
+    background: "white",
+    transition: "border-color 0.2s, box-shadow 0.2s",
   };
 
   const totalFilled = SETTING_GROUPS.flatMap(g => g.keys).filter(({ key }) => settings[key]?.trim()).length;
@@ -134,8 +141,8 @@ export default function SettingsPage() {
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>إعدادات الموقع</h2>
       </div>
       <div style={{ textAlign: "center", padding: "3rem", color: "#667788", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
-        <div>جاري تحميل الإعدادات...</div>
+        <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
+        <div style={{ fontWeight: 700 }}>جاري تحميل الإعدادات...</div>
       </div>
     </div>
   );
@@ -149,7 +156,7 @@ export default function SettingsPage() {
         <div style={{ color: "#667788", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
         <button onClick={loadSettings}
           style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.6rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
-          إعادة المحاولة
+          🔄 إعادة المحاولة
         </button>
       </div>
     </div>
@@ -197,29 +204,41 @@ export default function SettingsPage() {
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
               {group.keys.map(({ key, label, placeholder }) => {
-                const hasValue = !!settings[key]?.trim();
+                const val = settings[key] ?? "";
+                const hasValue = val.trim().length > 0;
                 return (
                   <div key={key}>
-                    <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.35rem" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                       {label}
-                      {hasValue && <span style={{ color: "#10B981", fontSize: "0.7rem" }}>✓</span>}
+                      {hasValue && <span style={{ color: "#10B981", fontSize: "0.72rem", fontWeight: 800 }}>✓ محفوظ</span>}
                     </label>
                     <input
                       style={{
-                        ...inputStyle,
-                        borderColor: hasValue ? "#10B98130" : "#e0e8f0",
-                        background: hasValue ? "#f0fdf4" : "white",
+                        ...inputBase,
+                        borderColor: hasValue ? "#00AAFF50" : "#d0dce8",
+                        background: "white",
+                        color: "#0D1B2A",
+                        fontWeight: hasValue ? 500 : 400,
                       }}
-                      value={settings[key] ?? ""}
+                      value={val}
                       placeholder={placeholder}
                       onChange={e => update(key, e.target.value)}
-                      onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.background = "white"; }}
+                      onFocus={e => {
+                        e.target.style.borderColor = "#00AAFF";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)";
+                      }}
                       onBlur={e => {
                         const v = settings[key];
-                        e.target.style.borderColor = v?.trim() ? "#10B98130" : "#e0e8f0";
-                        e.target.style.background = v?.trim() ? "#f0fdf4" : "white";
+                        e.target.style.borderColor = v?.trim() ? "#00AAFF50" : "#d0dce8";
+                        e.target.style.boxShadow = "none";
                       }}
                     />
+                    {hasValue && (
+                      <div style={{ marginTop: "0.3rem", fontSize: "0.75rem", color: "#667788", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                        <span style={{ fontWeight: 600, color: "#0D1B2A" }}>القيمة الحالية:</span>
+                        <span style={{ color: "#445566" }}>{val.length > 50 ? val.substring(0, 50) + "..." : val}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -228,7 +247,6 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* Bottom save button for convenience */}
       <div style={{ marginTop: "1.25rem", textAlign: "center" }}>
         <button onClick={save} disabled={saving}
           style={{ background: saveStatus === "success" ? "linear-gradient(135deg,#10B981,#059669)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "12px", padding: "0.85rem 3rem", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", transition: "background 0.3s" }}>

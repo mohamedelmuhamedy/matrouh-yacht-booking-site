@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
+import { useToast } from "../components/Toast";
 
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
@@ -96,8 +97,9 @@ function mapApiToForm(data: Record<string, any>): FormData {
 
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px",
-  border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.88rem",
+  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
+  color: "#0D1B2A", background: "white",
 };
 const labelSt: React.CSSProperties = {
   display: "block", color: "#667788", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem",
@@ -165,9 +167,22 @@ export default function PackageFormPage() {
   const [bringArInput, setBringArInput] = useState("");
   const [bringEnInput, setBringEnInput] = useState("");
   const [suitInput, setSuitInput] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const loadPackage = useCallback(async (id: string) => {
     setLoading(true);
@@ -182,6 +197,7 @@ export default function PackageFormPage() {
       const mapped = mapApiToForm(data);
       setForm(mapped);
       setFormKey(k => k + 1);
+      setIsDirty(false);
     } catch (e: any) {
       setLoadError(e.message || "فشل تحميل بيانات الباقة");
     } finally {
@@ -198,10 +214,12 @@ export default function PackageFormPage() {
   const set = (key: keyof FormData, val: any) => {
     setForm(f => ({ ...f, [key]: val }));
     setSaved(false);
+    setIsDirty(true);
   };
   const toggle = (key: keyof FormData) => {
     setForm(f => ({ ...f, [key]: !f[key] }));
     setSaved(false);
+    setIsDirty(true);
   };
 
   const save = async () => {
@@ -223,7 +241,9 @@ export default function PackageFormPage() {
         return;
       }
       setSaved(true);
-      setTimeout(() => navigate("/admin/packages"), 800);
+      setIsDirty(false);
+      toastSuccess(isEdit ? "تم تحديث الباقة بنجاح" : "تم إنشاء الباقة بنجاح");
+      setTimeout(() => navigate("/admin/packages"), 900);
     } catch (e: any) {
       setError(e.message || "خطأ في الاتصال");
     } finally {
@@ -314,10 +334,21 @@ export default function PackageFormPage() {
   return (
     <div style={{ maxWidth: 860 }} key={formKey}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
-          {isEdit ? `تعديل باقة: ${form.titleAr || "..."}` : "إضافة باقة جديدة"}
-        </h2>
-        <button onClick={() => navigate("/admin/packages")}
+        <div>
+          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
+            {isEdit ? `تعديل باقة: ${form.titleAr || "..."}` : "إضافة باقة جديدة"}
+          </h2>
+          {isDirty && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.3rem" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", display: "inline-block" }} />
+              <span style={{ color: "#F59E0B", fontSize: "0.78rem", fontWeight: 700 }}>تغييرات غير محفوظة</span>
+            </div>
+          )}
+        </div>
+        <button onClick={() => {
+          if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة بدون حفظ؟")) return;
+          navigate("/admin/packages");
+        }}
           style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", color: "#667788", fontWeight: 600 }}>
           ← رجوع
         </button>
@@ -698,7 +729,10 @@ export default function PackageFormPage() {
           style={{ flex: 1, padding: "0.85rem", background: saved ? "linear-gradient(135deg,#10B981,#059669)" : saving ? "#aaa" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 12, cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", transition: "background 0.3s" }}>
           {saving ? "⏳ جاري الحفظ..." : saved ? "✅ تم الحفظ!" : isEdit ? "💾 حفظ التعديلات" : "✅ إنشاء الباقة"}
         </button>
-        <button onClick={() => navigate("/admin/packages")} disabled={saving}
+        <button onClick={() => {
+          if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة؟")) return;
+          navigate("/admin/packages");
+        }} disabled={saving}
           style={{ padding: "0.85rem 1.5rem", background: "#f0f4f8", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#667788" }}>
           إلغاء
         </button>
