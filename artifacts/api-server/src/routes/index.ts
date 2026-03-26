@@ -9,6 +9,8 @@ import adminRewardsRouter from "./admin-rewards";
 import publicPackagesRouter from "./public-packages";
 import publicBookingsRouter from "./public-bookings";
 import storageRouter from "./storage";
+import adminGalleryRouter from "./admin-gallery";
+import publicGalleryRouter from "./public-gallery";
 
 const router: IRouter = Router();
 
@@ -22,5 +24,7 @@ router.use(adminRewardsRouter);
 router.use(publicPackagesRouter);
 router.use(publicBookingsRouter);
 router.use(storageRouter);
+router.use(adminGalleryRouter);
+router.use(publicGalleryRouter);
 
 export default router;

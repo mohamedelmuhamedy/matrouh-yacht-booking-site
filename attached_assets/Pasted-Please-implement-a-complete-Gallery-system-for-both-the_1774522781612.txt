@@ -1,0 +1,94 @@
+Please implement a complete Gallery system for both the public website and the admin panel, and make sure the app/PWA works on both Android and iPhone.
+
+1) Public Gallery
+- Create a new public page/route for gallery, for example: /gallery
+- Add a button under "عرض الباقات" called:
+  - Arabic: "الجاليري"
+  - English: "Gallery"
+- When the user opens it, show all gallery albums/categories created by admin
+- Each album should have:
+  - cover image
+  - title
+  - optional subtitle/description
+- When the user clicks an album, open a dedicated gallery details page showing all images/videos inside it in a very professional way
+
+2) Gallery details experience
+- Make it premium and clean:
+  - large cover/hero
+  - professional responsive grid or masonry layout
+  - support both images and videos
+  - lightbox / fullscreen viewer
+  - next / previous navigation
+  - swipe on mobile
+- Keep it visually strong and consistent with DR Travel branding
+
+3) Admin Gallery section
+- Add a completely new admin section/page called Gallery
+- Admin should be able to:
+  - create a new album/folder
+  - set album name in Arabic/English
+  - upload cover image from device
+  - upload multiple images from device
+  - upload videos or video URLs
+  - reorder media
+  - edit album
+  - delete album
+  - hide/show album on public website
+  - choose album type/category if needed
+
+4) Gallery categories / trip types
+- Admin can create any album/category they want, such as:
+  - Safari
+  - Yacht
+  - Family Trips
+  - Aqua Park
+- These should appear to the client as selectable gallery categories/albums
+
+5) Public flow
+- User clicks "الجاليري" under "عرض الباقات"
+- Opens gallery page
+- Sees all admin-created albums
+- Clicks one album
+- Opens a new page with that album’s images/videos in a premium gallery layout
+
+6) Storage and functionality
+- Do not make this just UI
+- Uploaded images/videos must save correctly and appear publicly
+- Use existing storage/db structure where appropriate
+- Keep it fully working end-to-end
+
+7) PWA / app support for Android and iPhone
+- Make sure the installable app/PWA works on:
+  - Android
+  - iPhone / iOS
+- App name must remain: DR Travel
+- App icon must use the current logo
+- Ensure iPhone support includes:
+  - proper Apple touch icon
+  - iOS-compatible manifest/meta setup
+  - install/add-to-home-screen compatibility
+- Public website should be installable on both Android and iPhone
+- Admin panel installability can remain if already supported, but public site iPhone support is required
+
+8) Test it yourself
+Please test:
+- create album in admin
+- upload cover
+- upload images/videos
+- open public gallery page
+- open one album
+- verify media appears correctly
+- verify mobile view works
+- verify Android install flow
+- verify iPhone/iOS install compatibility
+
+9) After finishing
+Send me a short summary only:
+- what you added
+- how the gallery flow works
+- whether you tested it yourself
+- whether Android and iPhone support are both working
+- and screenshots for:
+  - admin gallery page
+  - public gallery listing
+  - one gallery details page

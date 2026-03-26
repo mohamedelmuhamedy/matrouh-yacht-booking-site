@@ -96,7 +96,7 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with integrated Admin Panel.
 
 **Public Site:**
-- **Routing**: `wouter` v3 — `/` (HomePage), `/trips` (TripsPage), `/packages/:slug` (PackageDetail), `/rewards` (RewardsPage), `/admin/*` (AdminRouter)
+- **Routing**: `wouter` v3 — `/` (HomePage), `/trips` (TripsPage), `/packages/:slug` (PackageDetail), `/rewards` (RewardsPage), `/gallery` (GalleryPage), `/gallery/:slug` (GalleryDetailPage), `/admin/*` (AdminRouter)
 - **Bilingual**: Arabic (RTL) and English (LTR) with auto-detection from browser language
 - **Language system**: `src/LanguageContext.tsx` (React Context + `useLanguage` hook), persisted in `localStorage`
 - **Translation files**: `src/translations/ar.ts` and `src/translations/en.ts` — `Translations` type is `typeof ar` with `dir: "rtl" | "ltr"`
@@ -132,10 +132,11 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
   - `/admin/packages` — PackagesPage.tsx (status badges, status selector, duplicate, soft-delete/archive)
   - `/admin/packages/new` & `/admin/packages/:id/edit` — PackageFormPage.tsx (4-tab: basic/media/includes/flags); status radio (draft/published/archived); image upload via Object Storage + URL fallback
   - `/admin/bookings` — BookingsPage.tsx (search by name/phone, CSV export, admin notes modal)
+  - `/admin/gallery` — AdminGalleryPage.tsx (album CRUD: create/edit/delete/toggle-visibility; album item management: image upload, YouTube/video URL, item delete; masonry grid preview)
   - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
   - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, logo upload via Object Storage, feature toggles: show_ai_assistant/show_compare_feature/show_testimonials, change password)
   - `/admin/rewards` — AdminRewardsPage.tsx (3 tabs: Settings / Codes / Rewards): reward settings (enabled toggle, type, value, after_x), referral codes CRUD (create/edit/deactivate/delete with auto-code generation), rewards list with approve/reject and admin notes
-- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded); mobile bottom nav shows 5 items (excludes testimonials); Testimonials accessible via drawer
+- **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded); mobile bottom nav shows 5 items (excludes testimonials and settings); all pages accessible via drawer
 
 **Public Site Data from DB:**
 - `src/context/SiteDataContext.tsx` — `SiteDataProvider` wraps public routes; fetches `/api/packages`, `/api/testimonials`, `/api/settings` on mount; static fallback if API unavailable
@@ -150,6 +151,8 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - `bookings` — customer booking records with status workflow (new→contacted→confirmed→completed→cancelled); `admin_notes` text
 - `site_settings` — key-value store for editable site config
 - `admin_users` — admin accounts (username, password_hash bcrypt, display_name, email, is_active)
+- `gallery_albums` — photo/video album (slug, titleAr, titleEn, descriptionAr, descriptionEn, coverImage, isVisible, sortOrder)
+- `gallery_items` — individual media items per album (albumId, url, type: image|video, caption, sortOrder)
 
 **API Server routes (artifacts/api-server):**
 - Public: `GET /api/packages` (published+active only), `GET /api/packages/:slug`, `GET /api/testimonials`, `GET /api/settings`, `POST /api/bookings`
@@ -157,6 +160,8 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - Admin packages: GET/POST/PUT /api/admin/packages; DELETE = soft archive; `?force=true` = hard delete; POST /api/admin/packages/:id/duplicate
 - Admin bookings: search (`?q=`), CSV export (`?csv=true`), PATCH admin notes
 - Admin settings: GET/PUT `/api/admin/settings`
+- Gallery (public): `GET /api/gallery/albums` (visible only, includes itemCount + previewItems[4]); `GET /api/gallery/albums/:slug`
+- Gallery (admin): CRUD `/api/admin/gallery/albums`; items CRUD `/api/admin/gallery/albums/:albumId/items`, `PUT/DELETE /api/admin/gallery/items/:id`
 - Object Storage: POST `/api/storage/uploads/request-url` (signed URL for upload, auth required); GET `/api/storage/public-objects?path=...`; GET `/api/storage/objects?objectPath=...`
 - All admin routes require Bearer JWT header
 - `getJwtSecret()` throws if JWT_SECRET env var not set (no hardcoded secrets)

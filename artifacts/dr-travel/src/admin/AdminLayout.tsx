@@ -7,10 +7,11 @@ const NAV = [
   { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
   { path: "/admin/bookings",     icon: "📅", label: "الحجوزات" },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
+  { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
 ];
-const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials");
+const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials" && n.path !== "/admin/settings");
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAdmin();

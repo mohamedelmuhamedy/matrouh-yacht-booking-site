@@ -10,6 +10,8 @@ import AIAssistant from "./components/AIAssistant";
 import PackageDetail from "./pages/PackageDetail";
 import RewardsPage from "./pages/RewardsPage";
 import TripsPage from "./pages/TripsPage";
+import GalleryPage from "./pages/GalleryPage";
+import GalleryDetailPage from "./pages/GalleryDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
@@ -291,6 +293,12 @@ function Navbar() {
               style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
               🎁 {ar ? "المكافآت" : "Rewards"}
             </button>
+            {/* Gallery link */}
+            <button onClick={() => navigate("/gallery")}
+              className="nav-link"
+              style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
+              📸 {ar ? "المعرض" : "Gallery"}
+            </button>
             {pwaPrompt && (
               <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") setPwaPrompt(null); }}
                 style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap" }}>
@@ -344,6 +352,11 @@ function Navbar() {
             <button onClick={() => { navigate("/rewards"); setMenuOpen(false); }}
               style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
               🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
+            </button>
+            {/* Gallery mobile link */}
+            <button onClick={() => { navigate("/gallery"); setMenuOpen(false); }}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
+              📸 {ar ? "معرض الصور" : "Photo Gallery"}
             </button>
             {pwaPrompt && (
               <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") { setPwaPrompt(null); setMenuOpen(false); } }}
@@ -439,6 +452,12 @@ function Hero() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               🗺️ {t.nav.trips}
+            </button>
+            <button onClick={() => navigate("/gallery")}
+              style={{ background: "rgba(201,168,76,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(201,168,76,0.3)", color: "#C9A84C", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              📸 {ar ? "معرض الصور" : "Gallery"}
             </button>
           </div>
         </FadeInSection>
@@ -1332,6 +1351,28 @@ function TripsPageWrapper() {
   );
 }
 
+// ===== GALLERY PAGE WRAPPER =====
+function GalleryPageWrapper() {
+  const { t } = useLanguage();
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+      <Navbar />
+      <GalleryPage />
+    </div>
+  );
+}
+
+// ===== GALLERY DETAIL PAGE WRAPPER =====
+function GalleryDetailPageWrapper() {
+  const { t } = useLanguage();
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+      <Navbar />
+      <GalleryDetailPage />
+    </div>
+  );
+}
+
 // ===== APP =====
 export default function App() {
   const [location] = useLocation();
@@ -1350,6 +1391,8 @@ export default function App() {
             <Route path="/packages/:slug" component={DetailPageWrapper} />
             <Route path="/trips" component={TripsPageWrapper} />
             <Route path="/rewards" component={RewardsPage} />
+            <Route path="/gallery" component={GalleryPageWrapper} />
+            <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
             <Route component={NotFoundPage} />
           </Switch>
         </SiteDataProvider>
