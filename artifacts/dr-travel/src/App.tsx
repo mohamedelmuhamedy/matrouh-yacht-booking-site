@@ -332,7 +332,7 @@ function Navbar() {
               </button>
             ))}
             {/* Install App — always visible, handles iOS + Android + Desktop */}
-            <button onClick={() => { handleInstallApp(); if (!isIOS && !pwaPrompt) return; setMenuOpen(false); }}
+            <button onClick={() => { setMenuOpen(false); handleInstallApp(); }}
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
               📲 {ar ? "تحميل تطبيق DR Travel" : "Install DR Travel App"}
             </button>
@@ -392,6 +392,12 @@ function Hero() {
   const [, navigate] = useLocation();
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const titleMain = ar
     ? (settings.hero_title_primary_ar || (() => {
         const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
@@ -421,9 +427,9 @@ function Hero() {
 
   return (
     <section id="hero" className="hero-bg" style={{ paddingTop: "80px", ...(heroBg ?? {}) }}>
-      <div style={{ textAlign: "center", padding: "3rem 1.5rem 5rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
+      <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: "1.75rem" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: isMobile ? "1rem" : "1.75rem" }}>
             <span style={{ fontSize: "0.7rem" }}>✦</span>
             <span style={{ color: "#C9A84C", fontSize: "0.78rem", fontWeight: 700, letterSpacing: "1px" }}>{t.hero.badge}</span>
             <span style={{ fontSize: "0.7rem" }}>✦</span>
@@ -431,8 +437,8 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={100}>
-          <div className="animate-float" style={{ marginBottom: "1.75rem" }}>
-            <img src={logoSrc} alt="DR Travel" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", margin: "0 auto", display: "block", border: "3px solid rgba(0,170,255,0.6)", boxShadow: "0 0 0 8px rgba(0,170,255,0.08), 0 0 40px rgba(0,170,255,0.35)" }} />
+          <div className="animate-float" style={{ marginBottom: isMobile ? "1rem" : "1.75rem" }}>
+            <img src={logoSrc} alt="DR Travel" style={{ width: isMobile ? 95 : 120, height: isMobile ? 95 : 120, borderRadius: "50%", objectFit: "cover", margin: "0 auto", display: "block", border: "3px solid rgba(0,170,255,0.6)", boxShadow: "0 0 0 8px rgba(0,170,255,0.08), 0 0 40px rgba(0,170,255,0.35)" }} />
           </div>
         </FadeInSection>
 
@@ -444,7 +450,7 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={300}>
-          <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.6)", marginBottom: "2.5rem", lineHeight: 1.8 }}>
+          <p style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", color: "rgba(255,255,255,0.6)", marginBottom: isMobile ? "1.5rem" : "2.5rem", lineHeight: 1.8 }}>
             {subtitle}
           </p>
         </FadeInSection>
@@ -471,12 +477,12 @@ function Hero() {
             </button>
           </div>
         </FadeInSection>
-      </div>
 
-      {/* Scroll indicator — centered, absolute positioned at bottom of hero */}
-      <div style={{ position: "absolute", bottom: "3.5rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5 }}>
-        <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
-          <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
+        {/* Scroll indicator — in flow, centered below buttons, always visible */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5, marginTop: isMobile ? "1.5rem" : "2.5rem" }}>
+          <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
+            <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
+          </div>
         </div>
       </div>
 
