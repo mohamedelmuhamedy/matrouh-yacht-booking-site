@@ -231,16 +231,42 @@ function Navbar() {
   const [pwaPrompt, setPwaPrompt] = useState<any>(null);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !("MSStream" in window);
+  const [isInstalled, setIsInstalled] = useState(
+    window.matchMedia("(display-mode: standalone)").matches ||
+    Boolean((window.navigator as any).standalone)
+  );
   useEffect(() => {
-    const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    const onPrompt = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
+    const onInstalled = () => { setIsInstalled(true); setPwaPrompt(null); };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
   }, []);
   const handleInstallApp = () => {
-    if (pwaPrompt) { pwaPrompt.prompt(); pwaPrompt.userChoice.then((r: any) => { if (r.outcome === "accepted") setPwaPrompt(null); }); return; }
+    // 1. Native PWA prompt available — Android / Desktop Chrome/Edge → fire immediately, no modal
+    if (pwaPrompt) {
+      pwaPrompt.prompt();
+      pwaPrompt.userChoice.then((r: any) => {
+        if (r.outcome === "accepted") { setPwaPrompt(null); setIsInstalled(true); }
+      });
+      return;
+    }
+    // 2. App already installed → just open it
+    if (isInstalled) {
+      window.open(window.location.href, "_blank");
+      return;
+    }
+    // 3. iOS Safari → Add to Home Screen guide only
     if (isIOS) { setShowIOSGuide(true); return; }
-    setShowIOSGuide(true);
+    // 4. Desktop without native prompt (Firefox, Safari Mac, etc.) → do nothing,
+    //    browser omnibar already shows install option when available
   };
+  const installBtnLabel = isInstalled
+    ? (ar ? "فتح التطبيق" : "Open App")
+    : (ar ? "تحميل التطبيق" : "Install App");
 
   useEffect(() => {
     const onScroll = () => {
@@ -288,10 +314,10 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
-            {/* Install App — always visible, iOS-aware */}
+            {/* Install App — platform-aware */}
             <button onClick={handleInstallApp}
-              style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-              📲 {ar ? "تحميل التطبيق" : "Install App"}
+              style={{ background: isInstalled ? "linear-gradient(135deg,#10B981,#065F46)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              {isInstalled ? "✓" : "📲"} {installBtnLabel}
             </button>
             <CurrencySwitcher />
             <LangSwitcher />
@@ -331,10 +357,10 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
-            {/* Install App — always visible, handles iOS + Android + Desktop */}
+            {/* Install App — platform-aware */}
             <button onClick={() => { setMenuOpen(false); handleInstallApp(); }}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
-              📲 {ar ? "تحميل تطبيق DR Travel" : "Install DR Travel App"}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: isInstalled ? "linear-gradient(135deg,#10B981,#065F46)" : "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
+              {isInstalled ? "✓" : "📲"} {isInstalled ? installBtnLabel : (ar ? "تحميل تطبيق DR Travel" : "Install DR Travel App")}
             </button>
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "0.75rem", fontFamily: "Cairo, sans-serif" }}>
@@ -344,7 +370,7 @@ function Navbar() {
         </div>
       )}
 
-      {/* iOS / generic install guide modal */}
+      {/* iOS Add-to-Home-Screen guide — only shown on iPhone/iPad */}
       {showIOSGuide && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
           onClick={() => setShowIOSGuide(false)}>
@@ -352,28 +378,33 @@ function Navbar() {
             onClick={e => e.stopPropagation()}>
             <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📲</div>
-              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>{ar ? "تثبيت تطبيق DR Travel" : "Install DR Travel App"}</h3>
+              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
+                {ar ? "أضف DR Travel للشاشة الرئيسية" : "Add DR Travel to Home Screen"}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
+                {ar ? "لا يدعم Safari التثبيت المباشر — اتبع الخطوات:" : "Safari doesn't support direct install — follow these steps:"}
+              </p>
             </div>
-            {isIOS ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
-                  <span style={{ fontSize: "1.6rem" }}>1️⃣</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'اضغط على زر المشاركة "⬆️" في شريط Safari السفلي' : 'Tap the Share button "⬆️" at the bottom of Safari'}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
-                  <span style={{ fontSize: "1.6rem" }}>2️⃣</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية" 🏠' : 'Scroll down and tap "Add to Home Screen" 🏠'}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
-                  <span style={{ fontSize: "1.6rem" }}>3️⃣</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'اضغط "إضافة" في الزاوية العلوية اليمنى' : 'Tap "Add" in the top-right corner'}</span>
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⬆️</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? 'اضغط على زر المشاركة في شريط Safari السفلي' : 'Tap the Share button at the bottom of Safari'}
+                </span>
               </div>
-            ) : (
-              <div style={{ textAlign: "center", color: "rgba(255,255,255,0.7)", fontSize: "0.95rem", lineHeight: 1.7 }}>
-                {ar ? "للتثبيت: افتح قائمة المتصفح واختر \"تثبيت التطبيق\" أو \"إضافة إلى الشاشة الرئيسية\"" : 'To install: open your browser menu and choose "Install App" or "Add to Home Screen"'}
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>🏠</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية"' : 'Scroll down, tap "Add to Home Screen"'}
+                </span>
               </div>
-            )}
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>✅</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? 'اضغط "إضافة" في الزاوية العلوية اليمنى' : 'Tap "Add" in the top-right corner'}
+                </span>
+              </div>
+            </div>
             <button onClick={() => setShowIOSGuide(false)}
               style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
               {ar ? "إغلاق" : "Close"}
