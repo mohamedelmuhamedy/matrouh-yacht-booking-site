@@ -108,7 +108,7 @@ export default function AdminGalleryPage() {
     const { uploadURL, objectPath } = await reqRes.json();
     const upRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
     if (!upRes.ok) return null;
-    return `/api/storage/public-objects?path=${encodeURIComponent(objectPath.replace(/^\//, ""))}`;
+    return `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
   };
 
   const uploadCover = async (file: File) => {
