@@ -237,8 +237,8 @@ function Navbar() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
   const handleInstallApp = () => {
-    if (isIOS) { setShowIOSGuide(true); return; }
     if (pwaPrompt) { pwaPrompt.prompt(); pwaPrompt.userChoice.then((r: any) => { if (r.outcome === "accepted") setPwaPrompt(null); }); return; }
+    if (isIOS) { setShowIOSGuide(true); return; }
     setShowIOSGuide(true);
   };
 
