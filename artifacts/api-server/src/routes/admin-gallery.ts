@@ -109,13 +109,15 @@ router.post("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, 
   try {
     const albumId = parseInt(req.params.albumId);
     if (isNaN(albumId)) return res.status(400).json({ error: "Invalid album ID" });
-    const { url, type, caption, sortOrder } = req.body;
+    const { url, type, caption, size, sortOrder } = req.body;
     if (!url?.trim()) return res.status(400).json({ error: "URL is required" });
+    const VALID_SIZES = ["normal", "wide", "square", "large"];
     const [item] = await db.insert(galleryItems).values({
       albumId,
       url: url.trim(),
       type: type === "video" ? "video" : "image",
       caption: caption?.trim() || "",
+      size: VALID_SIZES.includes(size) ? size : "normal",
       sortOrder: Number(sortOrder) || 0,
     }).returning();
     return res.status(201).json(item);
@@ -128,9 +130,11 @@ router.put("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
-    const { caption, sortOrder } = req.body;
+    const { caption, size, sortOrder } = req.body;
+    const VALID_SIZES = ["normal", "wide", "square", "large"];
     const [updated] = await db.update(galleryItems).set({
       caption: caption?.trim() || "",
+      size: VALID_SIZES.includes(size) ? size : "normal",
       sortOrder: Number(sortOrder) || 0,
     }).where(eq(galleryItems.id, id)).returning();
     if (!updated) return res.status(404).json({ error: "Item not found" });

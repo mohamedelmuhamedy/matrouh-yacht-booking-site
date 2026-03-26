@@ -268,9 +268,9 @@ export default function PackageDetail() {
 
       {/* Back button */}
       <div style={{ position: "fixed", top: isMobile ? "70px" : "80px", insetInlineStart: isMobile ? "0.75rem" : "1rem", zIndex: 100 }}>
-        <button onClick={() => navigate("/")}
+        <button onClick={() => navigate("/trips")}
           style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", padding: isMobile ? "0.45rem 0.85rem" : "0.5rem 1rem", borderRadius: "50px", cursor: "pointer", fontWeight: 600, fontSize: isMobile ? "0.76rem" : "0.82rem", fontFamily: "Cairo, sans-serif", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}>
-          {ar ? "← العودة" : "← Back"}
+          {ar ? "← الباقات" : "← Packages"}
         </button>
       </div>
 

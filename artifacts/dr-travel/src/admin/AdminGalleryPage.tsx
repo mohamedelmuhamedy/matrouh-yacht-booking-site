@@ -3,7 +3,14 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 
-interface GalleryItem { id: number; albumId: number; url: string; type: string; caption: string; sortOrder: number; }
+interface GalleryItem { id: number; albumId: number; url: string; type: string; caption: string; size: string; sortOrder: number; }
+
+const SIZES = [
+  { value: "normal", label: "طبيعي" },
+  { value: "wide",   label: "عريض"  },
+  { value: "square", label: "مربع"  },
+  { value: "large",  label: "كبير"  },
+];
 interface GalleryAlbum { id: number; slug: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; coverImage: string; isVisible: boolean; sortOrder: number; items?: GalleryItem[]; }
 
 const dark = {
@@ -35,6 +42,8 @@ export default function AdminGalleryPage() {
   const [addingVideo, setAddingVideo] = useState(false);
   const [confirmDelItem, setConfirmDelItem] = useState<GalleryItem | null>(null);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [pendingSize, setPendingSize] = useState("normal");
+  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
   const { success, error: toastErr } = useToast();
@@ -127,7 +136,7 @@ export default function AdminGalleryPage() {
     const type = file.type.startsWith("video") ? "video" : "image";
     const r = await adminFetch(`/admin/gallery/albums/${openAlbum.id}/items`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, type, caption: "", sortOrder: items.length }),
+      body: JSON.stringify({ url, type, caption: "", size: pendingSize, sortOrder: items.length }),
     });
     if (r.ok) { success("تم الرفع"); openAlbumItems(openAlbum); } else { setUploadErr("فشل إضافة الصورة"); }
     setUploading(false);
@@ -138,7 +147,7 @@ export default function AdminGalleryPage() {
     setAddingVideo(true);
     const r = await adminFetch(`/admin/gallery/albums/${openAlbum.id}/items`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: videoUrl.trim(), type: "video", caption: videoCaption.trim(), sortOrder: items.length }),
+      body: JSON.stringify({ url: videoUrl.trim(), type: "video", caption: videoCaption.trim(), size: pendingSize, sortOrder: items.length }),
     });
     if (r.ok) { success("تمت الإضافة"); setVideoUrl(""); setVideoCaption(""); openAlbumItems(openAlbum); }
     else { toastErr("فشل الإضافة"); }
@@ -176,6 +185,19 @@ export default function AdminGalleryPage() {
       <div style={{ background: dark.card, borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem", border: `1px solid ${dark.border}` }}>
         <div style={{ color: dark.label, fontWeight: 700, marginBottom: "1rem", fontSize: "0.95rem" }}>➕ إضافة صور / فيديو</div>
 
+        {/* Size selector */}
+        <div style={{ marginBottom: "1rem" }}>
+          <div style={{ color: dark.sub, fontSize: "0.8rem", marginBottom: "0.5rem" }}>📐 حجم العرض في المعرض</div>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            {SIZES.map(s => (
+              <button key={s.value} onClick={() => setPendingSize(s.value)}
+                style={{ padding: "0.35rem 0.9rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", transition: "all 0.15s", border: pendingSize === s.value ? "none" : `1px solid ${dark.border}`, background: pendingSize === s.value ? "#00AAFF" : "rgba(255,255,255,0.04)", color: pendingSize === s.value ? "white" : dark.sub }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
           <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: "none" }}
             onChange={e => { const f = e.target.files?.[0]; if (f) { uploadItemFile(f); e.target.value = ""; } }} />
@@ -211,33 +233,64 @@ export default function AdminGalleryPage() {
           <div>لا توجد صور في هذا الألبوم بعد</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: "0.75rem" }}>
-          {items.map(item => (
-            <div key={item.id} style={{ background: dark.card, borderRadius: 10, overflow: "hidden", border: `1px solid ${dark.border}`, position: "relative", aspectRatio: "1" }}>
-              {item.type === "video" ? (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1824" }}>
-                  <span style={{ fontSize: "2.5rem" }}>🎬</span>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(170px,1fr))", gap: "0.85rem" }}>
+          {items.map(item => {
+            const currentSize = item.size || "normal";
+            const isUpdating = updatingItemId === item.id;
+
+            const changeSize = async (newSize: string) => {
+              setUpdatingItemId(item.id);
+              await adminFetch(`/admin/gallery/items/${item.id}`, {
+                method: "PUT", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ caption: item.caption, size: newSize, sortOrder: item.sortOrder }),
+              });
+              setItems(prev => prev.map(it => it.id === item.id ? { ...it, size: newSize } : it));
+              setUpdatingItemId(null);
+            };
+
+            return (
+              <div key={item.id} style={{ background: dark.card, borderRadius: 10, overflow: "hidden", border: `1px solid ${dark.border}`, position: "relative" }}>
+                {/* Preview */}
+                <div style={{ aspectRatio: "1", overflow: "hidden", background: "#0d1824" }}>
+                  {item.type === "video" ? (
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: "2.5rem" }}>🎬</span>
+                    </div>
+                  ) : (
+                    <img src={item.url} alt={item.caption || ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  )}
                 </div>
-              ) : (
-                <img src={item.url} alt={item.caption || ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
-              {item.caption && (
-                <div style={{ position: "absolute", bottom: 0, right: 0, left: 0, background: "linear-gradient(transparent,rgba(0,0,0,0.8))", padding: "0.4rem 0.5rem", fontSize: "0.7rem", color: "white" }}>
-                  {item.caption}
+
+                {/* Size pills */}
+                <div style={{ padding: "0.5rem 0.45rem 0.45rem", display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                  {SIZES.map(s => (
+                    <button key={s.value} onClick={() => changeSize(s.value)} disabled={isUpdating}
+                      title={`تغيير الحجم إلى ${s.label}`}
+                      style={{ padding: "0.18rem 0.5rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.68rem", fontWeight: 700, cursor: isUpdating ? "wait" : "pointer", transition: "all 0.15s", border: currentSize === s.value ? "none" : `1px solid rgba(255,255,255,0.15)`, background: currentSize === s.value ? "#00AAFF" : "rgba(255,255,255,0.04)", color: currentSize === s.value ? "white" : "rgba(255,255,255,0.4)", opacity: isUpdating ? 0.5 : 1 }}>
+                      {s.label}
+                    </button>
+                  ))}
                 </div>
-              )}
-              <button onClick={() => setConfirmDelItem(item)}
-                style={{ position: "absolute", top: 4, left: 4, background: "rgba(220,38,38,0.85)", border: "none", borderRadius: 6, color: "white", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}>
-                ✕
-              </button>
-              {item.type === "video" && (
-                <div style={{ position: "absolute", top: 4, right: 4, background: "rgba(201,168,76,0.9)", borderRadius: 6, padding: "2px 6px", fontSize: "0.65rem", color: "white", fontWeight: 700 }}>
-                  فيديو
-                </div>
-              )}
-            </div>
-          ))}
+
+                {/* Delete */}
+                <button onClick={() => setConfirmDelItem(item)}
+                  style={{ position: "absolute", top: 4, left: 4, background: "rgba(220,38,38,0.85)", border: "none", borderRadius: 6, color: "white", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}>
+                  ✕
+                </button>
+                {item.type === "video" && (
+                  <div style={{ position: "absolute", top: 4, right: 4, background: "rgba(201,168,76,0.9)", borderRadius: 6, padding: "2px 6px", fontSize: "0.65rem", color: "white", fontWeight: 700 }}>
+                    فيديو
+                  </div>
+                )}
+                {isUpdating && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ color: "#00AAFF", fontSize: "1.2rem" }}>⏳</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

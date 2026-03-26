@@ -8,6 +8,7 @@ export const galleryItems = pgTable("gallery_items", {
   url: text("url").notNull(),
   type: text("type").notNull().default("image"),
   caption: text("caption").notNull().default(""),
+  size: text("size").notNull().default("normal"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -3,7 +3,8 @@ import { useLocation, useParams } from "wouter";
 import { useLanguage } from "../LanguageContext";
 
 interface GalleryItem {
-  id: number; url: string; type: string; caption: string; sortOrder: number;
+  id: number; url: string; type: string; caption: string;
+  size: string; sortOrder: number;
 }
 interface Album {
   id: number; slug: string; titleAr: string; titleEn: string;
@@ -22,9 +23,7 @@ function getYoutubeThumbnail(url: string) {
 }
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
-function Lightbox({
-  items, startIdx, ar, onClose,
-}: { items: GalleryItem[]; startIdx: number; ar: boolean; onClose: () => void }) {
+function Lightbox({ items, startIdx, ar, onClose }: { items: GalleryItem[]; startIdx: number; ar: boolean; onClose: () => void }) {
   const [idx, setIdx] = useState(startIdx);
   const touchStartX = useRef<number | null>(null);
 
@@ -39,22 +38,10 @@ function Lightbox({
     };
     window.addEventListener("keydown", handler);
     document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
+    return () => { window.removeEventListener("keydown", handler); document.body.style.overflow = ""; };
   }, [ar, onClose, prev, next]);
 
   const item = items[idx];
-
-  const navBtn = (action: () => void, label: string, side: "left" | "right"): React.CSSProperties => ({
-    position: "absolute", top: "50%", transform: "translateY(-50%)",
-    [side]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)",
-    backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)",
-    color: "white", borderRadius: "50%", width: 48, height: 48,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", fontSize: "1.25rem", transition: "background 0.2s",
-  });
 
   return (
     <div
@@ -69,56 +56,39 @@ function Lightbox({
     >
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1.25rem", background: "linear-gradient(to bottom,rgba(0,0,0,0.8),transparent)", flexShrink: 0 }}>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", fontFamily: "Cairo,sans-serif" }}>
-          {idx + 1} / {items.length}
-        </div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", fontFamily: "Cairo,sans-serif" }}>{idx + 1} / {items.length}</div>
         {item.caption && (
-          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.88rem", fontFamily: "Cairo,sans-serif", maxWidth: "55%", textAlign: "center" }}>
-            {item.caption}
-          </div>
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.88rem", fontFamily: "Cairo,sans-serif", maxWidth: "55%", textAlign: "center" }}>{item.caption}</div>
         )}
         <button onClick={onClose}
-          style={{ background: "rgba(220,38,38,0.25)", border: "1px solid rgba(220,38,38,0.4)", color: "white", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1rem", transition: "background 0.2s" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(220,38,38,0.55)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(220,38,38,0.25)"; }}>
+          style={{ background: "rgba(220,38,38,0.25)", border: "1px solid rgba(220,38,38,0.4)", color: "white", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1rem" }}>
           ✕
         </button>
       </div>
 
-      {/* Main image/video */}
+      {/* Main media */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "0 4rem", overflow: "hidden" }}>
         {item.type === "video" ? (
           <div style={{ width: "100%", maxWidth: 820, aspectRatio: "16/9" }}>
             {isYoutube(item.url) ? (
-              <iframe src={getYoutubeEmbed(item.url)}
-                style={{ width: "100%", height: "100%", border: "none", borderRadius: 10 }}
-                allow="autoplay; fullscreen" allowFullScreen />
+              <iframe src={getYoutubeEmbed(item.url)} style={{ width: "100%", height: "100%", border: "none", borderRadius: 10 }} allow="autoplay; fullscreen" allowFullScreen />
             ) : (
-              <video src={item.url} controls autoPlay
-                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 10 }} />
+              <video src={item.url} controls autoPlay style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 10 }} />
             )}
           </div>
         ) : (
-          <img
-            key={item.id}
-            src={item.url}
-            alt={item.caption || `photo-${idx + 1}`}
+          <img key={item.id} src={item.url} alt={item.caption || `photo-${idx + 1}`}
             style={{ maxWidth: "100%", maxHeight: "calc(100vh - 180px)", objectFit: "contain", borderRadius: 8, boxShadow: "0 8px 48px rgba(0,0,0,0.7)", display: "block" }}
-            onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3"; }}
-          />
+            onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3"; }} />
         )}
-
-        {/* Prev / Next */}
         {items.length > 1 && (
           <>
-            <button onClick={ar ? next : prev} style={navBtn(ar ? next : prev, "<", ar ? "right" : "left")}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.5)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.55)"; }}>
+            <button onClick={ar ? next : prev}
+              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "right" : "left"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
               {ar ? "›" : "‹"}
             </button>
-            <button onClick={ar ? prev : next} style={navBtn(ar ? prev : next, ">", ar ? "left" : "right")}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.5)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.55)"; }}>
+            <button onClick={ar ? prev : next}
+              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "left" : "right"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
               {ar ? "‹" : "›"}
             </button>
           </>
@@ -145,58 +115,65 @@ function Lightbox({
   );
 }
 
+// ─── Size helpers ─────────────────────────────────────────────────────────────
+/*
+  Masonry layout uses CSS columns. To achieve size variety we control:
+  - normal  → breakInside:avoid, auto height (fits image)
+  - square  → breakInside:avoid, aspectRatio 1/1, objectFit:cover
+  - wide    → columnSpan:all  (stretches across ALL columns), auto height
+  - large   → columnSpan:all, taller / max-height:560px
+*/
+function getItemStyle(size: string, hovered: boolean): React.CSSProperties {
+  const base: React.CSSProperties = {
+    position: "relative", overflow: "hidden", borderRadius: 12, cursor: "pointer",
+    background: "#0d1824", marginBottom: "0.75rem",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: hovered ? "0 10px 40px rgba(0,0,0,0.55)" : "0 2px 12px rgba(0,0,0,0.35)",
+    transform: hovered ? "scale(1.012)" : "scale(1)",
+    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+  };
+  if (size === "wide" || size === "large") {
+    return { ...base, columnSpan: "all", breakInside: "avoid" };
+  }
+  return { ...base, breakInside: "avoid" };
+}
+
+function getImgStyle(size: string): React.CSSProperties {
+  if (size === "square") return { width: "100%", display: "block", aspectRatio: "1/1", objectFit: "cover" };
+  if (size === "large") return { width: "100%", maxHeight: 520, objectFit: "cover", display: "block" };
+  if (size === "wide") return { width: "100%", maxHeight: 380, objectFit: "cover", display: "block" };
+  return { width: "100%", display: "block" };
+}
+
 // ─── Grid Item ─────────────────────────────────────────────────────────────────
 function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onClick: () => void }) {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const size = item.size || "normal";
   const thumb = item.type === "video" && isYoutube(item.url) ? getYoutubeThumbnail(item.url) : "";
 
   return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: "relative", overflow: "hidden", borderRadius: 12, cursor: "pointer",
-        background: "#0d1824", breakInside: "avoid", marginBottom: "0.75rem",
-        border: "1px solid rgba(255,255,255,0.07)",
-        boxShadow: hovered ? "0 10px 40px rgba(0,0,0,0.55)" : "0 2px 12px rgba(0,0,0,0.35)",
-        transform: hovered ? "scale(1.015)" : "scale(1)",
-        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-      }}
-    >
+    <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={getItemStyle(size, hovered)}>
       {item.type === "video" ? (
-        <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,#0d1824,#1a2535)" }}>
-          {thumb && (
-            <img src={thumb} alt={item.caption || `video-${idx + 1}`}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.7)" }} />
-          )}
+        <div style={{ position: "relative", aspectRatio: size === "square" ? "1/1" : "16/9", background: "linear-gradient(135deg,#0d1824,#1a2535)" }}>
+          {thumb && <img src={thumb} alt={item.caption || `video-${idx + 1}`}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.7)" }} />}
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.6)",
-              backdropFilter: "blur(6px)", border: "2px solid rgba(255,255,255,0.4)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "1.4rem", transition: "all 0.2s",
-              transform: hovered ? "scale(1.12)" : "scale(1)",
-            }}>▶</div>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", border: "2px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", transform: hovered ? "scale(1.12)" : "scale(1)", transition: "transform 0.2s" }}>▶</div>
           </div>
-          <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "white", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: 20, fontFamily: "Cairo,sans-serif" }}>
-            فيديو
-          </div>
+          <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "white", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: 20, fontFamily: "Cairo,sans-serif" }}>فيديو</div>
         </div>
       ) : (
         <div style={{ position: "relative" }}>
           {!loaded && !errored && (
-            <div style={{ width: "100%", aspectRatio: "4/3", background: "linear-gradient(135deg,#0d1824,#1a2535)", animation: "pulse 1.5s ease-in-out infinite" }} />
+            <div style={{ width: "100%", ...(size === "square" ? { aspectRatio: "1/1" } : size === "large" ? { height: 320 } : size === "wide" ? { height: 260 } : { aspectRatio: "4/3" }), background: "linear-gradient(135deg,#0d1824,#1a2535)" }} />
           )}
-          <img
-            src={item.url}
-            alt={item.caption || `photo-${idx + 1}`}
-            style={{ width: "100%", display: errored ? "none" : "block", opacity: loaded ? 1 : 0, transition: "opacity 0.35s ease" }}
+          <img src={item.url} alt={item.caption || `photo-${idx + 1}`}
+            style={{ ...getImgStyle(size), opacity: loaded ? 1 : 0, transition: "opacity 0.35s ease", display: errored ? "none" : undefined }}
             onLoad={() => setLoaded(true)}
-            onError={() => { setErrored(true); setLoaded(true); }}
-          />
+            onError={() => { setErrored(true); setLoaded(true); }} />
           {errored && (
             <div style={{ width: "100%", aspectRatio: "4/3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.25)", fontSize: "2rem", gap: "0.5rem" }}>
               <span>🖼️</span>
@@ -207,22 +184,13 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
       )}
 
       {/* Hover overlay */}
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", opacity: hovered ? 1 : 0, transition: "opacity 0.25s", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontSize: item.type === "video" ? "1.8rem" : "1.6rem" }}>
-          {item.type === "video" ? "▶" : "🔍"}
-        </div>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.32)", opacity: hovered ? 1 : 0, transition: "opacity 0.25s", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontSize: item.type === "video" ? "1.8rem" : "1.6rem" }}>{item.type === "video" ? "▶" : "🔍"}</div>
       </div>
 
       {/* Caption */}
       {item.caption && (
-        <div style={{
-          position: "absolute", bottom: 0, right: 0, left: 0,
-          background: "linear-gradient(transparent, rgba(0,0,0,0.82))",
-          padding: "1.25rem 0.75rem 0.6rem",
-          color: "rgba(255,255,255,0.9)", fontSize: "0.75rem",
-          fontFamily: "Cairo,sans-serif", lineHeight: 1.4,
-          opacity: hovered ? 1 : 0, transition: "opacity 0.25s",
-        }}>
+        <div style={{ position: "absolute", bottom: 0, right: 0, left: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.82))", padding: "1.25rem 0.75rem 0.6rem", color: "rgba(255,255,255,0.9)", fontSize: "0.75rem", fontFamily: "Cairo,sans-serif", lineHeight: 1.4, opacity: hovered ? 1 : 0, transition: "opacity 0.25s" }}>
           {item.caption}
         </div>
       )}
@@ -267,7 +235,7 @@ export default function GalleryDetailPage() {
         <div style={{ marginBottom: "1.5rem" }}>{ar ? "الألبوم غير موجود" : "Album not found"}</div>
         <button onClick={() => navigate("/gallery")}
           style={{ background: "#00AAFF", color: "white", border: "none", padding: "0.65rem 1.75rem", borderRadius: 10, cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700 }}>
-          {ar ? "← المعرض" : "← Gallery"}
+          {ar ? "العودة للمعرض" : "Back to Gallery"}
         </button>
       </div>
     </div>
@@ -287,15 +255,28 @@ export default function GalleryDetailPage() {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0a1520,#1a2535)" }} />
         )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(8,15,24,0.4) 0%,rgba(8,15,24,0.85) 100%)" }} />
-        <div style={{ position: "relative", zIndex: 1, padding: "5.5rem 1.5rem 2.5rem", textAlign: "center" }}>
+        <div style={{ position: "relative", zIndex: 1, padding: "5rem 1.5rem 2.5rem", textAlign: "center" }}>
+
+          {/* ← Back button — always functional, clear label, correct arrow for RTL */}
           <button onClick={() => navigate("/gallery")}
-            style={{ position: "absolute", top: "1.25rem", [ar ? "right" : "left"]: "1.25rem", background: "rgba(0,0,0,0.45)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.8)", borderRadius: "50px", padding: "0.4rem 1.1rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            {ar ? "← جميع الألبومات" : "← All Albums"}
+            style={{
+              position: "absolute", top: "1.5rem",
+              [ar ? "right" : "left"]: "1rem",
+              background: "rgba(0,0,0,0.5)", backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.2)", color: "white",
+              borderRadius: "50px", padding: "0.45rem 1.1rem", cursor: "pointer",
+              fontFamily: "Cairo,sans-serif", fontSize: "0.82rem",
+              display: "flex", alignItems: "center", gap: "0.4rem",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.35)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.5)"; }}>
+            {ar ? "جميع الألبومات ›" : "‹ All Albums"}
           </button>
 
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: 50, padding: "0.25rem 1rem", marginBottom: "1rem" }}>
             <span style={{ fontSize: "0.7rem" }}>📸</span>
-            <span style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.5px" }}>
+            <span style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700 }}>
               {items.length} {ar ? (items.length === 1 ? "عنصر" : "عناصر") : (items.length === 1 ? "item" : "items")}
             </span>
           </div>
@@ -323,22 +304,18 @@ export default function GalleryDetailPage() {
           </div>
         ) : (
           <>
-            {/* Mobile: single column list  |  Desktop: 3-col masonry */}
-            <div style={{ columns: "3 240px", gap: "0.75rem" }}>
+            <div style={{ columns: "3 230px", gap: "0.75rem" }}>
               {items.map((item, i) => (
                 <GridItem key={item.id} item={item} idx={i} onClick={() => setLightboxIdx(i)} />
               ))}
             </div>
-
-            {/* Quick-open hint */}
-            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: "0.75rem", marginTop: "1.5rem", fontFamily: "Cairo,sans-serif" }}>
+            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.18)", fontSize: "0.72rem", marginTop: "1.5rem", fontFamily: "Cairo,sans-serif" }}>
               {ar ? "انقر على أي صورة لعرضها بملء الشاشة" : "Click any photo to view fullscreen"}
             </p>
           </>
         )}
       </div>
 
-      {/* Lightbox */}
       {lightboxIdx !== null && (
         <Lightbox items={items} startIdx={lightboxIdx} ar={ar} onClose={() => setLightboxIdx(null)} />
       )}
