@@ -229,11 +229,18 @@ function Navbar() {
     { label: t.nav.contact, href: "#footer" },
   ];
   const [pwaPrompt, setPwaPrompt] = useState<any>(null);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !("MSStream" in window);
   useEffect(() => {
     const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+  const handleInstallApp = () => {
+    if (isIOS) { setShowIOSGuide(true); return; }
+    if (pwaPrompt) { pwaPrompt.prompt(); pwaPrompt.userChoice.then((r: any) => { if (r.outcome === "accepted") setPwaPrompt(null); }); return; }
+    setShowIOSGuide(true);
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -281,30 +288,11 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
-            {/* Trip Details link */}
-            <button onClick={() => navigate("/trips")}
-              className="nav-link"
-              style={{ color: "#00AAFF", fontWeight: 700 }}>
-              🗺️ {t.nav.trips}
+            {/* Install App — always visible, iOS-aware */}
+            <button onClick={handleInstallApp}
+              style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              📲 {ar ? "تحميل التطبيق" : "Install App"}
             </button>
-            {/* Rewards page link */}
-            <button onClick={() => navigate("/rewards")}
-              className="nav-link"
-              style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
-              🎁 {ar ? "المكافآت" : "Rewards"}
-            </button>
-            {/* Gallery link */}
-            <button onClick={() => navigate("/gallery")}
-              className="nav-link"
-              style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "#C9A84C", fontWeight: 700 }}>
-              📸 {ar ? "المعرض" : "Gallery"}
-            </button>
-            {pwaPrompt && (
-              <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") setPwaPrompt(null); }}
-                style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap" }}>
-                📲 {ar ? "تثبيت التطبيق" : "Install App"}
-              </button>
-            )}
             <CurrencySwitcher />
             <LangSwitcher />
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
@@ -343,31 +331,53 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
-            {/* Trip Details mobile link */}
-            <button onClick={() => { navigate("/trips"); setMenuOpen(false); }}
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: "10px", color: "#00AAFF", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
-              🗺️ {t.nav.trips}
+            {/* Install App — always visible, handles iOS + Android + Desktop */}
+            <button onClick={() => { handleInstallApp(); if (!isIOS && !pwaPrompt) return; setMenuOpen(false); }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
+              📲 {ar ? "تحميل تطبيق DR Travel" : "Install DR Travel App"}
             </button>
-            {/* Rewards mobile link */}
-            <button onClick={() => { navigate("/rewards"); setMenuOpen(false); }}
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
-              🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
-            </button>
-            {/* Gallery mobile link */}
-            <button onClick={() => { navigate("/gallery"); setMenuOpen(false); }}
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "10px", color: "#C9A84C", padding: "0.75rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem", transition: "all 0.2s" }}>
-              📸 {ar ? "معرض الصور" : "Photo Gallery"}
-            </button>
-            {pwaPrompt && (
-              <button onClick={async () => { pwaPrompt.prompt(); const r = await pwaPrompt.userChoice; if (r.outcome === "accepted") { setPwaPrompt(null); setMenuOpen(false); } }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
-                📲 {ar ? "تثبيت تطبيق DR Travel" : "Install DR Travel App"}
-              </button>
-            )}
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "0.75rem", fontFamily: "Cairo, sans-serif" }}>
               <WhatsAppIcon /> {t.nav.whatsappMobile}
             </a>
+          </div>
+        </div>
+      )}
+
+      {/* iOS / generic install guide modal */}
+      {showIOSGuide && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+          onClick={() => setShowIOSGuide(false)}>
+          <div style={{ background: "linear-gradient(180deg,#0d1b2a,#0a1520)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "20px 20px 0 0", padding: "2rem 1.5rem 3rem", maxWidth: 420, width: "100%", direction: ar ? "rtl" : "ltr", fontFamily: "Cairo,sans-serif" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📲</div>
+              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>{ar ? "تثبيت تطبيق DR Travel" : "Install DR Travel App"}</h3>
+            </div>
+            {isIOS ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                  <span style={{ fontSize: "1.6rem" }}>1️⃣</span>
+                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'اضغط على زر المشاركة "⬆️" في شريط Safari السفلي' : 'Tap the Share button "⬆️" at the bottom of Safari'}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                  <span style={{ fontSize: "1.6rem" }}>2️⃣</span>
+                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية" 🏠' : 'Scroll down and tap "Add to Home Screen" 🏠'}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                  <span style={{ fontSize: "1.6rem" }}>3️⃣</span>
+                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", lineHeight: 1.5 }}>{ar ? 'اضغط "إضافة" في الزاوية العلوية اليمنى' : 'Tap "Add" in the top-right corner'}</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", color: "rgba(255,255,255,0.7)", fontSize: "0.95rem", lineHeight: 1.7 }}>
+                {ar ? "للتثبيت: افتح قائمة المتصفح واختر \"تثبيت التطبيق\" أو \"إضافة إلى الشاشة الرئيسية\"" : 'To install: open your browser menu and choose "Install App" or "Add to Home Screen"'}
+              </div>
+            )}
+            <button onClick={() => setShowIOSGuide(false)}
+              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
+              {ar ? "إغلاق" : "Close"}
+            </button>
           </div>
         </div>
       )}
@@ -382,12 +392,6 @@ function Hero() {
   const [, navigate] = useLocation();
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
-  const [pwaPrompt, setPwaPrompt] = useState<any>(null);
-  useEffect(() => {
-    const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
   const titleMain = ar
     ? (settings.hero_title_primary_ar || (() => {
         const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
@@ -446,7 +450,7 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={400}>
-          <div style={{ display: "flex", gap: "0.85rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", gap: "0.85rem", justifyContent: "center", flexWrap: "wrap" }}>
             <a href="#packages" onClick={e => { e.preventDefault(); document.querySelector("#packages")?.scrollIntoView({ behavior: "smooth" }); }}
               style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", boxShadow: "0 8px 28px rgba(0,170,255,0.35)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 14px 36px rgba(0,170,255,0.5)"; }}
@@ -459,27 +463,18 @@ function Hero() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               🗺️ {ar ? "تفاصيل الرحلات" : "Trip Details"}
             </button>
-            <button onClick={() => navigate("/rewards")}
+            <button onClick={() => navigate("/gallery")}
               style={{ background: "rgba(201,168,76,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(201,168,76,0.3)", color: "#C9A84C", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-              🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
+              📸 {ar ? "الجاليري" : "Gallery"}
             </button>
-            {pwaPrompt && (
-              <button
-                onClick={() => { pwaPrompt.prompt(); pwaPrompt.userChoice.then(() => setPwaPrompt(null)); }}
-                style={{ background: "rgba(0,200,120,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(0,200,120,0.35)", color: "#00c878", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,200,120,0.2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,200,120,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-                📲 {ar ? "تحميل التطبيق" : "Install App"}
-              </button>
-            )}
           </div>
         </FadeInSection>
       </div>
 
-      {/* Scroll indicator — kept outside content div with extra top margin to clear buttons */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.45, paddingBottom: "2rem", marginTop: "0.5rem" }}>
+      {/* Scroll indicator — centered, absolute positioned at bottom of hero */}
+      <div style={{ position: "absolute", bottom: "3.5rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5 }}>
         <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
           <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
         </div>
