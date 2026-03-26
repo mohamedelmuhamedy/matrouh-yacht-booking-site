@@ -3,6 +3,12 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 
+function isYoutubeUrl(url: string) { return /youtube\.com|youtu\.be/.test(url); }
+function getYoutubeThumbnailUrl(url: string) {
+  const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : "";
+}
+
 interface GalleryItem { id: number; albumId: number; url: string; type: string; caption: string; size: string; sortOrder: number; }
 
 const SIZES = [
@@ -36,6 +42,7 @@ export default function AdminGalleryPage() {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
   const [uploadErr, setUploadErr] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoCaption, setVideoCaption] = useState("");
@@ -108,38 +115,66 @@ export default function AdminGalleryPage() {
     else { toastErr("فشل التحديث"); }
   };
 
-  const uploadFile = async (file: File): Promise<string | null> => {
-    const reqRes = await adminFetch("/storage/uploads/request-url", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
-    });
-    if (!reqRes.ok) return null;
+  const uploadFile = async (file: File): Promise<{ url: string } | { error: string }> => {
+    let reqRes: Response;
+    try {
+      reqRes = await adminFetch("/storage/uploads/request-url", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+      });
+    } catch {
+      return { error: "تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت." };
+    }
+
+    if (!reqRes.ok) {
+      let errMsg = "فشل طلب الرفع";
+      try {
+        const body = await reqRes.json();
+        if (body?.error) errMsg = body.error;
+      } catch { /* ignore */ }
+      return { error: errMsg };
+    }
+
     const { uploadURL, objectPath } = await reqRes.json();
-    const upRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-    if (!upRes.ok) return null;
-    return `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+
+    let upRes: Response;
+    try {
+      upRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+    } catch {
+      return { error: "فشل رفع الملف إلى التخزين. حاول مرة أخرى." };
+    }
+
+    if (!upRes.ok) {
+      return { error: `فشل رفع الملف (${upRes.status}). حاول مرة أخرى.` };
+    }
+
+    return { url: `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}` };
   };
 
   const uploadCover = async (file: File) => {
     setCoverUploading(true);
-    const url = await uploadFile(file);
-    if (url) setAlbumForm(f => ({ ...f, coverImage: url }));
-    else toastErr("فشل رفع الغلاف");
+    const result = await uploadFile(file);
+    if ("url" in result) setAlbumForm(f => ({ ...f, coverImage: result.url }));
+    else toastErr(result.error);
     setCoverUploading(false);
   };
 
   const uploadItemFile = async (file: File) => {
     if (!openAlbum) return;
+    const isVideo = file.type.startsWith("video");
     setUploading(true); setUploadErr("");
-    const url = await uploadFile(file);
-    if (!url) { setUploadErr("فشل رفع الملف"); setUploading(false); return; }
-    const type = file.type.startsWith("video") ? "video" : "image";
+    setUploadProgress(isVideo ? "⏳ جاري رفع الفيديو... (قد يستغرق دقيقة)" : "⏳ جاري رفع الصورة...");
+    const result = await uploadFile(file);
+    if ("error" in result) { setUploadErr(result.error); setUploading(false); setUploadProgress(""); return; }
+    setUploadProgress("💾 جاري الحفظ...");
+    const type = isVideo ? "video" : "image";
     const r = await adminFetch(`/admin/gallery/albums/${openAlbum.id}/items`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, type, caption: "", size: pendingSize, sortOrder: items.length }),
+      body: JSON.stringify({ url: result.url, type, caption: "", size: pendingSize, sortOrder: items.length }),
     });
-    if (r.ok) { success("تم الرفع"); openAlbumItems(openAlbum); } else { setUploadErr("فشل إضافة الصورة"); }
-    setUploading(false);
+    if (r.ok) { success(type === "video" ? "✅ تم رفع الفيديو بنجاح" : "✅ تمت إضافة الصورة"); openAlbumItems(openAlbum); }
+    else { setUploadErr("فشل حفظ العنصر في الألبوم"); }
+    setUploading(false); setUploadProgress("");
   };
 
   const addVideoUrl = async () => {
@@ -198,15 +233,25 @@ export default function AdminGalleryPage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-          <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: "none" }}
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+          <input ref={fileRef} type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+            style={{ display: "none" }}
             onChange={e => { const f = e.target.files?.[0]; if (f) { uploadItemFile(f); e.target.value = ""; } }} />
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ background: uploading ? "#555" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: 8, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
-            {uploading ? "جاري الرفع..." : "📁 رفع ملف"}
+            style={{ background: uploading ? "#334155" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: 8, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", transition: "background 0.2s" }}>
+            {uploading ? "جاري الرفع..." : "📁 رفع صورة / فيديو"}
           </button>
         </div>
-        {uploadErr && <div style={{ color: "#ff6b6b", fontSize: "0.82rem", marginBottom: "0.75rem" }}>{uploadErr}</div>}
+        <div style={{ fontSize: "0.75rem", color: dark.sub, marginBottom: "0.75rem" }}>
+          الصور: JPEG, PNG, WebP, GIF (حتى 15 MB) · الفيديو: MP4, WebM, MOV (حتى 300 MB)
+        </div>
+        {uploadProgress && <div style={{ color: "#00AAFF", fontSize: "0.82rem", marginBottom: "0.5rem", fontWeight: 700 }}>{uploadProgress}</div>}
+        {uploadErr && (
+          <div style={{ color: "#ff6b6b", fontSize: "0.82rem", marginBottom: "0.75rem", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.25)", borderRadius: 8, padding: "0.5rem 0.75rem" }}>
+            ⚠️ {uploadErr}
+          </div>
+        )}
 
         <div style={{ borderTop: `1px solid ${dark.border}`, paddingTop: "1rem" }}>
           <div style={{ color: dark.sub, fontSize: "0.82rem", marginBottom: "0.5rem" }}>أو أضف رابط فيديو (YouTube / مباشر)</div>
@@ -251,11 +296,21 @@ export default function AdminGalleryPage() {
             return (
               <div key={item.id} style={{ background: dark.card, borderRadius: 10, overflow: "hidden", border: `1px solid ${dark.border}`, position: "relative" }}>
                 {/* Preview */}
-                <div style={{ aspectRatio: "1", overflow: "hidden", background: "#0d1824" }}>
+                <div style={{ aspectRatio: "1", overflow: "hidden", background: "#0d1824", position: "relative" }}>
                   {item.type === "video" ? (
-                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: "2.5rem" }}>🎬</span>
-                    </div>
+                    isYoutubeUrl(item.url) ? (
+                      <>
+                        <img src={getYoutubeThumbnailUrl(item.url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontSize: "1.75rem", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }}>▶</span>
+                        </div>
+                      </>
+                    ) : (
+                      <video src={item.url} preload="metadata" muted playsInline
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 1; }} />
+                    )
                   ) : (
                     <img src={item.url} alt={item.caption || ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />

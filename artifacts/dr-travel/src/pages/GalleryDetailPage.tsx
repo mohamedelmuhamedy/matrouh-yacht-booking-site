@@ -151,17 +151,30 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
   const [errored, setErrored] = useState(false);
   const [hovered, setHovered] = useState(false);
   const size = item.size || "normal";
-  const thumb = item.type === "video" && isYoutube(item.url) ? getYoutubeThumbnail(item.url) : "";
+  const youtubeThumbnail = item.type === "video" && isYoutube(item.url) ? getYoutubeThumbnail(item.url) : "";
+  const isNativeVideo = item.type === "video" && !isYoutube(item.url);
+
+  const aspectStyle = size === "square" ? "1/1" : "16/9";
 
   return (
     <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={getItemStyle(size, hovered)}>
       {item.type === "video" ? (
-        <div style={{ position: "relative", aspectRatio: size === "square" ? "1/1" : "16/9", background: "linear-gradient(135deg,#0d1824,#1a2535)" }}>
-          {thumb && <img src={thumb} alt={item.caption || `video-${idx + 1}`}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.7)" }} />}
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", border: "2px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", transform: hovered ? "scale(1.12)" : "scale(1)", transition: "transform 0.2s" }}>▶</div>
+        <div style={{ position: "relative", aspectRatio: aspectStyle, background: "linear-gradient(135deg,#0d1824,#1a2535)", overflow: "hidden" }}>
+          {/* YouTube: show thumbnail image */}
+          {youtubeThumbnail && (
+            <img src={youtubeThumbnail} alt={item.caption || `video-${idx + 1}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.75)" }} />
+          )}
+          {/* Native uploaded video: show first frame via <video preload="metadata"> */}
+          {isNativeVideo && (
+            <video src={item.url} preload="metadata" muted playsInline
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.8)" }}
+              onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 1; }} />
+          )}
+          {/* Play button overlay */}
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", border: "2px solid rgba(255,255,255,0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", transform: hovered ? "scale(1.12)" : "scale(1)", transition: "transform 0.2s" }}>▶</div>
           </div>
           <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "white", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: 20, fontFamily: "Cairo,sans-serif" }}>فيديو</div>
         </div>
