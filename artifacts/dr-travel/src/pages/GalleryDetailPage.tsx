@@ -268,25 +268,32 @@ export default function GalleryDetailPage() {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0a1520,#1a2535)" }} />
         )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(8,15,24,0.4) 0%,rgba(8,15,24,0.85) 100%)" }} />
-        <div style={{ position: "relative", zIndex: 1, padding: "5rem 1.5rem 2.5rem", textAlign: "center" }}>
+        <div style={{ position: "relative", zIndex: 1 }}>
 
-          {/* ← Back button — always functional, clear label, correct arrow for RTL */}
-          <button onClick={() => navigate("/gallery")}
-            style={{
-              position: "absolute", top: "1.5rem",
-              [ar ? "right" : "left"]: "1rem",
-              background: "rgba(0,0,0,0.5)", backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.2)", color: "white",
-              borderRadius: "50px", padding: "0.45rem 1.1rem", cursor: "pointer",
-              fontFamily: "Cairo,sans-serif", fontSize: "0.82rem",
-              display: "flex", alignItems: "center", gap: "0.4rem",
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.35)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.5)"; }}>
-            {ar ? "جميع الألبومات ›" : "‹ All Albums"}
-          </button>
+          {/* ← Navigation row — sits below the fixed navbar (65px) with no overlap */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: ar ? "flex-end" : "flex-start",
+            padding: "calc(65px + 0.75rem) 1rem 0",
+          }}>
+            <button onClick={() => navigate("/gallery")}
+              style={{
+                background: "rgba(0,0,0,0.5)", backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.2)", color: "white",
+                borderRadius: "50px", padding: "0.45rem 1.1rem", cursor: "pointer",
+                fontFamily: "Cairo,sans-serif", fontSize: "0.82rem",
+                display: "flex", alignItems: "center", gap: "0.4rem",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,170,255,0.35)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.5)"; }}>
+              {ar ? "جميع الألبومات ›" : "‹ All Albums"}
+            </button>
+          </div>
 
+          {/* Centered content */}
+          <div style={{ padding: "1.25rem 1.5rem 2.5rem", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: 50, padding: "0.25rem 1rem", marginBottom: "1rem" }}>
             <span style={{ fontSize: "0.7rem" }}>📸</span>
             <span style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700 }}>
@@ -303,8 +310,9 @@ export default function GalleryDetailPage() {
               {ar ? album.descriptionAr : album.descriptionEn}
             </p>
           )}
-        </div>
-      </div>
+          </div>{/* end centered content */}
+        </div>{/* end zIndex wrapper */}
+      </div>{/* end hero banner */}
 
       {/* Gallery grid */}
       <div style={{ maxWidth: 1140, margin: "0 auto", padding: "2rem 1rem 5rem" }}>

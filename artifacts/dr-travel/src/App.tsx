@@ -382,6 +382,12 @@ function Hero() {
   const [, navigate] = useLocation();
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
+  const [pwaPrompt, setPwaPrompt] = useState<any>(null);
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
   const titleMain = ar
     ? (settings.hero_title_primary_ar || (() => {
         const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
@@ -440,7 +446,7 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={400}>
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "0.85rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "1rem" }}>
             <a href="#packages" onClick={e => { e.preventDefault(); document.querySelector("#packages")?.scrollIntoView({ behavior: "smooth" }); }}
               style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", boxShadow: "0 8px 28px rgba(0,170,255,0.35)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 14px 36px rgba(0,170,255,0.5)"; }}
@@ -451,19 +457,29 @@ function Hero() {
               style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-              🗺️ {t.nav.trips}
+              🗺️ {ar ? "تفاصيل الرحلات" : "Trip Details"}
             </button>
-            <button onClick={() => navigate("/gallery")}
+            <button onClick={() => navigate("/rewards")}
               style={{ background: "rgba(201,168,76,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(201,168,76,0.3)", color: "#C9A84C", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-              📸 {ar ? "معرض الصور" : "Gallery"}
+              🎁 {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
             </button>
+            {pwaPrompt && (
+              <button
+                onClick={() => { pwaPrompt.prompt(); pwaPrompt.userChoice.then(() => setPwaPrompt(null)); }}
+                style={{ background: "rgba(0,200,120,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(0,200,120,0.35)", color: "#00c878", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,200,120,0.2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,200,120,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+                📲 {ar ? "تحميل التطبيق" : "Install App"}
+              </button>
+            )}
           </div>
         </FadeInSection>
       </div>
 
-      <div style={{ position: "absolute", bottom: "2.5rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5 }}>
+      {/* Scroll indicator — kept outside content div with extra top margin to clear buttons */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.45, paddingBottom: "2rem", marginTop: "0.5rem" }}>
         <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
           <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
         </div>
