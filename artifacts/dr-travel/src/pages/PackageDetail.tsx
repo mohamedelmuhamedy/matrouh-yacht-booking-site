@@ -41,6 +41,14 @@ export default function PackageDetail() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isXs, setIsXs] = useState(window.innerWidth < 480);
   const touchStartX = useRef(0);
+  const wasSwiping = useRef(false);
+
+  // ── Lightbox state ──
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
+  const lbTouchX = useRef(0);
+  const lightboxIdxRef = useRef(0);
+  const lightboxOpenRef = useRef(false);
 
   // ── Booking modal state ──
   const [showBook, setShowBook] = useState(false);
@@ -143,13 +151,32 @@ export default function PackageDetail() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (imgCountRef.current < 2) return;
-      if (e.key === "ArrowLeft") nextImg();
-      if (e.key === "ArrowRight") prevImg();
+      if (lightboxOpenRef.current) {
+        if (e.key === "Escape") { setLightboxOpen(false); lightboxOpenRef.current = false; }
+        if (e.key === "ArrowRight") setLightboxIdx(i => { const n = i >= imgCountRef.current - 1 ? 0 : i + 1; lightboxIdxRef.current = n; return n; });
+        if (e.key === "ArrowLeft") setLightboxIdx(i => { const n = i <= 0 ? imgCountRef.current - 1 : i - 1; lightboxIdxRef.current = n; return n; });
+      } else {
+        if (imgCountRef.current < 2) return;
+        if (e.key === "ArrowLeft") nextImg();
+        if (e.key === "ArrowRight") prevImg();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Sync ref and body scroll lock with lightbox state
+  useEffect(() => {
+    lightboxOpenRef.current = lightboxOpen;
+    lightboxIdxRef.current = lightboxIdx;
+    document.body.style.overflow = lightboxOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [lightboxOpen, lightboxIdx]);
+
+  const openLightbox = (idx: number) => { setLightboxIdx(idx); lightboxIdxRef.current = idx; setLightboxOpen(true); };
+  const closeLightbox = () => { setLightboxOpen(false); lightboxOpenRef.current = false; };
+  const lbPrev = () => setLightboxIdx(i => { const n = i <= 0 ? imgCount - 1 : i - 1; lightboxIdxRef.current = n; return n; });
+  const lbNext = () => setLightboxIdx(i => { const n = i >= imgCount - 1 ? 0 : i + 1; lightboxIdxRef.current = n; return n; });
 
   // Reset gallery state whenever the package slug changes
   useEffect(() => {
@@ -277,11 +304,15 @@ export default function PackageDetail() {
       {/* Hero gallery */}
       <div style={{ position: "relative" }}>
         <div
-          style={{ position: "relative", height: isMobile ? "42vh" : "52vh", minHeight: isMobile ? "260px" : "360px", overflow: "hidden", cursor: imgCount > 1 ? "grab" : "default" }}
-          onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+          style={{ position: "relative", height: isMobile ? "42vh" : "52vh", minHeight: isMobile ? "260px" : "360px", overflow: "hidden", cursor: imgCount > 0 && !brokenImgs.has(safeImg) ? "zoom-in" : "default" }}
+          onTouchStart={e => { touchStartX.current = e.touches[0].clientX; wasSwiping.current = false; }}
           onTouchEnd={e => {
             const diff = touchStartX.current - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > 40) { if (diff > 0) nextImg(); else prevImg(); }
+            if (Math.abs(diff) > 12) { wasSwiping.current = true; if (Math.abs(diff) > 40) { if (diff > 0) nextImg(); else prevImg(); } }
+          }}
+          onClick={() => {
+            if (wasSwiping.current) { wasSwiping.current = false; return; }
+            if (imgCount > 0 && !brokenImgs.has(safeImg)) openLightbox(safeImg);
           }}
         >
           {/* Image — key forces fresh element on index change, preventing display:none bleed-over */}
@@ -300,13 +331,23 @@ export default function PackageDetail() {
           )}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 65%, rgba(13,27,42,0.92) 100%)" }} />
 
+          {/* Zoom-in icon — indicates the image is clickable */}
+          {imgCount > 0 && !brokenImgs.has(safeImg) && (
+            <div style={{ position: "absolute", top: "0.75rem", insetInlineStart: "0.75rem", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "50%", width: isMobile ? 34 : 40, height: isMobile ? 34 : 40, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 10 }}>
+              <svg width={isMobile ? 15 : 18} height={isMobile ? 15 : 18} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+            </div>
+          )}
+
           {/* Prev / Next arrows — only shown when there are multiple valid images */}
           {imgCount > 1 && (<>
-            <button onClick={prevImg}
+            <button onClick={e => { e.stopPropagation(); prevImg(); }}
               style={{ position: "absolute", top: "50%", insetInlineStart: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
               ‹
             </button>
-            <button onClick={nextImg}
+            <button onClick={e => { e.stopPropagation(); nextImg(); }}
               style={{ position: "absolute", top: "50%", insetInlineEnd: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
               ›
             </button>
@@ -326,8 +367,8 @@ export default function PackageDetail() {
         {imgCount > 1 && (
           <div style={{ background: "#0a1520", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 1rem", display: "flex", gap: "0.5rem", overflowX: "auto" }}>
             {imgs.map((img, i) => (
-              <button key={i} onClick={() => setActiveImg(i)}
-                style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === safeImg ? pkg.color : "transparent"}`, cursor: "pointer", padding: 0, transition: "border-color 0.2s", opacity: i === safeImg ? 1 : 0.55 }}>
+              <button key={i} onClick={() => { setActiveImg(i); openLightbox(i); }}
+                style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === safeImg ? pkg.color : "transparent"}`, cursor: "zoom-in", padding: 0, transition: "border-color 0.2s", opacity: i === safeImg ? 1 : 0.55 }}>
                 {!brokenImgs.has(i) ? (
                   <img src={img} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={() => setBrokenImgs(prev => new Set(prev).add(i))} />
@@ -743,6 +784,88 @@ export default function PackageDetail() {
           )}
 
         </div>
+      </div>
+    )}
+
+    {/* ===== LIGHTBOX ===== */}
+    {lightboxOpen && (
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.96)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+        onClick={closeLightbox}
+      >
+        {/* Close button */}
+        <button
+          onClick={e => { e.stopPropagation(); closeLightbox(); }}
+          style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", width: 48, height: 48, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 300, zIndex: 10, lineHeight: 1, fontFamily: "monospace" }}
+        >✕</button>
+
+        {/* Counter */}
+        {imgCount > 1 && (
+          <div style={{ position: "absolute", top: "1.1rem", left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: "0.8rem", fontWeight: 700, padding: "0.3rem 0.9rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif", zIndex: 10 }}>
+            {lightboxIdx + 1} / {imgCount}
+          </div>
+        )}
+
+        {/* Image container — stops click from closing when clicking image */}
+        <div
+          style={{ position: "relative", maxWidth: "95vw", maxHeight: "85vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={e => e.stopPropagation()}
+          onTouchStart={e => { lbTouchX.current = e.touches[0].clientX; }}
+          onTouchEnd={e => {
+            const diff = lbTouchX.current - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) { if (diff > 0) lbNext(); else lbPrev(); }
+          }}
+        >
+          <img
+            src={imgs[lightboxIdx]}
+            alt={`${title} — ${lightboxIdx + 1}`}
+            style={{ maxWidth: "95vw", maxHeight: "85vh", objectFit: "contain", borderRadius: 8, boxShadow: "0 8px 60px rgba(0,0,0,0.7)", userSelect: "none", WebkitUserSelect: "none" }}
+            draggable={false}
+          />
+        </div>
+
+        {/* Prev button */}
+        {imgCount > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); lbPrev(); }}
+            style={{ position: "absolute", top: "50%", insetInlineStart: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+          >‹</button>
+        )}
+
+        {/* Next button */}
+        {imgCount > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); lbNext(); }}
+            style={{ position: "absolute", top: "50%", insetInlineEnd: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+          >›</button>
+        )}
+
+        {/* Thumbnail strip at bottom */}
+        {imgCount > 1 && (
+          <div
+            style={{ position: "absolute", bottom: "1.25rem", left: 0, right: 0, display: "flex", gap: "0.5rem", justifyContent: "center", padding: "0 1rem", overflowX: "auto" }}
+            onClick={e => e.stopPropagation()}
+          >
+            {imgs.map((img, i) => (
+              !brokenImgs.has(i) && (
+                <button
+                  key={i}
+                  onClick={e => { e.stopPropagation(); setLightboxIdx(i); }}
+                  style={{ flexShrink: 0, width: isMobile ? 46 : 60, height: isMobile ? 34 : 44, borderRadius: 6, overflow: "hidden", border: `2px solid ${i === lightboxIdx ? pkg.color : "rgba(255,255,255,0.2)"}`, cursor: "pointer", padding: 0, opacity: i === lightboxIdx ? 1 : 0.5, transition: "all 0.2s" }}
+                >
+                  <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} draggable={false} />
+                </button>
+              )
+            ))}
+          </div>
+        )}
+
+        {/* Swipe hint — mobile only, shown briefly */}
+        {isMobile && imgCount > 1 && (
+          <div style={{ position: "absolute", bottom: isMobile ? "5.5rem" : "6rem", left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.35)", fontSize: "0.72rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", pointerEvents: "none" }}>
+            {ar ? "← اسحب للتنقل →" : "← Swipe to navigate →"}
+          </div>
+        )}
       </div>
     )}
 
