@@ -298,8 +298,7 @@ export default function PackageDetail() {
               {pkg.icon}
             </div>
           )}
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.38)" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 25%, #0D1B2A 100%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 65%, rgba(13,27,42,0.92) 100%)" }} />
 
           {/* Prev / Next arrows — only shown when there are multiple valid images */}
           {imgCount > 1 && (<>
@@ -319,7 +318,7 @@ export default function PackageDetail() {
           </>)}
 
           <div style={{ position: "absolute", bottom: isMobile ? "2rem" : "3rem", left: 0, right: 0, padding: isMobile ? "0 1rem" : "0 2rem", textAlign: "center" }}>
-            <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word" }}>{title}</h1>
+            <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word", textShadow: "0 2px 12px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.95)" }}>{title}</h1>
           </div>
         </div>
 
