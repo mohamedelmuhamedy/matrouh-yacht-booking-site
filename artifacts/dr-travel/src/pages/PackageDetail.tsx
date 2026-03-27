@@ -599,7 +599,7 @@ export default function PackageDetail() {
                 </div>
               )}
 
-              {cancellation && (
+              {showCancellation && cancellation && (
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
                   <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
                   <p style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>

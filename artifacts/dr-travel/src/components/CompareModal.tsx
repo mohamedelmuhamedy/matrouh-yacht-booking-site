@@ -1,5 +1,6 @@
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useSiteData } from "../context/SiteDataContext";
 import { formatPrice } from "../data/currencies";
 import type { PackageData } from "../data/packages";
 
@@ -17,10 +18,19 @@ const XIcon = () => (
 );
 
 export default function CompareModal({ packages, onClose, onBook }: Props) {
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
   const { currency } = useCurrency();
+  const { categories } = useSiteData();
 
-  const ct = lang === "ar" ? {
+  const ar = lang === "ar";
+
+  const categoryName = (slug: string) => {
+    const cat = categories.find(c => c.slug === slug);
+    if (cat) return ar ? cat.nameAr : cat.nameEn;
+    return slug;
+  };
+
+  const ct = ar ? {
     title: "مقارنة الباقات",
     price: "السعر / فرد",
     duration: "المدة",
@@ -41,7 +51,6 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
     moderate: "متوسط",
     adventurous: "مغامرة",
     close: "إغلاق",
-    categoryNames: { safari: "سفاري", yacht: "يخت", complete: "شامل", family: "عائلي" },
   } : {
     title: "Compare Packages",
     price: "Price / Person",
@@ -63,7 +72,6 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
     moderate: "Moderate",
     adventurous: "Adventurous",
     close: "Close",
-    categoryNames: { safari: "Safari", yacht: "Yacht", complete: "All-Inclusive", family: "Family" },
   };
 
   const expLabels: Record<string, string> = {
@@ -99,7 +107,7 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
   const rows: { label: string; render: (pkg: PackageData) => React.ReactNode }[] = [
     { label: ct.price, render: pkg => <span style={{ color: pkg.color, fontWeight: 800 }}>{formatPrice(pkg.priceEGP, currency, lang)}</span> },
     { label: ct.duration, render: pkg => lang === "ar" ? pkg.durationAr : pkg.durationEn },
-    { label: ct.category, render: pkg => ct.categoryNames[pkg.category] },
+    { label: ct.category, render: pkg => categoryName(pkg.category) },
     { label: ct.experience, render: pkg => expLabels[pkg.experienceLevel] },
     { label: ct.rating, render: pkg => `${pkg.rating} ⭐ (${pkg.reviewCount})` },
     { label: ct.familyFriendly, render: pkg => <BoolCell val={pkg.familyFriendly} /> },

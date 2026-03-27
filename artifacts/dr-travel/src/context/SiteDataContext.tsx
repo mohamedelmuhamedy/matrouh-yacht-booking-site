@@ -69,16 +69,26 @@ export interface DBTestimonial {
   sortOrder: number;
 }
 
+export interface DBCategory {
+  id: number;
+  slug: string;
+  nameAr: string;
+  nameEn: string;
+  sortOrder: number;
+}
+
 export type SiteSettings = Record<string, string>;
 
 interface SiteDataContextType {
   packages: DBPackage[];
   testimonials: DBTestimonial[];
   settings: SiteSettings;
+  categories: DBCategory[];
   packagesLoading: boolean;
   settingsLoading: boolean;
   refetchPackages: () => void;
   refetchSettings: () => void;
+  refetchCategories: () => void;
 }
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
@@ -101,6 +111,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [packages, setPackages] = useState<DBPackage[]>([]);
   const [testimonials, setTestimonials] = useState<DBTestimonial[]>([]);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [categories, setCategories] = useState<DBCategory[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [apiFailed, setApiFailed] = useState(false);
@@ -152,30 +163,44 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     setSettingsLoading(false);
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const r = await fetch("/api/categories");
+      if (r.ok) {
+        const data = await r.json();
+        if (Array.isArray(data)) setCategories(data);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     fetchPackages();
     fetchTestimonials();
     fetchSettings();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
     const onFocus = () => {
       fetchPackages();
       fetchSettings();
+      fetchCategories();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [fetchPackages, fetchSettings]);
+  }, [fetchPackages, fetchSettings, fetchCategories]);
 
   return (
     <SiteDataContext.Provider value={{
       packages,
       testimonials,
       settings,
+      categories,
       packagesLoading,
       settingsLoading,
       refetchPackages: fetchPackages,
       refetchSettings: fetchSettings,
+      refetchCategories: fetchCategories,
     }}>
       {children}
     </SiteDataContext.Provider>

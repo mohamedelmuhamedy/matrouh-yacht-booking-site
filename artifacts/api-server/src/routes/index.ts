@@ -11,6 +11,7 @@ import publicBookingsRouter from "./public-bookings";
 import storageRouter from "./storage";
 import adminGalleryRouter from "./admin-gallery";
 import publicGalleryRouter from "./public-gallery";
+import categoriesRouter from "./admin-categories";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(publicBookingsRouter);
 router.use(storageRouter);
 router.use(adminGalleryRouter);
 router.use(publicGalleryRouter);
+router.use(categoriesRouter);
 
 export default router;

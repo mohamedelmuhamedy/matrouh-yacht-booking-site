@@ -103,7 +103,7 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - **Multi-currency**: EGP / USD / SAR — `src/data/currencies.ts` (rates, symbols, formatPrice), `src/context/CurrencyContext.tsx`, `src/components/CurrencySwitcher.tsx` in navbar
 - **Rich package data**: `src/data/packages.ts` — `PackageData` interface with slugs, itineraries, why-this-trip reasons, FAQs, what-to-bring, cancellation policy; 4 packages (full-safari, luxury-yacht, all-inclusive, family-package)
 - **Package Detail pages**: `src/pages/PackageDetail.tsx` — hero images, itinerary timeline, includes/excludes, FAQ accordion, sticky booking sidebar with WhatsApp Inquiry CTA
-- **Trips page**: `src/pages/TripsPage.tsx` — browse-all-packages page at `/trips`; search bar, category pills (All/Yacht/Safari/Water/Parasailing/AquaPark/Family), sort by price/rating; mobile-first card grid
+- **Trips page**: `src/pages/TripsPage.tsx` — browse-all-packages page at `/trips`; search bar, dynamic category pills from DB (via `useSiteData().categories`), sort by price/rating; mobile-first card grid
 - **Package gallery**: TouchStart/touchEnd swipe, ← → keyboard nav, thumbnail strip, image counter badge (X/N), prev/next arrow buttons; all in `PackageDetail.tsx`
 - **Price range display**: `priceLabel` shows "min – max" when `maxPriceEGP > 0`, else "from X"
 - **PWA**: `public/manifest.json`, `public/sw.js` service worker, PWA meta tags + SW registration in `index.html`; icons at `/icon-192.png` and `/icon-512.png`
@@ -136,11 +136,12 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
   - `/admin/testimonials` — TestimonialsPage.tsx (card grid with modal form, show/hide)
   - `/admin/settings` — SettingsPage.tsx (grouped key-value settings, logo upload via Object Storage, feature toggles: show_ai_assistant/show_compare_feature/show_testimonials, change password)
   - `/admin/rewards` — AdminRewardsPage.tsx (3 tabs: Settings / Codes / Rewards): reward settings (enabled toggle, type, value, after_x), referral codes CRUD (create/edit/deactivate/delete with auto-code generation), rewards list with approve/reject and admin notes
+  - `/admin/categories` — AdminCategoriesPage.tsx: CRUD for trip categories (slug, nameAr, nameEn, sortOrder); deleting a category leaves existing packages untouched (graceful fallback)
 - **Layout**: `src/admin/AdminLayout.tsx` — collapsible RTL sidebar (64px collapsed / 220px expanded); mobile bottom nav shows 5 items (excludes testimonials and settings); all pages accessible via drawer
 
 **Public Site Data from DB:**
-- `src/context/SiteDataContext.tsx` — `SiteDataProvider` wraps public routes; fetches `/api/packages`, `/api/testimonials`, `/api/settings` on mount; static fallback if API unavailable
-- `useSiteData()` hook provides: `packages`, `testimonials`, `settings`, `packagesLoading`, `refetchPackages()`
+- `src/context/SiteDataContext.tsx` — `SiteDataProvider` wraps public routes; fetches `/api/packages`, `/api/testimonials`, `/api/settings`, `/api/categories` on mount; static fallback if API unavailable
+- `useSiteData()` hook provides: `packages`, `testimonials`, `settings`, `categories`, `packagesLoading`, `refetchPackages()`, `refetchCategories()`
 - `PackageDetail.tsx` — reads package from DB context first, falls back to static data; shows 404 state if not found
 - `NotFoundPage.tsx` — full 404 page with home/packages CTAs (catch-all for unknown routes)
 - App routing: `/` → HomePage, `/packages/:slug` → DetailPageWrapper, `/rewards` → RewardsPage, `*` → NotFoundPage
@@ -153,9 +154,10 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - `admin_users` — admin accounts (username, password_hash bcrypt, display_name, email, is_active)
 - `gallery_albums` — photo/video album (slug, titleAr, titleEn, descriptionAr, descriptionEn, coverImage, isVisible, sortOrder)
 - `gallery_items` — individual media items per album (albumId, url, type: image|video, caption, sortOrder)
+- `categories` — trip category definitions (slug unique, nameAr, nameEn, sortOrder); used for TripsPage filters and PackageFormPage category dropdown
 
 **API Server routes (artifacts/api-server):**
-- Public: `GET /api/packages` (published+active only), `GET /api/packages/:slug`, `GET /api/testimonials`, `GET /api/settings`, `POST /api/bookings`
+- Public: `GET /api/packages` (published+active only), `GET /api/packages/:slug`, `GET /api/testimonials`, `GET /api/settings`, `GET /api/categories`, `POST /api/bookings`
 - Admin auth: `POST /api/admin/login`, `GET /api/admin/me`
 - Admin packages: GET/POST/PUT /api/admin/packages; DELETE = soft archive; `?force=true` = hard delete; POST /api/admin/packages/:id/duplicate
 - Admin bookings: search (`?q=`), CSV export (`?csv=true`), PATCH admin notes

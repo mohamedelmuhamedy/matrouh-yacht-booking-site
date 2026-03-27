@@ -174,6 +174,14 @@ export default function PackageFormPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { success: toastSuccess, error: toastError } = useToast();
 
+  const [dbCategories, setDbCategories] = useState<{ id: number; slug: string; nameAr: string; nameEn: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/categories")
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data)) setDbCategories(data); })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -406,10 +414,21 @@ export default function PackageFormPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1rem" }}>
               <F label="الفئة">
                 <select style={inputSt} value={form.category} onChange={e => set("category", e.target.value)}>
-                  <option value="safari">سفاري</option>
-                  <option value="yacht">يخت</option>
-                  <option value="complete">شاملة</option>
-                  <option value="family">عائلية</option>
+                  {dbCategories.length > 0 ? (
+                    dbCategories.map(cat => (
+                      <option key={cat.slug} value={cat.slug}>{cat.nameAr} ({cat.nameEn})</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="safari">سفاري</option>
+                      <option value="yacht">يخت</option>
+                      <option value="complete">شاملة</option>
+                      <option value="family">عائلية</option>
+                    </>
+                  )}
+                  {dbCategories.length > 0 && !dbCategories.find(c => c.slug === form.category) && form.category && (
+                    <option value={form.category}>{form.category}</option>
+                  )}
                 </select>
               </F>
               <F label="السعر الأدنى (جنيه)">
