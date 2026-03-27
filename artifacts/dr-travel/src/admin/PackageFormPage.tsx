@@ -278,7 +278,8 @@ export default function PackageFormPage() {
         method: "PUT", headers: { "Content-Type": file.type }, body: file,
       });
       if (!uploadRes.ok) { setUploadError("فشل رفع الملف إلى التخزين"); return; }
-      const publicUrl = `/api/storage/public-objects?path=${encodeURIComponent(objectPath.replace(/^\//, ""))}`;
+      // objectPath = "/objects/uploads/UUID" → served via private objects endpoint
+      const publicUrl = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
       setForm(f => ({ ...f, images: [...f.images, publicUrl] }));
     } catch (e: any) {
       setUploadError(e.message || "خطأ في الرفع");
