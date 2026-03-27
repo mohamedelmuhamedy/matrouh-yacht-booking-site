@@ -235,13 +235,13 @@ export default function PackageDetail() {
           ? `${formatPrice(pkg.priceEGP, currency, lang)} — ${formatPrice(pkg.maxPriceEGP!, currency, lang)}`
           : formatPrice(pkg.priceEGP, currency, lang)}
       </div>
-      <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>⏱ {duration}</div>
+      <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>{duration}</div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <button
           onClick={() => setShowBook(true)}
           style={{ background: `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: isMobile ? "0.95rem 1rem" : "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}>
-          {ar ? "🎯 احجز الآن" : "🎯 Book Now"}
+          {ar ? "احجز الآن" : "Book Now"}
         </button>
         <a href={`https://wa.me/201205756024?text=${waMsg}`} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: isMobile ? "0.85rem 1rem" : "0.85rem", borderRadius: "12px", fontWeight: 700, fontSize: "0.88rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", boxSizing: "border-box" }}>
@@ -251,12 +251,12 @@ export default function PackageDetail() {
 
       <div style={{ marginTop: "1.25rem", paddingTop: "1.1rem", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: isMobile ? "row" : "column", flexWrap: isMobile ? "wrap" : "nowrap", gap: isMobile ? "0.5rem 1rem" : "0.6rem" }}>
         {[
-          { icon: "👥", label: ar ? `${pkg.minGroupSize}–${pkg.maxGroupSize} أشخاص` : `${pkg.minGroupSize}–${pkg.maxGroupSize} persons` },
-          { icon: "👨‍👩‍👧‍👦", label: ar ? (pkg.familyFriendly ? "مناسبة للعائلات ✓" : "غير مخصصة للعائلات") : (pkg.familyFriendly ? "Family Friendly ✓" : "Not family-focused") },
-          { icon: "🌍", label: ar ? (pkg.foreignerFriendly ? "مناسبة للأجانب ✓" : "للمصريين بشكل رئيسي") : (pkg.foreignerFriendly ? "Foreigner Friendly ✓" : "Primarily for Egyptians") },
+          { label: ar ? `${pkg.minGroupSize}–${pkg.maxGroupSize} أشخاص` : `${pkg.minGroupSize}–${pkg.maxGroupSize} persons` },
+          { label: ar ? (pkg.familyFriendly ? "مناسبة للعائلات ✓" : "غير مخصصة للعائلات") : (pkg.familyFriendly ? "Family Friendly ✓" : "Not family-focused") },
+          { label: ar ? (pkg.foreignerFriendly ? "مناسبة للأجانب ✓" : "للمصريين بشكل رئيسي") : (pkg.foreignerFriendly ? "Foreigner Friendly ✓" : "Primarily for Egyptians") },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#8899aa", fontSize: "0.78rem" }}>
-            <span>{item.icon}</span><span>{item.label}</span>
+            <span>{item.label}</span>
           </div>
         ))}
       </div>
@@ -290,7 +290,7 @@ export default function PackageDetail() {
               key={safeImg}
               src={imgs[safeImg]}
               alt={title}
-              style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55)", transition: "opacity 0.3s" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.3s" }}
               onError={() => setBrokenImgs(prev => new Set(prev).add(safeImg))}
             />
           ) : (
@@ -298,7 +298,8 @@ export default function PackageDetail() {
               {pkg.icon}
             </div>
           )}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, #0D1B2A 100%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.38)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 25%, #0D1B2A 100%)" }} />
 
           {/* Prev / Next arrows — only shown when there are multiple valid images */}
           {imgCount > 1 && (<>
@@ -318,7 +319,6 @@ export default function PackageDetail() {
           </>)}
 
           <div style={{ position: "absolute", bottom: isMobile ? "2rem" : "3rem", left: 0, right: 0, padding: isMobile ? "0 1rem" : "0 2rem", textAlign: "center" }}>
-            <div style={{ fontSize: isMobile ? "2.5rem" : "3.5rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
             <h1 style={{ fontSize: isMobile ? (isXs ? "1.3rem" : "1.55rem") : "2.2rem", fontWeight: 900, color: "white", margin: 0, lineHeight: 1.25, padding: isMobile ? "0 0.5rem" : "0", wordBreak: "break-word" }}>{title}</h1>
           </div>
         </div>
@@ -355,8 +355,8 @@ export default function PackageDetail() {
               )}
               {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
               {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
-              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>⭐ {pkg.rating} ({pkg.reviewCount})</span>
-              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>⏱ {duration}</span>
+              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
+              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{duration}</span>
               {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
             </div>
 
@@ -371,11 +371,10 @@ export default function PackageDetail() {
 
             {whyTrip.length > 0 && (
               <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "14px", padding: "1.1rem" }}>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
+                <h2 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                   {whyTrip.map((item, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem", color: "#c7d2e8", fontSize: "0.85rem" }}>
-                      <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "1px" }}>{(item as any).icon}</span>
                       <span style={{ lineHeight: 1.5 }}>{(item as any).text}</span>
                     </div>
                   ))}
@@ -387,7 +386,7 @@ export default function PackageDetail() {
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 {includes.length > 0 && (
                   <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
-                    <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
+                    <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "يشمل" : "Includes"}</div>
                     {includes.map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
                         <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
@@ -397,7 +396,7 @@ export default function PackageDetail() {
                 )}
                 {excludes.length > 0 && (
                   <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
-                    <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
+                    <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "لا يشمل" : "Not Included"}</div>
                     {excludes.map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
                         <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
@@ -430,7 +429,7 @@ export default function PackageDetail() {
 
             {whatToBring.length > 0 && (
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
+                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                 <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
                   {whatToBring.map((item, i) => (
                     <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.3rem 0.75rem", borderRadius: "50px", fontSize: "0.75rem" }}>{item}</span>
@@ -441,7 +440,7 @@ export default function PackageDetail() {
 
             {showCancellation && cancellation && (
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
+                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
                 <p style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
               </div>
             )}
@@ -479,8 +478,8 @@ export default function PackageDetail() {
                 )}
                 {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
                 {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
-                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>⭐ {pkg.rating} ({pkg.reviewCount})</span>
-                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>⏱ {duration}</span>
+                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
+                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{duration}</span>
                 {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
               </div>
 
@@ -493,11 +492,10 @@ export default function PackageDetail() {
 
               {whyTrip.length > 0 && (
                 <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "16px", padding: "1.5rem" }}>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟ 🎯" : "Why This Trip? 🎯"}</h2>
+                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
                     {whyTrip.map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "#c7d2e8", fontSize: "0.88rem" }}>
-                        <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>{(item as any).icon}</span>
                         <span>{(item as any).text}</span>
                       </div>
                     ))}
@@ -529,7 +527,7 @@ export default function PackageDetail() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
                   {includes.length > 0 && (
                     <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
-                      <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "✅ يشمل" : "✅ Includes"}</div>
+                      <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "يشمل" : "Includes"}</div>
                       {includes.map((item, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
                           <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
@@ -539,7 +537,7 @@ export default function PackageDetail() {
                   )}
                   {excludes.length > 0 && (
                     <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
-                      <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "❌ لا يشمل" : "❌ Not Included"}</div>
+                      <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "لا يشمل" : "Not Included"}</div>
                       {excludes.map((item, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
                           <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
@@ -552,7 +550,7 @@ export default function PackageDetail() {
 
               {whatToBring.length > 0 && (
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "🎒 ماذا تحضر معك؟" : "🎒 What to Bring?"}</div>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     {whatToBring.map((item, i) => (
                       <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.35rem 0.85rem", borderRadius: "50px", fontSize: "0.78rem" }}>{item}</span>
@@ -563,7 +561,7 @@ export default function PackageDetail() {
 
               {cancellation && (
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "📋 سياسة الإلغاء" : "📋 Cancellation Policy"}</div>
+                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
                   <p style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>
                 </div>
               )}
@@ -601,7 +599,6 @@ export default function PackageDetail() {
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "0.85rem", marginBottom: "0.6rem", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: "0.75rem" }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}>
-                      <span style={{ fontSize: "1.5rem" }}>{s.icon}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ color: "white", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
                         <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang)}</div>
@@ -624,7 +621,7 @@ export default function PackageDetail() {
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
             <div>
               <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.25rem" }}>
-                {ar ? "🎯 احجز رحلتك الآن" : "🎯 Book Your Trip"}
+                {ar ? "احجز رحلتك الآن" : "Book Your Trip"}
               </h3>
               <p style={{ color: "#667788", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
                 {ar ? "أكمل البيانات وسنتواصل معك فوراً" : "Fill in your details and we'll contact you right away"}
@@ -638,7 +635,6 @@ export default function PackageDetail() {
 
           {/* Package preview chip */}
           <div style={{ background: `${pkg.color}12`, border: `1px solid ${pkg.color}28`, borderRadius: "14px", padding: "0.9rem 1.1rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span style={{ fontSize: "1.75rem", flexShrink: 0 }}>{pkg.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
               <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", fontFamily: "Montserrat, sans-serif" }}>
