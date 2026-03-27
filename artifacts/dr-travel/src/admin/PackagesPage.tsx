@@ -117,7 +117,9 @@ export default function PackagesPage() {
               <div key={pkg.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                   {pkg.images?.[0] ? (
-                    <img src={pkg.images[0]} alt={pkg.titleAr}
+                    <img
+                      src={(() => { const p = pkg.images[0]; return p.startsWith("http") || p.startsWith("/api/") ? p : `/api/storage/objects?objectPath=${encodeURIComponent(p)}`; })()}
+                      alt={pkg.titleAr}
                       style={{ width: 80, height: 60, objectFit: "cover", borderRadius: "10px", flexShrink: 0 }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (

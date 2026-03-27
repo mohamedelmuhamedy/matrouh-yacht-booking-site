@@ -166,8 +166,9 @@ export default function TripsPage() {
               const title = ar ? pkg.titleAr : pkg.titleEn;
               const desc = ar ? pkg.descriptionAr : pkg.descriptionEn;
               const badge = ar ? pkg.badgeAr : pkg.badgeEn;
-              const imgSrc = pkg.images?.[0]
-                ? (pkg.images[0].startsWith("http") ? pkg.images[0] : `/api/storage/objects?objectPath=${encodeURIComponent(pkg.images[0])}`)
+              const rawImg = pkg.images?.[0] ?? "";
+              const imgSrc = rawImg
+                ? (rawImg.startsWith("http") || rawImg.startsWith("/api/") ? rawImg : `/api/storage/objects?objectPath=${encodeURIComponent(rawImg)}`)
                 : null;
 
               return (

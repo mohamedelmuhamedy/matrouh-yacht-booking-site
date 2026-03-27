@@ -112,8 +112,17 @@ export default function PackageDetail() {
     setBookDone(true);
   };
 
+  // Convert a stored image path to the correct API URL
+  // - Already a full http/https URL or an /api/ path → use as-is
+  // - Raw objectPath (e.g. "objects/uploads/uuid") → wrap in storage endpoint
+  const toImgUrl = (path: string): string => {
+    if (!path) return "";
+    if (path.startsWith("http") || path.startsWith("/api/")) return path;
+    return `/api/storage/objects?objectPath=${encodeURIComponent(path)}`;
+  };
+
   // Derive a stable image count and safe index BEFORE any navigation callbacks
-  const imgs = pkg?.images ?? [];
+  const imgs = (pkg?.images ?? []).map(toImgUrl);
   const imgCount = imgs.length;
   const safeImg = imgCount > 0 ? Math.min(Math.max(activeImg, 0), imgCount - 1) : 0;
 
