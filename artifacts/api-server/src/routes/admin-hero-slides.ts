@@ -50,7 +50,7 @@ router.post("/admin/hero-slides/restore-defaults", authMiddleware, async (_req, 
   try {
     await db.delete(heroSlides);
     const [row] = await db.insert(heroSlides).values({
-      url: "/opengraph.jpg",
+      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=85",
       type: "image",
       duration: 8,
       sortOrder: 0,
