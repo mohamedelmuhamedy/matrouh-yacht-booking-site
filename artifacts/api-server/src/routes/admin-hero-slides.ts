@@ -45,6 +45,23 @@ router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
   }
 });
 
+// Admin: restore default slides (must be before /:id route)
+router.post("/admin/hero-slides/restore-defaults", authMiddleware, async (_req, res) => {
+  try {
+    await db.delete(heroSlides);
+    const [row] = await db.insert(heroSlides).values({
+      url: "/opengraph.jpg",
+      type: "image",
+      duration: 8,
+      sortOrder: 0,
+      isActive: true,
+    }).returning();
+    return res.json({ success: true, slide: row });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Failed to restore defaults" });
+  }
+});
+
 // Admin: reorder slides (must be before /:id route)
 router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
   try {

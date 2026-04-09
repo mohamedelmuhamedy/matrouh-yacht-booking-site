@@ -63,6 +63,8 @@ export default function AdminHeroSlidesPage() {
   const [uploadProgress, setUploadProgress] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<HeroSlide | null>(null);
   const [savingTransition, setSavingTransition] = useState(false);
+  const [restoreConfirm, setRestoreConfirm] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { success, error: toastErr } = useToast();
 
@@ -138,6 +140,14 @@ export default function AdminHeroSlidesPage() {
     setDeleteTarget(null);
   };
 
+  const restoreDefaults = async () => {
+    setRestoring(true);
+    const r = await adminFetch("/admin/hero-slides/restore-defaults", { method: "POST" });
+    if (r.ok) { success("✅ تم استعادة الصورة الافتراضية"); load(); } else { toastErr("فشل الاستعادة"); }
+    setRestoring(false);
+    setRestoreConfirm(false);
+  };
+
   const saveTransition = async (value: string) => {
     setTransition(value);
     setSavingTransition(true);
@@ -161,11 +171,28 @@ export default function AdminHeroSlidesPage() {
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1.25rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
-      <div style={{ marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0D1B2A", margin: 0 }}>🎬 خلفية الهيرو — الشرائح</h1>
-        <p style={{ color: "#64748b", fontSize: "0.9rem", marginTop: "0.35rem" }}>
-          ارفع صور أو فيديوهات تظهر كخلفية متحركة في قسم الهيرو
-        </p>
+      <div style={{ marginBottom: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0D1B2A", margin: 0 }}>🎬 خلفية الهيرو — الشرائح</h1>
+          <p style={{ color: "#64748b", fontSize: "0.9rem", marginTop: "0.35rem" }}>
+            ارفع صور أو فيديوهات تظهر كخلفية متحركة في قسم الهيرو
+          </p>
+        </div>
+        <button
+          onClick={() => setRestoreConfirm(true)}
+          disabled={restoring}
+          style={{
+            display: "flex", alignItems: "center", gap: "0.45rem",
+            padding: "0.6rem 1.2rem", borderRadius: "10px",
+            border: "1.5px solid #fbbf24", background: "#fffbeb",
+            color: "#92400e", cursor: restoring ? "not-allowed" : "pointer",
+            fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.88rem",
+            opacity: restoring ? 0.6 : 1, transition: "all 0.2s", flexShrink: 0,
+          }}
+          title="حذف جميع الشرائح واستعادة الصورة الافتراضية"
+        >
+          🔄 {restoring ? "جاري الاستعادة..." : "استعادة الافتراضي"}
+        </button>
       </div>
 
       {/* Transition selector */}
@@ -329,6 +356,17 @@ export default function AdminHeroSlidesPage() {
         danger
         onConfirm={() => deleteTarget && deleteSlide(deleteTarget)}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={restoreConfirm}
+        title="استعادة الصورة الافتراضية"
+        message="سيتم حذف جميع الشرائح الحالية واستبدالها بالصورة الافتراضية الأصلية. هل أنت متأكد؟"
+        confirmLabel="نعم، استعادة"
+        cancelLabel="إلغاء"
+        danger
+        onConfirm={restoreDefaults}
+        onCancel={() => setRestoreConfirm(false)}
       />
     </div>
   );
