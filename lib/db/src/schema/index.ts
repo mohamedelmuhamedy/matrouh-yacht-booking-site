@@ -8,3 +8,4 @@ export * from "./referral_rewards";
 export * from "./gallery_albums";
 export * from "./gallery_items";
 export * from "./categories";
+export * from "./hero_slides";

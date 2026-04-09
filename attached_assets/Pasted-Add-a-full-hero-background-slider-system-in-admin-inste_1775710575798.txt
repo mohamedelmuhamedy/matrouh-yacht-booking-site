@@ -1,0 +1,63 @@
+Add a full hero background slider system in admin instead of the single fixed background.
+
+Requirements:
+
+1) Admin control
+- Replace single hero background setting with a new background manager
+- Admin can upload multiple backgrounds
+- Each item can be:
+  - image
+  - video
+- Admin can reorder items
+- Admin can delete items
+- Admin can set duration per item (how many seconds it stays before switching)
+
+2) Transitions
+- Add 4 transition options that admin can choose from for the hero background slider
+- Example types can be: fade, slide, zoom, dissolve
+- Only one transition type is active at a time for the hero
+- Transition choice should be saved in settings
+
+3) Playback behavior
+- If there are 2 or more items:
+  - backgrounds auto-play in sequence
+  - apply selected transition
+  - when last item finishes, loop back to the first item
+- If there is only 1 item:
+  - show it as a fixed background with no transition
+- If there are no uploaded items:
+  - keep current existing hero background as the default fallback
+
+4) Video behavior
+- Video can be used as a hero background item
+- Respect the admin duration setting if needed, but make playback smooth and professional
+- Loop behavior must still work cleanly with mixed image/video items
+
+5) UI/UX
+- Keep current hero design and overlay text/buttons exactly as they are
+- Do not break mobile layout
+- Background slider must feel premium and smooth
+- Admin page should clearly show:
+  - preview thumbnail
+  - type (image/video)
+  - duration
+  - order
+  - selected transition mode
+
+6) Persistence
+- Everything must save correctly in DB/storage and work in both preview and published production
+- Existing current background should remain the default until admin adds more items
+
+7) Test it yourself
+- Test with:
+  - one image only
+  - multiple images
+  - image + video mixed
+  - loop restart after last item
+  - each of the 4 transitions
+  - production behavior after publish
+
+After finishing, send only a short summary:
+- what was added
+- where admin controls it
+- whether loop + transitions + production were verified

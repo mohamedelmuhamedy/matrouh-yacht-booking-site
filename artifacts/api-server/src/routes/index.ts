@@ -12,6 +12,7 @@ import storageRouter from "./storage";
 import adminGalleryRouter from "./admin-gallery";
 import publicGalleryRouter from "./public-gallery";
 import categoriesRouter from "./admin-categories";
+import heroSlidesRouter from "./admin-hero-slides";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(storageRouter);
 router.use(adminGalleryRouter);
 router.use(publicGalleryRouter);
 router.use(categoriesRouter);
+router.use(heroSlidesRouter);
 
 export default router;

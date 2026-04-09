@@ -15,6 +15,7 @@ import GalleryDetailPage from "./pages/GalleryDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import { PACKAGES_DATA } from "./data/packages";
+import HeroSlider from "./components/HeroSlider";
 import { formatPrice, CurrencyCode } from "./data/currencies";
 
 interface DisplayPkg {
@@ -424,11 +425,27 @@ function Hero() {
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [heroSlides, setHeroSlides] = useState<{ id: number; url: string; type: string; duration: number; sortOrder: number }[]>([]);
+  const [heroTransition, setHeroTransition] = useState<"fade" | "slide" | "zoom" | "dissolve">("fade");
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    fetch("/api/hero-slides").then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setHeroSlides(d);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (settings.hero_transition) {
+      setHeroTransition(settings.hero_transition as any);
+    }
+  }, [settings.hero_transition]);
+
   const titleMain = ar
     ? (settings.hero_title_primary_ar || (() => {
         const w = (settings.hero_title_ar || `${t.hero.title1} ${t.hero.title2}`).split(" ");
@@ -450,14 +467,10 @@ function Hero() {
   const subtitle = ar
     ? (settings.hero_subtitle_ar || t.hero.subtitle)
     : (settings.hero_subtitle_en || t.hero.subtitle);
-  const heroBg = settings.hero_bg_url
-    ? {
-        background: `linear-gradient(135deg, rgba(13,27,42,0.85) 0%, rgba(13,27,42,0.4) 50%, rgba(13,27,42,0.85) 100%), url('${settings.hero_bg_url}') center/cover no-repeat`,
-      }
-    : undefined;
 
   return (
-    <section id="hero" className="hero-bg" style={{ paddingTop: "80px", ...(heroBg ?? {}) }}>
+    <section id="hero" className="hero-bg" style={{ paddingTop: "80px", position: "relative", overflow: "hidden" }}>
+      <HeroSlider slides={heroSlides} transition={heroTransition} fallbackBgUrl={settings.hero_bg_url} />
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: isMobile ? "1rem" : "1.75rem" }}>

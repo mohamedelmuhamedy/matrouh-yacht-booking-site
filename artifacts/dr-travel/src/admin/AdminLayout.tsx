@@ -10,6 +10,7 @@ const NAV = [
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
+  { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
 ];
 const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials" && n.path !== "/admin/settings");

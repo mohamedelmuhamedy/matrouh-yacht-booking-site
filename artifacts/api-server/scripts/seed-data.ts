@@ -391,6 +391,7 @@ async function main() {
     { key: "reward_after_x",         value: "1" },
     { key: "reward_description_ar",  value: "" },
     { key: "reward_description_en",  value: "" },
+    { key: "hero_transition",        value: "fade" },
   ];
   for (const setting of realSettings) {
     await db.insert(siteSettings).values(setting)
