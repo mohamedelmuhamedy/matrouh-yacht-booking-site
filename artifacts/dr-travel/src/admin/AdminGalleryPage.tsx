@@ -115,40 +115,29 @@ export default function AdminGalleryPage() {
     else { toastErr("فشل التحديث"); }
   };
 
-  const uploadFile = async (file: File): Promise<{ url: string } | { error: string }> => {
-    let reqRes: Response;
-    try {
-      reqRes = await adminFetch("/storage/uploads/request-url", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
-      });
-    } catch {
-      return { error: "تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت." };
-    }
-
-    if (!reqRes.ok) {
-      let errMsg = "فشل طلب الرفع";
-      try {
-        const body = await reqRes.json();
-        if (body?.error) errMsg = body.error;
-      } catch { /* ignore */ }
-      return { error: errMsg };
-    }
-
-    const { uploadURL, objectPath } = await reqRes.json();
-
-    let upRes: Response;
-    try {
-      upRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-    } catch {
-      return { error: "فشل رفع الملف إلى التخزين. حاول مرة أخرى." };
-    }
-
-    if (!upRes.ok) {
-      return { error: `فشل رفع الملف (${upRes.status}). حاول مرة أخرى.` };
-    }
-
-    return { url: `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}` };
+  const uploadFile = (file: File, onProgress?: (pct: number) => void): Promise<{ url: string } | { error: string }> => {
+    return new Promise((resolve) => {
+      const token = localStorage.getItem("admin_token");
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/admin/storage/upload");
+      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.setRequestHeader("X-Content-Type", file.type);
+      xhr.setRequestHeader("X-File-Name", file.name);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve({ url: JSON.parse(xhr.responseText).url }); }
+          catch { resolve({ error: "خطأ في استجابة الخادم" }); }
+        } else {
+          try { resolve({ error: JSON.parse(xhr.responseText)?.error || `فشل الرفع (${xhr.status})` }); }
+          catch { resolve({ error: `فشل الرفع (${xhr.status})` }); }
+        }
+      };
+      xhr.onerror = () => resolve({ error: "خطأ في الاتصال بالخادم" });
+      xhr.send(file);
+    });
   };
 
   const uploadCover = async (file: File) => {
@@ -163,8 +152,10 @@ export default function AdminGalleryPage() {
     if (!openAlbum) return;
     const isVideo = file.type.startsWith("video");
     setUploading(true); setUploadErr("");
-    setUploadProgress(isVideo ? "⏳ جاري رفع الفيديو... (قد يستغرق دقيقة)" : "⏳ جاري رفع الصورة...");
-    const result = await uploadFile(file);
+    setUploadProgress(isVideo ? "⏳ جاري رفع الفيديو... 0%" : "⏳ جاري رفع الصورة... 0%");
+    const result = await uploadFile(file, (pct) => {
+      setUploadProgress(isVideo ? `⏳ جاري رفع الفيديو... ${pct}%` : `⏳ جاري رفع الصورة... ${pct}%`);
+    });
     if ("error" in result) { setUploadErr(result.error); setUploading(false); setUploadProgress(""); return; }
     setUploadProgress("💾 جاري الحفظ...");
     const type = isVideo ? "video" : "image";

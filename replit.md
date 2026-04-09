@@ -164,7 +164,7 @@ Full-stack React + Vite tourism website for DR Travel (Marsa Matruh, Egypt) with
 - Admin settings: GET/PUT `/api/admin/settings`
 - Gallery (public): `GET /api/gallery/albums` (visible only, includes itemCount + previewItems[4]); `GET /api/gallery/albums/:slug`
 - Gallery (admin): CRUD `/api/admin/gallery/albums`; items CRUD `/api/admin/gallery/albums/:albumId/items`, `PUT/DELETE /api/admin/gallery/items/:id`
-- Object Storage: POST `/api/storage/uploads/request-url` (signed URL for upload, auth required); GET `/api/storage/public-objects?path=...`; GET `/api/storage/objects?objectPath=...`
+- File Upload (filesystem-based): POST `/api/admin/storage/upload` (streams raw file body directly to disk, auth required); GET `/api/uploads/:filename` (serves uploaded files with range request support for video). Files stored in `/home/runner/workspace/data/uploads/` (gitignored). Replaces Replit Object Storage (which has a 401 sidecar issue). Supported types: jpeg/png/webp/gif/mp4/webm/mov. Max: 15MB images, 300MB videos.
 - All admin routes require Bearer JWT header
 - `getJwtSecret()` throws if JWT_SECRET env var not set (no hardcoded secrets)
 

@@ -34,37 +34,27 @@ async function uploadFile(
   file: File,
   onProgress?: (pct: number) => void,
 ): Promise<{ url: string } | { error: string }> {
-  let reqRes: Response;
-  try {
-    reqRes = await adminFetch("/storage/uploads/request-url", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
-    });
-  } catch {
-    return { error: "تعذّر الاتصال بالخادم" };
-  }
-  if (!reqRes.ok) {
-    const body = await reqRes.json().catch(() => ({}));
-    return { error: body?.error || "فشل طلب الرفع" };
-  }
-  const { uploadURL, objectPath } = await reqRes.json();
-
-  // Use XHR for upload progress tracking
-  const uploadResult = await new Promise<{ ok: boolean; status: number }>((resolve) => {
+  const token = localStorage.getItem("admin_token");
+  const uploadResult = await new Promise<{ ok: boolean; status: number; response: string }>((resolve) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("PUT", uploadURL);
-    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.open("POST", "/api/admin/storage/upload");
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("X-Content-Type", file.type);
+    xhr.setRequestHeader("X-File-Name", file.name);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
     };
-    xhr.onload = () => resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status });
-    xhr.onerror = () => resolve({ ok: false, status: 0 });
+    xhr.onload = () => resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, response: xhr.responseText });
+    xhr.onerror = () => resolve({ ok: false, status: 0, response: "" });
     xhr.send(file);
   });
 
-  if (!uploadResult.ok) return { error: `فشل رفع الملف (${uploadResult.status || "خطأ في الشبكة"})` };
-  return { url: `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}` };
+  if (!uploadResult.ok) {
+    const body = JSON.parse(uploadResult.response || "{}");
+    return { error: body?.error || `فشل رفع الملف (${uploadResult.status || "خطأ في الشبكة"})` };
+  }
+  const { url } = JSON.parse(uploadResult.response);
+  return { url };
 }
 
 export default function AdminHeroSlidesPage() {
