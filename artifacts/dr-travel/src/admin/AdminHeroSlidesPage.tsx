@@ -30,7 +30,10 @@ function toImgUrl(url: string) {
   return `/api/storage/objects?objectPath=${encodeURIComponent(url)}`;
 }
 
-async function uploadFile(file: File): Promise<{ url: string } | { error: string }> {
+async function uploadFile(
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<{ url: string } | { error: string }> {
   let reqRes: Response;
   try {
     reqRes = await adminFetch("/storage/uploads/request-url", {
@@ -46,12 +49,21 @@ async function uploadFile(file: File): Promise<{ url: string } | { error: string
     return { error: body?.error || "فشل طلب الرفع" };
   }
   const { uploadURL, objectPath } = await reqRes.json();
-  try {
-    const upRes = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-    if (!upRes.ok) return { error: `فشل رفع الملف (${upRes.status})` };
-  } catch {
-    return { error: "فشل رفع الملف" };
-  }
+
+  // Use XHR for upload progress tracking
+  const uploadResult = await new Promise<{ ok: boolean; status: number }>((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadURL);
+    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status });
+    xhr.onerror = () => resolve({ ok: false, status: 0 });
+    xhr.send(file);
+  });
+
+  if (!uploadResult.ok) return { error: `فشل رفع الملف (${uploadResult.status || "خطأ في الشبكة"})` };
   return { url: `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}` };
 }
 
@@ -61,6 +73,7 @@ export default function AdminHeroSlidesPage() {
   const [transition, setTransition] = useState("fade");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [uploadPct, setUploadPct] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<HeroSlide | null>(null);
   const [savingTransition, setSavingTransition] = useState(false);
   const [restoreConfirm, setRestoreConfirm] = useState(false);
@@ -90,11 +103,14 @@ export default function AdminHeroSlidesPage() {
 
   const handleUpload = async (files: FileList) => {
     setUploading(true);
+    setUploadPct(0);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const isVideo = file.type.startsWith("video");
-      setUploadProgress(`${isVideo ? "⏳ رفع فيديو" : "⏳ رفع صورة"} ${i + 1}/${files.length}...`);
-      const result = await uploadFile(file);
+      const label = isVideo ? "فيديو" : "صورة";
+      setUploadProgress(`${label} ${i + 1}/${files.length}`);
+      setUploadPct(0);
+      const result = await uploadFile(file, (pct) => setUploadPct(pct));
       if ("error" in result) { toastErr(result.error); continue; }
       const type = isVideo ? "video" : "image";
       const r = await adminFetch("/admin/hero-slides", {
@@ -106,6 +122,7 @@ export default function AdminHeroSlidesPage() {
     }
     setUploading(false);
     setUploadProgress("");
+    setUploadPct(0);
     if (fileRef.current) fileRef.current.value = "";
     load();
     success("✅ تم رفع العناصر");
@@ -245,12 +262,26 @@ export default function AdminHeroSlidesPage() {
           onChange={e => { if (e.target.files?.length) handleUpload(e.target.files); }}
         />
         {uploading ? (
-          <div style={{ color: "#00AAFF", fontWeight: 700 }}>{uploadProgress || "⏳ جاري الرفع..."}</div>
+          <div style={{ width: "100%", textAlign: "center" }}>
+            <div style={{ color: "#00AAFF", fontWeight: 700, marginBottom: "0.75rem" }}>
+              ⏳ جاري رفع {uploadProgress}... {uploadPct}%
+            </div>
+            <div style={{ width: "100%", height: "10px", background: "#e2eaf2", borderRadius: "99px", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: "99px",
+                background: "linear-gradient(90deg, #00AAFF, #0066cc)",
+                width: `${uploadPct}%`, transition: "width 0.3s ease",
+              }} />
+            </div>
+            <div style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "0.5rem" }}>
+              لا تغلق الصفحة أثناء الرفع
+            </div>
+          </div>
         ) : (
           <>
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📁</div>
             <div style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "1rem" }}>اسحب وأفلت أو اضغط لرفع صور/فيديوهات</div>
-            <div style={{ color: "#64748b", fontSize: "0.82rem", marginTop: "0.35rem" }}>JPG, PNG, WebP, MP4, WebM, MOV</div>
+            <div style={{ color: "#64748b", fontSize: "0.82rem", marginTop: "0.35rem" }}>JPG, PNG, WebP — حتى 15MB · MP4, WebM, MOV — حتى 300MB</div>
           </>
         )}
       </div>
