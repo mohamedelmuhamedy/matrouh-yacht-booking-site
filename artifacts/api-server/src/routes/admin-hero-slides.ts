@@ -45,6 +45,19 @@ router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
   }
 });
 
+// Admin: reorder slides (must be before /:id route)
+router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
+  try {
+    const { order }: { order: { id: number; sortOrder: number }[] } = req.body;
+    for (const { id, sortOrder } of order) {
+      await db.update(heroSlides).set({ sortOrder }).where(eq(heroSlides.id, id));
+    }
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Failed to reorder" });
+  }
+});
+
 // Admin: update a slide (duration, sortOrder, isActive)
 router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
@@ -58,19 +71,6 @@ router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
     return res.json(row);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || "Failed to update slide" });
-  }
-});
-
-// Admin: reorder slides
-router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
-  try {
-    const { order }: { order: { id: number; sortOrder: number }[] } = req.body;
-    for (const { id, sortOrder } of order) {
-      await db.update(heroSlides).set({ sortOrder }).where(eq(heroSlides.id, id));
-    }
-    return res.json({ success: true });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to reorder" });
   }
 });
 

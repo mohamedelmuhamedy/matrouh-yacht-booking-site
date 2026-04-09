@@ -273,37 +273,63 @@ export default function AdminHeroSlidesPage() {
               </div>
 
               {/* Controls */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", flexShrink: 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
                 <button
                   onClick={() => moveSlide(i, -1)}
                   disabled={i === 0}
-                  style={{ padding: "0.4rem 0.8rem", borderRadius: "7px", border: "1.5px solid #d0dce8", background: "white", cursor: i === 0 ? "not-allowed" : "pointer", opacity: i === 0 ? 0.4 : 1 }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                    padding: "0.45rem 0.9rem", borderRadius: "8px",
+                    border: "1.5px solid #b0c4de", background: i === 0 ? "#f8fafc" : "#eef4fb",
+                    color: i === 0 ? "#b0bec5" : "#1565c0",
+                    cursor: i === 0 ? "not-allowed" : "pointer",
+                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
+                    transition: "all 0.15s",
+                  }}
                   title="تحريك لأعلى"
-                >▲</button>
+                >▲ أعلى</button>
                 <button
                   onClick={() => moveSlide(i, 1)}
                   disabled={i === slides.length - 1}
-                  style={{ padding: "0.4rem 0.8rem", borderRadius: "7px", border: "1.5px solid #d0dce8", background: "white", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", opacity: i === slides.length - 1 ? 0.4 : 1 }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                    padding: "0.45rem 0.9rem", borderRadius: "8px",
+                    border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "#f8fafc" : "#eef4fb",
+                    color: i === slides.length - 1 ? "#b0bec5" : "#1565c0",
+                    cursor: i === slides.length - 1 ? "not-allowed" : "pointer",
+                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
+                    transition: "all 0.15s",
+                  }}
                   title="تحريك لأسفل"
-                >▼</button>
+                >▼ أسفل</button>
                 <button
                   onClick={() => setDeleteTarget(slide)}
-                  style={{ padding: "0.4rem 0.8rem", borderRadius: "7px", border: "1.5px solid #fecaca", background: "#fff5f5", cursor: "pointer", color: "#ef4444" }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                    padding: "0.45rem 0.9rem", borderRadius: "8px",
+                    border: "1.5px solid #fca5a5", background: "#fef2f2",
+                    color: "#dc2626", cursor: "pointer",
+                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
+                    transition: "all 0.15s",
+                  }}
                   title="حذف"
-                >🗑️</button>
+                >🗑️ حذف</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {deleteTarget && (
-        <ConfirmDialog
-          message={`هل تريد حذف هذه الشريحة؟`}
-          onConfirm={() => deleteSlide(deleteTarget)}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="حذف الشريحة"
+        message="هل أنت متأكد من حذف هذه الشريحة؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
+        cancelLabel="إلغاء"
+        danger
+        onConfirm={() => deleteTarget && deleteSlide(deleteTarget)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
