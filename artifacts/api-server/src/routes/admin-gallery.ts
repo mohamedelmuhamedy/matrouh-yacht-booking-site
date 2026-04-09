@@ -2,6 +2,20 @@ import { Router } from "express";
 import { db, galleryAlbums, galleryItems } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { existsSync, unlinkSync } from "fs";
+import { join } from "path";
+
+const UPLOAD_DIR = "/home/runner/workspace/data/uploads";
+
+function deleteUploadedFile(url: string) {
+  try {
+    if (!url || !url.startsWith("/api/uploads/")) return;
+    const filename = url.replace("/api/uploads/", "");
+    if (!filename || filename.includes("/") || filename.includes("..")) return;
+    const filePath = join(UPLOAD_DIR, filename);
+    if (existsSync(filePath)) unlinkSync(filePath);
+  } catch {}
+}
 
 const router = Router();
 
@@ -84,6 +98,8 @@ router.delete("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const items = await db.select().from(galleryItems).where(eq(galleryItems.albumId, id));
+    for (const item of items) deleteUploadedFile(item.url);
     await db.delete(galleryItems).where(eq(galleryItems.albumId, id));
     await db.delete(galleryAlbums).where(eq(galleryAlbums.id, id));
     return res.json({ ok: true });
@@ -148,6 +164,8 @@ router.delete("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const [item] = await db.select().from(galleryItems).where(eq(galleryItems.id, id));
+    if (item) deleteUploadedFile(item.url);
     await db.delete(galleryItems).where(eq(galleryItems.id, id));
     return res.json({ ok: true });
   } catch {

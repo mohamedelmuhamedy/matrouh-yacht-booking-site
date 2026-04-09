@@ -3,6 +3,20 @@ import { db } from "@workspace/db";
 import { heroSlides } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { existsSync, unlinkSync } from "fs";
+import { join } from "path";
+
+const UPLOAD_DIR = "/home/runner/workspace/data/uploads";
+
+function deleteUploadedFile(url: string) {
+  try {
+    if (!url || !url.startsWith("/api/uploads/")) return;
+    const filename = url.replace("/api/uploads/", "");
+    if (!filename || filename.includes("/") || filename.includes("..")) return;
+    const filePath = join(UPLOAD_DIR, filename);
+    if (existsSync(filePath)) unlinkSync(filePath);
+  } catch {}
+}
 
 const router = Router();
 
@@ -95,6 +109,8 @@ router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
 router.delete("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    const [slide] = await db.select().from(heroSlides).where(eq(heroSlides.id, id));
+    if (slide) deleteUploadedFile(slide.url);
     await db.delete(heroSlides).where(eq(heroSlides.id, id));
     return res.json({ success: true });
   } catch (err: any) {

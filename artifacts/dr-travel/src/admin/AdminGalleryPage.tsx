@@ -340,16 +340,16 @@ export default function AdminGalleryPage() {
         </div>
       )}
 
-      {confirmDelItem && (
-        <ConfirmDialog
-          message={`حذف هذا ${confirmDelItem.type === "video" ? "الفيديو" : "الصورة"}؟ لا يمكن التراجع.`}
-          confirmText="حذف"
-          cancelText="إلغاء"
-          onConfirm={() => { deleteItem(confirmDelItem); setConfirmDelItem(null); }}
-          onCancel={() => setConfirmDelItem(null)}
-          danger
-        />
-      )}
+      <ConfirmDialog
+        isOpen={confirmDelItem !== null}
+        title={confirmDelItem?.type === "video" ? "حذف الفيديو" : "حذف الصورة"}
+        message={`هل أنت متأكد من حذف ${confirmDelItem?.type === "video" ? "هذا الفيديو" : "هذه الصورة"}؟ لا يمكن التراجع عن هذا الإجراء.`}
+        confirmLabel="حذف"
+        cancelLabel="إلغاء"
+        onConfirm={() => { if (confirmDelItem) { deleteItem(confirmDelItem); setConfirmDelItem(null); } }}
+        onCancel={() => setConfirmDelItem(null)}
+        danger
+      />
     </div>
   );
 
@@ -496,16 +496,16 @@ export default function AdminGalleryPage() {
         </div>
       )}
 
-      {confirmDelAlbum && (
-        <ConfirmDialog
-          message={`حذف ألبوم "${confirmDelAlbum.titleAr}" وجميع صوره؟ لا يمكن التراجع.`}
-          confirmText="حذف"
-          cancelText="إلغاء"
-          onConfirm={() => { deleteAlbum(confirmDelAlbum); setConfirmDelAlbum(null); }}
-          onCancel={() => setConfirmDelAlbum(null)}
-          danger
-        />
-      )}
+      <ConfirmDialog
+        isOpen={confirmDelAlbum !== null}
+        title="حذف الألبوم"
+        message={`هل أنت متأكد من حذف ألبوم "${confirmDelAlbum?.titleAr}" وجميع صوره وفيديوهاته؟ لا يمكن التراجع عن هذا الإجراء.`}
+        confirmLabel="حذف الألبوم"
+        cancelLabel="إلغاء"
+        onConfirm={() => { if (confirmDelAlbum) { deleteAlbum(confirmDelAlbum); setConfirmDelAlbum(null); } }}
+        onCancel={() => setConfirmDelAlbum(null)}
+        danger
+      />
     </div>
   );
 }

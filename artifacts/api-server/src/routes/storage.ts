@@ -138,6 +138,10 @@ router.get("/storage/objects", async (req: Request, res: Response) => {
     }
   } catch (error) {
     if (error instanceof ObjectNotFoundError) { res.status(404).json({ error: "Not found" }); return; }
+    const msg = (error as any)?.response?.data || (error as any)?.message || "";
+    if (msg === "no allowed resources" || (error as any)?.response?.status === 401) {
+      res.status(404).json({ error: "Not found" }); return;
+    }
     console.error("Error serving object:", error);
     res.status(500).json({ error: "Failed to serve file" });
   }
