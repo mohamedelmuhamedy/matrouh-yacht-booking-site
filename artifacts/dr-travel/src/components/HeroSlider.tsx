@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export interface HeroSlide {
   id: number;
@@ -18,90 +18,53 @@ interface HeroSliderProps {
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
 
-function getTransitionStyle(
-  index: number,
-  active: number,
-  prev: number,
-  transition: Transition,
-  entering: boolean,
-  total: number
-): React.CSSProperties {
-  const isActive = index === active;
-  const isPrev = index === prev;
-
-  if (!isActive && !isPrev) return { opacity: 0, pointerEvents: "none" };
-
-  switch (transition) {
-    case "fade":
-      return {
-        opacity: isActive ? 1 : 0,
-        transition: isActive ? "opacity 1.2s ease" : "opacity 1.2s ease",
-      };
-    case "dissolve":
-      return {
-        opacity: isActive ? 1 : 0,
-        transition: isActive ? "opacity 1.8s ease" : "opacity 0.9s ease 0.9s",
-      };
-    case "zoom":
-      return {
-        opacity: isActive ? 1 : 0,
-        transform: isActive ? "scale(1)" : "scale(1.06)",
-        transition: isActive
-          ? "opacity 1.2s ease, transform 6s ease"
-          : "opacity 1.2s ease",
-      };
-    case "slide": {
-      const dir = isActive ? (entering ? "100%" : "0%") : "-100%";
-      return {
-        opacity: 1,
-        transform: `translateX(${isActive ? (entering ? "0%" : "0%") : "-100%"})`,
-        transition: "transform 1.1s cubic-bezier(0.77,0,0.18,1)",
-      };
-    }
-    default:
-      return { opacity: isActive ? 1 : 0, transition: "opacity 1.2s ease" };
-  }
-}
-
 export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
-  const [entering, setEntering] = useState(false);
+  const [videoReady, setVideoReady] = useState<Record<number, boolean>>({});
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  const advance = () => {
-    setActive(cur => {
-      const next = (cur + 1) % slides.length;
-      setPrev(cur);
-      setEntering(true);
-      // reset entering flag after transition
-      setTimeout(() => setEntering(false), 1200);
-      return next;
-    });
+  const clearTimers = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
   };
+
+  const goTo = useCallback((next: number, cur: number) => {
+    setPrev(cur);
+    setActive(next);
+  }, []);
+
+  const scheduleAdvance = useCallback((fromIndex: number, durationSec: number) => {
+    clearTimers();
+    timerRef.current = setTimeout(() => {
+      if (slides.length <= 1) return;
+      const next = (fromIndex + 1) % slides.length;
+      const nextSlide = slides[next];
+      if (!nextSlide) return;
+
+      if (nextSlide.type === "video") {
+        const vid = videoRefs.current[next];
+        if (vid && vid.readyState >= 3) {
+          goTo(next, fromIndex);
+        } else {
+          retryRef.current = setTimeout(() => goTo(next, fromIndex), 3000);
+        }
+      } else {
+        goTo(next, fromIndex);
+      }
+    }, durationSec * 1000);
+  }, [slides, goTo]);
 
   useEffect(() => {
     if (slides.length <= 1) return;
     const slide = slides[active];
     if (!slide) return;
+    scheduleAdvance(active, slide.duration || 6);
+    return clearTimers;
+  }, [active, slides, scheduleAdvance]);
 
-    if (slide.type === "video") {
-      // For videos, advance after duration or let video events handle it
-      const vid = videoRefs.current[active];
-      if (vid) {
-        vid.currentTime = 0;
-        vid.play().catch(() => {});
-      }
-      timerRef.current = setTimeout(advance, (slide.duration || 6) * 1000);
-    } else {
-      timerRef.current = setTimeout(advance, (slide.duration || 6) * 1000);
-    }
-
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [active, slides]);
-
-  // Play/pause videos on active change
   useEffect(() => {
     videoRefs.current.forEach((vid, i) => {
       if (!vid) return;
@@ -114,7 +77,59 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSl
     });
   }, [active]);
 
-  // Single slide — fixed background, no transition
+  const handleVideoCanPlay = (index: number) => {
+    setVideoReady(r => ({ ...r, [index]: true }));
+    if (index === active) {
+      videoRefs.current[index]?.play().catch(() => {});
+    }
+  };
+
+  const getStyle = (i: number): React.CSSProperties => {
+    const isActive = i === active;
+    const isPrev = i === prev;
+    const showing = isActive || isPrev;
+
+    if (!showing) return { opacity: 0, pointerEvents: "none", position: "absolute", inset: 0 };
+
+    const baseStyle: React.CSSProperties = { position: "absolute", inset: 0 };
+
+    if (slides.length <= 1) return { ...baseStyle, opacity: 1 };
+
+    switch (transition) {
+      case "fade":
+      case "dissolve": {
+        const dur = transition === "dissolve" ? 1.8 : 1.2;
+        return { ...baseStyle, opacity: isActive ? 1 : 0, transition: `opacity ${dur}s ease` };
+      }
+      case "zoom":
+        return {
+          ...baseStyle,
+          opacity: isActive ? 1 : 0,
+          transform: isActive ? "scale(1)" : "scale(1.06)",
+          transition: isActive ? "opacity 1.2s ease, transform 6s ease" : "opacity 1.2s ease",
+        };
+      case "slide":
+        return {
+          ...baseStyle,
+          opacity: 1,
+          transform: `translateX(${isActive ? "0%" : "-100%"})`,
+          transition: "transform 1.1s cubic-bezier(0.77,0,0.18,1)",
+        };
+      default:
+        return { ...baseStyle, opacity: isActive ? 1 : 0, transition: "opacity 1.2s ease" };
+    }
+  };
+
+  if (slides.length === 0) {
+    if (!fallbackBgUrl) return null;
+    return (
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 0,
+        background: `${OVERLAY}, url('${fallbackBgUrl}') center/cover no-repeat`,
+      }} />
+    );
+  }
+
   if (slides.length === 1) {
     const slide = slides[0];
     if (slide.type === "video") {
@@ -122,7 +137,7 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSl
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
           <div style={{ position: "absolute", inset: 0, background: OVERLAY, zIndex: 1 }} />
           <video
-            autoPlay muted loop playsInline
+            autoPlay muted loop playsInline preload="auto"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             src={slide.url}
           />
@@ -137,37 +152,23 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSl
     );
   }
 
-  // Zero slides — use fallback
-  if (slides.length === 0) {
-    if (!fallbackBgUrl) return null;
-    return (
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0,
-        background: `${OVERLAY}, url('${fallbackBgUrl}') center/cover no-repeat`,
-      }} />
-    );
-  }
-
-  // Multi-slide slider
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
       {slides.map((slide, i) => {
-        const style = getTransitionStyle(i, active, prev, transition, entering, slides.length);
-        const base: React.CSSProperties = {
-          position: "absolute", inset: 0,
-          willChange: "opacity, transform",
-          ...style,
-        };
+        const style = getStyle(i);
 
         if (slide.type === "video") {
           return (
-            <div key={slide.id} style={base}>
+            <div key={slide.id} style={style} aria-hidden={i !== active}>
               <div style={{ position: "absolute", inset: 0, background: OVERLAY, zIndex: 1 }} />
               <video
                 ref={el => { videoRefs.current[i] = el; }}
-                muted playsInline loop={slides.length === 1}
+                muted playsInline preload="auto"
+                loop={false}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 src={slide.url}
+                onCanPlay={() => handleVideoCanPlay(i)}
+                onLoadedData={() => handleVideoCanPlay(i)}
               />
             </div>
           );
@@ -177,14 +178,14 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSl
           <div
             key={slide.id}
             style={{
-              ...base,
+              ...style,
               background: `${OVERLAY}, url('${slide.url}') center/cover no-repeat`,
             }}
+            aria-hidden={i !== active}
           />
         );
       })}
 
-      {/* Slide dots */}
       {slides.length > 1 && (
         <div style={{
           position: "absolute", bottom: 72, left: "50%", transform: "translateX(-50%)",
