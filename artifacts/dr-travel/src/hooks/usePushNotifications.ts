@@ -1,13 +1,14 @@
 // Push subscription management — DR Travel
-// Always subscribes fresh with our VAPID key to avoid stale/keyless subscriptions
 
 const API = "/api";
 
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(b64);
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer as ArrayBuffer;
 }
 
 async function getVapidPublicKey(): Promise<string | null> {
@@ -21,89 +22,120 @@ async function getVapidPublicKey(): Promise<string | null> {
   }
 }
 
-// Ensure the service worker is fully updated and active before subscribing
+// Ensure the service worker is registered, updated, and active
 async function ensureSwActive(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
   try {
     const reg = await navigator.serviceWorker.register("/sw.js", {
-      updateViaCache: "none", // never use browser cache for sw.js
+      updateViaCache: "none",
     });
 
-    // Force update check
     await reg.update().catch(() => {});
 
-    // If there's a waiting SW, skip it so push handler is active now
+    // If a new SW is waiting, tell it to take over
     if (reg.waiting) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      // Give it 500ms to activate
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 600));
     }
 
-    return await navigator.serviceWorker.ready;
+    // Wait for an active SW
+    const ready = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>(r => setTimeout(() => r(null), 5000)),
+    ]);
+
+    return ready as ServiceWorkerRegistration | null;
   } catch {
     return null;
   }
 }
 
-export async function subscribeToPush(): Promise<{ ok: boolean; error?: string }> {
+function friendlyError(err: unknown): string {
+  const msg = (err as any)?.message ?? String(err ?? "");
+  const lower = msg.toLowerCase();
+
+  if (lower.includes("push service error") || lower.includes("registration failed")) {
+    return "push_service_error";
+  }
+  if (lower.includes("permission") || lower.includes("denied")) {
+    return "permission_denied";
+  }
+  if (lower.includes("network") || lower.includes("fetch")) {
+    return "network_error";
+  }
+  if (lower.includes("not supported") || lower.includes("pushmanager")) {
+    return "not_supported";
+  }
+  return "unknown";
+}
+
+export async function subscribeToPush(): Promise<{ ok: boolean; errorCode?: string; error?: string }> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { ok: false, error: "Push not supported" };
+    return { ok: false, errorCode: "not_supported" };
   }
 
   try {
     const perm = await Notification.requestPermission();
-    if (perm !== "granted") {
-      return { ok: false, error: perm === "denied" ? "Permission denied" : "Permission dismissed" };
-    }
+    if (perm === "denied") return { ok: false, errorCode: "permission_denied" };
+    if (perm !== "granted") return { ok: false, errorCode: "permission_dismissed" };
 
     const publicKey = await getVapidPublicKey();
-    if (!publicKey) return { ok: false, error: "VAPID key unavailable" };
+    if (!publicKey) return { ok: false, errorCode: "server_error" };
 
     const reg = await ensureSwActive();
-    if (!reg) return { ok: false, error: "Service worker not available" };
+    if (!reg) return { ok: false, errorCode: "sw_error" };
 
-    // CRITICAL: Always unsubscribe and resubscribe with our VAPID key.
-    // Reusing old subscriptions (e.g. created before VAPID was configured,
-    // or with a different VAPID key) causes silent FCM delivery failures
-    // because the push arrives but the SW can't decrypt/handle it.
-    const existing = await reg.pushManager.getSubscription();
-    if (existing) {
-      const json = existing.toJSON();
+    // Try to reuse an existing valid subscription first
+    let sub = await reg.pushManager.getSubscription();
+
+    if (sub) {
+      const json = sub.toJSON();
       const hasKeys = !!(json.keys?.p256dh && json.keys?.auth);
+
       if (hasKeys) {
-        // Subscription has VAPID keys — check if it matches our current key
-        // by comparing the applicationServerKey option
+        // Check if this subscription uses our current VAPID key
+        let sameKey = false;
         try {
-          const appServerKey = existing.options?.applicationServerKey;
-          if (appServerKey) {
-            const existingKey = btoa(String.fromCharCode(...new Uint8Array(appServerKey)))
+          const akBuf = sub.options?.applicationServerKey;
+          if (akBuf) {
+            const existingKey = btoa(String.fromCharCode(...new Uint8Array(akBuf)))
               .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-            const cleanPublicKey = publicKey.replace(/=/g, "");
-            if (existingKey === cleanPublicKey) {
-              // Same VAPID key — subscription is valid, just resend to server
-              await sendSubToServer(existing);
-              return { ok: true };
-            }
+            const wantKey = publicKey.replace(/=/g, "");
+            sameKey = existingKey === wantKey;
           }
         } catch {
-          // options not supported — fall through to unsubscribe
+          // options.applicationServerKey unavailable in this browser —
+          // assume it's the same key to avoid breaking valid subscriptions
+          sameKey = true;
+        }
+
+        if (sameKey) {
+          // Valid subscription with correct VAPID key — just resend to server
+          await sendSubToServer(sub);
+          return { ok: true };
         }
       }
-      // Wrong key or no keys — unsubscribe and get fresh
-      await existing.unsubscribe().catch(() => {});
+
+      // Wrong/missing key — unsubscribe and get a fresh one
+      await sub.unsubscribe().catch(() => {});
+      sub = null;
     }
 
-    // Create fresh subscription with our current VAPID key
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    });
+    // Create a new subscription with our VAPID key
+    try {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    } catch (err) {
+      return { ok: false, errorCode: friendlyError(err), error: (err as any)?.message };
+    }
 
     await sendSubToServer(sub);
     return { ok: true };
   } catch (err: any) {
     console.warn("Push subscribe error:", err);
-    return { ok: false, error: err?.message || "Unknown error" };
+    return { ok: false, errorCode: friendlyError(err), error: err?.message };
   }
 }
 
@@ -117,7 +149,7 @@ export async function unsubscribeFromPush(): Promise<void> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ endpoint: sub.endpoint }),
-    });
+    }).catch(() => {});
     await sub.unsubscribe();
   } catch (err) {
     console.warn("Push unsubscribe error:", err);
@@ -134,11 +166,15 @@ async function sendSubToServer(sub: PushSubscription): Promise<void> {
       keys: { p256dh: json.keys?.p256dh ?? "", auth: json.keys?.auth ?? "" },
     }),
   });
-  if (!r.ok) throw new Error(`Server rejected subscription: ${r.status}`);
+  if (!r.ok) throw new Error(`server_rejected:${r.status}`);
 }
 
 export function isPushSupported(): boolean {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  return (
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    "Notification" in window
+  );
 }
 
 export function getPushPermission(): NotificationPermission | "unsupported" {
