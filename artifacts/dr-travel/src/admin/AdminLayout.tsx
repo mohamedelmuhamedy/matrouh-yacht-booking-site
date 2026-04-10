@@ -1,12 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { useAdmin } from "./AdminContext";
+import { useAdmin, adminFetch } from "./AdminContext";
 
 const NAV = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
   { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
   { path: "/admin/categories",   icon: "🏷️", label: "الفئات" },
-  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات" },
+  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: true },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
@@ -15,17 +15,56 @@ const NAV = [
 ];
 const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials" && n.path !== "/admin/settings");
 
+function Badge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span style={{
+      position: "absolute", top: -4, left: -4,
+      minWidth: 18, height: 18, borderRadius: 9,
+      background: "#EF4444", color: "white",
+      fontSize: "0.62rem", fontWeight: 900,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "0 4px", lineHeight: 1,
+      boxShadow: "0 0 0 2px #0D1B2A",
+      fontFamily: "Cairo, sans-serif",
+      zIndex: 10,
+    }}>
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAdmin();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [newCount, setNewCount] = useState(0);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  const fetchCount = () => {
+    adminFetch("/admin/bookings/new-count")
+      .then(r => r.ok ? r.json() : { count: 0 })
+      .then(d => setNewCount(d.count ?? 0))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchCount();
+    pollRef.current = setInterval(fetchCount, 60_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  // Refresh count when navigating away from bookings page (admin may have acted)
+  useEffect(() => {
+    fetchCount();
+  }, [location]);
 
   const navTo = (path: string) => {
     navigate(path);
@@ -40,8 +79,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <header style={{ background: "linear-gradient(135deg,#0D1B2A,#0a1420)", padding: "0 1rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
           <button
             onClick={() => setDrawerOpen(true)}
-            style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: 8, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.1rem", color: "#00AAFF" }}>
+            style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: 8, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.1rem", color: "#00AAFF", position: "relative" }}>
             ☰
+            {newCount > 0 && (
+              <span style={{ position: "absolute", top: -5, left: -5, minWidth: 16, height: 16, borderRadius: 8, background: "#EF4444", color: "white", fontSize: "0.58rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", boxShadow: "0 0 0 2px #0D1B2A" }}>
+                {newCount > 99 ? "99+" : newCount}
+              </span>
+            )}
           </button>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "0.9rem", letterSpacing: "1px" }}>
             DR TRAVEL
@@ -76,11 +120,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <nav style={{ flex: 1, padding: "0.75rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto" }}>
                 {NAV.map(item => {
                   const active = location.startsWith(item.path);
+                  const showBadge = item.badge && newCount > 0;
                   return (
                     <button key={item.path} onClick={() => navTo(item.path)}
                       style={{ display: "flex", alignItems: "center", gap: "0.85rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "transparent", border: "none", borderRadius: 10, borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.65)", padding: "0.85rem 1rem", cursor: "pointer", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, textAlign: "right", transition: "all 0.2s" }}>
-                      <span style={{ fontSize: "1.15rem" }}>{item.icon}</span>
-                      {item.label}
+                      <span style={{ fontSize: "1.15rem", position: "relative", flexShrink: 0 }}>
+                        {item.icon}
+                        <Badge count={showBadge ? newCount : 0} />
+                      </span>
+                      <span style={{ flex: 1 }}>{item.label}</span>
+                      {showBadge && (
+                        <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 7px", fontFamily: "Cairo, sans-serif" }}>
+                          {newCount > 99 ? "99+" : newCount} جديد
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -109,13 +162,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)" }}>
           {BOTTOM_NAV.map(item => {
             const active = location.startsWith(item.path);
+            const showBadge = item.badge && newCount > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
                 style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", position: "relative", transition: "all 0.2s" }}>
                 {active && (
                   <span style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: 2, background: "#00AAFF", borderRadius: "0 0 2px 2px" }} />
                 )}
-                <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{item.icon}</span>
+                <span style={{ fontSize: "1.1rem", lineHeight: 1, position: "relative" }}>
+                  {item.icon}
+                  {showBadge && (
+                    <span style={{ position: "absolute", top: -5, left: -6, minWidth: 16, height: 16, borderRadius: 8, background: "#EF4444", color: "white", fontSize: "0.55rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", boxShadow: "0 0 0 1.5px #0D1B2A" }}>
+                      {newCount > 99 ? "99+" : newCount}
+                    </span>
+                  )}
+                </span>
                 <span style={{ fontSize: "0.6rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 400, color: active ? "#00AAFF" : "rgba(255,255,255,0.45)", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>
                   {item.label}
                 </span>
@@ -146,11 +207,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
           {NAV.map(item => {
             const active = location.startsWith(item.path);
+            const showBadge = item.badge && newCount > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
                 style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "none", border: "none", borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.6)", padding: "0.8rem 1rem", cursor: "pointer", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, transition: "all 0.2s", textAlign: "right", whiteSpace: "nowrap" }}>
-                <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>{item.icon}</span>
-                {drawerOpen && item.label}
+                <span style={{ fontSize: "1.2rem", flexShrink: 0, position: "relative" }}>
+                  {item.icon}
+                  <Badge count={showBadge ? newCount : 0} />
+                </span>
+                {drawerOpen && (
+                  <>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {showBadge && (
+                      <span style={{ background: "#EF4444", color: "white", fontSize: "0.65rem", fontWeight: 900, borderRadius: 9, padding: "2px 7px", flexShrink: 0, fontFamily: "Cairo, sans-serif" }}>
+                        {newCount > 99 ? "99+" : newCount}
+                      </span>
+                    )}
+                  </>
+                )}
               </button>
             );
           })}
@@ -171,8 +245,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       <main style={{ flex: 1, marginRight: drawerOpen ? 220 : 64, transition: "margin-right 0.3s ease", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         <header style={{ background: "white", padding: "1rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 99 }}>
-          <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.95rem" }}>
+          <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             {NAV.find(n => location.startsWith(n.path))?.label || "Admin"}
+            {location.startsWith("/admin/bookings") && newCount > 0 && (
+              <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 8px", fontFamily: "Cairo, sans-serif" }}>
+                {newCount} جديد
+              </span>
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <span style={{ color: "#667788", fontSize: "0.8rem" }}>

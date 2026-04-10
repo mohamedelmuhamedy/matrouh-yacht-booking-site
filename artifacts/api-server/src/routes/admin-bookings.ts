@@ -5,6 +5,15 @@ import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
+router.get("/admin/bookings/new-count", authMiddleware, async (_req, res) => {
+  try {
+    const rows = await db.select().from(bookings).where(eq(bookings.status, "new"));
+    return res.json({ count: rows.length });
+  } catch {
+    return res.status(500).json({ count: 0 });
+  }
+});
+
 router.get("/admin/bookings", authMiddleware, async (req, res) => {
   try {
     const { status, search } = req.query;
