@@ -27,6 +27,7 @@ const DEFAULTS: Record<string, string> = {
   show_compare_feature: "true",
   show_testimonials: "true",
   show_scroll_indicator: "true",
+  show_hero_pagination: "true",
 };
 
 type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text"; hint?: string };
@@ -94,6 +95,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "show_compare_feature", label: "مقارنة الباقات", type: "boolean", hint: "إظهار أو إخفاء أداة مقارنة الباقات" },
       { key: "show_testimonials", label: "قسم التقييمات", type: "boolean", hint: "إظهار أو إخفاء قسم آراء العملاء" },
       { key: "show_scroll_indicator", label: "علامة التمرير (Scroll Indicator)", type: "boolean", hint: "إظهار أو إخفاء علامة السهم المتحركة أسفل الهيرو" },
+      { key: "show_hero_pagination", label: "نقاط تصفح الهيرو (Pagination Dots)", type: "boolean", hint: "إظهار أو إخفاء النقاط أسفل صور الهيرو عند وجود أكتر من صورة" },
     ],
   },
 ];

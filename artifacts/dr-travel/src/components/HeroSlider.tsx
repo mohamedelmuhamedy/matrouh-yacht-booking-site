@@ -14,11 +14,12 @@ interface HeroSliderProps {
   slides: HeroSlide[];
   transition: Transition;
   fallbackBgUrl?: string;
+  showPagination?: boolean;
 }
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
 
-export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSliderProps) {
+export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
   const [videoReady, setVideoReady] = useState<Record<number, boolean>>({});
@@ -186,7 +187,7 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl }: HeroSl
         );
       })}
 
-      {slides.length > 1 && (
+      {showPagination && slides.length > 1 && (
         <div style={{
           position: "absolute", bottom: 72, left: "50%", transform: "translateX(-50%)",
           display: "flex", gap: "8px", zIndex: 10,

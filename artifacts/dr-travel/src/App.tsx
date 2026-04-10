@@ -470,7 +470,7 @@ function Hero() {
 
   return (
     <section id="hero" className="hero-bg" style={{ paddingTop: "80px", position: "relative", overflow: "hidden" }}>
-      <HeroSlider slides={heroSlides} transition={heroTransition} fallbackBgUrl={settings.hero_bg_url} />
+      <HeroSlider slides={heroSlides} transition={heroTransition} fallbackBgUrl={settings.hero_bg_url} showPagination={settings.show_hero_pagination !== "false"} />
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: isMobile ? "1rem" : "1.75rem" }}>
