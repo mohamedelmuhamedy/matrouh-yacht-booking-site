@@ -522,12 +522,14 @@ function Hero() {
           </div>
         </FadeInSection>
 
-        {/* Scroll indicator — in flow, centered below buttons, always visible */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5, marginTop: isMobile ? "1.5rem" : "2.5rem" }}>
-          <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
-            <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
+        {/* Scroll indicator — toggled via admin settings */}
+        {settings.show_scroll_indicator !== "false" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5, marginTop: isMobile ? "1.5rem" : "2.5rem" }}>
+            <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
+              <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="wave-container">
