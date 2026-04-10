@@ -23,6 +23,8 @@ interface HeroSliderProps {
 }
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
+// How long to wait before force-showing the video (slow connection fallback)
+const BUFFER_TIMEOUT_MS = 10_000;
 
 export default function HeroSlider({
   slides,
@@ -35,15 +37,19 @@ export default function HeroSlider({
 }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
-  // videoBuffered[slideId] = true when canplaythrough fired for that slide
+  // videoBuffered[slideId] = true once the video is ready to play
   const [videoBuffered, setVideoBuffered] = useState<Record<number, boolean>>({});
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bufferTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const clearTimers = () => {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
+  };
+  const clearBufferTimer = () => {
+    if (bufferTimerRef.current) { clearTimeout(bufferTimerRef.current); bufferTimerRef.current = null; }
   };
 
   const goTo = useCallback((next: number, cur: number) => {
@@ -61,11 +67,50 @@ export default function HeroSlider({
     if (onActiveChange) onActiveChange(active, slides.length);
   }, [active, slides.length, onActiveChange]);
 
-  // Is the active video still buffering? (holds prev slide visible until ready)
+  // Is the active video still waiting to be shown?
   const activeSlide = slides[active];
   const activeVideoWaiting =
-    activeSlide?.type === "video" && !videoBuffered[activeSlide.id];
+    !!activeSlide && activeSlide.type === "video" && !videoBuffered[activeSlide.id];
 
+  // ── Mark a video slide as ready to display ──
+  const markBuffered = useCallback((slideId: number, vidEl: HTMLVideoElement | null, videoStart: number) => {
+    setVideoBuffered(b => {
+      if (b[slideId]) return b; // already done
+      return { ...b, [slideId]: true };
+    });
+    if (vidEl) {
+      // Snap to trim start before fade-in
+      if (Math.abs(vidEl.currentTime - videoStart) > 0.3) {
+        vidEl.currentTime = videoStart;
+      }
+      vidEl.play().catch(() => {});
+    }
+    clearBufferTimer();
+  }, []);
+
+  // ── canplay fires when readyState >= 3 (enough to start playing) ──
+  const handleVideoCanPlay = useCallback((index: number) => {
+    const slide = slides[index];
+    if (!slide || slide.type !== "video") return;
+    const vid = videoRefs.current[index];
+    markBuffered(slide.id, vid ?? null, slide.videoStart ?? 0);
+  }, [slides, markBuffered]);
+
+  // ── video error: skip to next slide instead of getting stuck ──
+  const handleVideoError = useCallback((index: number) => {
+    const slide = slides[index];
+    if (!slide || index !== active) return;
+    clearBufferTimer();
+    if (slides.length > 1) {
+      const next = (index + 1) % slides.length;
+      goTo(next, index);
+    } else {
+      // Single slide with broken video — just mark as done so UI clears
+      setVideoBuffered(b => ({ ...b, [slide.id]: true }));
+    }
+  }, [slides, active, goTo]);
+
+  // ── scheduleAdvance: only after video is buffered; skip trimmed videos ──
   const scheduleAdvance = useCallback((fromIndex: number, durationSec: number) => {
     clearTimers();
     timerRef.current = setTimeout(() => {
@@ -73,7 +118,6 @@ export default function HeroSlider({
       const next = (fromIndex + 1) % slides.length;
       const nextSlide = slides[next];
       if (!nextSlide) return;
-
       if (nextSlide.type === "video") {
         const vid = videoRefs.current[next];
         if (vid && vid.readyState >= 3) {
@@ -87,64 +131,44 @@ export default function HeroSlider({
     }, durationSec * 1000);
   }, [slides, goTo]);
 
-  // Schedule advance — only after video is buffered; skip trimmed videos (timeupdate drives them)
   useEffect(() => {
     if (slides.length <= 1) return;
     const slide = slides[active];
     if (!slide) return;
-    if (slide.type === "video" && slide.videoEnd != null) return;
-    if (slide.type === "video" && !videoBuffered[slide.id]) return; // wait for buffer
+    if (slide.type === "video" && slide.videoEnd != null) return; // timeupdate drives it
+    if (slide.type === "video" && !videoBuffered[slide.id]) return; // wait for buffer first
     scheduleAdvance(active, slide.duration || 6);
     return clearTimers;
   }, [active, slides, scheduleAdvance, videoBuffered]);
 
-  // When active changes: start loading/playing active video (invisible until buffered)
+  // ── When active changes: start loading, check readyState, set fallback timeout ──
   useEffect(() => {
+    clearBufferTimer();
     videoRefs.current.forEach((vid, i) => {
       if (!vid) return;
       if (i === active) {
-        // Always start loading. Video stays invisible until canplaythrough fires.
-        vid.play().catch(() => {});
+        const slide = slides[i];
+        if (!slide || slide.type !== "video") return;
+        // Already buffered enough? Show immediately (handles cached / preloaded videos)
+        if (vid.readyState >= 3) {
+          markBuffered(slide.id, vid, slide.videoStart ?? 0);
+        } else {
+          // Ensure browser starts loading (important on iOS/Safari where preload may be ignored)
+          vid.load();
+          vid.play().catch(() => {});
+          // Fallback: force show after timeout even if canplay never fires
+          bufferTimerRef.current = setTimeout(() => {
+            markBuffered(slide.id, vid, slide.videoStart ?? 0);
+          }, BUFFER_TIMEOUT_MS);
+        }
       } else {
         vid.pause();
       }
     });
-  }, [active]);
+    return clearBufferTimer;
+  }, [active, slides, markBuffered]);
 
-  // canplaythrough: video has enough data to play without pausing → show it
-  const handleCanPlayThrough = useCallback((index: number) => {
-    const slide = slides[index];
-    if (!slide) return;
-    setVideoBuffered(b => {
-      if (b[slide.id]) return b; // already marked
-      return { ...b, [slide.id]: true };
-    });
-    if (index === active) {
-      const vid = videoRefs.current[index];
-      if (vid) {
-        // Reset to trim start before making visible
-        const startTime = slide.videoStart ?? 0;
-        if (Math.abs(vid.currentTime - startTime) > 0.3) vid.currentTime = startTime;
-        vid.play().catch(() => {});
-      }
-    }
-  }, [slides, active]);
-
-  // canplay / loadeddata: still useful to start playing for iOS
-  const handleVideoReady = useCallback((index: number) => {
-    if (index !== active) return;
-    const vid = videoRefs.current[index];
-    const slide = slides[index];
-    if (vid && slide) {
-      const startTime = slide.videoStart ?? 0;
-      if (startTime > 0 && Math.abs(vid.currentTime - startTime) > 0.5) {
-        vid.currentTime = startTime;
-      }
-      vid.play().catch(() => {});
-    }
-  }, [active, slides]);
-
-  // timeupdate: advance when videoEnd is reached (trim mode)
+  // ── timeupdate: advance when videoEnd reached (trim mode) ──
   const handleTimeUpdate = useCallback((index: number) => {
     if (index !== active) return;
     const slide = slides[index];
@@ -163,21 +187,21 @@ export default function HeroSlider({
     }
   }, [active, slides, goTo]);
 
+  // ── Slide visibility styles ──
   const getStyle = (i: number): React.CSSProperties => {
     const isActive = i === active;
     const isPrev = i === prev;
 
-    // ── Buffering hold: keep prev visible; hide active video until ready ──
+    // Buffering hold: keep prev slide fully visible; hide active video
     if (activeVideoWaiting && slides.length > 1) {
       if (isActive) return { position: "absolute", inset: 0, opacity: 0, pointerEvents: "none" };
-      if (isPrev) return { position: "absolute", inset: 0, opacity: 1 }; // hold fully visible
+      if (isPrev) return { position: "absolute", inset: 0, opacity: 1 };
     }
 
     const showing = isActive || isPrev;
     if (!showing) return { opacity: 0, pointerEvents: "none", position: "absolute", inset: 0 };
 
     const baseStyle: React.CSSProperties = { position: "absolute", inset: 0 };
-
     if (slides.length <= 1) return { ...baseStyle, opacity: 1 };
 
     switch (transition) {
@@ -205,7 +229,6 @@ export default function HeroSlider({
     }
   };
 
-  // Smart preload: active = auto, neighbors = metadata, rest = none
   const getVideoPreload = (i: number): "auto" | "metadata" | "none" => {
     if (i === active) return "auto";
     if (slides.length > 1) {
@@ -217,10 +240,11 @@ export default function HeroSlider({
   };
 
   const overlayStyle: React.CSSProperties = {
-    position: "absolute", inset: 0, background: OVERLAY, zIndex: 1, opacity: overlayOpacity, pointerEvents: "none",
+    position: "absolute", inset: 0, background: OVERLAY, zIndex: 1,
+    opacity: overlayOpacity, pointerEvents: "none",
   };
 
-  // ── Single-slide case ──
+  // ── 0 slides ──
   if (slides.length === 0) {
     if (!fallbackBgUrl) return null;
     return (
@@ -230,6 +254,7 @@ export default function HeroSlider({
     );
   }
 
+  // ── Single slide ──
   if (slides.length === 1) {
     const slide = slides[0];
     if (slide.type === "video") {
@@ -237,19 +262,17 @@ export default function HeroSlider({
       const buffered = !!videoBuffered[slide.id];
       return (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
-          {/* Fallback shown while video buffers */}
-          {!buffered && fallbackBgUrl && (
-            <div style={{ position: "absolute", inset: 0, background: `url('${fallbackBgUrl}') center/cover no-repeat`, zIndex: 0 }}>
-              <div style={overlayStyle} />
-            </div>
-          )}
-          {/* Buffering shimmer if no fallback */}
-          {!buffered && !fallbackBgUrl && (
-            <div style={{ position: "absolute", inset: 0, background: "#0D1B2A", zIndex: 0 }}>
-              <div style={overlayStyle} />
-            </div>
-          )}
-          {/* Video — hidden until buffered */}
+          {/* Background shown while video buffers */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: fallbackBgUrl
+              ? `url('${fallbackBgUrl}') center/cover no-repeat`
+              : "#0D1B2A",
+            zIndex: 0, opacity: buffered ? 0 : 1, transition: "opacity 1.2s ease",
+          }}>
+            <div style={overlayStyle} />
+          </div>
+          {/* Video — fades in when ready */}
           <div style={{ position: "absolute", inset: 0, opacity: buffered ? 1 : 0, transition: "opacity 1.2s ease", zIndex: 1 }}>
             <div style={overlayStyle} />
             <video
@@ -257,13 +280,13 @@ export default function HeroSlider({
               autoPlay muted loop={!hasEnd} playsInline preload="auto"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
               src={slide.url}
-              onCanPlay={() => handleVideoReady(0)}
-              onLoadedData={() => handleVideoReady(0)}
-              onCanPlayThrough={() => handleCanPlayThrough(0)}
+              onCanPlay={() => handleVideoCanPlay(0)}
+              onCanPlayThrough={() => handleVideoCanPlay(0)}
+              onLoadedData={() => handleVideoCanPlay(0)}
+              onError={() => handleVideoError(0)}
               onTimeUpdate={hasEnd ? () => handleTimeUpdate(0) : undefined}
             />
           </div>
-          {/* Buffering spinner */}
           {!buffered && <BufferingIndicator />}
         </div>
       );
@@ -275,12 +298,11 @@ export default function HeroSlider({
     );
   }
 
-  // ── Multi-slide case ──
+  // ── Multi-slide ──
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
       {slides.map((slide, i) => {
         const style = getStyle(i);
-
         if (slide.type === "video") {
           const hasEnd = slide.videoEnd != null;
           return (
@@ -291,15 +313,15 @@ export default function HeroSlider({
                 muted playsInline preload={getVideoPreload(i)} loop={false}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 src={slide.url}
-                onCanPlay={() => handleVideoReady(i)}
-                onLoadedData={() => handleVideoReady(i)}
-                onCanPlayThrough={() => handleCanPlayThrough(i)}
+                onCanPlay={() => handleVideoCanPlay(i)}
+                onCanPlayThrough={() => handleVideoCanPlay(i)}
+                onLoadedData={() => handleVideoCanPlay(i)}
+                onError={() => handleVideoError(i)}
                 onTimeUpdate={hasEnd ? () => handleTimeUpdate(i) : undefined}
               />
             </div>
           );
         }
-
         return (
           <div
             key={slide.id}
@@ -311,10 +333,8 @@ export default function HeroSlider({
         );
       })}
 
-      {/* Buffering indicator — shows while waiting for video to buffer */}
       {activeVideoWaiting && <BufferingIndicator />}
 
-      {/* Inline pagination dots */}
       {!onActiveChange && showPagination && slides.length > 1 && (
         <div style={{
           position: "absolute", bottom: 72, left: "50%", transform: "translateX(-50%)",
@@ -327,8 +347,7 @@ export default function HeroSlider({
               style={{
                 width: i === active ? 24 : 8, height: 8, borderRadius: 4, border: "none",
                 background: i === active ? "#00AAFF" : "rgba(255,255,255,0.4)",
-                cursor: "pointer", padding: 0,
-                transition: "all 0.4s ease",
+                cursor: "pointer", padding: 0, transition: "all 0.4s ease",
               }}
             />
           ))}
@@ -338,13 +357,13 @@ export default function HeroSlider({
   );
 }
 
-// ── Small buffering indicator (bottom-center of hero) ──
+// ── Buffering indicator ──
 function BufferingIndicator() {
   return (
     <div style={{
       position: "absolute", bottom: 110, left: "50%", transform: "translateX(-50%)",
       zIndex: 20, display: "flex", alignItems: "center", gap: "8px",
-      background: "rgba(13,27,42,0.55)", backdropFilter: "blur(8px)",
+      background: "rgba(13,27,42,0.6)", backdropFilter: "blur(8px)",
       borderRadius: "20px", padding: "6px 14px",
       border: "1px solid rgba(0,170,255,0.2)",
     }}>
@@ -353,7 +372,7 @@ function BufferingIndicator() {
           <span key={k} style={{
             display: "block", width: 6, height: 6, borderRadius: "50%",
             background: "#00AAFF",
-            animation: `bufferDot 1.1s ease-in-out ${delay}s infinite`,
+            animation: `bufDot 1.1s ease-in-out ${delay}s infinite`,
           }} />
         ))}
       </span>
@@ -363,12 +382,7 @@ function BufferingIndicator() {
       }}>
         جاري تحميل الفيديو...
       </span>
-      <style>{`
-        @keyframes bufferDot {
-          0%,60%,100% { transform: translateY(0); opacity:.5 }
-          30% { transform: translateY(-5px); opacity:1 }
-        }
-      `}</style>
+      <style>{`@keyframes bufDot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}`}</style>
     </div>
   );
 }
