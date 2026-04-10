@@ -7,10 +7,10 @@ const router = Router();
 
 router.get("/admin/bookings/new-count", authMiddleware, async (_req, res) => {
   try {
-    const rows = await db.select().from(bookings).where(eq(bookings.status, "new"));
-    return res.json({ count: rows.length });
+    const rows = await db.select({ id: bookings.id }).from(bookings).where(eq(bookings.status, "new"));
+    return res.json({ count: rows.length, ids: rows.map(r => r.id) });
   } catch {
-    return res.status(500).json({ count: 0 });
+    return res.status(500).json({ count: 0, ids: [] });
   }
 });
 

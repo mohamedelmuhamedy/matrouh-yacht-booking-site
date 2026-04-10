@@ -14,6 +14,7 @@ import GalleryPage from "./pages/GalleryPage";
 import GalleryDetailPage from "./pages/GalleryDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
+import PushPrompt from "./components/PushPrompt";
 import { PACKAGES_DATA } from "./data/packages";
 import HeroSlider from "./components/HeroSlider";
 import { formatPrice, CurrencyCode } from "./data/currencies";
@@ -1496,6 +1497,7 @@ export default function App() {
             <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
             <Route component={NotFoundPage} />
           </Switch>
+          <PushPrompt />
         </SiteDataProvider>
       </CurrencyProvider>
     </LanguageProvider>

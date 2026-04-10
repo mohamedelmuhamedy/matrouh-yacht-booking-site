@@ -14,6 +14,7 @@ import publicGalleryRouter from "./public-gallery";
 import categoriesRouter from "./admin-categories";
 import heroSlidesRouter from "./admin-hero-slides";
 import fsUploadRouter from "./fs-upload";
+import pushRouter from "./push";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(publicGalleryRouter);
 router.use(categoriesRouter);
 router.use(heroSlidesRouter);
 router.use(fsUploadRouter);
+router.use(pushRouter);
 
 export default router;

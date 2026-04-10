@@ -14,6 +14,7 @@ import AdminRewardsPage from "./AdminRewardsPage";
 import AdminGalleryPage from "./AdminGalleryPage";
 import AdminCategoriesPage from "./AdminCategoriesPage";
 import AdminHeroSlidesPage from "./AdminHeroSlidesPage";
+import PushNotificationsPage from "./PushNotificationsPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAdmin();
@@ -83,6 +84,9 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/hero-slides">
         <AdminGuard><AdminHeroSlidesPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/push">
+        <AdminGuard><PushNotificationsPage /></AdminGuard>
       </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>

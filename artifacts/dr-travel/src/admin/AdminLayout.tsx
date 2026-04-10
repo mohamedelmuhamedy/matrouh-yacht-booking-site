@@ -11,9 +11,14 @@ const NAV = [
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
   { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو" },
+  { path: "/admin/push",         icon: "🔔", label: "الإشعارات" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
 ];
-const BOTTOM_NAV = NAV.filter(n => n.path !== "/admin/testimonials" && n.path !== "/admin/settings");
+const BOTTOM_NAV = NAV.filter(n =>
+  n.path !== "/admin/testimonials" &&
+  n.path !== "/admin/settings" &&
+  n.path !== "/admin/push"
+);
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -34,12 +39,35 @@ function Badge({ count }: { count: number }) {
   );
 }
 
+function playBookingBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const play = (freq: number, start: number, dur: number) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = "sine"; o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(0.35, ctx.currentTime + start + 0.02);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur + 0.05);
+    };
+    play(880, 0,    0.12);
+    play(1100, 0.15, 0.12);
+    play(1320, 0.30, 0.2);
+  } catch {}
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAdmin();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [newCount, setNewCount] = useState(0);
+  const [toastMsg, setToastMsg] = useState("");
+  const seenIds = useRef<Set<number>>(new Set());
+  const initialized = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -50,8 +78,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const fetchCount = () => {
     adminFetch("/admin/bookings/new-count")
-      .then(r => r.ok ? r.json() : { count: 0 })
-      .then(d => setNewCount(d.count ?? 0))
+      .then(r => r.ok ? r.json() : { count: 0, ids: [] })
+      .then(d => {
+        const ids: number[] = d.ids ?? [];
+        setNewCount(ids.length);
+
+        if (!initialized.current) {
+          // First load — populate seen list silently
+          ids.forEach(id => seenIds.current.add(id));
+          initialized.current = true;
+          return;
+        }
+
+        const fresh = ids.filter(id => !seenIds.current.has(id));
+        if (fresh.length > 0) {
+          fresh.forEach(id => seenIds.current.add(id));
+          playBookingBeep();
+          setToastMsg(`🔔 ${fresh.length === 1 ? "حجز جديد" : `${fresh.length} حجوزات جديدة`} !`);
+          setTimeout(() => setToastMsg(""), 5000);
+        }
+      })
       .catch(() => {});
   };
 
@@ -71,9 +117,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     setDrawerOpen(false);
   };
 
+  const Toast = toastMsg ? (
+    <div style={{
+      position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+      zIndex: 9999, background: "linear-gradient(135deg,#0D1B2A,#1a3a5c)",
+      color: "#fff", padding: "0.85rem 1.5rem", borderRadius: 14,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,170,255,0.3)",
+      fontFamily: "Cairo, sans-serif", fontSize: "0.95rem", fontWeight: 700,
+      direction: "rtl", whiteSpace: "nowrap",
+      animation: "fadeInDown 0.35s ease",
+      cursor: "pointer",
+    }} onClick={() => { navigate("/admin/bookings"); setToastMsg(""); }}>
+      <style>{`@keyframes fadeInDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
+      {toastMsg}
+      <span style={{ marginRight: "0.5rem", fontSize: "0.75rem", opacity: 0.7 }}>اضغط للعرض</span>
+    </div>
+  ) : null;
+
   if (isMobile) {
     return (
       <div className="admin-wrap" style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+        {Toast}
 
         {/* Mobile top bar */}
         <header style={{ background: "linear-gradient(135deg,#0D1B2A,#0a1420)", padding: "0 1rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
@@ -190,6 +254,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="admin-wrap" style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+      {Toast}
       {/* Desktop sidebar */}
       <aside style={{ width: drawerOpen ? 220 : 64, minHeight: "100vh", background: "linear-gradient(180deg,#0D1B2A 0%,#0a1420 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
         <button onClick={() => setDrawerOpen(!drawerOpen)}
