@@ -6,6 +6,8 @@ export interface HeroSlide {
   type: string;
   duration: number;
   sortOrder: number;
+  videoStart?: number | null;
+  videoEnd?: number | null;
 }
 
 type Transition = "fade" | "slide" | "zoom" | "dissolve";
@@ -22,7 +24,15 @@ interface HeroSliderProps {
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
 
-export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true, onActiveChange, goToRef, overlayOpacity = 0.65 }: HeroSliderProps) {
+export default function HeroSlider({
+  slides,
+  transition,
+  fallbackBgUrl,
+  showPagination = true,
+  onActiveChange,
+  goToRef,
+  overlayOpacity = 0.65,
+}: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
   const [videoReady, setVideoReady] = useState<Record<number, boolean>>({});
@@ -40,14 +50,12 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     setActive(next);
   }, []);
 
-  // Expose goTo externally via ref
   useEffect(() => {
     if (goToRef) {
       goToRef.current = (i: number) => { setPrev(active); setActive(i); };
     }
   }, [active, goToRef]);
 
-  // Report active state to parent
   useEffect(() => {
     if (onActiveChange) onActiveChange(active, slides.length);
   }, [active, slides.length, onActiveChange]);
@@ -73,32 +81,65 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     }, durationSec * 1000);
   }, [slides, goTo]);
 
+  // Schedule advance — skip for trimmed video slides (timeupdate handles them)
   useEffect(() => {
     if (slides.length <= 1) return;
     const slide = slides[active];
     if (!slide) return;
+    // If it's a video with videoEnd set, timeupdate handles advancement — no timer needed
+    if (slide.type === "video" && slide.videoEnd != null) return;
     scheduleAdvance(active, slide.duration || 6);
     return clearTimers;
   }, [active, slides, scheduleAdvance]);
 
+  // When active slide changes, play the active video and seek to videoStart
   useEffect(() => {
     videoRefs.current.forEach((vid, i) => {
       if (!vid) return;
       if (i === active) {
-        vid.currentTime = 0;
+        const slide = slides[i];
+        const startTime = slide?.videoStart ?? 0;
+        if (Math.abs(vid.currentTime - startTime) > 0.5 || startTime === 0) {
+          vid.currentTime = startTime;
+        }
         vid.play().catch(() => {});
       } else {
         vid.pause();
       }
     });
-  }, [active]);
+  }, [active, slides]);
 
-  const handleVideoCanPlay = (index: number) => {
+  const handleVideoReady = (index: number) => {
     setVideoReady(r => ({ ...r, [index]: true }));
     if (index === active) {
-      videoRefs.current[index]?.play().catch(() => {});
+      const vid = videoRefs.current[index];
+      if (vid) {
+        const startTime = slides[index]?.videoStart ?? 0;
+        if (startTime > 0) vid.currentTime = startTime;
+        vid.play().catch(() => {});
+      }
     }
   };
+
+  // timeupdate handler: advances slide (or loops) when videoEnd is reached
+  const handleTimeUpdate = useCallback((index: number) => {
+    if (index !== active) return;
+    const slide = slides[index];
+    if (!slide?.videoEnd) return;
+    const vid = videoRefs.current[index];
+    if (!vid) return;
+    if (vid.currentTime >= slide.videoEnd) {
+      clearTimers();
+      if (slides.length <= 1) {
+        // Single video: loop back to start
+        vid.currentTime = slide.videoStart ?? 0;
+        vid.play().catch(() => {});
+      } else {
+        const next = (index + 1) % slides.length;
+        goTo(next, index);
+      }
+    }
+  }, [active, slides, goTo]);
 
   const getStyle = (i: number): React.CSSProperties => {
     const isActive = i === active;
@@ -136,6 +177,17 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     }
   };
 
+  // Smart preload: active = auto, neighbors = metadata, rest = none
+  const getVideoPreload = (i: number): "auto" | "metadata" | "none" => {
+    if (i === active) return "auto";
+    if (slides.length > 1) {
+      const next = (active + 1) % slides.length;
+      const prevIdx = (active - 1 + slides.length) % slides.length;
+      if (i === next || i === prevIdx) return "metadata";
+    }
+    return "none";
+  };
+
   const overlayStyle: React.CSSProperties = {
     position: "absolute", inset: 0, background: OVERLAY, zIndex: 1, opacity: overlayOpacity, pointerEvents: "none",
   };
@@ -152,13 +204,22 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
   if (slides.length === 1) {
     const slide = slides[0];
     if (slide.type === "video") {
+      const hasEnd = slide.videoEnd != null;
       return (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
           <div style={overlayStyle} />
           <video
-            autoPlay muted loop playsInline preload="auto"
+            ref={el => { videoRefs.current[0] = el; }}
+            autoPlay
+            muted
+            loop={!hasEnd}
+            playsInline
+            preload="auto"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             src={slide.url}
+            onCanPlay={() => handleVideoReady(0)}
+            onLoadedData={() => handleVideoReady(0)}
+            onTimeUpdate={hasEnd ? () => handleTimeUpdate(0) : undefined}
           />
         </div>
       );
@@ -176,17 +237,21 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
         const style = getStyle(i);
 
         if (slide.type === "video") {
+          const hasEnd = slide.videoEnd != null;
           return (
             <div key={slide.id} style={style} aria-hidden={i !== active}>
               <div style={overlayStyle} />
               <video
                 ref={el => { videoRefs.current[i] = el; }}
-                muted playsInline preload="auto"
+                muted
+                playsInline
+                preload={getVideoPreload(i)}
                 loop={false}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 src={slide.url}
-                onCanPlay={() => handleVideoCanPlay(i)}
-                onLoadedData={() => handleVideoCanPlay(i)}
+                onCanPlay={() => handleVideoReady(i)}
+                onLoadedData={() => handleVideoReady(i)}
+                onTimeUpdate={hasEnd ? () => handleTimeUpdate(i) : undefined}
               />
             </div>
           );

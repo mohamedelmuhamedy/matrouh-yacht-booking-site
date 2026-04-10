@@ -50,9 +50,13 @@ router.get("/admin/hero-slides", authMiddleware, async (_req, res) => {
 // Admin: create a slide
 router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
   try {
-    const { url, type = "image", duration = 6, sortOrder = 0 } = req.body;
+    const { url, type = "image", duration = 6, sortOrder = 0, videoStart, videoEnd } = req.body;
     if (!url) return res.status(400).json({ error: "url is required" });
-    const [row] = await db.insert(heroSlides).values({ url, type, duration, sortOrder, isActive: true }).returning();
+    const [row] = await db.insert(heroSlides).values({
+      url, type, duration, sortOrder, isActive: true,
+      videoStart: videoStart != null ? Number(videoStart) : null,
+      videoEnd: videoEnd != null ? Number(videoEnd) : null,
+    }).returning();
     return res.json(row);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || "Failed to create slide" });
@@ -89,15 +93,17 @@ router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
   }
 });
 
-// Admin: update a slide (duration, sortOrder, isActive)
+// Admin: update a slide (duration, sortOrder, isActive, videoStart, videoEnd)
 router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { duration, sortOrder, isActive } = req.body;
+    const { duration, sortOrder, isActive, videoStart, videoEnd } = req.body;
     const updates: Partial<typeof heroSlides.$inferInsert> = {};
     if (duration !== undefined) updates.duration = duration;
     if (sortOrder !== undefined) updates.sortOrder = sortOrder;
     if (isActive !== undefined) updates.isActive = isActive;
+    if ("videoStart" in req.body) updates.videoStart = videoStart != null ? Number(videoStart) : null;
+    if ("videoEnd" in req.body) updates.videoEnd = videoEnd != null ? Number(videoEnd) : null;
     const [row] = await db.update(heroSlides).set(updates).where(eq(heroSlides.id, id)).returning();
     return res.json(row);
   } catch (err: any) {

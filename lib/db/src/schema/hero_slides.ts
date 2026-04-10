@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,6 +9,8 @@ export const heroSlides = pgTable("hero_slides", {
   duration: integer("duration").notNull().default(6),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  videoStart: doublePrecision("video_start").default(0),
+  videoEnd: doublePrecision("video_end"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

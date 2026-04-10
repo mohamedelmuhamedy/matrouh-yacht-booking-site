@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -10,6 +10,15 @@ interface HeroSlide {
   duration: number;
   sortOrder: number;
   isActive: boolean;
+  videoStart?: number | null;
+  videoEnd?: number | null;
+}
+
+function fmtSec(s: number | null | undefined): string {
+  if (s == null) return "";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m > 0 ? `${m}:${String(sec).padStart(2, "0")}` : `${sec}`;
 }
 
 const TRANSITIONS = [
@@ -67,8 +76,86 @@ export default function AdminHeroSlidesPage() {
   const [savingTransition, setSavingTransition] = useState(false);
   const [restoreConfirm, setRestoreConfirm] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  // Trim state: { [slideId]: { start: string, end: string, saving: bool } }
+  const [trimEdits, setTrimEdits] = useState<Record<number, { start: string; end: string; saving: boolean }>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoPreviewRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const { success, error: toastErr } = useToast();
+
+  const getTrim = useCallback((slide: HeroSlide) => {
+    if (trimEdits[slide.id]) return trimEdits[slide.id];
+    return {
+      start: slide.videoStart != null ? String(slide.videoStart) : "",
+      end: slide.videoEnd != null ? String(slide.videoEnd) : "",
+      saving: false,
+    };
+  }, [trimEdits]);
+
+  const setTrimField = (id: number, field: "start" | "end", value: string) => {
+    setTrimEdits(prev => {
+      const slide = slides.find(s => s.id === id);
+      const cur = prev[id] ?? {
+        start: slide?.videoStart != null ? String(slide.videoStart) : "",
+        end: slide?.videoEnd != null ? String(slide.videoEnd) : "",
+        saving: false,
+      };
+      return { ...prev, [id]: { ...cur, [field]: value } };
+    });
+  };
+
+  const useCurrentTime = (id: number, field: "start" | "end") => {
+    const vid = videoPreviewRefs.current[id];
+    if (!vid) return;
+    const t = Math.round(vid.currentTime * 10) / 10;
+    setTrimField(id, field, String(t));
+  };
+
+  const saveTrim = async (slide: HeroSlide) => {
+    const trim = getTrim(slide);
+    const startVal = trim.start.trim() === "" ? null : parseFloat(trim.start);
+    const endVal = trim.end.trim() === "" ? null : parseFloat(trim.end);
+    if (endVal != null && startVal != null && endVal <= startVal) {
+      toastErr("نهاية التشغيل يجب أن تكون بعد البداية");
+      return;
+    }
+    setTrimEdits(prev => ({ ...prev, [slide.id]: { ...getTrim(slide), saving: true } }));
+    const r = await adminFetch(`/admin/hero-slides/${slide.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoStart: startVal, videoEnd: endVal }),
+    });
+    if (r.ok) {
+      setSlides(s => s.map(x => x.id === slide.id ? { ...x, videoStart: startVal, videoEnd: endVal } : x));
+      setTrimEdits(prev => {
+        const n = { ...prev };
+        delete n[slide.id];
+        return n;
+      });
+      success("✅ تم حفظ إعدادات القص");
+    } else {
+      toastErr("فشل حفظ القص");
+    }
+    setTrimEdits(prev => prev[slide.id] ? { ...prev, [slide.id]: { ...prev[slide.id], saving: false } } : prev);
+  };
+
+  const clearTrim = async (slide: HeroSlide) => {
+    const r = await adminFetch(`/admin/hero-slides/${slide.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoStart: null, videoEnd: null }),
+    });
+    if (r.ok) {
+      setSlides(s => s.map(x => x.id === slide.id ? { ...x, videoStart: null, videoEnd: null } : x));
+      setTrimEdits(prev => {
+        const n = { ...prev };
+        delete n[slide.id];
+        return n;
+      });
+      success("تم إزالة القص");
+    } else {
+      toastErr("فشل إزالة القص");
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -284,86 +371,154 @@ export default function AdminHeroSlidesPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-          {slides.map((slide, i) => (
-            <div key={slide.id} style={{ ...card, flexDirection: "row", alignItems: "center", gap: "1rem" }}>
-              {/* Thumbnail */}
-              <div style={{ width: 90, height: 60, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4f8", position: "relative" }}>
-                {slide.type === "video" ? (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1824", color: "white", fontSize: "1.5rem" }}>
-                    🎬
+          {slides.map((slide, i) => {
+            const isVideo = slide.type === "video";
+            const trim = getTrim(slide);
+            const clipLen = trim.start !== "" && trim.end !== ""
+              ? Math.max(0, parseFloat(trim.end) - parseFloat(trim.start))
+              : null;
+            const hasSavedTrim = slide.videoStart != null || slide.videoEnd != null;
+
+            return (
+              <div key={slide.id} style={{ ...card, flexDirection: "column", gap: "0.85rem" }}>
+                {/* Top row */}
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  {/* Thumbnail / video preview */}
+                  {isVideo ? (
+                    <div style={{ width: 140, height: 90, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#0d1824", position: "relative" }}>
+                      <video
+                        ref={el => { videoPreviewRefs.current[slide.id] = el; }}
+                        src={slide.url}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        muted
+                        preload="metadata"
+                        controls
+                      />
+                      <div style={{ position: "absolute", top: 3, right: 3, background: "#7c3aed", color: "white", fontSize: "0.62rem", fontWeight: 700, borderRadius: "4px", padding: "1px 5px", pointerEvents: "none" }}>
+                        فيديو
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ width: 90, height: 60, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4f8", position: "relative" }}>
+                      <img src={toImgUrl(slide.url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <div style={{ position: "absolute", top: 3, right: 3, background: "#00AAFF", color: "white", fontSize: "0.62rem", fontWeight: 700, borderRadius: "4px", padding: "1px 5px" }}>
+                        صورة
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={labelStyle}>الترتيب:</span>
+                      <span style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "0.9rem" }}>#{i + 1}</span>
+                    </div>
+                    {!isVideo && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <label style={labelStyle}>المدة (ثواني):</label>
+                        <input
+                          type="number" min={2} max={60} value={slide.duration}
+                          style={inputStyle}
+                          onChange={e => updateDuration(slide, parseInt(e.target.value) || 6)}
+                        />
+                      </div>
+                    )}
+                    {isVideo && hasSavedTrim && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                        <span style={{ background: "#ede9fe", color: "#6d28d9", fontSize: "0.72rem", fontWeight: 700, borderRadius: "6px", padding: "2px 8px" }}>
+                          ✂️ {fmtSec(slide.videoStart)}ث → {slide.videoEnd != null ? fmtSec(slide.videoEnd) + "ث" : "النهاية"}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <img src={toImgUrl(slide.url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+
+                  {/* Controls */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
+                    <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === 0 ? "#f8fafc" : "#eef4fb", color: i === 0 ? "#b0bec5" : "#1565c0", cursor: i === 0 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      title="تحريك لأعلى">▲ أعلى</button>
+                    <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "#f8fafc" : "#eef4fb", color: i === slides.length - 1 ? "#b0bec5" : "#1565c0", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      title="تحريك لأسفل">▼ أسفل</button>
+                    <button onClick={() => setDeleteTarget(slide)}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #fca5a5", background: "#fef2f2", color: "#dc2626", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      title="حذف">🗑️ حذف</button>
+                  </div>
+                </div>
+
+                {/* Video trim section */}
+                {isVideo && (
+                  <div style={{ borderTop: "1px solid #e8f0f8", paddingTop: "0.85rem" }}>
+                    <div style={{ fontWeight: 700, color: "#4c1d95", fontSize: "0.85rem", marginBottom: "0.65rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      ✂️ قص الفيديو
+                      <span style={{ fontWeight: 400, color: "#94a3b8", fontSize: "0.75rem" }}>— اختر جزءاً محدداً يتكرر في الهيرو</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem", alignItems: "flex-end" }}>
+                      {/* Start */}
+                      <div>
+                        <div style={{ ...labelStyle, marginBottom: "0.25rem" }}>البداية (ثواني)</div>
+                        <div style={{ display: "flex", gap: "0.4rem" }}>
+                          <input
+                            type="number" min={0} step={0.1} placeholder="0"
+                            value={trim.start}
+                            style={{ ...inputStyle, width: "80px" }}
+                            onChange={e => setTrimField(slide.id, "start", e.target.value)}
+                          />
+                          <button
+                            onClick={() => useCurrentTime(slide.id, "start")}
+                            style={{ padding: "0.45rem 0.7rem", borderRadius: "8px", border: "1.5px solid #c4b5fd", background: "#f5f3ff", color: "#7c3aed", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.75rem", whiteSpace: "nowrap" }}
+                            title="استخدم الوقت الحالي من المشغّل"
+                          >⏱ الوقت الحالي</button>
+                        </div>
+                      </div>
+                      {/* End */}
+                      <div>
+                        <div style={{ ...labelStyle, marginBottom: "0.25rem" }}>النهاية (ثواني)</div>
+                        <div style={{ display: "flex", gap: "0.4rem" }}>
+                          <input
+                            type="number" min={0} step={0.1} placeholder="اتركه فارغاً للنهاية"
+                            value={trim.end}
+                            style={{ ...inputStyle, width: "80px" }}
+                            onChange={e => setTrimField(slide.id, "end", e.target.value)}
+                          />
+                          <button
+                            onClick={() => useCurrentTime(slide.id, "end")}
+                            style={{ padding: "0.45rem 0.7rem", borderRadius: "8px", border: "1.5px solid #c4b5fd", background: "#f5f3ff", color: "#7c3aed", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.75rem", whiteSpace: "nowrap" }}
+                            title="استخدم الوقت الحالي من المشغّل"
+                          >⏱ الوقت الحالي</button>
+                        </div>
+                      </div>
+                      {/* Clip length */}
+                      {clipLen != null && (
+                        <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: "2px" }}>
+                          <span style={{ background: "#ecfdf5", color: "#059669", fontSize: "0.8rem", fontWeight: 700, borderRadius: "6px", padding: "0.4rem 0.75rem", border: "1px solid #a7f3d0" }}>
+                            مدة الكليب: {clipLen.toFixed(1)} ث
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Save / clear buttons */}
+                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.65rem" }}>
+                      <button
+                        onClick={() => saveTrim(slide)}
+                        disabled={trim.saving}
+                        style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "none", background: trim.saving ? "#e5e7eb" : "linear-gradient(135deg, #7c3aed, #4f46e5)", color: trim.saving ? "#9ca3af" : "white", cursor: trim.saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                      >{trim.saving ? "⏳ جاري الحفظ..." : "💾 حفظ القص"}</button>
+                      {hasSavedTrim && (
+                        <button
+                          onClick={() => clearTrim(slide)}
+                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "white", color: "#64748b", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                        >🔄 إزالة القص (فيديو كامل)</button>
+                      )}
+                    </div>
+                    <div style={{ color: "#94a3b8", fontSize: "0.73rem", marginTop: "0.4rem" }}>
+                      شغّل الفيديو أعلاه ← اضغط "الوقت الحالي" عند اللحظة المطلوبة ← احفظ
+                    </div>
+                  </div>
                 )}
-                <div style={{ position: "absolute", top: 3, right: 3, background: slide.type === "video" ? "#7c3aed" : "#00AAFF", color: "white", fontSize: "0.62rem", fontWeight: 700, borderRadius: "4px", padding: "1px 5px" }}>
-                  {slide.type === "video" ? "فيديو" : "صورة"}
-                </div>
               </div>
-
-              {/* Info */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span style={labelStyle}>الترتيب:</span>
-                  <span style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "0.9rem" }}>#{i + 1}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <label style={labelStyle}>المدة (ثواني):</label>
-                  <input
-                    type="number"
-                    min={2}
-                    max={60}
-                    value={slide.duration}
-                    style={inputStyle}
-                    onChange={e => updateDuration(slide, parseInt(e.target.value) || 6)}
-                  />
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
-                <button
-                  onClick={() => moveSlide(i, -1)}
-                  disabled={i === 0}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "0.3rem",
-                    padding: "0.45rem 0.9rem", borderRadius: "8px",
-                    border: "1.5px solid #b0c4de", background: i === 0 ? "#f8fafc" : "#eef4fb",
-                    color: i === 0 ? "#b0bec5" : "#1565c0",
-                    cursor: i === 0 ? "not-allowed" : "pointer",
-                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
-                    transition: "all 0.15s",
-                  }}
-                  title="تحريك لأعلى"
-                >▲ أعلى</button>
-                <button
-                  onClick={() => moveSlide(i, 1)}
-                  disabled={i === slides.length - 1}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "0.3rem",
-                    padding: "0.45rem 0.9rem", borderRadius: "8px",
-                    border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "#f8fafc" : "#eef4fb",
-                    color: i === slides.length - 1 ? "#b0bec5" : "#1565c0",
-                    cursor: i === slides.length - 1 ? "not-allowed" : "pointer",
-                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
-                    transition: "all 0.15s",
-                  }}
-                  title="تحريك لأسفل"
-                >▼ أسفل</button>
-                <button
-                  onClick={() => setDeleteTarget(slide)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "0.3rem",
-                    padding: "0.45rem 0.9rem", borderRadius: "8px",
-                    border: "1.5px solid #fca5a5", background: "#fef2f2",
-                    color: "#dc2626", cursor: "pointer",
-                    fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem",
-                    transition: "all 0.15s",
-                  }}
-                  title="حذف"
-                >🗑️ حذف</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
