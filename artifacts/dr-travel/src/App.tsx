@@ -480,6 +480,7 @@ function Hero() {
         showPagination={settings.show_hero_pagination !== "false"}
         onActiveChange={(a, t) => { setHeroActive(a); setHeroTotal(t); }}
         goToRef={heroGoToRef}
+        overlayOpacity={parseFloat(settings.hero_overlay_opacity ?? "0.65")}
       />
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>

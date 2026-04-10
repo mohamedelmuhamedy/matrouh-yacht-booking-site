@@ -17,11 +17,12 @@ interface HeroSliderProps {
   showPagination?: boolean;
   onActiveChange?: (active: number, total: number) => void;
   goToRef?: React.MutableRefObject<((i: number) => void) | null>;
+  overlayOpacity?: number;
 }
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
 
-export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true, onActiveChange, goToRef }: HeroSliderProps) {
+export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true, onActiveChange, goToRef, overlayOpacity = 0.65 }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
   const [videoReady, setVideoReady] = useState<Record<number, boolean>>({});
@@ -135,13 +136,16 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     }
   };
 
+  const overlayStyle: React.CSSProperties = {
+    position: "absolute", inset: 0, background: OVERLAY, zIndex: 1, opacity: overlayOpacity, pointerEvents: "none",
+  };
+
   if (slides.length === 0) {
     if (!fallbackBgUrl) return null;
     return (
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0,
-        background: `${OVERLAY}, url('${fallbackBgUrl}') center/cover no-repeat`,
-      }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: `url('${fallbackBgUrl}') center/cover no-repeat` }}>
+        <div style={overlayStyle} />
+      </div>
     );
   }
 
@@ -150,7 +154,7 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     if (slide.type === "video") {
       return (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
-          <div style={{ position: "absolute", inset: 0, background: OVERLAY, zIndex: 1 }} />
+          <div style={overlayStyle} />
           <video
             autoPlay muted loop playsInline preload="auto"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
@@ -160,10 +164,9 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
       );
     }
     return (
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0,
-        background: `${OVERLAY}, url('${slide.url}') center/cover no-repeat`,
-      }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: `url('${slide.url}') center/cover no-repeat` }}>
+        <div style={overlayStyle} />
+      </div>
     );
   }
 
@@ -175,7 +178,7 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
         if (slide.type === "video") {
           return (
             <div key={slide.id} style={style} aria-hidden={i !== active}>
-              <div style={{ position: "absolute", inset: 0, background: OVERLAY, zIndex: 1 }} />
+              <div style={overlayStyle} />
               <video
                 ref={el => { videoRefs.current[i] = el; }}
                 muted playsInline preload="auto"
@@ -192,12 +195,11 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
         return (
           <div
             key={slide.id}
-            style={{
-              ...style,
-              background: `${OVERLAY}, url('${slide.url}') center/cover no-repeat`,
-            }}
+            style={{ ...style, background: `url('${slide.url}') center/cover no-repeat` }}
             aria-hidden={i !== active}
-          />
+          >
+            <div style={overlayStyle} />
+          </div>
         );
       })}
 

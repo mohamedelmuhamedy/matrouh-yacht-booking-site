@@ -23,6 +23,7 @@ const DEFAULTS: Record<string, string> = {
   hero_title_accent_en: "Marsa Matruh",
   hero_subtitle_ar: "سفاري الصحراء · رحلات يخت فاخرة · رياضات مائية · باراشوت · أكوا بارك",
   hero_subtitle_en: "Desert Safari · Luxury Yacht Trips · Water Sports · Parasailing · Aqua Park",
+  hero_overlay_opacity: "0.65",
   show_ai_assistant: "true",
   show_compare_feature: "true",
   show_testimonials: "true",
@@ -30,7 +31,7 @@ const DEFAULTS: Record<string, string> = {
   show_hero_pagination: "true",
 };
 
-type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text"; hint?: string };
+type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text" | "select"; hint?: string; options?: { value: string; label: string }[] };
 
 const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: string }[] = [
   {
@@ -84,6 +85,18 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "hero_title_accent_en", label: "Hero Title — Accent Part (English)", placeholder: "Marsa Matruh", hint: "Displayed with blue-gold gradient accent" },
       { key: "hero_subtitle_ar", label: "نص الهيرو الفرعي (عربي)", placeholder: "سفاري الصحراء · رحلات يخت فاخرة..." },
       { key: "hero_subtitle_en", label: "Hero Subtitle (English)", placeholder: "Desert Safari · Luxury Yacht Trips..." },
+      {
+        key: "hero_overlay_opacity", label: "شدة الطبقة الداكنة على الهيرو", type: "select",
+        hint: "تتحكم في درجة التعتيم فوق صور وفيديوهات الهيرو — قلّلها لترى الفيديو بوضوح أكبر",
+        options: [
+          { value: "0",    label: "بدون تعتيم (0%)" },
+          { value: "0.25", label: "خفيف جداً (25%)" },
+          { value: "0.45", label: "خفيف (45%)" },
+          { value: "0.65", label: "متوسط (65%) — الافتراضي" },
+          { value: "0.82", label: "قوي (82%)" },
+          { value: "1",    label: "كامل (100%)" },
+        ],
+      },
     ],
   },
   {
@@ -569,12 +582,12 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-                  {group.keys.map(({ key, label, placeholder, hint }) => {
+                  {group.keys.map(({ key, label, placeholder, hint, type: fieldType, options }) => {
                     const val = settings[key] ?? "";
                     const hasValue = val.trim().length > 0;
                     const isAccent = key.includes("accent");
                     return (
-                      <div key={key}>
+                      <div key={key} style={fieldType === "select" ? { gridColumn: "1 / -1" } : {}}>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
                           {isAccent && (
                             <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "0.9rem" }}>✦</span>
@@ -587,6 +600,19 @@ export default function SettingsPage() {
                             {hint}
                           </div>
                         )}
+                        {fieldType === "select" && options ? (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                            {options.map(opt => {
+                              const active = (val || DEFAULTS[key]) === opt.value;
+                              return (
+                                <button key={opt.value} onClick={() => update(key, opt.value)}
+                                  style={{ padding: "0.45rem 1rem", borderRadius: 8, fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 600, fontSize: "0.82rem", cursor: "pointer", border: `1.5px solid ${active ? "#00AAFF" : "#d0dce8"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: active ? "#00AAFF" : "#556677", transition: "all 0.18s" }}>
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
                         <input
                           style={{
                             ...inputBase,
@@ -604,6 +630,7 @@ export default function SettingsPage() {
                             e.target.style.boxShadow = "none";
                           }}
                         />
+                        )}
                       </div>
                     );
                   })}
