@@ -11,6 +11,9 @@ const VAPID_PRIVATE = process.env["VAPID_PRIVATE_KEY"] ?? "";
 
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
   webpush.setVapidDetails("mailto:admin@drtravel.eg", VAPID_PUBLIC, VAPID_PRIVATE);
+  console.log("[push] VAPID configured, public key prefix:", VAPID_PUBLIC.slice(0, 20));
+} else {
+  console.warn("[push] VAPID keys missing — push will not work");
 }
 
 // GET /api/push/vapid-public — return public key for frontend subscription
@@ -26,7 +29,6 @@ router.post("/push/subscribe", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing subscription fields" });
     }
 
-    // Upsert: if endpoint exists, update keys; else insert
     const existing = await db
       .select({ id: pushSubscriptions.id })
       .from(pushSubscriptions)
@@ -45,9 +47,11 @@ router.post("/push/subscribe", async (req: Request, res: Response) => {
       });
     }
 
+    const total = await db.select({ id: pushSubscriptions.id }).from(pushSubscriptions);
+    console.log(`[push] subscription saved. total subscribers: ${total.length}`);
     return res.json({ ok: true });
   } catch (err: any) {
-    console.error("push subscribe error:", err);
+    console.error("[push] subscribe error:", err);
     return res.status(500).json({ error: "Failed to save subscription" });
   }
 });
@@ -68,16 +72,16 @@ router.post("/push/unsubscribe", async (req: Request, res: Response) => {
 router.get("/admin/push/stats", authMiddleware, async (_req: Request, res: Response) => {
   try {
     const rows = await db.select({ id: pushSubscriptions.id }).from(pushSubscriptions);
-    return res.json({ count: rows.length });
+    return res.json({ count: rows.length, vapidConfigured: !!(VAPID_PUBLIC && VAPID_PRIVATE) });
   } catch {
-    return res.status(500).json({ count: 0 });
+    return res.status(500).json({ count: 0, vapidConfigured: false });
   }
 });
 
 // POST /api/admin/push/send — broadcast a push notification (admin only)
 router.post("/admin/push/send", authMiddleware, async (req: Request, res: Response) => {
   if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
-    return res.status(503).json({ error: "Push not configured" });
+    return res.status(503).json({ error: "Push not configured — VAPID keys missing" });
   }
 
   const { title, body, url } = req.body;
@@ -89,22 +93,32 @@ router.post("/admin/push/send", authMiddleware, async (req: Request, res: Respon
 
   try {
     const subs = await db.select().from(pushSubscriptions);
+    if (subs.length === 0) {
+      return res.json({ sent: 0, failed: 0, total: 0, message: "No subscribers" });
+    }
+
     let sent = 0;
     let failed = 0;
+    const details: { endpoint: string; status: number | string; ok: boolean }[] = [];
     const toDelete: string[] = [];
 
     await Promise.allSettled(
       subs.map(async (sub) => {
+        const shortEp = sub.endpoint.slice(-30);
         try {
-          await webpush.sendNotification(
+          const result = await webpush.sendNotification(
             { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
             payload,
-            { TTL: 86400 }
+            { TTL: 86400, urgency: "normal" }
           );
+          console.log(`[push] ✅ sent to ...${shortEp} → status ${result.statusCode}`);
+          details.push({ endpoint: shortEp, status: result.statusCode, ok: true });
           sent++;
         } catch (err: any) {
+          const code = err.statusCode ?? "network_err";
+          console.error(`[push] ❌ failed ...${shortEp} → ${code}: ${err.body || err.message}`);
+          details.push({ endpoint: shortEp, status: code, ok: false });
           if (err.statusCode === 410 || err.statusCode === 404) {
-            // Subscription expired — remove it
             toDelete.push(sub.endpoint);
           }
           failed++;
@@ -112,14 +126,14 @@ router.post("/admin/push/send", authMiddleware, async (req: Request, res: Respon
       })
     );
 
-    // Clean up expired subscriptions
     for (const endpoint of toDelete) {
       await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+      console.log(`[push] removed expired subscription ...${endpoint.slice(-30)}`);
     }
 
-    return res.json({ sent, failed, total: subs.length });
+    return res.json({ sent, failed, total: subs.length, details });
   } catch (err: any) {
-    console.error("push send error:", err);
+    console.error("[push] send error:", err);
     return res.status(500).json({ error: "Failed to send notifications" });
   }
 });

@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { isPushSupported, getPushPermission, subscribeToPush } from "../hooks/usePushNotifications";
 
-const DISMISSED_KEY = "push-prompt-dismissed";
+const DISMISSED_KEY = "push-prompt-dismissed-v2";
 
 export default function PushPrompt() {
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [errMsg, setErrMsg] = useState("");
 
   useEffect(() => {
     if (!isPushSupported()) return;
-    if (getPushPermission() !== "default") return; // already granted or denied
-    if (sessionStorage.getItem(DISMISSED_KEY)) return; // dismissed this session
-
-    // Show prompt after a small delay so it doesn't hit the user immediately
+    const perm = getPushPermission();
+    if (perm !== "default") return;
+    if (sessionStorage.getItem(DISMISSED_KEY)) return;
     const t = setTimeout(() => setVisible(true), 5000);
     return () => clearTimeout(t);
   }, []);
@@ -22,8 +24,21 @@ export default function PushPrompt() {
   };
 
   const allow = async () => {
-    setVisible(false);
-    await subscribeToPush();
+    setLoading(true);
+    setStatus("idle");
+    const result = await subscribeToPush();
+    setLoading(false);
+    if (result.ok) {
+      setStatus("ok");
+      setTimeout(() => setVisible(false), 1800);
+    } else {
+      setStatus("error");
+      setErrMsg(result.error || "فشل تفعيل الإشعارات");
+      // If permission was denied, dismiss permanently
+      if (result.error?.includes("denied")) {
+        setTimeout(() => setVisible(false), 2000);
+      }
+    }
   };
 
   if (!visible) return null;
@@ -42,34 +57,48 @@ export default function PushPrompt() {
       <style>{`@keyframes slideUpFadeIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: "0.8rem" }}>
-        <div style={{ fontSize: "2rem", lineHeight: 1 }}>🔔</div>
+        <div style={{ fontSize: "2rem", lineHeight: 1 }}>
+          {status === "ok" ? "✅" : status === "error" ? "❌" : "🔔"}
+        </div>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: "0 0 0.25rem", fontWeight: 700, color: "#fff", fontSize: "0.95rem" }}>
-            ابق على اطلاع دائم
-          </p>
-          <p style={{ margin: "0 0 0.9rem", color: "rgba(255,255,255,0.65)", fontSize: "0.8rem", lineHeight: 1.5 }}>
-            فعّل الإشعارات لتصلك عروض رحلات اليخت والسفاري فور نشرها
-          </p>
-          <div style={{ display: "flex", gap: "0.6rem" }}>
-            <button onClick={allow} style={{
-              flex: 1, background: "#00AAFF", color: "#fff",
-              border: "none", borderRadius: 8, padding: "0.55rem 1rem",
-              fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
-              fontFamily: "Cairo, sans-serif",
-            }}>
-              السماح
-            </button>
-            <button onClick={dismiss} style={{
-              flex: 1, background: "rgba(255,255,255,0.08)",
-              color: "rgba(255,255,255,0.6)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 8, padding: "0.55rem 1rem",
-              fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
-              fontFamily: "Cairo, sans-serif",
-            }}>
-              لاحقاً
-            </button>
-          </div>
+          {status === "ok" ? (
+            <p style={{ margin: 0, fontWeight: 700, color: "#4ade80", fontSize: "0.92rem" }}>
+              تم تفعيل الإشعارات بنجاح!
+            </p>
+          ) : status === "error" ? (
+            <p style={{ margin: 0, fontWeight: 700, color: "#f87171", fontSize: "0.88rem" }}>
+              {errMsg}
+            </p>
+          ) : (
+            <>
+              <p style={{ margin: "0 0 0.25rem", fontWeight: 700, color: "#fff", fontSize: "0.95rem" }}>
+                ابق على اطلاع دائم
+              </p>
+              <p style={{ margin: "0 0 0.9rem", color: "rgba(255,255,255,0.65)", fontSize: "0.8rem", lineHeight: 1.5 }}>
+                فعّل الإشعارات لتصلك عروض رحلات اليخت والسفاري فور نشرها
+              </p>
+              <div style={{ display: "flex", gap: "0.6rem" }}>
+                <button onClick={allow} disabled={loading} style={{
+                  flex: 1, background: loading ? "rgba(0,170,255,0.5)" : "#00AAFF", color: "#fff",
+                  border: "none", borderRadius: 8, padding: "0.55rem 1rem",
+                  fontSize: "0.82rem", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
+                  fontFamily: "Cairo, sans-serif",
+                }}>
+                  {loading ? "جارٍ..." : "السماح"}
+                </button>
+                <button onClick={dismiss} style={{
+                  flex: 1, background: "rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.6)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 8, padding: "0.55rem 1rem",
+                  fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                  fontFamily: "Cairo, sans-serif",
+                }}>
+                  لاحقاً
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

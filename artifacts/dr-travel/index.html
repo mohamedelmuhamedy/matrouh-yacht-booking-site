@@ -187,7 +187,27 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').catch(function() {});
+          navigator.serviceWorker.register('/sw.js', {
+            updateViaCache: 'none'  // never use cached sw.js; always fetch fresh
+          }).then(function(reg) {
+            // Force update check every time page loads
+            reg.update();
+            // If a new SW is waiting, skip it immediately
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            reg.addEventListener('updatefound', function() {
+              var newSW = reg.installing;
+              if (newSW) {
+                newSW.addEventListener('statechange', function() {
+                  if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New SW installed, skip waiting
+                    newSW.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              }
+            });
+          }).catch(function() {});
         });
       }
     </script>
