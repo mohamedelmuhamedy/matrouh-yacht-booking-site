@@ -15,11 +15,13 @@ interface HeroSliderProps {
   transition: Transition;
   fallbackBgUrl?: string;
   showPagination?: boolean;
+  onActiveChange?: (active: number, total: number) => void;
+  goToRef?: React.MutableRefObject<((i: number) => void) | null>;
 }
 
 const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
 
-export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true }: HeroSliderProps) {
+export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagination = true, onActiveChange, goToRef }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const [prev, setPrev] = useState<number>(-1);
   const [videoReady, setVideoReady] = useState<Record<number, boolean>>({});
@@ -36,6 +38,18 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
     setPrev(cur);
     setActive(next);
   }, []);
+
+  // Expose goTo externally via ref
+  useEffect(() => {
+    if (goToRef) {
+      goToRef.current = (i: number) => { setPrev(active); setActive(i); };
+    }
+  }, [active, goToRef]);
+
+  // Report active state to parent
+  useEffect(() => {
+    if (onActiveChange) onActiveChange(active, slides.length);
+  }, [active, slides.length, onActiveChange]);
 
   const scheduleAdvance = useCallback((fromIndex: number, durationSec: number) => {
     clearTimers();
@@ -187,7 +201,8 @@ export default function HeroSlider({ slides, transition, fallbackBgUrl, showPagi
         );
       })}
 
-      {showPagination && slides.length > 1 && (
+      {/* Inline dots — only rendered when NOT using external onActiveChange */}
+      {!onActiveChange && showPagination && slides.length > 1 && (
         <div style={{
           position: "absolute", bottom: 72, left: "50%", transform: "translateX(-50%)",
           display: "flex", gap: "8px", zIndex: 10,

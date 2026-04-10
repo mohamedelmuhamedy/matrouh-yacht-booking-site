@@ -427,6 +427,9 @@ function Hero() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [heroSlides, setHeroSlides] = useState<{ id: number; url: string; type: string; duration: number; sortOrder: number }[]>([]);
   const [heroTransition, setHeroTransition] = useState<"fade" | "slide" | "zoom" | "dissolve">("fade");
+  const [heroActive, setHeroActive] = useState(0);
+  const [heroTotal, setHeroTotal] = useState(0);
+  const heroGoToRef = useRef<((i: number) => void) | null>(null);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -470,7 +473,14 @@ function Hero() {
 
   return (
     <section id="hero" className="hero-bg" style={{ paddingTop: "80px", position: "relative", overflow: "hidden" }}>
-      <HeroSlider slides={heroSlides} transition={heroTransition} fallbackBgUrl={settings.hero_bg_url} showPagination={settings.show_hero_pagination !== "false"} />
+      <HeroSlider
+        slides={heroSlides}
+        transition={heroTransition}
+        fallbackBgUrl={settings.hero_bg_url}
+        showPagination={settings.show_hero_pagination !== "false"}
+        onActiveChange={(a, t) => { setHeroActive(a); setHeroTotal(t); }}
+        goToRef={heroGoToRef}
+      />
       <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", zIndex: 1, maxWidth: "860px", margin: "0 auto", position: "relative" }}>
         <FadeInSection>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: isMobile ? "1rem" : "1.75rem" }}>
@@ -522,12 +532,39 @@ function Hero() {
           </div>
         </FadeInSection>
 
-        {/* Scroll indicator — toggled via admin settings */}
-        {settings.show_scroll_indicator !== "false" && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", opacity: 0.5, marginTop: isMobile ? "1.5rem" : "2.5rem" }}>
-            <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
-              <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
-            </div>
+        {/* Unified bottom stack: pagination dots + scroll indicator */}
+        {(settings.show_hero_pagination !== "false" && heroTotal > 1 || settings.show_scroll_indicator !== "false") && (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            gap: isMobile ? "16px" : "12px",
+            marginTop: isMobile ? "1.25rem" : "2rem",
+          }}>
+            {/* Pagination dots — in flow, not absolute */}
+            {settings.show_hero_pagination !== "false" && heroTotal > 1 && (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                {Array.from({ length: heroTotal }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => heroGoToRef.current?.(i)}
+                    style={{
+                      width: i === heroActive ? 24 : 8, height: 8, borderRadius: 4, border: "none",
+                      background: i === heroActive ? "#00AAFF" : "rgba(255,255,255,0.4)",
+                      cursor: "pointer", padding: 0,
+                      transition: "all 0.4s ease",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Scroll indicator */}
+            {settings.show_scroll_indicator !== "false" && (
+              <div style={{ opacity: 0.5 }}>
+                <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
+                  <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
