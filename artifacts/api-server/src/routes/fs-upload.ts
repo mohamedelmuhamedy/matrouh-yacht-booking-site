@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync, unlinkSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync, unlinkSync, fsync } from "fs";
 import { join, extname } from "path";
 import { randomUUID } from "crypto";
 import { authMiddleware } from "../middleware/auth";
@@ -70,7 +70,18 @@ router.post("/admin/storage/upload", authMiddleware, (req, res) => {
     if (done) return;
     done = true;
     writeStream.end(() => {
-      res.json({ url: `/api/uploads/${filename}` });
+      // fsync ensures the file is fully flushed to disk before we return the URL.
+      // Without this, a server restart between write and disk flush loses the file
+      // while the DB record (created by the client after getting the URL) is kept.
+      const fd = (writeStream as any).fd;
+      if (fd != null) {
+        fsync(fd, (err) => {
+          if (err) console.warn("[upload] fsync warning:", err.message);
+          res.json({ url: `/api/uploads/${filename}` });
+        });
+      } else {
+        res.json({ url: `/api/uploads/${filename}` });
+      }
     });
   });
 

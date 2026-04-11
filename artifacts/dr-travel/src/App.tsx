@@ -426,7 +426,7 @@ function Hero() {
   const logoSrc = settings.logo_url || logoImg;
   const ar = lang === "ar";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [heroSlides, setHeroSlides] = useState<{ id: number; url: string; type: string; duration: number; sortOrder: number }[]>([]);
+  const [heroSlides, setHeroSlides] = useState<{ id: number; url: string; type: string; duration: number; sortOrder: number; videoStart?: number | null; videoEnd?: number | null }[]>([]);
   const [heroTransition, setHeroTransition] = useState<"fade" | "slide" | "zoom" | "dissolve">("fade");
   const [heroActive, setHeroActive] = useState(0);
   const [heroTotal, setHeroTotal] = useState(0);
