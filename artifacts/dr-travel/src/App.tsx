@@ -78,7 +78,6 @@ function testimonialToReview(t: DBTestimonial, lang: string) {
     stars: t.rating,
   };
 }
-import { usePersonalization } from "./hooks/usePersonalization";
 
 const AVATAR_COLORS = [
   "linear-gradient(135deg,#00AAFF,#0066cc)", "linear-gradient(135deg,#C9A84C,#9a6e1c)",
@@ -626,84 +625,6 @@ function Services() {
             </FadeInSection>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ===== PERSONALIZED SECTION =====
-function PersonalizedSection() {
-  const { lang } = useLanguage();
-  const { currency } = useCurrency();
-  const { packages: dbPackages } = useSiteData();
-  const { data, isFirstVisit, hasViewedPackages } = usePersonalization();
-  const [, navigate] = useLocation();
-  const ar = lang === "ar";
-
-  const allDbPkgs = dbPackages.length > 0 ? dbPackages : (PACKAGES_DATA as unknown as DBPackage[]);
-  const viewedPackages = data.viewedPackages.map(id => allDbPkgs.find(p => p.id === id)).filter(Boolean) as DBPackage[];
-  const popularPackages = allDbPkgs.filter(p => p.popular || p.featured);
-  const familyPackages = allDbPkgs.filter(p => p.familyFriendly);
-  const foreignerPackages = allDbPkgs.filter(p => p.foreignerFriendly);
-
-  const sections = [];
-
-  if (hasViewedPackages) {
-    sections.push({
-      title: ar ? "آخر ما شاهدته" : "Recently Viewed",
-      icon: "👁️",
-      packages: viewedPackages,
-    });
-  }
-
-  if (data.lastCategory) {
-    const catPkgs = PACKAGES_DATA.filter(p => p.category === data.lastCategory && !data.viewedPackages.includes(p.id));
-    if (catPkgs.length > 0) sections.push({ title: ar ? "باقات مشابهة لاهتمامك" : "Based on Your Interest", icon: "🎯", packages: catPkgs });
-  }
-
-  sections.push({ title: ar ? "الأكثر طلباً" : "Most Popular", icon: "🏆", packages: popularPackages });
-
-  if (lang === "en") {
-    sections.push({ title: "Great for Foreign Visitors", icon: "🌍", packages: foreignerPackages });
-  } else {
-    sections.push({ title: "مثالية للعائلات", icon: "👨‍👩‍👧‍👦", packages: familyPackages });
-  }
-
-  const displaySections = sections.slice(0, 2);
-  if (displaySections.length === 0 || (displaySections.every(s => s.packages.length === 0))) return null;
-
-  return (
-    <section style={{ padding: "3rem 1.5rem 0", background: "linear-gradient(180deg,#0a1520 0%,#0a1520 100%)" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {isFirstVisit && (
-          <div style={{ background: "rgba(0,170,255,0.06)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "14px", padding: "1rem 1.5rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span style={{ fontSize: "1.5rem" }}>👋</span>
-            <div>
-              <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem" }}>{ar ? "أهلاً بك في DR Travel!" : "Welcome to DR Travel!"}</div>
-              <div style={{ color: "#667788", fontSize: "0.8rem" }}>{ar ? "اكتشف أفضل باقاتنا السياحية في مرسى مطروح" : "Discover our best tourism packages in Marsa Matruh"}</div>
-            </div>
-          </div>
-        )}
-        {displaySections.filter(s => s.packages.length > 0).map((section, si) => (
-          <div key={si} style={{ marginBottom: "2rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-              <span style={{ fontSize: "1.1rem" }}>{section.icon}</span>
-              <h3 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", margin: 0 }}>{section.title}</h3>
-            </div>
-            <div style={{ display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-              {section.packages.slice(0, 4).map(pkg => (
-                <button key={pkg.id} onClick={() => navigate(`/packages/${pkg.slug}`)}
-                  style={{ flexShrink: 0, background: `${pkg.color}08`, border: `1px solid ${pkg.color}22`, borderRadius: "14px", padding: "1rem", cursor: "pointer", textAlign: "inherit", fontFamily: "Cairo, sans-serif", width: "180px", transition: "all 0.3s" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}44`; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = `${pkg.color}22`; }}>
-                  <div style={{ fontSize: "1.75rem", marginBottom: "0.4rem" }}>{pkg.icon}</div>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.3, marginBottom: "0.3rem" }}>{ar ? pkg.titleAr : pkg.titleEn}</div>
-                  <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{pkg.price}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
     </section>
   );
@@ -1414,7 +1335,7 @@ function HomePage() {
       <Hero />
       <StatsBar />
       <Services />
-      <PersonalizedSection />
+
       <PackagesAndBooking />
       <WhyUs />
       {showTestimonials && <Reviews />}

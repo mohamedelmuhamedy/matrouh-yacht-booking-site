@@ -405,6 +405,78 @@
   .section-subtitle { font-size: 0.9rem !important; }
 }
 
+/* ===== MOBILE PERFORMANCE =====
+   backdrop-filter blur is the #1 GPU killer on mid/low-end Android phones.
+   On mobile we replace it with a solid/semi-transparent background instead.
+   We also strip multi-layer box-shadows and disable hover transforms
+   (hover never fires on touch — they just waste paint budget).
+===== */
+@media (max-width: 768px) {
+  /* Navbar: replace expensive blur with a solid dark background */
+  .navbar.scrolled {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(8, 16, 26, 0.97) !important;
+    box-shadow: 0 1px 0 rgba(0,170,255,0.15) !important;
+  }
+
+  /* Modals: remove blur backdrop — solid dim overlay is enough */
+  .modal-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .book-modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Disable hover transforms — touch devices don't have hover,
+     but the transition still gets evaluated on every tap */
+  .service-card:hover,
+  .service-card:hover::before {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(255,255,255,0.07) !important;
+  }
+  .pkg-card:hover,
+  .pkg-card:hover::after {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(255,255,255,0.08) !important;
+  }
+  .pkg-card.selected {
+    box-shadow: 0 0 0 3px rgba(0,170,255,0.2) !important;
+  }
+  .why-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    background: rgba(255,255,255,0.03) !important;
+  }
+  .show-pkg-btn:hover {
+    transform: none !important;
+  }
+
+  /* Simplify heavy multi-layer box-shadows on cards */
+  .modal-content {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
+  }
+  .book-modal-card {
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55) !important;
+  }
+
+  /* Prevent off-screen sections from painting until they scroll near */
+  .stats-section,
+  #services,
+  #packages,
+  #why-us,
+  #gallery,
+  #reviews {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 600px;
+  }
+}
+
 /* ===== WABUTTON ===== */
 .wa-float {
   position: fixed;
