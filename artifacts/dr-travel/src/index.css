@@ -42,11 +42,11 @@
 .scroll-progress {
   position: fixed;
   top: 0;
-  right: 0;
+  inset-inline-start: 0;
   height: 3px;
   background: linear-gradient(90deg, #00AAFF, #C9A84C);
   z-index: 9999;
-  transition: width 0.1s linear;
+  will-change: width;
 }
 
 /* ===== NAVBAR ===== */

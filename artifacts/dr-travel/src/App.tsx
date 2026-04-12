@@ -167,16 +167,21 @@ function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; del
 
 // ===== SCROLL PROGRESS =====
 function ScrollProgress() {
-  const [width, setWidth] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    let rafId = 0;
     const onScroll = () => {
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      setWidth(total > 0 ? (window.scrollY / total) * 100 : 0);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (!barRef.current) return;
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        barRef.current.style.width = `${total > 0 ? (window.scrollY / total) * 100 : 0}%`;
+      });
     };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(rafId); };
   }, []);
-  return <div className="scroll-progress" style={{ width: `${width}%` }} />;
+  return <div ref={barRef} className="scroll-progress" style={{ width: "0%" }} />;
 }
 
 // ===== LANGUAGE SWITCHER =====
