@@ -1272,12 +1272,12 @@ function Footer() {
                   {item.text}
                 </a>
               ))}
-              <a href="https://maps.google.com/?q=Mersa+Matruh,+Egypt" target="_blank" rel="noreferrer"
+              <a href={settings.maps_url || "https://maps.google.com/?q=Mersa+Matruh,+Egypt"} target="_blank" rel="noreferrer"
                 style={{ color: "#445566", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", transition: "color 0.3s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#C9A84C")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#445566")}>
                 <span style={{ width: 34, height: 34, borderRadius: "8px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9A84C", flexShrink: 0 }}><LocationIcon /></span>
-                {f.locationLabel}
+                {lang === "ar" ? (settings.location_ar || f.locationLabel) : (settings.location_en || f.locationLabel)}
               </a>
               <div style={{ background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.1)", borderRadius: "10px", padding: "0.85rem" }}>
                 <div style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.35rem" }}>{f.workingHours}</div>

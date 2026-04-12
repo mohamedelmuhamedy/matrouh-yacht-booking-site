@@ -9,6 +9,7 @@ const DEFAULTS: Record<string, string> = {
   business_name_en: "DR Travel",
   location_ar: "مرسى مطروح، مصر",
   location_en: "Marsa Matruh, Egypt",
+  maps_url: "https://maps.google.com/?q=Mersa+Matruh,+Egypt",
   whatsapp_number: "201205756024",
   phone_number: "+20 120 575 6024",
   facebook_url: "https://facebook.com/Drtrave",
@@ -43,6 +44,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "business_name_en", label: "Business Name (English)", placeholder: "DR Travel" },
       { key: "location_ar", label: "الموقع (عربي)", placeholder: "مرسى مطروح، مصر" },
       { key: "location_en", label: "Location (English)", placeholder: "Marsa Matruh, Egypt" },
+      { key: "maps_url", label: "رابط Google Maps", placeholder: "https://maps.google.com/?q=...", hint: "يظهر في الفوتر كرابط قابل للضغط — انسخ الرابط من Google Maps مباشرة" },
     ],
   },
   {
