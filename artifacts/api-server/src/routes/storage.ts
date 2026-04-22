@@ -1,5 +1,11 @@
+import { Readable } from "node:stream";
 import { Router, type IRouter, type Request, type Response } from "express";
-import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
+import {
+  ObjectNotFoundError,
+  ObjectStorageService,
+  StorageConfigurationError,
+  StorageUploadError,
+} from "../lib/objectStorage";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -9,19 +15,47 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
-const MAX_IMAGE_BYTES = 15 * 1024 * 1024;   // 15 MB for images
-const MAX_VIDEO_BYTES = 300 * 1024 * 1024;  // 300 MB for videos
+const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
   return `${(bytes / 1024).toFixed(0)} KB`;
 }
 
+function getMaxBytesForContentType(contentType: string): number {
+  return ALLOWED_VIDEO_TYPES.includes(contentType) ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+}
+
+function copyProxyHeaders(source: globalThis.Response, res: Response): void {
+  const passthroughHeaders = [
+    "content-type",
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "cache-control",
+    "etag",
+    "last-modified",
+  ];
+
+  for (const headerName of passthroughHeaders) {
+    const value = source.headers.get(headerName);
+    if (value) {
+      res.setHeader(headerName, value);
+    }
+  }
+}
+
 router.post("/storage/uploads/request-url", authMiddleware, async (req: Request, res: Response) => {
-  const { name, size, contentType } = req.body as { name?: string; size?: number; contentType?: string };
+  const { name, size, contentType } = req.body as {
+    name?: string;
+    size?: number;
+    contentType?: string;
+  };
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
-    res.status(400).json({ error: "اسم الملف مطلوب", code: "MISSING_NAME" }); return;
+    res.status(400).json({ error: "اسم الملف مطلوب", code: "MISSING_NAME" });
+    return;
   }
 
   if (!contentType || !ALLOWED_TYPES.includes(contentType)) {
@@ -32,118 +66,139 @@ router.post("/storage/uploads/request-url", authMiddleware, async (req: Request,
         : `نوع الملف غير مدعوم: ${contentType}. الأنواع المدعومة: JPEG, PNG, WebP, GIF`,
       code: "UNSUPPORTED_TYPE",
       allowed: ALLOWED_TYPES,
-    }); return;
+    });
+    return;
   }
-
-  const isVideo = ALLOWED_VIDEO_TYPES.includes(contentType);
-  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
 
   if (typeof size !== "number" || size <= 0) {
-    res.status(400).json({ error: "حجم الملف غير صحيح", code: "INVALID_SIZE" }); return;
+    res.status(400).json({ error: "حجم الملف غير صحيح", code: "INVALID_SIZE" });
+    return;
   }
+
+  const maxBytes = getMaxBytesForContentType(contentType);
   if (size > maxBytes) {
     res.status(400).json({
-      error: `حجم الملف كبير جداً (${formatBytes(size)}). الحد الأقصى لـ${isVideo ? "الفيديو" : "الصورة"}: ${formatBytes(maxBytes)}`,
+      error: `حجم الملف كبير جداً (${formatBytes(size)}). الحد الأقصى: ${formatBytes(maxBytes)}`,
       code: "FILE_TOO_LARGE",
       maxBytes,
-    }); return;
+    });
+    return;
   }
 
   try {
-    const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-    const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
-    res.json({ uploadURL, objectPath, metadata: { name, size, contentType } });
+    const { uploadURL, objectPath, publicUrl } =
+      objectStorageService.createDirectUploadTarget({ name, size, contentType });
+    res.json({ uploadURL, objectPath, publicUrl, metadata: { name, size, contentType } });
   } catch (error) {
     console.error("Error generating upload URL:", error);
-    res.status(500).json({ error: "فشل في توليد رابط الرفع. حاول مرة أخرى.", code: "STORAGE_ERROR" });
+    const status = error instanceof StorageConfigurationError ? 500 : 500;
+    res.status(status).json({
+      error: "فشل في توليد رابط الرفع. تأكد من إعدادات Supabase Storage ثم حاول مرة أخرى.",
+      code: "STORAGE_ERROR",
+    });
   }
 });
 
-// Public file serving — path passed as query param: ?path=images/foo.jpg
+router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  if (!token) {
+    res.status(400).json({ error: "رمز الرفع غير موجود", code: "MISSING_UPLOAD_TOKEN" });
+    return;
+  }
+
+  try {
+    const payload = objectStorageService.verifyUploadToken(token);
+    const contentType = (req.headers["content-type"] as string) || "";
+    if (contentType !== payload.contentType) {
+      res.status(400).json({ error: "نوع الملف لا يطابق الطلب الأصلي", code: "CONTENT_TYPE_MISMATCH" });
+      return;
+    }
+
+    const contentLengthHeader = req.headers["content-length"];
+    const contentLength = contentLengthHeader ? Number(contentLengthHeader) : undefined;
+    if (
+      typeof contentLength === "number" &&
+      Number.isFinite(contentLength) &&
+      contentLength > payload.size
+    ) {
+      res.status(413).json({ error: "حجم الملف أكبر من الحد المسموح", code: "FILE_TOO_LARGE" });
+      return;
+    }
+
+    await objectStorageService.uploadRequestStream({
+      objectPath: payload.objectPath,
+      contentType: payload.contentType,
+      stream: req,
+      contentLength,
+    });
+
+    res.status(200).end();
+  } catch (error) {
+    console.error("Error uploading file to Supabase Storage:", error);
+    if (error instanceof StorageUploadError) {
+      res.status(error.statusCode).json({ error: error.message, code: "UPLOAD_FAILED" });
+      return;
+    }
+    res.status(500).json({ error: "فشل رفع الملف إلى Supabase Storage", code: "UPLOAD_FAILED" });
+  }
+});
+
 router.get("/storage/public-objects", async (req: Request, res: Response) => {
   const filePath = (req.query.path as string) || "";
-  if (!filePath) { res.status(400).json({ error: "path query param required" }); return; }
+  if (!filePath) {
+    res.status(400).json({ error: "path query param required" });
+    return;
+  }
+
   try {
-    const file = await objectStorageService.searchPublicObject(filePath);
-    if (!file) { res.status(404).json({ error: "Not found" }); return; }
-    const response = await objectStorageService.downloadObject(file);
-    res.setHeader("Content-Type", response.headers.get("Content-Type") || "application/octet-stream");
-    res.setHeader("Cache-Control", "public, max-age=86400");
+    const response = await objectStorageService.proxyObject(`/objects/${filePath}`);
+    copyProxyHeaders(response, res);
+    res.status(response.status);
+
     if (response.body) {
-      const { Readable } = await import("stream");
-      Readable.fromWeb(response.body as any).pipe(res);
+      Readable.fromWeb(response.body as ReadableStream).pipe(res);
     } else {
-      res.status(204).end();
+      res.end();
     }
   } catch (error) {
+    if (error instanceof ObjectNotFoundError) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
     console.error("Error serving public object:", error);
     res.status(500).json({ error: "Failed to serve file" });
   }
 });
 
-// Private file serving with Range request support for video streaming
-// objectPath as query param: ?objectPath=/objects/uuid
 router.get("/storage/objects", async (req: Request, res: Response) => {
   const objectPath = (req.query.objectPath as string) || "";
-  if (!objectPath) { res.status(400).json({ error: "objectPath query param required" }); return; }
+  if (!objectPath) {
+    res.status(400).json({ error: "objectPath query param required" });
+    return;
+  }
 
   try {
-    const file = await objectStorageService.getObjectEntityFile(objectPath);
-    const [metadata] = await file.getMetadata();
-    const contentType = (metadata.contentType as string) || "application/octet-stream";
-    const fileSize = Number(metadata.size || 0);
-    const isVideo = contentType.startsWith("video/");
+    const response = await objectStorageService.proxyObject(
+      objectPath,
+      typeof req.headers.range === "string" ? req.headers.range : undefined,
+    );
 
-    // Support HTTP Range requests (needed for video seeking in <video> elements)
-    const rangeHeader = req.headers["range"];
+    copyProxyHeaders(response, res);
+    res.status(response.status);
 
-    if (isVideo && rangeHeader && fileSize > 0) {
-      // Parse range: "bytes=start-end"
-      const match = rangeHeader.match(/bytes=(\d*)-(\d*)/);
-      if (match) {
-        const start = match[1] ? parseInt(match[1], 10) : 0;
-        const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
-        const chunkSize = end - start + 1;
-
-        res.writeHead(206, {
-          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-          "Accept-Ranges": "bytes",
-          "Content-Length": chunkSize,
-          "Content-Type": contentType,
-          "Cache-Control": "private, max-age=3600",
-        });
-
-        const nodeStream = file.createReadStream({ start, end });
-        nodeStream.pipe(res);
-        nodeStream.on("error", (err) => {
-          console.error("Range stream error:", err);
-          if (!res.headersSent) res.status(500).end();
-        });
-        return;
-      }
-    }
-
-    // Full file response
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Accept-Ranges", "bytes");
-    res.setHeader("Cache-Control", "private, max-age=3600");
-    if (fileSize > 0) res.setHeader("Content-Length", fileSize);
-
-    const response = await objectStorageService.downloadObject(file, 3600);
     if (response.body) {
-      const { Readable } = await import("stream");
-      Readable.fromWeb(response.body as any).pipe(res);
+      Readable.fromWeb(response.body as ReadableStream).pipe(res);
     } else {
-      res.status(204).end();
+      res.end();
     }
   } catch (error) {
-    if (error instanceof ObjectNotFoundError) { res.status(404).json({ error: "Not found" }); return; }
-    const msg = (error as any)?.response?.data || (error as any)?.message || "";
-    if (msg === "no allowed resources" || (error as any)?.response?.status === 401) {
-      res.status(404).json({ error: "Not found" }); return;
+    if (error instanceof ObjectNotFoundError) {
+      res.status(404).json({ error: "Not found" });
+      return;
     }
+    const statusCode = error instanceof StorageUploadError ? error.statusCode : 500;
     console.error("Error serving object:", error);
-    res.status(500).json({ error: "Failed to serve file" });
+    res.status(statusCode).json({ error: "Failed to serve file" });
   }
 });
 

@@ -57,6 +57,7 @@ export default function PackageDetail() {
   const [bookSubmitting, setBookSubmitting] = useState(false);
   const [bookDone, setBookDone] = useState(false);
   const [bookWaUrl, setBookWaUrl] = useState("");
+  const [bookSubmitError, setBookSubmitError] = useState("");
 
   const closeBookModal = () => {
     if (bookSubmitting) return;
@@ -65,6 +66,7 @@ export default function PackageDetail() {
       setBookDone(false);
       setBookForm({ name: "", phone: "", people: "1", date: "", notes: "" });
       setBookErrors({});
+      setBookSubmitError("");
     }, 300);
   };
 
@@ -74,6 +76,7 @@ export default function PackageDetail() {
     if (!bookForm.phone.trim()) e.phone = ar ? "رقم الهاتف مطلوب" : "Phone is required";
     else if (!/^01[0-9]{9}$/.test(bookForm.phone.replace(/\s/g, ""))) e.phone = ar ? "رقم غير صحيح (01XXXXXXXXX)" : "Invalid phone (01XXXXXXXXX)";
     if (!bookForm.people || parseInt(bookForm.people) < 1) e.people = ar ? "عدد الأفراد مطلوب" : "Number of people required";
+    if (!bookForm.date) e.date = ar ? "تاريخ الرحلة مطلوب" : "Trip date is required";
     return e;
   };
 
@@ -81,11 +84,12 @@ export default function PackageDetail() {
     ev.preventDefault();
     const errs = validateBook();
     setBookErrors(errs);
+    setBookSubmitError("");
     if (Object.keys(errs).length > 0) return;
     setBookSubmitting(true);
     const pkgName = ar ? (pkg?.titleAr ?? "") : (pkg?.titleEn ?? "");
     try {
-      await fetch("/api/bookings", {
+      const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -101,7 +105,28 @@ export default function PackageDetail() {
           priceAtBooking: pkg ? pkg.priceEGP * (parseInt(bookForm.people) || 1) : null,
         }),
       });
-    } catch { /* WhatsApp flow continues regardless */ }
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        const fallbackMessage = ar
+          ? "تعذر إرسال طلب الحجز الآن. برجاء مراجعة البيانات أو المحاولة مرة أخرى."
+          : "We couldn't submit your booking right now. Please try again.";
+        const serverMessage =
+          typeof errorBody?.error === "string" && errorBody.error.trim().length > 0
+            ? errorBody.error
+            : "";
+        throw new Error(ar ? fallbackMessage : serverMessage || fallbackMessage);
+      }
+    } catch (error) {
+      setBookSubmitting(false);
+      setBookSubmitError(
+        error instanceof Error && error.message
+          ? error.message
+          : ar
+            ? "تعذر إرسال طلب الحجز الآن. حاول مرة أخرى بعد قليل."
+            : "We couldn't submit your booking right now. Please try again.",
+      );
+      return;
+    }
     const waMsg = t.booking.waMessage(
       pkgName, bookForm.name, bookForm.phone,
       bookForm.date || (ar ? "غير محدد" : "TBD"),
@@ -705,7 +730,7 @@ export default function PackageDetail() {
                   <input className={`book-field${bookErrors.name ? " book-error" : ""}`}
                     placeholder={ar ? "مثال: أحمد محمد" : "e.g. Ahmed Mohamed"}
                     value={bookForm.name}
-                    onChange={e => { setBookForm(f => ({ ...f, name: e.target.value })); setBookErrors(x => ({ ...x, name: "" })); }} />
+                    onChange={e => { setBookForm(f => ({ ...f, name: e.target.value })); setBookErrors(x => ({ ...x, name: "" })); setBookSubmitError(""); }} />
                   {bookErrors.name && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.name}</div>}
                 </div>
 
@@ -715,7 +740,7 @@ export default function PackageDetail() {
                   <input className={`book-field${bookErrors.phone ? " book-error" : ""}`}
                     type="tel" dir="ltr" placeholder="01XXXXXXXXX"
                     value={bookForm.phone}
-                    onChange={e => { setBookForm(f => ({ ...f, phone: e.target.value })); setBookErrors(x => ({ ...x, phone: "" })); }} />
+                    onChange={e => { setBookForm(f => ({ ...f, phone: e.target.value })); setBookErrors(x => ({ ...x, phone: "" })); setBookSubmitError(""); }} />
                   {bookErrors.phone && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.phone}</div>}
                 </div>
 
@@ -726,16 +751,17 @@ export default function PackageDetail() {
                     <input className={`book-field${bookErrors.people ? " book-error" : ""}`}
                       type="number" min="1" max="50" dir="ltr"
                       value={bookForm.people}
-                      onChange={e => { setBookForm(f => ({ ...f, people: e.target.value })); setBookErrors(x => ({ ...x, people: "" })); }} />
+                      onChange={e => { setBookForm(f => ({ ...f, people: e.target.value })); setBookErrors(x => ({ ...x, people: "" })); setBookSubmitError(""); }} />
                     {bookErrors.people && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.people}</div>}
                   </div>
                   <div>
                     <label className="book-label">{ar ? "تاريخ الرحلة" : "Trip Date"}</label>
-                    <input className="book-field"
+                    <input className={`book-field${bookErrors.date ? " book-error" : ""}`}
                       type="date" dir="ltr"
                       min={new Date().toISOString().split("T")[0]}
                       value={bookForm.date}
-                      onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} />
+                      onChange={e => { setBookForm(f => ({ ...f, date: e.target.value })); setBookErrors(x => ({ ...x, date: "" })); setBookSubmitError(""); }} />
+                    {bookErrors.date && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.date}</div>}
                   </div>
                 </div>
 
@@ -745,8 +771,14 @@ export default function PackageDetail() {
                   <textarea className="book-field" rows={2} style={{ resize: "vertical" }}
                     placeholder={ar ? "أي طلبات خاصة أو ملاحظات..." : "Any special requests or notes..."}
                     value={bookForm.notes}
-                    onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} />
+                    onChange={e => { setBookForm(f => ({ ...f, notes: e.target.value })); setBookSubmitError(""); }} />
                 </div>
+
+                {bookSubmitError && (
+                  <div style={{ background: "rgba(220,38,38,0.12)", border: "1px solid rgba(248,113,113,0.4)", color: "#fecaca", borderRadius: "12px", padding: "0.85rem 1rem", fontSize: "0.82rem", lineHeight: 1.7 }}>
+                    {bookSubmitError}
+                  </div>
+                )}
 
                 {/* Estimated price */}
                 {bookForm.people && parseInt(bookForm.people) > 0 && (

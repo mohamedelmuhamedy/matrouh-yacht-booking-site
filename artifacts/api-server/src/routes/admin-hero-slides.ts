@@ -3,35 +3,24 @@ import { db } from "@workspace/db";
 import { heroSlides } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
-import { existsSync, unlinkSync } from "fs";
-import { join } from "path";
+import { ObjectStorageService } from "../lib/objectStorage";
 
-const UPLOAD_DIR = "/home/runner/workspace/data/uploads";
+const objectStorageService = new ObjectStorageService();
 
-function deleteUploadedFile(url: string) {
+async function deleteUploadedFile(url: string) {
   try {
-    if (!url || !url.startsWith("/api/uploads/")) return;
-    const filename = url.replace("/api/uploads/", "");
-    if (!filename || filename.includes("/") || filename.includes("..")) return;
-    const filePath = join(UPLOAD_DIR, filename);
-    if (existsSync(filePath)) unlinkSync(filePath);
+    await objectStorageService.deleteByUrl(url);
   } catch {}
 }
 
 const router = Router();
 
 // Check if an uploaded file actually exists on disk (avoids serving broken 404 references)
-function isUploadedFileReachable(url: string): boolean {
+async function isUploadedFileReachable(url: string): Promise<boolean> {
   if (!url) return false;
   // External URLs (Unsplash, etc.) are always considered reachable
   if (url.startsWith("http://") || url.startsWith("https://")) return true;
-  // Local uploads must exist on disk
-  if (url.startsWith("/api/uploads/")) {
-    const filename = url.replace("/api/uploads/", "");
-    if (!filename || filename.includes("/") || filename.includes("..")) return false;
-    return existsSync(join(UPLOAD_DIR, filename));
-  }
-  return true;
+  return objectStorageService.objectExists(url);
 }
 
 // Public: list active slides ordered — skip any whose files are missing
@@ -44,10 +33,14 @@ router.get("/hero-slides", async (_req, res) => {
       .orderBy(asc(heroSlides.sortOrder), asc(heroSlides.id));
 
     // Filter out slides where the uploaded file no longer exists
-    const valid = rows.filter(r => isUploadedFileReachable(r.url));
+    const reachability = await Promise.all(rows.map(async (row) => ({
+      row,
+      reachable: await isUploadedFileReachable(row.url),
+    })));
+    const valid = reachability.filter(({ reachable }) => reachable).map(({ row }) => row);
 
     // Auto-clean broken records so they don't accumulate
-    const broken = rows.filter(r => !isUploadedFileReachable(r.url));
+    const broken = reachability.filter(({ reachable }) => !reachable).map(({ row }) => row);
     if (broken.length > 0) {
       console.warn(`[hero-slides] removing ${broken.length} slide(s) with missing files:`, broken.map(r => r.url));
       for (const b of broken) {
@@ -143,7 +136,7 @@ router.delete("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const [slide] = await db.select().from(heroSlides).where(eq(heroSlides.id, id));
-    if (slide) deleteUploadedFile(slide.url);
+    if (slide) await deleteUploadedFile(slide.url);
     await db.delete(heroSlides).where(eq(heroSlides.id, id));
     return res.json({ success: true });
   } catch (err: any) {
