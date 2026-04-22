@@ -278,33 +278,29 @@ function Navbar() {
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
-  const handleInstallApp = async () => {
+  const handleInstallApp = () => {
     const deferredPrompt = pwaPrompt ?? window.__drTravelInstallPrompt ?? null;
 
     // 1. Native PWA prompt available — Android / Desktop Chrome/Edge → fire immediately, no modal
     if (deferredPrompt) {
-      try {
-        await deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
+      deferredPrompt.prompt();
+      void deferredPrompt.userChoice.then((result) => {
         if (result.outcome === "accepted") {
           setPwaPrompt(null);
           setIsInstalled(true);
           window.__drTravelInstallPrompt = null;
         }
-      } catch {
-        setShowIOSGuide(true);
-      }
+      });
       return;
     }
     // 2. App already installed → just open the app root
     if (isInstalled) {
-      window.location.href = "/";
+      window.open(window.location.href, "_blank");
       return;
     }
     // 3. iOS Safari → Add to Home Screen guide only
     if (isIOS) { setShowIOSGuide(true); return; }
-    // 4. Browsers without native prompt → show the manual install guide
-    setShowIOSGuide(true);
+    // 4. Desktop browsers without a prompt rely on their own install UI
   };
   const installBtnLabel = isInstalled
     ? (ar ? "فتح التطبيق" : "Open App")
