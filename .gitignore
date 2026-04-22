@@ -32,6 +32,9 @@ node_modules
 /connect.lock
 /coverage
 /libpeerconnection.log
+.env
+tmp-api-stdout.log
+tmp-api-stderr.log
 npm-debug.log
 yarn-error.log
 testem.log
@@ -46,5 +49,6 @@ Thumbs.db
 
 # Replit
 .cache/
+.config/replit/.semgrep/
 .local/
 data/uploads/

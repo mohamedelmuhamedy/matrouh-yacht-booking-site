@@ -1,3 +1,4 @@
+import "./src/loadEnv";
 import { defineConfig } from "drizzle-kit";
 import path from "path";
 

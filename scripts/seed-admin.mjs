@@ -1,11 +1,20 @@
 // Quick admin seeder - run with: node --input-type=module scripts/seed-admin.mjs
 // This uses the api-server's node_modules for dependencies
 import { createRequire } from 'module';
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'url';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
 
 const { Pool } = pg;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = path.resolve(__dirname, '../.env');
+
+if (fs.existsSync(rootEnvPath)) {
+  process.loadEnvFile(rootEnvPath);
+}
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const username = process.env.ADMIN_USERNAME || 'admin';

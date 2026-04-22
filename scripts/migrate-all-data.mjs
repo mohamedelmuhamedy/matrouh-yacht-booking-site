@@ -5,9 +5,19 @@
  * Run: node scripts/migrate-all-data.mjs
  */
 import { createRequire } from "module";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const pg = require("/home/runner/workspace/node_modules/.pnpm/pg@8.20.0/node_modules/pg");
 const { Pool } = pg;
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = path.resolve(__dirname, "../.env");
+
+if (fs.existsSync(rootEnvPath)) {
+  process.loadEnvFile(rootEnvPath);
+}
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
