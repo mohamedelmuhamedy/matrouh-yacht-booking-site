@@ -2,6 +2,8 @@
   "name": "DR Travel — Marsa Matruh",
   "short_name": "DR Travel",
   "description": "Yacht tourism, desert safari and water sports in Marsa Matruh, Egypt",
+  "id": "/",
+  "scope": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0D1B2A",

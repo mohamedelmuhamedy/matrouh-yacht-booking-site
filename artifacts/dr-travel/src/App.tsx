@@ -41,6 +41,17 @@ interface DisplayPkg {
   images?: string[];
 }
 
+interface DeferredInstallPrompt extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
+declare global {
+  interface Window {
+    __drTravelInstallPrompt?: DeferredInstallPrompt | null;
+  }
+}
+
 function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): DisplayPkg {
   const curr = currency as CurrencyCode;
   const ar = lang === "ar";
@@ -235,41 +246,65 @@ function Navbar() {
     { label: t.nav.booking, href: "#booking" },
     { label: t.nav.contact, href: "#footer" },
   ];
-  const [pwaPrompt, setPwaPrompt] = useState<any>(null);
+  const [pwaPrompt, setPwaPrompt] = useState<DeferredInstallPrompt | null>(null);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !("MSStream" in window);
   const [isInstalled, setIsInstalled] = useState(
     window.matchMedia("(display-mode: standalone)").matches ||
     Boolean((window.navigator as any).standalone)
   );
   useEffect(() => {
-    const onPrompt = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
-    const onInstalled = () => { setIsInstalled(true); setPwaPrompt(null); };
+    const syncStoredPrompt = () => {
+      setPwaPrompt(window.__drTravelInstallPrompt ?? null);
+    };
+    const onPrompt = (event: Event) => {
+      const deferredPrompt = event as DeferredInstallPrompt;
+      deferredPrompt.preventDefault();
+      window.__drTravelInstallPrompt = deferredPrompt;
+      setPwaPrompt(deferredPrompt);
+    };
+    const onInstalled = () => {
+      setIsInstalled(true);
+      setPwaPrompt(null);
+      setShowInstallGuide(false);
+      window.__drTravelInstallPrompt = null;
+    };
+    syncStoredPrompt();
     window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("drtravel-install-available", syncStoredPrompt as EventListener);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("drtravel-install-available", syncStoredPrompt as EventListener);
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
-  const handleInstallApp = () => {
+  const handleInstallApp = async () => {
     // 1. Native PWA prompt available — Android / Desktop Chrome/Edge → fire immediately, no modal
     if (pwaPrompt) {
-      pwaPrompt.prompt();
-      pwaPrompt.userChoice.then((r: any) => {
-        if (r.outcome === "accepted") { setPwaPrompt(null); setIsInstalled(true); }
-      });
+      try {
+        await pwaPrompt.prompt();
+        const result = await pwaPrompt.userChoice;
+        if (result.outcome === "accepted") {
+          setPwaPrompt(null);
+          setIsInstalled(true);
+          window.__drTravelInstallPrompt = null;
+        }
+      } catch {
+        setShowInstallGuide(true);
+      }
       return;
     }
-    // 2. App already installed → just open it
+    // 2. App already installed → just open the app root
     if (isInstalled) {
-      window.open(window.location.href, "_blank");
+      window.location.href = "/";
       return;
     }
     // 3. iOS Safari → Add to Home Screen guide only
     if (isIOS) { setShowIOSGuide(true); return; }
-    // 4. Desktop without native prompt (Firefox, Safari Mac, etc.) → do nothing,
-    //    browser omnibar already shows install option when available
+    // 4. Desktop / Android browsers without native prompt → show manual install guide
+    setShowInstallGuide(true);
   };
   const installBtnLabel = isInstalled
     ? (ar ? "فتح التطبيق" : "Open App")
@@ -413,6 +448,49 @@ function Navbar() {
               </div>
             </div>
             <button onClick={() => setShowIOSGuide(false)}
+              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
+              {ar ? "إغلاق" : "Close"}
+            </button>
+          </div>
+        </div>
+      )}
+      {showInstallGuide && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+          onClick={() => setShowInstallGuide(false)}>
+          <div style={{ background: "linear-gradient(180deg,#0d1b2a,#0a1520)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "20px 20px 0 0", padding: "2rem 1.5rem 3rem", maxWidth: 420, width: "100%", direction: ar ? "rtl" : "ltr", fontFamily: "Cairo,sans-serif" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📲</div>
+              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
+                {ar ? "تثبيت DR Travel من المتصفح" : "Install DR Travel from your browser"}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
+                {ar
+                  ? "لو نافذة التثبيت لم تظهر تلقائيًا، ثبّت التطبيق يدويًا من قائمة المتصفح."
+                  : "If the install prompt didn't appear automatically, you can install the app from your browser menu."}
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⋮</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? "افتح قائمة المتصفح من زر ⋮ أو ⋯" : "Open your browser menu using ⋮ or ⋯"}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⬇️</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? 'اختر "Install app" أو "Add to Home Screen"' : 'Choose "Install app" or "Add to Home Screen"'}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>✅</span>
+                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  {ar ? "بعد التثبيت سيفتح DR Travel كتطبيق مستقل على جهازك." : "After installation, DR Travel will open as a standalone app on your device."}
+                </span>
+              </div>
+            </div>
+            <button onClick={() => setShowInstallGuide(false)}
               style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
               {ar ? "إغلاق" : "Close"}
             </button>
