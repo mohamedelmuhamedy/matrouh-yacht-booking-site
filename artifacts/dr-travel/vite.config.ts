@@ -4,20 +4,12 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 const rawPort = process.env.PORT ?? "3000";
+const parsedPort = Number(rawPort);
+const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
+const rawBasePath = process.env.BASE_PATH?.trim() || "/";
+const basePath =
+  rawBasePath === "/" ? rawBasePath : `/${rawBasePath.replace(/^\/+/, "")}`;
 
 export default defineConfig({
   base: basePath,
