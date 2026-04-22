@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
-const pg = require("/home/runner/workspace/node_modules/.pnpm/pg@8.20.0/node_modules/pg");
+const pg = require("pg");
 const { Pool } = pg;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
