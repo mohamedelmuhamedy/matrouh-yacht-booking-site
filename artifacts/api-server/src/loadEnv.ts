@@ -1,10 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootEnvPath = path.resolve(dirname, "../../../.env");
+const envCandidates = [
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "../../.env"),
+];
 
-if (fs.existsSync(rootEnvPath)) {
+const rootEnvPath = envCandidates.find((candidate) => fs.existsSync(candidate));
+
+if (rootEnvPath) {
   process.loadEnvFile(rootEnvPath);
 }
