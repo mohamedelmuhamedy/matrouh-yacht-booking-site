@@ -10,6 +10,8 @@ const router = Router();
 let configuredVapidPair = "";
 let warnedAboutMissingVapid = false;
 let warnedAboutSecretStoreRead = false;
+let warnedAboutInvalidEnvVapid = false;
+let warnedAboutInvalidStoredVapid = false;
 
 async function getStoredSecret(key: string): Promise<string> {
   try {
@@ -30,31 +32,65 @@ async function getStoredSecret(key: string): Promise<string> {
   }
 }
 
-async function getVapidConfig(): Promise<{ publicKey: string; privateKey: string } | null> {
-  const publicKey =
-    process.env["VAPID_PUBLIC_KEY"]?.trim() ||
-    await getStoredSecret("vapid_public_key");
-  const privateKey =
-    process.env["VAPID_PRIVATE_KEY"]?.trim() ||
-    await getStoredSecret("vapid_private_key");
+function tryConfigureVapid(
+  publicKey: string,
+  privateKey: string,
+  source: "env" | "secret_store",
+): boolean {
+  const nextPair = `${publicKey}:${privateKey}`;
+  if (configuredVapidPair === nextPair) return true;
 
-  if (!publicKey || !privateKey) {
+  try {
+    webpush.setVapidDetails("mailto:admin@drtravel.eg", publicKey, privateKey);
+    configuredVapidPair = nextPair;
+    warnedAboutMissingVapid = false;
+    if (source === "env") warnedAboutInvalidEnvVapid = false;
+    if (source === "secret_store") warnedAboutInvalidStoredVapid = false;
+    console.log("[push] VAPID configured, public key prefix:", publicKey.slice(0, 20));
+    return true;
+  } catch (error) {
+    const alreadyWarned =
+      source === "env" ? warnedAboutInvalidEnvVapid : warnedAboutInvalidStoredVapid;
+
+    if (!alreadyWarned) {
+      console.warn(`[push] invalid VAPID keys from ${source}; ignoring this source`);
+      console.warn(error);
+      if (source === "env") warnedAboutInvalidEnvVapid = true;
+      if (source === "secret_store") warnedAboutInvalidStoredVapid = true;
+    }
+
+    return false;
+  }
+}
+
+async function getVapidConfig(): Promise<{ publicKey: string; privateKey: string } | null> {
+  const envPublicKey = process.env["VAPID_PUBLIC_KEY"]?.trim() ?? "";
+  const envPrivateKey = process.env["VAPID_PRIVATE_KEY"]?.trim() ?? "";
+  if (
+    envPublicKey &&
+    envPrivateKey &&
+    tryConfigureVapid(envPublicKey, envPrivateKey, "env")
+  ) {
+    return { publicKey: envPublicKey, privateKey: envPrivateKey };
+  }
+
+  const storedPublicKey = await getStoredSecret("vapid_public_key");
+  const storedPrivateKey = await getStoredSecret("vapid_private_key");
+  if (
+    storedPublicKey &&
+    storedPrivateKey &&
+    tryConfigureVapid(storedPublicKey, storedPrivateKey, "secret_store")
+  ) {
+    return { publicKey: storedPublicKey, privateKey: storedPrivateKey };
+  }
+
+  if (!envPublicKey && !envPrivateKey && !storedPublicKey && !storedPrivateKey) {
     if (!warnedAboutMissingVapid) {
       console.warn("[push] VAPID keys missing — push will not work");
       warnedAboutMissingVapid = true;
     }
-    return null;
   }
-
-  const nextPair = `${publicKey}:${privateKey}`;
-  if (configuredVapidPair !== nextPair) {
-    webpush.setVapidDetails("mailto:admin@drtravel.eg", publicKey, privateKey);
-    configuredVapidPair = nextPair;
-    warnedAboutMissingVapid = false;
-    console.log("[push] VAPID configured, public key prefix:", publicKey.slice(0, 20));
-  }
-
-  return { publicKey, privateKey };
+  return null;
 }
 
 // GET /api/push/vapid-public — return public key for frontend subscription
