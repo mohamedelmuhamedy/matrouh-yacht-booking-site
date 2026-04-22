@@ -24,6 +24,10 @@ export default function PushPrompt() {
   useEffect(() => {
     if (!isPushSupported()) return;
     const perm = getPushPermission();
+    if (perm === "granted") {
+      subscribeToPush().catch(() => {});
+      return;
+    }
     if (perm !== "default") return;
     if (sessionStorage.getItem(DISMISSED_KEY)) return;
     const t = setTimeout(() => setVisible(true), 5000);
