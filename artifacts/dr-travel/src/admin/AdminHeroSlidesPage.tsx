@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { apiUrl, storageObjectUrl } from "../lib/api";
 
 interface HeroSlide {
   id: number;
@@ -34,9 +35,7 @@ const card: React.CSSProperties = {
 };
 
 function toImgUrl(url: string) {
-  if (!url) return "";
-  if (url.startsWith("http") || url.startsWith("/api/")) return url;
-  return `/api/storage/objects?objectPath=${encodeURIComponent(url)}`;
+  return storageObjectUrl(url);
 }
 
 async function uploadFile(
@@ -46,7 +45,7 @@ async function uploadFile(
   const token = localStorage.getItem("admin_token");
   const uploadResult = await new Promise<{ ok: boolean; status: number; response: string }>((resolve) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/storage/upload");
+    xhr.open("POST", apiUrl("/api/admin/storage/upload"));
     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.setRequestHeader("X-Content-Type", file.type);
     xhr.upload.onprogress = (e) => {

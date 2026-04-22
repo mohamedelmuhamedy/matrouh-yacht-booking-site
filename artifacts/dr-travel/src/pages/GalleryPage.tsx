@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
+import { apiFetch, resolveApiAssetUrl } from "../lib/api";
 
 interface PreviewItem { id: number; url: string; type: string; }
 interface Album {
@@ -19,9 +20,19 @@ export default function GalleryPage() {
 
   useEffect(() => {
     setLoading(true); setErr("");
-    fetch("/api/gallery/albums")
+    apiFetch("/api/gallery/albums")
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(d => setAlbums(Array.isArray(d) ? d : []))
+      .then(d => setAlbums(
+        Array.isArray(d)
+          ? d.map(album => ({
+              ...album,
+              coverImage: resolveApiAssetUrl(album.coverImage),
+              previewItems: Array.isArray(album.previewItems)
+                ? album.previewItems.map((item: PreviewItem) => ({ ...item, url: resolveApiAssetUrl(item.url) }))
+                : [],
+            }))
+          : [],
+      ))
       .catch(e => setErr(e.message || "فشل التحميل"))
       .finally(() => setLoading(false));
   }, []);

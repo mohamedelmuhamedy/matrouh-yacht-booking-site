@@ -1,6 +1,6 @@
 // Push subscription management — DR Travel
 
-const API = "/api";
+import { apiFetch } from "../lib/api";
 
 function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -13,7 +13,7 @@ function urlBase64ToUint8Array(base64: string): ArrayBuffer {
 
 async function getVapidPublicKey(): Promise<string | null> {
   try {
-    const r = await fetch(`${API}/push/vapid-public`);
+    const r = await apiFetch("/api/push/vapid-public");
     if (!r.ok) return null;
     const d = await r.json();
     return d.publicKey ?? null;
@@ -145,7 +145,7 @@ export async function unsubscribeFromPush(): Promise<void> {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (!sub) return;
-    await fetch(`${API}/push/unsubscribe`, {
+    await apiFetch("/api/push/unsubscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ endpoint: sub.endpoint }),
@@ -158,7 +158,7 @@ export async function unsubscribeFromPush(): Promise<void> {
 
 async function sendSubToServer(sub: PushSubscription): Promise<void> {
   const json = sub.toJSON();
-  const r = await fetch(`${API}/push/subscribe`, {
+  const r = await apiFetch("/api/push/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

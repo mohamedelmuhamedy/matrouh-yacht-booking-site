@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { PACKAGES_DATA } from "../data/packages";
+import { apiFetch } from "../lib/api";
 
 export interface DBPackage {
   id: number;
@@ -119,7 +120,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const fetchPackages = useCallback(async () => {
     setPackagesLoading(true);
     try {
-      const r = await fetch("/api/packages");
+      const r = await apiFetch("/api/packages");
       if (r.ok) {
         const data = await r.json();
         if (Array.isArray(data)) {
@@ -143,7 +144,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
   const fetchTestimonials = useCallback(async () => {
     try {
-      const r = await fetch("/api/testimonials");
+      const r = await apiFetch("/api/testimonials");
       if (r.ok) {
         const data = await r.json();
         if (Array.isArray(data)) setTestimonials(data);
@@ -154,7 +155,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
-      const r = await fetch("/api/settings");
+      const r = await apiFetch("/api/settings");
       if (r.ok) {
         const data = await r.json();
         setSettings({ ...DEFAULT_SETTINGS, ...data });
@@ -165,7 +166,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const r = await fetch("/api/categories");
+      const r = await apiFetch("/api/categories");
       if (r.ok) {
         const data = await r.json();
         if (Array.isArray(data)) setCategories(data);

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { storageObjectUrl } from "../lib/api";
 
 const STATUS_BADGES: Record<string, { label: string; color: string; bg: string }> = {
   published: { label: "منشور", color: "#10B981", bg: "#10B98115" },
@@ -118,7 +119,7 @@ export default function PackagesPage() {
                 <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                   {pkg.images?.[0] ? (
                     <img
-                      src={(() => { const p = pkg.images[0]; return p.startsWith("http") || p.startsWith("/api/") ? p : `/api/storage/objects?objectPath=${encodeURIComponent(p)}`; })()}
+                      src={storageObjectUrl(pkg.images[0])}
                       alt={pkg.titleAr}
                       style={{ width: 80, height: 60, objectFit: "cover", borderRadius: "10px", flexShrink: 0 }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />

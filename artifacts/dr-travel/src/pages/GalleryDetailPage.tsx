@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { useLanguage } from "../LanguageContext";
+import { apiFetch, resolveApiAssetUrl } from "../lib/api";
 
 interface GalleryItem {
   id: number; url: string; type: string; caption: string;
@@ -225,9 +226,19 @@ export default function GalleryDetailPage() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true); setErr("");
-    fetch(`/api/gallery/albums/${slug}`)
+    apiFetch(`/api/gallery/albums/${slug}`)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(d => setAlbum(d))
+      .then(d => setAlbum(
+        d
+          ? {
+              ...d,
+              coverImage: resolveApiAssetUrl(d.coverImage),
+              items: Array.isArray(d.items)
+                ? d.items.map((item: GalleryItem) => ({ ...item, url: resolveApiAssetUrl(item.url) }))
+                : [],
+            }
+          : null,
+      ))
       .catch(e => setErr(e.message))
       .finally(() => setLoading(false));
   }, [slug]);

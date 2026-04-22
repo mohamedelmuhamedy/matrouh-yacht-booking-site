@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "../LanguageContext";
+import { apiFetch } from "../lib/api";
 
 interface CodeInfo {
   code: string; nameAr: string; nameEn: string;
   usedCount: number; approvedCount: number; isActive: boolean;
 }
-
-const API = "/api";
 
 export default function ReferralSection() {
   const { lang } = useLanguage();
@@ -32,7 +31,7 @@ export default function ReferralSection() {
   const verifyCode = async (code: string) => {
     setPhase("loading");
     try {
-      const r = await fetch(`${API}/referral/verify?code=${encodeURIComponent(code)}`);
+      const r = await apiFetch(`/api/referral/verify?code=${encodeURIComponent(code)}`);
       if (r.ok) {
         const data = await r.json();
         setCodeInfo({
@@ -59,7 +58,7 @@ export default function ReferralSection() {
     setRegLoading(true);
     setRegError("");
     try {
-      const r = await fetch(`${API}/referral/register`, {
+      const r = await apiFetch("/api/referral/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regForm),

@@ -6,6 +6,7 @@ import { useSiteData, type DBPackage } from "../context/SiteDataContext";
 import { getPackageBySlug, getSimilarPackages, PACKAGES_DATA } from "../data/packages";
 import { formatPrice } from "../data/currencies";
 import { usePersonalization } from "../hooks/usePersonalization";
+import { apiFetch, storageObjectUrl } from "../lib/api";
 
 const WhatsAppIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -89,7 +90,7 @@ export default function PackageDetail() {
     setBookSubmitting(true);
     const pkgName = ar ? (pkg?.titleAr ?? "") : (pkg?.titleEn ?? "");
     try {
-      const response = await fetch("/api/bookings", {
+      const response = await apiFetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,9 +142,7 @@ export default function PackageDetail() {
   // - Already a full http/https URL or an /api/ path → use as-is
   // - Raw objectPath (e.g. "objects/uploads/uuid") → wrap in storage endpoint
   const toImgUrl = (path: string): string => {
-    if (!path) return "";
-    if (path.startsWith("http") || path.startsWith("/api/")) return path;
-    return `/api/storage/objects?objectPath=${encodeURIComponent(path)}`;
+    return storageObjectUrl(path);
   };
 
   // Derive a stable image count and safe index BEFORE any navigation callbacks

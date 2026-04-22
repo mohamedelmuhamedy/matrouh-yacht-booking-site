@@ -3,6 +3,7 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
+import { resolveApiAssetUrl, storageObjectApiPath } from "../lib/api";
 
 const DEFAULTS: Record<string, string> = {
   business_name_ar: "DR Travel",
@@ -319,7 +320,7 @@ export default function SettingsPage() {
       });
       if (!uploadRes.ok) { setLogoError("فشل رفع الملف"); return; }
 
-      const logoPath = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+      const logoPath = storageObjectApiPath(objectPath);
       const next = { ...settingsRef.current, logo_url: logoPath };
       settingsRef.current = next;
       setSettings({ ...next });
@@ -352,7 +353,7 @@ export default function SettingsPage() {
       });
       if (!uploadRes.ok) { setHeroBgError("فشل رفع الملف"); return; }
 
-      const bgPath = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+      const bgPath = storageObjectApiPath(objectPath);
       const next = { ...settingsRef.current, hero_bg_url: bgPath };
       settingsRef.current = next;
       setSettings({ ...next });
@@ -445,7 +446,7 @@ export default function SettingsPage() {
           {/* Current logo preview */}
           <div style={{ position: "relative" }}>
             <img
-              src={settings.logo_url || logoFallback}
+              src={resolveApiAssetUrl(settings.logo_url) || logoFallback}
               alt="Logo"
               style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover", border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
               onError={e => { (e.target as HTMLImageElement).src = logoFallback; }}
@@ -496,7 +497,7 @@ export default function SettingsPage() {
               width: 140, height: 80, borderRadius: "10px", overflow: "hidden",
               border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
               background: settings.hero_bg_url
-                ? `url('${settings.hero_bg_url}') center/cover`
+                ? `url('${resolveApiAssetUrl(settings.hero_bg_url)}') center/cover`
                 : "linear-gradient(135deg,#0D1B2A,#00AAFF40)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>

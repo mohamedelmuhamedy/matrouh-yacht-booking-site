@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { apiUrl, resolveApiAssetUrl } from "../lib/api";
 
 function isYoutubeUrl(url: string) { return /youtube\.com|youtu\.be/.test(url); }
 function getYoutubeThumbnailUrl(url: string) {
@@ -119,7 +120,7 @@ export default function AdminGalleryPage() {
     return new Promise((resolve) => {
       const token = localStorage.getItem("admin_token");
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/admin/storage/upload");
+      xhr.open("POST", apiUrl("/api/admin/storage/upload"));
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.setRequestHeader("X-Content-Type", file.type);
       xhr.upload.onprogress = (e) => {
@@ -297,12 +298,12 @@ export default function AdminGalleryPage() {
                         </div>
                       </>
                     ) : (
-                      <video src={item.url} preload="metadata" muted playsInline
+                      <video src={resolveApiAssetUrl(item.url)} preload="metadata" muted playsInline
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                         onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 1; }} />
                     )
                   ) : (
-                    <img src={item.url} alt={item.caption || ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    <img src={resolveApiAssetUrl(item.url)} alt={item.caption || ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   )}
                 </div>
@@ -377,7 +378,7 @@ export default function AdminGalleryPage() {
               <div style={{ position: "relative", height: 160, background: "#f1f5f9", overflow: "hidden", cursor: "pointer" }}
                 onClick={() => openAlbumItems(album)}>
                 {album.coverImage ? (
-                  <img src={album.coverImage} alt={album.titleAr} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  <img src={resolveApiAssetUrl(album.coverImage)} alt={album.titleAr} style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={e => { (e.target as HTMLImageElement).src = ""; }} />
                 ) : (
                   <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#cbd5e1", fontSize: "3rem" }}>🏔️</div>
@@ -452,7 +453,7 @@ export default function AdminGalleryPage() {
                 <label style={{ display: "block", color: dark.label, fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.35rem" }}>صورة الغلاف</label>
                 <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
                   {albumForm.coverImage && (
-                    <img src={albumForm.coverImage} alt="cover" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8, border: `1px solid ${dark.border}` }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <img src={resolveApiAssetUrl(albumForm.coverImage)} alt="cover" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8, border: `1px solid ${dark.border}` }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   )}
                   <input ref={coverRef} type="file" accept="image/*" style={{ display: "none" }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) { uploadCover(f); e.target.value = ""; } }} />

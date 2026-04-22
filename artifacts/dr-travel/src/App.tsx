@@ -18,6 +18,7 @@ import PushPrompt from "./components/PushPrompt";
 import { PACKAGES_DATA } from "./data/packages";
 import HeroSlider from "./components/HeroSlider";
 import { formatPrice, CurrencyCode } from "./data/currencies";
+import { apiFetch, resolveApiAssetUrl } from "./lib/api";
 
 interface DisplayPkg {
   id: number;
@@ -219,7 +220,7 @@ function LangSwitcher() {
 function Navbar() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
-  const logoSrc = settings.logo_url || logoImg;
+  const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoImg;
   const [location, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -427,7 +428,7 @@ function Hero() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
   const [, navigate] = useLocation();
-  const logoSrc = settings.logo_url || logoImg;
+  const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoImg;
   const ar = lang === "ar";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [heroSlides, setHeroSlides] = useState<{ id: number; url: string; type: string; duration: number; sortOrder: number; videoStart?: number | null; videoEnd?: number | null }[]>([]);
@@ -443,8 +444,8 @@ function Hero() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/hero-slides").then(r => r.json()).then(d => {
-      if (Array.isArray(d)) setHeroSlides(d);
+    apiFetch("/api/hero-slides").then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setHeroSlides(d.map(slide => ({ ...slide, url: resolveApiAssetUrl(slide.url) })));
     }).catch(() => {});
   }, []);
 
@@ -481,7 +482,7 @@ function Hero() {
       <HeroSlider
         slides={heroSlides}
         transition={heroTransition}
-        fallbackBgUrl={settings.hero_bg_url}
+        fallbackBgUrl={resolveApiAssetUrl(settings.hero_bg_url)}
         showPagination={settings.show_hero_pagination !== "false"}
         onActiveChange={(a, t) => { setHeroActive(a); setHeroTotal(t); }}
         goToRef={heroGoToRef}
@@ -734,7 +735,7 @@ function PackagesAndBooking() {
     setReferralStatus("checking");
     const t = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/referral/verify?code=${encodeURIComponent(code)}`);
+        const r = await apiFetch(`/api/referral/verify?code=${encodeURIComponent(code)}`);
         if (r.ok) {
           const data = await r.json();
           setReferralStatus("valid");
@@ -773,7 +774,7 @@ function PackagesAndBooking() {
     if (Object.keys(errs).length === 0) {
       setShowModal(true);
       try {
-        await fetch("/api/bookings", {
+        await apiFetch("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1195,7 +1196,7 @@ function Reviews() {
 function Footer() {
   const { t, lang } = useLanguage();
   const { settings } = useSiteData();
-  const logoSrc = settings.logo_url || logoImg;
+  const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoImg;
   const f = t.footer;
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const waNum = settings.whatsapp_number || "201205756024";

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { apiFetch } from "../lib/api";
 
 interface AdminUser { username: string; displayName: string; }
 interface AdminContextType {
@@ -25,7 +26,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("admin_token");
     if (saved) {
-      fetch("/api/admin/me", { headers: { Authorization: `Bearer ${saved}` } })
+      apiFetch("/api/admin/me", { headers: { Authorization: `Bearer ${saved}` } })
         .then(async r => {
           if (r.status === 401) {
             localStorage.removeItem("admin_token");
@@ -49,7 +50,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const r = await fetch("/api/admin/login", {
+    const r = await apiFetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -87,7 +88,7 @@ export function adminFetch(path: string, options: RequestInit = {}): Promise<Res
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  return fetch(`/api${path}`, { ...options, headers }).then(async r => {
+  return apiFetch(`/api${path}`, { ...options, headers }).then(async r => {
     if (r.status === 401) {
       const body = await r.clone().json().catch(() => ({}));
       if (body.code === "TOKEN_EXPIRED" || body.code === "INVALID_TOKEN") {

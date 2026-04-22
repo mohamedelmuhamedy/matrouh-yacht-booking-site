@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useAdmin } from "./AdminContext";
+import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
+import { apiFetch } from "../lib/api";
 
 interface Category {
   id: number;
@@ -32,7 +33,6 @@ const labelSt: React.CSSProperties = {
 };
 
 export default function AdminCategoriesPage() {
-  const { token } = useAdmin();
   const { success, error: toastError } = useToast();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,7 +47,7 @@ export default function AdminCategoriesPage() {
   async function load() {
     setLoading(true);
     try {
-      const r = await fetch("/api/categories");
+      const r = await apiFetch("/api/categories");
       if (r.ok) setCategories(await r.json());
     } catch {}
     setLoading(false);
@@ -63,9 +63,8 @@ export default function AdminCategoriesPage() {
     }
     setSaving(true);
     try {
-      const r = await fetch("/api/admin/categories", {
+      const r = await adminFetch("/admin/categories", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       });
       if (r.ok) {
@@ -89,9 +88,8 @@ export default function AdminCategoriesPage() {
     }
     setSaving(true);
     try {
-      const r = await fetch(`/api/admin/categories/${id}`, {
+      const r = await adminFetch(`/admin/categories/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(editForm),
       });
       if (r.ok) {
@@ -111,9 +109,8 @@ export default function AdminCategoriesPage() {
   async function handleDelete(id: number) {
     setSaving(true);
     try {
-      const r = await fetch(`/api/admin/categories/${id}`, {
+      const r = await adminFetch(`/admin/categories/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (r.ok) {
         success("تم الحذف");

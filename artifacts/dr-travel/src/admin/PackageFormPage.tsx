@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
+import { apiFetch, resolveApiAssetUrl, storageObjectApiPath } from "../lib/api";
 
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
@@ -176,7 +177,7 @@ export default function PackageFormPage() {
 
   const [dbCategories, setDbCategories] = useState<{ id: number; slug: string; nameAr: string; nameEn: string }[]>([]);
   useEffect(() => {
-    fetch("/api/categories")
+    apiFetch("/api/categories")
       .then(r => r.ok ? r.json() : [])
       .then(data => { if (Array.isArray(data)) setDbCategories(data); })
       .catch(() => {});
@@ -287,7 +288,7 @@ export default function PackageFormPage() {
       });
       if (!uploadRes.ok) { setUploadError("فشل رفع الملف إلى التخزين"); return; }
       // objectPath = "/objects/uploads/UUID" → served via private objects endpoint
-      const publicUrl = `/api/storage/objects?objectPath=${encodeURIComponent(objectPath)}`;
+      const publicUrl = storageObjectApiPath(objectPath);
       setForm(f => ({ ...f, images: [...f.images, publicUrl] }));
     } catch (e: any) {
       setUploadError(e.message || "خطأ في الرفع");
@@ -553,7 +554,7 @@ export default function PackageFormPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))", gap: "0.75rem", marginTop: "0.75rem" }}>
                 {form.images.map((url, i) => (
                   <div key={i} style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "#f0f4f8" }}>
-                    <img src={url} alt={`img-${i}`}
+                    <img src={resolveApiAssetUrl(url)} alt={`img-${i}`}
                       style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     <button type="button" onClick={() => removeFromArr("images", i)}
