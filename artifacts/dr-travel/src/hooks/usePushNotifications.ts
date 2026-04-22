@@ -2,6 +2,11 @@
 
 import { apiFetch } from "../lib/api";
 
+const fallbackVapidPublicKey =
+  typeof import.meta.env.VITE_VAPID_PUBLIC_KEY === "string"
+    ? import.meta.env.VITE_VAPID_PUBLIC_KEY.trim()
+    : "";
+
 function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -14,11 +19,13 @@ function urlBase64ToUint8Array(base64: string): ArrayBuffer {
 async function getVapidPublicKey(): Promise<string | null> {
   try {
     const r = await apiFetch("/api/push/vapid-public");
-    if (!r.ok) return null;
+    if (!r.ok) return fallbackVapidPublicKey || null;
     const d = await r.json();
-    return d.publicKey ?? null;
+    const publicKey =
+      typeof d.publicKey === "string" ? d.publicKey.trim() : "";
+    return publicKey || fallbackVapidPublicKey || null;
   } catch {
-    return null;
+    return fallbackVapidPublicKey || null;
   }
 }
 
