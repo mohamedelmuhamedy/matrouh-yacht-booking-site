@@ -1,7 +1,7 @@
 import "../loadEnv";
 import { Router, Request, Response } from "express";
 import webpush from "web-push";
-import { db, pushSubscriptions } from "@workspace/db";
+import { db, pushSubscriptions, appSecrets } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 
@@ -9,10 +9,34 @@ const router = Router();
 
 let configuredVapidPair = "";
 let warnedAboutMissingVapid = false;
+let warnedAboutSecretStoreRead = false;
 
-function getVapidConfig(): { publicKey: string; privateKey: string } | null {
-  const publicKey = process.env["VAPID_PUBLIC_KEY"]?.trim() ?? "";
-  const privateKey = process.env["VAPID_PRIVATE_KEY"]?.trim() ?? "";
+async function getStoredSecret(key: string): Promise<string> {
+  try {
+    const [row] = await db
+      .select({ value: appSecrets.value })
+      .from(appSecrets)
+      .where(eq(appSecrets.key, key))
+      .limit(1);
+
+    return row?.value?.trim() ?? "";
+  } catch (error) {
+    if (!warnedAboutSecretStoreRead) {
+      warnedAboutSecretStoreRead = true;
+      console.warn("[push] secret store lookup failed; falling back to env only");
+      console.warn(error);
+    }
+    return "";
+  }
+}
+
+async function getVapidConfig(): Promise<{ publicKey: string; privateKey: string } | null> {
+  const publicKey =
+    process.env["VAPID_PUBLIC_KEY"]?.trim() ||
+    await getStoredSecret("vapid_public_key");
+  const privateKey =
+    process.env["VAPID_PRIVATE_KEY"]?.trim() ||
+    await getStoredSecret("vapid_private_key");
 
   if (!publicKey || !privateKey) {
     if (!warnedAboutMissingVapid) {
@@ -34,8 +58,8 @@ function getVapidConfig(): { publicKey: string; privateKey: string } | null {
 }
 
 // GET /api/push/vapid-public — return public key for frontend subscription
-router.get("/push/vapid-public", (_req: Request, res: Response) => {
-  return res.json({ publicKey: getVapidConfig()?.publicKey ?? "" });
+router.get("/push/vapid-public", async (_req: Request, res: Response) => {
+  return res.json({ publicKey: (await getVapidConfig())?.publicKey ?? "" });
 });
 
 // POST /api/push/subscribe — save or update a push subscription
@@ -89,7 +113,7 @@ router.post("/push/unsubscribe", async (req: Request, res: Response) => {
 router.get("/admin/push/stats", authMiddleware, async (_req: Request, res: Response) => {
   try {
     const rows = await db.select({ id: pushSubscriptions.id }).from(pushSubscriptions);
-    return res.json({ count: rows.length, vapidConfigured: !!getVapidConfig() });
+    return res.json({ count: rows.length, vapidConfigured: !!(await getVapidConfig()) });
   } catch {
     return res.status(500).json({ count: 0, vapidConfigured: false });
   }
@@ -97,7 +121,7 @@ router.get("/admin/push/stats", authMiddleware, async (_req: Request, res: Respo
 
 // POST /api/admin/push/send — broadcast a push notification (admin only)
 router.post("/admin/push/send", authMiddleware, async (req: Request, res: Response) => {
-  if (!getVapidConfig()) {
+  if (!(await getVapidConfig())) {
     return res.status(503).json({ error: "Push not configured — VAPID keys missing" });
   }
 

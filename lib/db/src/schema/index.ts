@@ -10,3 +10,4 @@ export * from "./gallery_items";
 export * from "./categories";
 export * from "./hero_slides";
 export * from "./push_subscriptions";
+export * from "./app_secrets";
