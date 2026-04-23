@@ -26,7 +26,7 @@ export default function PackageDetail() {
   const { lang, t } = useLanguage();
   const { currency } = useCurrency();
   const { trackView } = usePersonalization();
-  const { packages: dbPackages, packagesLoading } = useSiteData();
+  const { packages: dbPackages, packagesLoading, settings } = useSiteData();
   const ar = lang === "ar";
 
   const slug = params?.slug;
@@ -263,10 +263,11 @@ export default function PackageDetail() {
   const hasMaxPrice = typeof pkg.maxPriceEGP === "number" && pkg.maxPriceEGP > 0;
   const duration = ar ? pkg.durationAr : pkg.durationEn;
   const faq = (pkg as any).faq || [];
+  const formatPkgPrice = (priceEGP: number) => formatPrice(priceEGP, currency, lang, settings);
 
   const waMsg = encodeURIComponent(
-    ar ? `مرحباً DR Travel 👋\nأريد الاستفسار عن: ${title}\n💰 السعر: ${formatPrice(pkg.priceEGP, currency, lang)}/فرد`
-       : `Hello DR Travel 👋\nI'd like to inquire about: ${title}\n💰 Price: ${formatPrice(pkg.priceEGP, currency, lang)}/person`
+    ar ? `مرحباً DR Travel 👋\nأريد الاستفسار عن: ${title}\n💰 السعر: ${formatPkgPrice(pkg.priceEGP)}/فرد`
+       : `Hello DR Travel 👋\nI'd like to inquire about: ${title}\n💰 Price: ${formatPkgPrice(pkg.priceEGP)}/person`
   );
 
   const expLabels: Record<string, { ar: string; en: string }> = {
@@ -292,8 +293,8 @@ export default function PackageDetail() {
       </div>
       <div style={{ color: pkg.color, fontSize: isMobile ? "1.7rem" : "2rem", fontWeight: 900, fontFamily: "Montserrat, sans-serif", marginBottom: "0.25rem" }}>
         {hasMaxPrice
-          ? `${formatPrice(pkg.priceEGP, currency, lang)} — ${formatPrice(pkg.maxPriceEGP!, currency, lang)}`
-          : formatPrice(pkg.priceEGP, currency, lang)}
+          ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
+          : formatPkgPrice(pkg.priceEGP)}
       </div>
       <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>{duration}</div>
 
@@ -674,7 +675,7 @@ export default function PackageDetail() {
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ color: "white", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
-                        <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang)}</div>
+                        <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang, settings)}</div>
                       </div>
                     </div>
                   ))}
@@ -712,8 +713,8 @@ export default function PackageDetail() {
               <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
               <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", fontFamily: "Montserrat, sans-serif" }}>
                 {hasMaxPrice
-                  ? `${formatPrice(pkg.priceEGP, currency, lang)} — ${formatPrice(pkg.maxPriceEGP!, currency, lang)}`
-                  : formatPrice(pkg.priceEGP, currency, lang)}
+                  ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
+                  : formatPkgPrice(pkg.priceEGP)}
                 <span style={{ color: "#8899aa", fontWeight: 400, fontFamily: "Cairo, sans-serif", fontSize: "0.75rem" }}> / {ar ? "فرد" : "person"}</span>
               </div>
             </div>
@@ -784,7 +785,7 @@ export default function PackageDetail() {
                   <div style={{ background: `${pkg.color}0d`, border: `1px solid ${pkg.color}22`, borderRadius: "10px", padding: "0.7rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ color: "#8899aa", fontSize: "0.8rem" }}>{ar ? "السعر التقديري" : "Estimated Price"}</span>
                     <span style={{ color: pkg.color, fontWeight: 800, fontFamily: "Montserrat, sans-serif", fontSize: "0.95rem" }}>
-                      {formatPrice(pkg.priceEGP * (parseInt(bookForm.people) || 1), currency, lang)}
+                      {formatPkgPrice(pkg.priceEGP * (parseInt(bookForm.people) || 1))}
                     </span>
                   </div>
                 )}

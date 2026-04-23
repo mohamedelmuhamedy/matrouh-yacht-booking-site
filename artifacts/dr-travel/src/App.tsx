@@ -3,7 +3,7 @@ import { Switch, Route, useLocation } from "wouter";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
 import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
-import { SiteDataProvider, useSiteData, type DBPackage, type DBTestimonial } from "./context/SiteDataContext";
+import { SiteDataProvider, useSiteData, type DBPackage, type DBTestimonial, type SiteSettings } from "./context/SiteDataContext";
 import CurrencySwitcher from "./components/CurrencySwitcher";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
@@ -52,13 +52,13 @@ declare global {
   }
 }
 
-function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string): DisplayPkg {
+function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string, settings: SiteSettings): DisplayPkg {
   const curr = currency as CurrencyCode;
   const ar = lang === "ar";
   const hasMax = typeof pkg.maxPriceEGP === "number" && pkg.maxPriceEGP > 0;
   const priceLabel = hasMax
-    ? `${formatPrice(pkg.priceEGP, curr, lang)} – ${formatPrice(pkg.maxPriceEGP!, curr, lang)}`
-    : formatPrice(pkg.priceEGP, curr, lang);
+    ? `${formatPrice(pkg.priceEGP, curr, lang, settings)} – ${formatPrice(pkg.maxPriceEGP!, curr, lang, settings)}`
+    : formatPrice(pkg.priceEGP, curr, lang, settings);
   return {
     id: pkg.id,
     slug: pkg.slug,
@@ -726,7 +726,7 @@ function PackagesAndBooking() {
   const [, navigate] = useLocation();
 
   const allDbPkgs = dbPackages.length > 0 ? dbPackages : (PACKAGES_DATA as unknown as DBPackage[]);
-  const PACKAGES: DisplayPkg[] = allDbPkgs.map(p => dbPkgToDisplay(p, lang, currency));
+  const PACKAGES: DisplayPkg[] = allDbPkgs.map(p => dbPkgToDisplay(p, lang, currency, settings));
 
   const [selectedPkg, setSelectedPkg] = useState<DisplayPkg | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "", referralCode: "" });
@@ -934,7 +934,7 @@ function PackagesAndBooking() {
                       <div>
                         <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
                         <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>
-                          {formatPrice(pkg.priceNum, currency as CurrencyCode, lang)}
+                          {formatPrice(pkg.priceNum, currency as CurrencyCode, lang, settings)}
                         </div>
                       </div>
                       <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
@@ -1093,7 +1093,7 @@ function PackagesAndBooking() {
                         <div style={{ marginTop: "0.75rem" }}>
                           <div style={{ color: "#667788", fontSize: "0.72rem", marginBottom: "0.25rem" }}>{bk.estimatedPrice}</div>
                           <div style={{ color: selectedPkg.color, fontSize: "1.3rem", fontWeight: 900, fontFamily: "Montserrat, sans-serif" }}>
-                            {estimatedPrice.toLocaleString(bk.locale)} <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{bk.currency}</span>
+                            {formatPrice(estimatedPrice, currency as CurrencyCode, lang, settings)}
                           </div>
                           <div style={{ color: "#445566", fontSize: "0.7rem", marginTop: "0.2rem" }}>{bk.priceNote}</div>
                         </div>

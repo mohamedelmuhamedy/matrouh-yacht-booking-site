@@ -100,6 +100,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   site_title: "DR Travel",
   meta_description: "أفضل رحلات مرسى مطروح - ركوب بحر وسفاري وأكثر",
   default_currency: "EGP",
+  usd_rate: "50",
+  sar_rate: "13.3",
   facebook_url: "https://facebook.com/Drtrave",
   instagram_url: "https://instagram.com/drtravel_marsamatrouh",
   tiktok_url: "https://tiktok.com/@drtravel.marsa.matrouh",

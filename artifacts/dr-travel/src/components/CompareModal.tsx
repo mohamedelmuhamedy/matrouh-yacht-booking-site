@@ -20,7 +20,7 @@ const XIcon = () => (
 export default function CompareModal({ packages, onClose, onBook }: Props) {
   const { lang } = useLanguage();
   const { currency } = useCurrency();
-  const { categories } = useSiteData();
+  const { categories, settings } = useSiteData();
 
   const ar = lang === "ar";
 
@@ -105,7 +105,7 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
   };
 
   const rows: { label: string; render: (pkg: PackageData) => React.ReactNode }[] = [
-    { label: ct.price, render: pkg => <span style={{ color: pkg.color, fontWeight: 800 }}>{formatPrice(pkg.priceEGP, currency, lang)}</span> },
+    { label: ct.price, render: pkg => <span style={{ color: pkg.color, fontWeight: 800 }}>{formatPrice(pkg.priceEGP, currency, lang, settings)}</span> },
     { label: ct.duration, render: pkg => lang === "ar" ? pkg.durationAr : pkg.durationEn },
     { label: ct.category, render: pkg => categoryName(pkg.category) },
     { label: ct.experience, render: pkg => expLabels[pkg.experienceLevel] },

@@ -103,10 +103,11 @@ export class ObjectStorageService {
     );
   }
 
-  createObjectPath(fileName?: string, prefix = "uploads"): string {
-    const safePrefix = this.sanitizeSegment(prefix) || "uploads";
+  createObjectPath(fileName?: string, prefix = ""): string {
+    const safePrefix = this.sanitizeSegment(prefix);
     const safeExt = this.sanitizeExtension(fileName);
-    return `/objects/${safePrefix}/${randomUUID()}${safeExt}`;
+    const prefixPath = safePrefix ? `${safePrefix}/` : "";
+    return `/objects/${prefixPath}${randomUUID()}${safeExt}`;
   }
 
   normalizeObjectEntityPath(rawPath: string): string {

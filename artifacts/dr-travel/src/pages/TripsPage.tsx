@@ -34,7 +34,7 @@ function CheckIcon() {
 
 export default function TripsPage() {
   const { lang } = useLanguage();
-  const { packages: allPackages, categories: dbCategories } = useSiteData();
+  const { packages: allPackages, categories: dbCategories, settings } = useSiteData();
   const { currency } = useCurrency();
   const [, navigate] = useLocation();
   const isMobile = useIsMobile();
@@ -204,10 +204,10 @@ export default function TripsPage() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
                       <div>
                         <span style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1.05rem" }}>
-                          {formatPrice(pkg.priceEGP, curr, lang)}
+                          {formatPrice(pkg.priceEGP, curr, lang, settings)}
                         </span>
                         {pkg.maxPriceEGP && (
-                          <span style={{ color: "#667788", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang)}</span>
+                          <span style={{ color: "#667788", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang, settings)}</span>
                         )}
                         <span style={{ color: "#556677", fontSize: "0.75rem", marginInlineStart: "0.25rem" }}>
                           {ar ? "/ شخص" : "/ person"}

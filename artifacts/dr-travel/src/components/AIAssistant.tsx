@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useSiteData } from "../context/SiteDataContext";
 import { PACKAGES_DATA, type PackageData } from "../data/packages";
 import { formatPrice } from "../data/currencies";
 
@@ -48,6 +49,7 @@ function recommendPackages(answers: UserAnswers): PackageData[] {
 export default function AIAssistant() {
   const { lang } = useLanguage();
   const { currency } = useCurrency();
+  const { settings } = useSiteData();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [step, setStep] = useState(0);
@@ -257,7 +259,7 @@ export default function AIAssistant() {
                         </div>
                         <div style={{ color: "#8899aa", fontSize: "0.75rem", marginBottom: "0.5rem" }}>{T.reason}</div>
                         <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.65rem" }}>
-                          {formatPrice(pkg.priceEGP, currency, lang)} / {ar ? "فرد" : "person"}
+                          {formatPrice(pkg.priceEGP, currency, lang, settings)} / {ar ? "فرد" : "person"}
                         </div>
                         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                           <a href={`#packages`} onClick={() => setOpen(false)}

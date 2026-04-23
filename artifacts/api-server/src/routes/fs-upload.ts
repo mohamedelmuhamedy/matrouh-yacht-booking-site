@@ -54,7 +54,6 @@ router.post("/admin/storage/upload", authMiddleware, async (req, res) => {
   try {
     const objectPath = objectStorageService.createObjectPath(
       `upload${MIME_TO_EXT[contentType]}`,
-      "uploads",
     );
 
     await objectStorageService.uploadRequestStream({

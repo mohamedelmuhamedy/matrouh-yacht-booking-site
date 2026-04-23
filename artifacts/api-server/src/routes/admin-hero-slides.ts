@@ -13,6 +13,14 @@ async function deleteUploadedFile(url: string) {
   } catch {}
 }
 
+function parseOptionalVideoPoint(value: unknown): number | null {
+  if (value == null) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 const router = Router();
 
 // Check if an uploaded file actually exists on disk (avoids serving broken 404 references)
@@ -72,10 +80,12 @@ router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
   try {
     const { url, type = "image", duration = 6, sortOrder = 0, videoStart, videoEnd } = req.body;
     if (!url) return res.status(400).json({ error: "url is required" });
+    const normalizedVideoStart = parseOptionalVideoPoint(videoStart);
+    const normalizedVideoEnd = parseOptionalVideoPoint(videoEnd);
     const [row] = await db.insert(heroSlides).values({
       url, type, duration, sortOrder, isActive: true,
-      videoStart: videoStart != null ? Number(videoStart) : null,
-      videoEnd: videoEnd != null ? Number(videoEnd) : null,
+      videoStart: normalizedVideoStart,
+      videoEnd: normalizedVideoEnd,
     }).returning();
     return res.json(row);
   } catch (err: any) {
@@ -122,8 +132,8 @@ router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
     if (duration !== undefined) updates.duration = duration;
     if (sortOrder !== undefined) updates.sortOrder = sortOrder;
     if (isActive !== undefined) updates.isActive = isActive;
-    if ("videoStart" in req.body) updates.videoStart = videoStart != null ? Number(videoStart) : null;
-    if ("videoEnd" in req.body) updates.videoEnd = videoEnd != null ? Number(videoEnd) : null;
+    if ("videoStart" in req.body) updates.videoStart = parseOptionalVideoPoint(videoStart);
+    if ("videoEnd" in req.body) updates.videoEnd = parseOptionalVideoPoint(videoEnd);
     const [row] = await db.update(heroSlides).set(updates).where(eq(heroSlides.id, id)).returning();
     return res.json(row);
   } catch (err: any) {
