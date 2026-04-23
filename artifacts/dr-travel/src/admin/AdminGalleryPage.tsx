@@ -128,7 +128,10 @@ export default function AdminGalleryPage() {
       };
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve({ url: JSON.parse(xhr.responseText).url }); }
+          try {
+            const { publicUrl, url } = JSON.parse(xhr.responseText);
+            resolve({ url: publicUrl || url });
+          }
           catch { resolve({ error: "خطأ في استجابة الخادم" }); }
         } else {
           try { resolve({ error: JSON.parse(xhr.responseText)?.error || `فشل الرفع (${xhr.status})` }); }

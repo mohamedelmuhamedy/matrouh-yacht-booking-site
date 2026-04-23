@@ -3,7 +3,7 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
-import { resolveApiAssetUrl, storageObjectApiPath } from "../lib/api";
+import { apiUrl, resolveApiAssetUrl } from "../lib/api";
 
 const DEFAULTS: Record<string, string> = {
   business_name_ar: "DR Travel",
@@ -314,14 +314,14 @@ export default function SettingsPage() {
         setLogoError(err.error || "فشل طلب رفع الشعار");
         return;
       }
-      const { uploadURL, objectPath } = await reqRes.json();
-      const uploadRes = await fetch(uploadURL, {
+      const { uploadURL, publicUrl } = await reqRes.json();
+      const uploadRes = await fetch(apiUrl(uploadURL), {
         method: "PUT", headers: { "Content-Type": file.type }, body: file,
       });
       if (!uploadRes.ok) { setLogoError("فشل رفع الملف"); return; }
+      if (!publicUrl) { setLogoError("لم يتم استلام رابط الملف"); return; }
 
-      const logoPath = storageObjectApiPath(objectPath);
-      const next = { ...settingsRef.current, logo_url: logoPath };
+      const next = { ...settingsRef.current, logo_url: publicUrl };
       settingsRef.current = next;
       setSettings({ ...next });
       const ok = await save(next);
@@ -347,14 +347,14 @@ export default function SettingsPage() {
         setHeroBgError(err.error || "فشل طلب رفع الصورة");
         return;
       }
-      const { uploadURL, objectPath } = await reqRes.json();
-      const uploadRes = await fetch(uploadURL, {
+      const { uploadURL, publicUrl } = await reqRes.json();
+      const uploadRes = await fetch(apiUrl(uploadURL), {
         method: "PUT", headers: { "Content-Type": file.type }, body: file,
       });
       if (!uploadRes.ok) { setHeroBgError("فشل رفع الملف"); return; }
+      if (!publicUrl) { setHeroBgError("لم يتم استلام رابط الملف"); return; }
 
-      const bgPath = storageObjectApiPath(objectPath);
-      const next = { ...settingsRef.current, hero_bg_url: bgPath };
+      const next = { ...settingsRef.current, hero_bg_url: publicUrl };
       settingsRef.current = next;
       setSettings({ ...next });
       const ok = await save(next, true);

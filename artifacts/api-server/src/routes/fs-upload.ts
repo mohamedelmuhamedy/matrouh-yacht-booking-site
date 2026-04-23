@@ -64,10 +64,12 @@ router.post("/admin/storage/upload", authMiddleware, async (req, res) => {
       contentLength,
     });
 
+    const publicUrl = objectStorageService.getPublicUrl(objectPath);
     res.json({
-      url: objectStorageService.toApiObjectUrl(objectPath),
+      url: publicUrl,
       objectPath,
-      publicUrl: objectStorageService.getPublicUrl(objectPath),
+      publicUrl,
+      proxyUrl: objectStorageService.toApiObjectUrl(objectPath),
     });
   } catch (error) {
     console.error("Admin storage upload failed:", error);

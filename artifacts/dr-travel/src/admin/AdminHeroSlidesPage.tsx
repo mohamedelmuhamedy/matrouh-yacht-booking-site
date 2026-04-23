@@ -60,8 +60,8 @@ async function uploadFile(
     const body = JSON.parse(uploadResult.response || "{}");
     return { error: body?.error || `فشل رفع الملف (${uploadResult.status || "خطأ في الشبكة"})` };
   }
-  const { url } = JSON.parse(uploadResult.response);
-  return { url };
+  const { publicUrl, url } = JSON.parse(uploadResult.response);
+  return { url: publicUrl || url };
 }
 
 export default function AdminHeroSlidesPage() {
@@ -387,7 +387,7 @@ export default function AdminHeroSlidesPage() {
                     <div style={{ width: 140, height: 90, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#0d1824", position: "relative" }}>
                       <video
                         ref={el => { videoPreviewRefs.current[slide.id] = el; }}
-                        src={slide.url}
+                        src={toImgUrl(slide.url)}
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         muted
                         preload="metadata"

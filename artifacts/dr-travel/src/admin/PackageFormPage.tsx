@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
-import { apiFetch, resolveApiAssetUrl, storageObjectApiPath } from "../lib/api";
+import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
 
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
@@ -282,13 +282,12 @@ export default function PackageFormPage() {
         setUploadError(err.error || "فشل طلب رفع الصورة");
         return;
       }
-      const { uploadURL, objectPath } = await reqRes.json();
-      const uploadRes = await fetch(uploadURL, {
+      const { uploadURL, publicUrl } = await reqRes.json();
+      const uploadRes = await fetch(apiUrl(uploadURL), {
         method: "PUT", headers: { "Content-Type": file.type }, body: file,
       });
       if (!uploadRes.ok) { setUploadError("فشل رفع الملف إلى التخزين"); return; }
-      // objectPath = "/objects/uploads/UUID" → served via private objects endpoint
-      const publicUrl = storageObjectApiPath(objectPath);
+      if (!publicUrl) { setUploadError("لم يتم استلام رابط الملف"); return; }
       setForm(f => ({ ...f, images: [...f.images, publicUrl] }));
     } catch (e: any) {
       setUploadError(e.message || "خطأ في الرفع");
