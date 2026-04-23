@@ -9,7 +9,7 @@ export const heroSlides = pgTable("hero_slides", {
   duration: integer("duration").notNull().default(6),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
-  videoStart: doublePrecision("video_start").default(0),
+  videoStart: doublePrecision("video_start"),
   videoEnd: doublePrecision("video_end"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -96,14 +96,17 @@ router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
 // Admin: restore default slides (must be before /:id route)
 router.post("/admin/hero-slides/restore-defaults", authMiddleware, async (_req, res) => {
   try {
-    await db.delete(heroSlides);
-    const [row] = await db.insert(heroSlides).values({
-      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=85",
-      type: "image",
-      duration: 8,
-      sortOrder: 0,
-      isActive: true,
-    }).returning();
+    const row = await db.transaction(async (tx) => {
+      await tx.delete(heroSlides);
+      const [insertedRow] = await tx.insert(heroSlides).values({
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=85",
+        type: "image",
+        duration: 8,
+        sortOrder: 0,
+        isActive: true,
+      }).returning();
+      return insertedRow;
+    });
     return res.json({ success: true, slide: row });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || "Failed to restore defaults" });
