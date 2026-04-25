@@ -119,7 +119,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [apiFailed, setApiFailed] = useState(false);
 
-  const fetchPackages = useCallback(async () => {
+  const fetchPackages = useCallback(async (retryCount = 0) => {
     setPackagesLoading(true);
     try {
       const r = await apiFetch("/api/packages");
@@ -129,18 +129,35 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           setPackages(data);
           setApiFailed(false);
         } else {
+          // API returned non-array data, treat as failure
+          if (retryCount < 3) {
+            setTimeout(() => fetchPackages(retryCount + 1), 3000);
+            return; // Keep loading true while retrying
+          }
           setPackages(PACKAGES_DATA as unknown as DBPackage[]);
           setApiFailed(true);
         }
       } else {
+        // API returned error status
+        if (retryCount < 3) {
+          setTimeout(() => fetchPackages(retryCount + 1), 3000);
+          return; // Keep loading true while retrying
+        }
         setPackages(PACKAGES_DATA as unknown as DBPackage[]);
         setApiFailed(true);
       }
     } catch {
+      // Network error
+      if (retryCount < 3) {
+        setTimeout(() => fetchPackages(retryCount + 1), 3000);
+        return; // Keep loading true while retrying
+      }
       setPackages(PACKAGES_DATA as unknown as DBPackage[]);
       setApiFailed(true);
     } finally {
-      setPackagesLoading(false);
+      if (retryCount >= 3) {
+        setPackagesLoading(false);
+      }
     }
   }, []);
 
