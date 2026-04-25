@@ -31,9 +31,10 @@ export default function PackageDetail() {
 
   const slug = params?.slug;
 
-  // Find package: DB only, no static fallback during loading
+  // Find package: DB first, then static fallback
   const dbPkg = dbPackages.find(p => p.slug === slug);
-  const pkg: DBPackage | null = dbPkg ?? null;
+  const staticPkg = slug ? getPackageBySlug(slug) : null;
+  const pkg: DBPackage | null = dbPkg ?? (staticPkg ? (staticPkg as unknown as DBPackage) : null);
 
   const [activeImg, setActiveImg] = useState(0);
   const [brokenImgs, setBrokenImgs] = useState<Set<number>>(new Set());
@@ -223,7 +224,7 @@ export default function PackageDetail() {
     }
   }, [slug]);
 
-  if (packagesLoading) {
+  if (packagesLoading && !staticPkg) {
     return (
       <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#00AAFF", fontSize: "1.1rem", fontFamily: "Cairo, sans-serif" }}>
