@@ -26,7 +26,7 @@ export default function PackageDetail() {
   const { lang, t } = useLanguage();
   const { currency } = useCurrency();
   const { trackView } = usePersonalization();
-  const { packages: dbPackages, packagesLoading, settings } = useSiteData();
+  const { packages: dbPackages, packagesLoading, settings, refetchPackages } = useSiteData();
   const ar = lang === "ar";
 
   const slug = params?.slug;
@@ -181,6 +181,12 @@ export default function PackageDetail() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    if (slug) {
+      void refetchPackages({ silent: true });
+    }
+  }, [slug, refetchPackages]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

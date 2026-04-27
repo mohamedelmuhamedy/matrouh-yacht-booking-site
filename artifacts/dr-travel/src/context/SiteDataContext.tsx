@@ -87,12 +87,14 @@ interface SiteDataContextType {
   categories: DBCategory[];
   packagesLoading: boolean;
   settingsLoading: boolean;
-  refetchPackages: () => void;
+  refetchPackages: (options?: { silent?: boolean }) => Promise<boolean>;
   refetchSettings: () => void;
   refetchCategories: () => void;
 }
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
+const STATIC_PACKAGES = PACKAGES_DATA as unknown as DBPackage[];
+const PACKAGE_RETRY_INTERVAL_MS = 5_000;
 
 const DEFAULT_SETTINGS: SiteSettings = {
   whatsapp_number: "01205756024",
@@ -111,7 +113,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
-  const [packages, setPackages] = useState<DBPackage[]>([]);
+  const [packages, setPackages] = useState<DBPackage[]>(STATIC_PACKAGES);
   const [testimonials, setTestimonials] = useState<DBTestimonial[]>([]);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [categories, setCategories] = useState<DBCategory[]>([]);
@@ -119,29 +121,30 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [apiFailed, setApiFailed] = useState(false);
 
-  const fetchPackages = useCallback(async () => {
-    setPackagesLoading(true);
+  const fetchPackages = useCallback(async (options: { silent?: boolean } = {}) => {
+    if (!options.silent) setPackagesLoading(true);
+    let succeeded = false;
+
     try {
       const r = await apiFetch("/api/packages");
-      if (r.ok) {
-        const data = await r.json();
-        if (Array.isArray(data)) {
-          setPackages(data);
-          setApiFailed(false);
-        } else {
-          setPackages(PACKAGES_DATA as unknown as DBPackage[]);
-          setApiFailed(true);
-        }
+      if (!r.ok) throw new Error(`Package API responded with ${r.status}`);
+
+      const data = await r.json();
+      if (Array.isArray(data)) {
+        setPackages(data);
+        setApiFailed(false);
+        succeeded = true;
       } else {
-        setPackages(PACKAGES_DATA as unknown as DBPackage[]);
-        setApiFailed(true);
+        throw new Error("Package API returned an invalid payload");
       }
     } catch {
-      setPackages(PACKAGES_DATA as unknown as DBPackage[]);
+      setPackages((current) => current.length > 0 ? current : STATIC_PACKAGES);
       setApiFailed(true);
     } finally {
-      setPackagesLoading(false);
+      if (!options.silent) setPackagesLoading(false);
     }
+
+    return succeeded;
   }, []);
 
   const fetchTestimonials = useCallback(async () => {
@@ -184,8 +187,18 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!apiFailed) return;
+
+    const retryId = window.setInterval(() => {
+      void fetchPackages({ silent: true });
+    }, PACKAGE_RETRY_INTERVAL_MS);
+
+    return () => window.clearInterval(retryId);
+  }, [apiFailed, fetchPackages]);
+
+  useEffect(() => {
     const onFocus = () => {
-      fetchPackages();
+      void fetchPackages({ silent: true });
       fetchSettings();
       fetchCategories();
     };
