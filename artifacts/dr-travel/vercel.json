@@ -4,13 +4,9 @@
   "installCommand": "cd ../.. && pnpm install",
   "buildCommand": "cd ../.. && cd artifacts/dr-travel && pnpm exec vite build --config vite.config.ts",
   "outputDirectory": "dist",
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/.*",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/googleaebab8491e2a6175.html", "destination": "/googleaebab8491e2a6175.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
