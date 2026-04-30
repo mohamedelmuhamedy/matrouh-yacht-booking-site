@@ -1452,24 +1452,39 @@ function GalleryDetailPageWrapper() {
   );
 }
 
+const INITIAL_SPLASH_SETTLE_DELAY_MS = 1_000;
+const INITIAL_SPLASH_FADE_MS = 520;
+
 function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
   const [shouldRender, setShouldRender] = useState(true);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
     if (isInitializing) {
       setShouldRender(true);
+      setIsLeaving(false);
       return;
     }
 
-    const timeoutId = window.setTimeout(() => setShouldRender(false), 520);
-    return () => window.clearTimeout(timeoutId);
+    const fadeTimeoutId = window.setTimeout(() => {
+      setIsLeaving(true);
+    }, INITIAL_SPLASH_SETTLE_DELAY_MS);
+
+    const removeTimeoutId = window.setTimeout(() => {
+      setShouldRender(false);
+    }, INITIAL_SPLASH_SETTLE_DELAY_MS + INITIAL_SPLASH_FADE_MS);
+
+    return () => {
+      window.clearTimeout(fadeTimeoutId);
+      window.clearTimeout(removeTimeoutId);
+    };
   }, [isInitializing]);
 
   if (!shouldRender) return null;
 
   return (
     <div
-      className={`initial-splash${isInitializing ? "" : " initial-splash--leaving"}`}
+      className={`initial-splash${isLeaving ? " initial-splash--leaving" : ""}`}
       role="status"
       aria-label="Loading DR Travel"
     >
