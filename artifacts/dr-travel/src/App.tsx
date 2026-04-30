@@ -1517,22 +1517,26 @@ function PublicAppShell() {
       const t = setTimeout(() => setReady(true), 1000);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [isInitializing]);
-
-  if (!ready) return null;
 
   return (
     <>
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/packages/:slug" component={DetailPageWrapper} />
-        <Route path="/trips" component={TripsPageWrapper} />
-        <Route path="/rewards" component={RewardsPage} />
-        <Route path="/gallery" component={GalleryPageWrapper} />
-        <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
-        <Route component={NotFoundPage} />
-      </Switch>
-      <PushPrompt />
+      {ready && (
+        <>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/packages/:slug" component={DetailPageWrapper} />
+            <Route path="/trips" component={TripsPageWrapper} />
+            <Route path="/rewards" component={RewardsPage} />
+            <Route path="/gallery" component={GalleryPageWrapper} />
+            <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
+            <Route component={NotFoundPage} />
+          </Switch>
+          <PushPrompt />
+        </>
+      )}
+      <InitialSplashScreen isInitializing={!ready} />
     </>
   );
 }
