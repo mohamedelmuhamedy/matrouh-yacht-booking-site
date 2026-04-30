@@ -687,19 +687,18 @@ function Services() {
 }
 
 // ===== COMPARE BAR =====
-function CompareBar({ compareIds, onOpen, onClear, lang }: { compareIds: number[]; onOpen: () => void; onClear: () => void; lang: string }) {
-  if (compareIds.length === 0) return null;
+function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[]; onOpen: () => void; onClear: () => void; lang: string }) {
+  if (packages.length === 0) return null;
   const ar = lang === "ar";
-  const pkgs = compareIds.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
   return (
     <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "rgba(8,16,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,170,255,0.25)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, flexWrap: "wrap" }}>
         <span style={{ color: "#667788", fontSize: "0.82rem", flexShrink: 0 }}>
-          {ar ? `${compareIds.length} باقات للمقارنة` : `${compareIds.length} packages to compare`}
+          {ar ? `${packages.length} باقات للمقارنة` : `${packages.length} packages to compare`}
         </span>
-        {pkgs.map(p => (
+        {packages.map(p => (
           <span key={p.id} style={{ background: `${p.color}15`, border: `1px solid ${p.color}30`, color: p.color, padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 700 }}>
-            {p.icon} {ar ? p.titleAr : p.titleEn}
+            {p.icon} {p.name}
           </span>
         ))}
       </div>
@@ -767,7 +766,12 @@ function PackagesAndBooking() {
     navigate(`/packages/${slug}`);
   };
 
-  const comparePkgData = compareIds.map(id => PACKAGES_DATA.find(p => p.id === id)).filter(Boolean) as typeof PACKAGES_DATA;
+  const comparePkgData = compareIds
+    .map(id => allDbPkgs.find(pkg => pkg.id === id))
+    .filter((pkg): pkg is DBPackage => Boolean(pkg));
+  const compareDisplayPackages = compareIds
+    .map(id => PACKAGES.find(pkg => pkg.id === id))
+    .filter((pkg): pkg is DisplayPkg => Boolean(pkg));
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -884,7 +888,7 @@ function PackagesAndBooking() {
 
         {/* Package cards — wrapped in animated reveal container */}
         <div ref={packagesRef} className={`pkg-grid-wrap ${showPackages ? "pkg-visible" : "pkg-hidden"}`}>
-          <div key={pkgAnimKey} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: "1.25rem" }}>
+          <div key={pkgAnimKey} className="pkg-grid">
           {PACKAGES.map((pkg, i) => {
             const inCompare = compareIds.includes(pkg.id);
             const whyTrip = lang === "ar" ? pkg.whyThisTripAr : pkg.whyThisTripEn;
@@ -929,7 +933,7 @@ function PackagesAndBooking() {
                     </div>
                   )}
 
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem" }}>
+                  <div className="pkg-card__footer" style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
                       <div>
                         <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
@@ -1108,7 +1112,7 @@ function PackagesAndBooking() {
       </div>
 
       {/* Compare bar */}
-      {showCompareFeature && <CompareBar compareIds={compareIds} onOpen={() => setShowCompare(true)} onClear={() => setCompareIds([])} lang={lang} />}
+      {showCompareFeature && <CompareBar packages={compareDisplayPackages} onOpen={() => setShowCompare(true)} onClear={() => setCompareIds([])} lang={lang} />}
 
       {/* Compare modal */}
       {showCompare && comparePkgData.length > 0 && (
@@ -1452,7 +1456,7 @@ function GalleryDetailPageWrapper() {
   );
 }
 
-const INITIAL_SPLASH_SETTLE_DELAY_MS = 2_500;
+const INITIAL_SPLASH_SETTLE_DELAY_MS = 3_500;
 const INITIAL_SPLASH_FADE_MS = 520;
 
 function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {

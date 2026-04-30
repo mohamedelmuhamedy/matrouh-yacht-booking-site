@@ -375,6 +375,36 @@
   box-shadow: 0 0 0 4px rgba(201,168,76,0.15), 0 20px 50px rgba(201,168,76,0.2);
 }
 
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+  gap: 1.25rem;
+}
+
+@media (min-width: 769px) {
+  .pkg-grid {
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+  }
+
+  .pkg-card-anim {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .pkg-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pkg-card__footer {
+    margin-top: auto;
+  }
+}
+
 /* ===== BOOKING PANEL ===== */
 .booking-panel {
   overflow: hidden;

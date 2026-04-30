@@ -1,13 +1,12 @@
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
-import { useSiteData } from "../context/SiteDataContext";
+import { useSiteData, type DBPackage } from "../context/SiteDataContext";
 import { formatPrice } from "../data/currencies";
-import type { PackageData } from "../data/packages";
 
 interface Props {
-  packages: PackageData[];
+  packages: DBPackage[];
   onClose: () => void;
-  onBook: (pkg: PackageData) => void;
+  onBook: (pkg: DBPackage) => void;
 }
 
 const CheckIcon = () => (
@@ -77,6 +76,12 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
   const expLabels: Record<string, string> = {
     easy: ct.easy, moderate: ct.moderate, adventurous: ct.adventurous,
   };
+  const priceLabel = (pkg: DBPackage) => {
+    const hasMax = typeof pkg.maxPriceEGP === "number" && pkg.maxPriceEGP > 0;
+    return hasMax
+      ? `${formatPrice(pkg.priceEGP, currency, lang, settings)} - ${formatPrice(pkg.maxPriceEGP!, currency, lang, settings)}`
+      : formatPrice(pkg.priceEGP, currency, lang, settings);
+  };
 
   const BoolCell = ({ val }: { val: boolean }) => (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -104,11 +109,11 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
     background: "rgba(0,0,0,0.2)",
   };
 
-  const rows: { label: string; render: (pkg: PackageData) => React.ReactNode }[] = [
-    { label: ct.price, render: pkg => <span style={{ color: pkg.color, fontWeight: 800 }}>{formatPrice(pkg.priceEGP, currency, lang, settings)}</span> },
+  const rows: { label: string; render: (pkg: DBPackage) => React.ReactNode }[] = [
+    { label: ct.price, render: pkg => <span style={{ color: pkg.color, fontWeight: 800 }}>{priceLabel(pkg)}</span> },
     { label: ct.duration, render: pkg => lang === "ar" ? pkg.durationAr : pkg.durationEn },
     { label: ct.category, render: pkg => categoryName(pkg.category) },
-    { label: ct.experience, render: pkg => expLabels[pkg.experienceLevel] },
+    { label: ct.experience, render: pkg => expLabels[pkg.experienceLevel] ?? pkg.experienceLevel },
     { label: ct.rating, render: pkg => `${pkg.rating} ⭐ (${pkg.reviewCount})` },
     { label: ct.familyFriendly, render: pkg => <BoolCell val={pkg.familyFriendly} /> },
     { label: ct.foreignerFriendly, render: pkg => <BoolCell val={pkg.foreignerFriendly} /> },

@@ -45,6 +45,8 @@ export const en: Translations = {
       { icon: "🪂", name: "Parasailing", desc: "Soar above the sea and enjoy breathtaking aerial views of Matruh" },
       { icon: "🎡", name: "Aqua Park", desc: "Endless fun for families and children in the ultimate water theme park" },
       { icon: "🏠", name: "Apartment Rentals", desc: "Comfortable and luxurious stays at prices suitable for all budgets" },
+      { icon: "🛟", name: "Full Safety Gear", desc: "Safety equipment and close support so you can enjoy every activity confidently" },
+      { icon: "🎉", name: "Private Trips & Events", desc: "Custom outings for groups, birthdays, and celebrations shaped around your plans" },
     ],
   },
 
@@ -136,6 +138,8 @@ export const en: Translations = {
       { icon: "📱", title: "24/7 Support", desc: "Our team is available around the clock to answer all your queries and meet your needs instantly", color: "#25D366" },
       { icon: "⭐", title: "Always 5-Star Rated", desc: "We pride ourselves on a 5-star rating from our valued clients who return to us every year", color: "#F97316" },
       { icon: "🎯", title: "Personalized Experiences", desc: "We design your trip according to your needs and preferences for a truly unique experience", color: "#EC4899" },
+      { icon: "🧭", title: "Local Matruh Expertise", desc: "Our local team knows the best places and timing for every experience", color: "#06B6D4" },
+      { icon: "⚡", title: "Fast, Clear Booking", desc: "Simple booking steps and quick confirmation with no hidden surprises", color: "#10B981" },
     ],
   },
 
