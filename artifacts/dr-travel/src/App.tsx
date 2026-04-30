@@ -1452,7 +1452,7 @@ function GalleryDetailPageWrapper() {
   );
 }
 
-const INITIAL_SPLASH_SETTLE_DELAY_MS = 1_000;
+const INITIAL_SPLASH_SETTLE_DELAY_MS = 2_500;
 const INITIAL_SPLASH_FADE_MS = 520;
 
 function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
