@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { PACKAGES_DATA } from "../data/packages";
 import { apiFetch } from "../lib/api";
+import { DEFAULT_ARABIC_FONT, DEFAULT_ENGLISH_FONT } from "../lib/siteFonts";
 
 export interface DBPackage {
   id: number;
@@ -111,6 +112,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   show_ai_assistant: "true",
   show_compare_feature: "true",
   show_testimonials: "true",
+  font_arabic: DEFAULT_ARABIC_FONT,
+  font_en: DEFAULT_ENGLISH_FONT,
 };
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {

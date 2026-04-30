@@ -19,6 +19,12 @@ import { PACKAGES_DATA } from "./data/packages";
 import HeroSlider from "./components/HeroSlider";
 import { formatPrice, CurrencyCode } from "./data/currencies";
 import { apiFetch, resolveApiAssetUrl } from "./lib/api";
+import {
+  getFontStack,
+  loadGoogleFonts,
+  resolveArabicFont,
+  resolveEnglishFont,
+} from "./lib/siteFonts";
 
 interface DisplayPkg {
   id: number;
@@ -89,6 +95,17 @@ function testimonialToReview(t: DBTestimonial, lang: string) {
     review: ar ? t.textAr : (t.textEn || t.textAr),
     stars: t.rating,
   };
+}
+
+function useSiteFonts(settings: SiteSettings) {
+  const arabicFont = resolveArabicFont(settings.font_arabic);
+  const englishFont = resolveEnglishFont(settings.font_en);
+
+  useEffect(() => {
+    loadGoogleFonts([arabicFont, englishFont]);
+    document.documentElement.style.setProperty("--app-font-arabic", getFontStack(arabicFont, "arabic"));
+    document.documentElement.style.setProperty("--app-font-en", getFontStack(englishFont, "english"));
+  }, [arabicFont, englishFont]);
 }
 
 const AVATAR_COLORS = [
@@ -1389,7 +1406,7 @@ function HomePage() {
   const showAI = settings.show_ai_assistant !== "false";
   const showTestimonials = settings.show_testimonials !== "false";
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <ScrollProgress />
       <Navbar />
       <Hero />
@@ -1412,7 +1429,7 @@ function DetailPageWrapper() {
   const { settings } = useSiteData();
   const showAI = settings.show_ai_assistant !== "false";
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <Navbar />
       <PackageDetail />
       {showAI && <AIAssistant />}
@@ -1426,7 +1443,7 @@ function TripsPageWrapper() {
   const { settings } = useSiteData();
   const showAI = settings.show_ai_assistant !== "false";
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <Navbar />
       <TripsPage />
       {showAI && <AIAssistant />}
@@ -1438,7 +1455,7 @@ function TripsPageWrapper() {
 function GalleryPageWrapper() {
   const { t } = useLanguage();
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <Navbar />
       <GalleryPage />
     </div>
@@ -1449,7 +1466,7 @@ function GalleryPageWrapper() {
 function GalleryDetailPageWrapper() {
   const { t } = useLanguage();
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <Navbar />
       <GalleryDetailPage />
     </div>
@@ -1509,8 +1526,9 @@ function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
 }
 
 function PublicAppShell() {
-  const { isInitializing } = useSiteData();
+  const { isInitializing, settings } = useSiteData();
   const [ready, setReady] = useState(false);
+  useSiteFonts(settings);
 
   useEffect(() => {
     if (!isInitializing) {
@@ -1523,7 +1541,7 @@ function PublicAppShell() {
   return (
     <>
       {ready && (
-        <>
+        <div className="site-font-scope">
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/packages/:slug" component={DetailPageWrapper} />
@@ -1534,7 +1552,7 @@ function PublicAppShell() {
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />
-        </>
+        </div>
       )}
       <InitialSplashScreen isInitializing={!ready} />
     </>

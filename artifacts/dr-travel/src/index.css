@@ -21,21 +21,50 @@
   --gold: #C9A84C;
   --silver: #C0C0C0;
   --green: #25D366;
-  --app-font-sans: 'Cairo', sans-serif;
+  --app-font-arabic: 'Cairo', sans-serif;
+  --app-font-en: 'Montserrat', sans-serif;
+  --app-font-sans: var(--app-font-arabic);
   --radius: 1rem;
+}
+
+html[dir="rtl"] {
+  --app-font-sans: var(--app-font-arabic);
+}
+
+html[dir="ltr"] {
+  --app-font-sans: var(--app-font-en);
 }
 
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'Cairo', sans-serif;
+    font-family: var(--app-font-sans);
     background: #0D1B2A;
     color: #ffffff;
     overflow-x: hidden;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+.site-font-scope,
+.site-font-scope [dir="rtl"],
+.site-font-scope [dir="rtl"] * {
+  font-family: var(--app-font-arabic) !important;
+}
+
+.site-font-scope [dir="ltr"],
+.site-font-scope [dir="ltr"] * {
+  font-family: var(--app-font-en) !important;
+}
+
+.site-font-scope code,
+.site-font-scope pre,
+.site-font-scope kbd,
+.site-font-scope input[style*="monospace"],
+.site-font-scope [style*="monospace"] {
+  font-family: monospace !important;
 }
 
 /* ===== SCROLL PROGRESS ===== */
@@ -186,7 +215,7 @@
   color: rgba(255,255,255,0.75);
   font-size: 0.88rem;
   cursor: pointer;
-  font-family: 'Cairo', sans-serif;
+  font-family: inherit;
   font-weight: 600;
   padding: 0.3rem 0;
   transition: color 0.3s;

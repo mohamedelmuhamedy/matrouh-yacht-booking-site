@@ -4,6 +4,17 @@ import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { apiUrl, resolveApiAssetUrl } from "../lib/api";
+import {
+  ARABIC_FONT_OPTIONS,
+  DEFAULT_ARABIC_FONT,
+  DEFAULT_ENGLISH_FONT,
+  ENGLISH_FONT_OPTIONS,
+  getFontStack,
+  loadGoogleFonts,
+  resolveArabicFont,
+  resolveEnglishFont,
+  type SiteFontOption,
+} from "../lib/siteFonts";
 
 const DEFAULTS: Record<string, string> = {
   business_name_ar: "DR Travel",
@@ -31,6 +42,8 @@ const DEFAULTS: Record<string, string> = {
   show_testimonials: "true",
   show_scroll_indicator: "true",
   show_hero_pagination: "true",
+  font_arabic: DEFAULT_ARABIC_FONT,
+  font_en: DEFAULT_ENGLISH_FONT,
 };
 
 type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text" | "select"; hint?: string; options?: { value: string; label: string }[] };
@@ -100,6 +113,15 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
           { value: "1",    label: "كامل (100%)" },
         ],
       },
+    ],
+  },
+  {
+    title: "الخطوط / Fonts",
+    icon: "🔤",
+    section: "fonts",
+    keys: [
+      { key: "font_arabic", label: "الخط العربي" },
+      { key: "font_en", label: "English Font" },
     ],
   },
   {
@@ -197,6 +219,12 @@ export default function SettingsPage() {
   };
 
   useEffect(() => { loadSettings(); }, []);
+  useEffect(() => {
+    loadGoogleFonts([
+      ...ARABIC_FONT_OPTIONS.map(font => font.value),
+      ...ENGLISH_FONT_OPTIONS.map(font => font.value),
+    ], "dr-travel-admin-font-previews");
+  }, []);
 
   const update = (key: string, value: string) => {
     setSettings(s => {
@@ -365,6 +393,96 @@ export default function SettingsPage() {
       setHeroBgUploading(false);
       if (heroBgFileRef.current) heroBgFileRef.current.value = "";
     }
+  };
+
+  const renderFontSelect = (
+    key: "font_arabic" | "font_en",
+    label: string,
+    options: SiteFontOption[],
+    type: "arabic" | "english",
+  ) => {
+    const selectedFont = type === "arabic"
+      ? resolveArabicFont(settings[key])
+      : resolveEnglishFont(settings[key]);
+    const selectedOption = options.find(option => option.value === selectedFont) ?? options[0];
+    const selectedStack = getFontStack(selectedFont, type);
+    const dir = type === "arabic" ? "rtl" : "ltr";
+
+    return (
+      <div>
+        <label style={{ display: "block", color: "#445566", fontWeight: 800, fontSize: "0.86rem", marginBottom: "0.45rem" }}>
+          {label}
+        </label>
+        <select
+          value={selectedFont}
+          onChange={e => update(key, e.target.value)}
+          style={{
+            ...inputBase,
+            fontFamily: selectedStack,
+            cursor: "pointer",
+            direction: "ltr",
+          }}
+        >
+          {options.map(option => (
+            <option key={option.value} value={option.value} style={{ fontFamily: getFontStack(option.value, type) }}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div
+          dir={dir}
+          style={{
+            marginTop: "0.75rem",
+            padding: "1rem",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg,#0D1B2A,#10243a)",
+            border: "1px solid rgba(0,170,255,0.18)",
+            color: "white",
+            fontFamily: selectedStack,
+            minHeight: 96,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ color: "#00AAFF", fontSize: "0.76rem", fontWeight: 800, marginBottom: "0.45rem", fontFamily: selectedStack }}>
+            {selectedOption.label} Preview
+          </div>
+          <div style={{ fontSize: "1.18rem", fontWeight: 800, lineHeight: 1.7 }}>
+            {selectedOption.sample}
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.5rem", marginTop: "0.75rem" }}>
+          {options.map(option => {
+            const active = option.value === selectedFont;
+            const stack = getFontStack(option.value, type);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => update(key, option.value)}
+                style={{
+                  textAlign: dir === "rtl" ? "right" : "left",
+                  padding: "0.7rem 0.75rem",
+                  borderRadius: "10px",
+                  border: `1.5px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
+                  background: active ? "rgba(0,170,255,0.08)" : "#f8fafc",
+                  color: active ? "#0066cc" : "#445566",
+                  cursor: "pointer",
+                  fontFamily: stack,
+                  transition: "all 0.18s",
+                }}
+              >
+                <div style={{ fontWeight: 900, fontSize: "0.85rem", marginBottom: "0.25rem" }}>{option.label}</div>
+                <div dir={dir} style={{ fontSize: "0.72rem", opacity: 0.75, lineHeight: 1.5 }}>{option.sample}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const totalFilled = SETTING_GROUPS.flatMap(g => g.keys).filter(({ key }) => settings[key]?.trim()).length;
@@ -561,7 +679,12 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              {group.section === "features" ? (
+              {group.section === "fonts" ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
+                  {renderFontSelect("font_arabic", "الخط العربي", ARABIC_FONT_OPTIONS, "arabic")}
+                  {renderFontSelect("font_en", "English Font", ENGLISH_FONT_OPTIONS, "english")}
+                </div>
+              ) : group.section === "features" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   {group.keys.map(({ key, label, hint }) => {
                     const isOn = settings[key] === "true";
