@@ -1509,6 +1509,18 @@ function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
 }
 
 function PublicAppShell() {
+  const { isInitializing } = useSiteData();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!isInitializing) {
+      const t = setTimeout(() => setReady(true), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [isInitializing]);
+
+  if (!ready) return null;
+
   return (
     <>
       <Switch>
@@ -1524,7 +1536,6 @@ function PublicAppShell() {
     </>
   );
 }
-
 // ===== APP =====
 export default function App() {
   const [location] = useLocation();
