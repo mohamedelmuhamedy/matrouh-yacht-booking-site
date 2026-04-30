@@ -1509,25 +1509,18 @@ function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
 }
 
 function PublicAppShell() {
-  const { isInitializing } = useSiteData();
-
   return (
     <>
-      {!isInitializing && (
-        <>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/packages/:slug" component={DetailPageWrapper} />
-            <Route path="/trips" component={TripsPageWrapper} />
-            <Route path="/rewards" component={RewardsPage} />
-            <Route path="/gallery" component={GalleryPageWrapper} />
-            <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
-            <Route component={NotFoundPage} />
-          </Switch>
-          <PushPrompt />
-        </>
-      )}
-      <InitialSplashScreen isInitializing={isInitializing} />
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/packages/:slug" component={DetailPageWrapper} />
+        <Route path="/trips" component={TripsPageWrapper} />
+        <Route path="/rewards" component={RewardsPage} />
+        <Route path="/gallery" component={GalleryPageWrapper} />
+        <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
+        <Route component={NotFoundPage} />
+      </Switch>
+      <PushPrompt />
     </>
   );
 }
