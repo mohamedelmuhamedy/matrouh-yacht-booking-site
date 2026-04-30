@@ -1452,6 +1452,67 @@ function GalleryDetailPageWrapper() {
   );
 }
 
+function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
+  const [shouldRender, setShouldRender] = useState(true);
+
+  useEffect(() => {
+    if (isInitializing) {
+      setShouldRender(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setShouldRender(false), 520);
+    return () => window.clearTimeout(timeoutId);
+  }, [isInitializing]);
+
+  if (!shouldRender) return null;
+
+  return (
+    <div
+      className={`initial-splash${isInitializing ? "" : " initial-splash--leaving"}`}
+      role="status"
+      aria-label="Loading DR Travel"
+    >
+      <div className="initial-splash__content">
+        <div className="initial-splash__logo-wrap">
+          <div className="initial-splash__ring initial-splash__ring--outer" />
+          <div className="initial-splash__ring" />
+          <img className="initial-splash__logo" src={logoImg} alt="DR Travel" />
+        </div>
+        <div className="initial-splash__dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PublicAppShell() {
+  const { isInitializing } = useSiteData();
+
+  return (
+    <>
+      {!isInitializing && (
+        <>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/packages/:slug" component={DetailPageWrapper} />
+            <Route path="/trips" component={TripsPageWrapper} />
+            <Route path="/rewards" component={RewardsPage} />
+            <Route path="/gallery" component={GalleryPageWrapper} />
+            <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
+            <Route component={NotFoundPage} />
+          </Switch>
+          <PushPrompt />
+        </>
+      )}
+      <InitialSplashScreen isInitializing={isInitializing} />
+    </>
+  );
+}
+
 // ===== APP =====
 export default function App() {
   const [location] = useLocation();
@@ -1465,16 +1526,7 @@ export default function App() {
     <LanguageProvider>
       <CurrencyProvider>
         <SiteDataProvider>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/packages/:slug" component={DetailPageWrapper} />
-            <Route path="/trips" component={TripsPageWrapper} />
-            <Route path="/rewards" component={RewardsPage} />
-            <Route path="/gallery" component={GalleryPageWrapper} />
-            <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
-            <Route component={NotFoundPage} />
-          </Switch>
-          <PushPrompt />
+          <PublicAppShell />
         </SiteDataProvider>
       </CurrencyProvider>
     </LanguageProvider>

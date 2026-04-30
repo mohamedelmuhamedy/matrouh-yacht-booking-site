@@ -27,7 +27,7 @@ router.get("/admin/gallery/albums", authMiddleware, async (_req, res) => {
 
 router.get("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [album] = await db.select().from(galleryAlbums).where(eq(galleryAlbums.id, id));
     if (!album) return res.status(404).json({ error: "Album not found" });
@@ -64,7 +64,7 @@ router.post("/admin/gallery/albums", authMiddleware, async (req, res) => {
 
 router.put("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { titleAr, titleEn, slug, descriptionAr, descriptionEn, coverImage, isVisible, sortOrder } = req.body;
     if (!titleAr?.trim()) return res.status(400).json({ error: "Arabic title is required" });
@@ -91,7 +91,7 @@ router.put("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
 
 router.delete("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const items = await db.select().from(galleryItems).where(eq(galleryItems.albumId, id));
     for (const item of items) await deleteUploadedFile(item.url);
@@ -107,7 +107,7 @@ router.delete("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
 
 router.get("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, res) => {
   try {
-    const albumId = parseInt(req.params.albumId);
+    const albumId = Number(req.params.albumId);
     if (isNaN(albumId)) return res.status(400).json({ error: "Invalid album ID" });
     const items = await db.select().from(galleryItems).where(eq(galleryItems.albumId, albumId)).orderBy(asc(galleryItems.sortOrder));
     return res.json(items);
@@ -118,7 +118,7 @@ router.get("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, r
 
 router.post("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, res) => {
   try {
-    const albumId = parseInt(req.params.albumId);
+    const albumId = Number(req.params.albumId);
     if (isNaN(albumId)) return res.status(400).json({ error: "Invalid album ID" });
     const { url, type, caption, size, sortOrder } = req.body;
     if (!url?.trim()) return res.status(400).json({ error: "URL is required" });
@@ -139,7 +139,7 @@ router.post("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, 
 
 router.put("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { caption, size, sortOrder } = req.body;
     const VALID_SIZES = ["normal", "wide", "square", "large"];
@@ -157,7 +157,7 @@ router.put("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
 
 router.delete("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [item] = await db.select().from(galleryItems).where(eq(galleryItems.id, id));
     if (item) await deleteUploadedFile(item.url);

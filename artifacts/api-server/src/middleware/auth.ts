@@ -11,10 +11,11 @@ function getJwtSecret(): string {
 
 export { getJwtSecret };
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
   const token = authHeader.substring(7);
   try {
@@ -24,8 +25,9 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     next();
   } catch (err: any) {
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token expired", code: "TOKEN_EXPIRED" });
+      res.status(401).json({ error: "Token expired", code: "TOKEN_EXPIRED" });
+      return;
     }
-    return res.status(401).json({ error: "Invalid or expired token", code: "INVALID_TOKEN" });
+    res.status(401).json({ error: "Invalid or expired token", code: "INVALID_TOKEN" });
   }
 }

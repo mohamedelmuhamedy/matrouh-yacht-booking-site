@@ -87,6 +87,7 @@ interface SiteDataContextType {
   categories: DBCategory[];
   packagesLoading: boolean;
   settingsLoading: boolean;
+  isInitializing: boolean;
   refetchPackages: (options?: { silent?: boolean }) => Promise<boolean>;
   refetchSettings: () => void;
   refetchCategories: () => void;
@@ -119,6 +120,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<DBCategory[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [apiFailed, setApiFailed] = useState(false);
 
   const fetchPackages = useCallback(async (options: { silent?: boolean } = {}) => {
@@ -180,11 +182,25 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchPackages();
-    fetchTestimonials();
-    fetchSettings();
-    fetchCategories();
-  }, []);
+    let isMounted = true;
+
+    async function initializeSiteData() {
+      await Promise.allSettled([
+        fetchPackages(),
+        fetchTestimonials(),
+        fetchSettings(),
+        fetchCategories(),
+      ]);
+
+      if (isMounted) setIsInitializing(false);
+    }
+
+    void initializeSiteData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchPackages, fetchTestimonials, fetchSettings, fetchCategories]);
 
   useEffect(() => {
     if (!apiFailed) return;
@@ -214,6 +230,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       categories,
       packagesLoading,
       settingsLoading,
+      isInitializing,
       refetchPackages: fetchPackages,
       refetchSettings: fetchSettings,
       refetchCategories: fetchCategories,

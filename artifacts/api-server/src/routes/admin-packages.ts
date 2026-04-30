@@ -34,7 +34,7 @@ router.get("/admin/packages", authMiddleware, async (_req, res) => {
 
 router.get("/admin/packages/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [pkg] = await db.select().from(packages).where(eq(packages.id, id));
     if (!pkg) return res.status(404).json({ error: "Package not found" });
@@ -68,7 +68,7 @@ router.post("/admin/packages", authMiddleware, async (req, res) => {
 
 router.put("/admin/packages/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
 
     const data = req.body;
@@ -95,7 +95,7 @@ router.put("/admin/packages/:id", authMiddleware, async (req, res) => {
 
 router.post("/admin/packages/:id/duplicate", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [original] = await db.select().from(packages).where(eq(packages.id, id));
     if (!original) return res.status(404).json({ error: "Package not found" });
@@ -128,7 +128,7 @@ router.post("/admin/packages/:id/duplicate", authMiddleware, async (req, res) =>
 
 router.delete("/admin/packages/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { force } = req.query;
 

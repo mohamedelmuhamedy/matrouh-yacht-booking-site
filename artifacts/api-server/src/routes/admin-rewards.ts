@@ -95,7 +95,7 @@ router.post("/admin/referral-codes", authMiddleware, async (req, res) => {
 
 router.put("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { nameAr, nameEn, phone, email, notes, isActive } = req.body;
     const [updated] = await db.update(referralCodes).set({
@@ -112,7 +112,7 @@ router.put("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
 
 router.delete("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     await db.delete(referralCodes).where(eq(referralCodes.id, id));
     return res.json({ success: true });
@@ -134,7 +134,7 @@ router.get("/admin/referral-rewards", authMiddleware, async (_req, res) => {
 
 router.put("/admin/referral-rewards/:id/approve", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { adminNotes } = req.body;
     const [updated] = await db.update(referralRewards).set({
@@ -152,7 +152,7 @@ router.put("/admin/referral-rewards/:id/approve", authMiddleware, async (req, re
 
 router.put("/admin/referral-rewards/:id/reject", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { adminNotes } = req.body;
     const [updated] = await db.update(referralRewards).set({

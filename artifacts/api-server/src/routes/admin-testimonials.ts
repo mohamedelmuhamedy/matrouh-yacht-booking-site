@@ -25,7 +25,7 @@ router.post("/admin/testimonials", authMiddleware, async (req, res) => {
 
 router.put("/admin/testimonials/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const data = { ...req.body };
     delete data.id;
     delete data.createdAt;
@@ -39,7 +39,7 @@ router.put("/admin/testimonials/:id", authMiddleware, async (req, res) => {
 
 router.delete("/admin/testimonials/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const [deleted] = await db.delete(testimonials).where(eq(testimonials.id, id)).returning();
     if (!deleted) return res.status(404).json({ error: "Not found" });
     return res.json({ success: true });

@@ -129,7 +129,7 @@ router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
 // Admin: update a slide (duration, sortOrder, isActive, videoStart, videoEnd)
 router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const { duration, sortOrder, isActive, videoStart, videoEnd } = req.body;
     const updates: Partial<typeof heroSlides.$inferInsert> = {};
     if (duration !== undefined) updates.duration = duration;
@@ -147,7 +147,7 @@ router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
 // Admin: delete a slide
 router.delete("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const [slide] = await db.select().from(heroSlides).where(eq(heroSlides.id, id));
     if (slide) await deleteUploadedFile(slide.url);
     await db.delete(heroSlides).where(eq(heroSlides.id, id));

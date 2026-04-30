@@ -42,7 +42,7 @@ router.get("/admin/bookings", authMiddleware, async (req, res) => {
 
 router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { status } = req.body;
     const validStatuses = ["new", "contacted", "confirmed", "completed", "cancelled"];
@@ -62,7 +62,7 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
 
 router.put("/admin/bookings/:id/notes", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { adminNotes } = req.body;
     const [updated] = await db.update(bookings)
@@ -109,7 +109,7 @@ router.get("/admin/bookings/export/csv", authMiddleware, async (_req, res) => {
 
 router.delete("/admin/bookings/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [deleted] = await db.delete(bookings).where(eq(bookings.id, id)).returning();
     if (!deleted) return res.status(404).json({ error: "Not found" });

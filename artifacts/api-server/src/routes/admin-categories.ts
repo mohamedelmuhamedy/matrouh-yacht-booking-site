@@ -28,19 +28,19 @@ router.post("/admin/categories", authMiddleware, async (req, res) => {
       nameEn: nameEn.trim(),
       sortOrder: typeof sortOrder === "number" ? sortOrder : 0,
     }).returning();
-    res.json(row);
+    return res.json(row);
   } catch (err: any) {
     if (err?.code === "23505") {
       return res.status(409).json({ error: "Category slug already exists" });
     }
     console.error("POST /admin/categories error:", err);
-    res.status(500).json({ error: "Failed to create category" });
+    return res.status(500).json({ error: "Failed to create category" });
   }
 });
 
 router.put("/admin/categories/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
     const { nameAr, nameEn, sortOrder } = req.body;
     if (!nameAr || !nameEn) {
@@ -51,23 +51,23 @@ router.put("/admin/categories/:id", authMiddleware, async (req, res) => {
       .where(eq(categories.id, id))
       .returning();
     if (!row) return res.status(404).json({ error: "Category not found" });
-    res.json(row);
+    return res.json(row);
   } catch (err) {
     console.error("PUT /admin/categories/:id error:", err);
-    res.status(500).json({ error: "Failed to update category" });
+    return res.status(500).json({ error: "Failed to update category" });
   }
 });
 
 router.delete("/admin/categories/:id", authMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
     const [row] = await db.delete(categories).where(eq(categories.id, id)).returning();
     if (!row) return res.status(404).json({ error: "Category not found" });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error("DELETE /admin/categories/:id error:", err);
-    res.status(500).json({ error: "Failed to delete category" });
+    return res.status(500).json({ error: "Failed to delete category" });
   }
 });
 
