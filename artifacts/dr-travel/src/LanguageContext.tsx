@@ -5,6 +5,8 @@ import type { Translations } from "./translations/ar";
 
 type Lang = "ar" | "en";
 
+const LANGUAGE_STORAGE_KEY = "drtravel-lang";
+
 interface LanguageContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
@@ -18,11 +20,16 @@ const LanguageContext = createContext<LanguageContextType>({
 });
 
 function detectInitialLang(): Lang {
-  const saved = localStorage.getItem("drtravel-lang") as Lang | null;
+  const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Lang | null;
   if (saved === "ar" || saved === "en") return saved;
-  const browserLang = navigator.language?.toLowerCase() ?? "";
-  if (browserLang.startsWith("en")) return "en";
-  return "ar";
+
+  const browserLang = (
+    navigator.languages?.[0] ??
+    navigator.language ??
+    ""
+  ).toLowerCase();
+
+  return browserLang.startsWith("ar") ? "ar" : "en";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -30,7 +37,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLang = (newLang: Lang) => {
     setLangState(newLang);
-    localStorage.setItem("drtravel-lang", newLang);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
   };
 
   const t = lang === "ar" ? ar : en;
