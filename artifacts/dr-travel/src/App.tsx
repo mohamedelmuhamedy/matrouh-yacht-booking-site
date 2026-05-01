@@ -1474,73 +1474,49 @@ function GalleryDetailPageWrapper() {
 }
 
 const INITIAL_SPLASH_SETTLE_DELAY_MS = 1_000;
-const INITIAL_SPLASH_FADE_MS = 520;
+const INITIAL_SPLASH_FADE_MS = 600;
 
-function InitialSplashScreen({ isInitializing }: { isInitializing: boolean }) {
-  const [shouldRender, setShouldRender] = useState(true);
-  const [isLeaving, setIsLeaving] = useState(false);
-
+function InitialSplashScreen({
+  isInitializing,
+  settleDelayMs = INITIAL_SPLASH_SETTLE_DELAY_MS,
+}: {
+  isInitializing: boolean;
+  settleDelayMs?: number;
+}) {
   useEffect(() => {
+    const splash = document.getElementById("splash");
+    if (!splash) return undefined;
+
     if (isInitializing) {
-      setShouldRender(true);
-      setIsLeaving(false);
-      return;
+      splash.classList.remove("splash-out");
+      return undefined;
     }
 
-    const fadeTimeoutId = window.setTimeout(() => {
-      setIsLeaving(true);
-    }, INITIAL_SPLASH_SETTLE_DELAY_MS);
+    let removeTimeoutId: number | undefined;
 
-    const removeTimeoutId = window.setTimeout(() => {
-      setShouldRender(false);
-    }, INITIAL_SPLASH_SETTLE_DELAY_MS + INITIAL_SPLASH_FADE_MS);
+    const fadeTimeoutId = window.setTimeout(() => {
+      splash.classList.add("splash-out");
+      removeTimeoutId = window.setTimeout(() => {
+        splash.remove();
+      }, INITIAL_SPLASH_FADE_MS);
+    }, settleDelayMs);
 
     return () => {
       window.clearTimeout(fadeTimeoutId);
-      window.clearTimeout(removeTimeoutId);
+      if (removeTimeoutId) window.clearTimeout(removeTimeoutId);
     };
-  }, [isInitializing]);
+  }, [isInitializing, settleDelayMs]);
 
-  if (!shouldRender) return null;
-
-  return (
-    <div
-      className={`initial-splash${isLeaving ? " initial-splash--leaving" : ""}`}
-      role="status"
-      aria-label="Loading DR Travel"
-    >
-      <div className="initial-splash__content">
-        <div className="initial-splash__logo-wrap">
-          <div className="initial-splash__ring initial-splash__ring--outer" />
-          <div className="initial-splash__ring" />
-          <img className="initial-splash__logo" src={logoImg} alt="DR Travel" />
-        </div>
-        <div className="initial-splash__dots" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 function PublicAppShell() {
   const { isInitializing, settings } = useSiteData();
-  const [ready, setReady] = useState(false);
   useSiteFonts(settings);
-
-  useEffect(() => {
-    if (!isInitializing) {
-      const t = setTimeout(() => setReady(true), 1000);
-      return () => clearTimeout(t);
-    }
-    return undefined;
-  }, [isInitializing]);
 
   return (
     <>
-      {ready && (
+      {!isInitializing && (
         <div className="site-font-scope">
           <Switch>
             <Route path="/" component={HomePage} />
@@ -1554,7 +1530,7 @@ function PublicAppShell() {
           <PushPrompt />
         </div>
       )}
-      <InitialSplashScreen isInitializing={!ready} />
+      <InitialSplashScreen isInitializing={isInitializing} />
     </>
   );
 }
@@ -1564,7 +1540,12 @@ export default function App() {
   const isAdmin = location.startsWith("/admin");
 
   if (isAdmin) {
-    return <AdminRouter />;
+    return (
+      <>
+        <InitialSplashScreen isInitializing={false} settleDelayMs={0} />
+        <AdminRouter />
+      </>
+    );
   }
 
   return (
