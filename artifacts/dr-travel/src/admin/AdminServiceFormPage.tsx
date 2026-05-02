@@ -3,8 +3,31 @@ import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import { apiUrl, resolveApiAssetUrl } from "../lib/api";
+import { buildFeatureFromText, getFeatureVisual, type FeatureItem } from "../lib/featureVisuals";
 
-const EMPTY = {
+type FormState = {
+  slug: string;
+  icon: string;
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  longDescriptionAr: string;
+  longDescriptionEn: string;
+  imageUrl: string;
+  aboutImageUrl: string;
+  featuresImageUrl: string;
+  ctaImageUrl: string;
+  color: string;
+  features: FeatureItem[];
+  ctaTextAr: string;
+  ctaTextEn: string;
+  ctaLink: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+const EMPTY: FormState = {
   slug: "",
   icon: "✨",
   titleAr: "",
@@ -18,8 +41,7 @@ const EMPTY = {
   featuresImageUrl: "",
   ctaImageUrl: "",
   color: "#00AAFF",
-  featuresAr: "" as string,
-  featuresEn: "" as string,
+  features: [],
   ctaTextAr: "احجز الآن",
   ctaTextEn: "Book Now",
   ctaLink: "/trips",
@@ -54,6 +76,21 @@ const sectionSt: React.CSSProperties = {
   border: "1.5px solid #e0e8f0",
   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
+const ghostBtnSt: React.CSSProperties = {
+  background: "white",
+  color: "#475569",
+  border: "1px solid #d0dce8",
+  borderRadius: 8,
+  padding: "0.4rem 0.75rem",
+  cursor: "pointer",
+  fontFamily: "Cairo, sans-serif",
+  fontSize: "0.76rem",
+  fontWeight: 700,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.35rem",
+  whiteSpace: "nowrap",
+};
 
 type ImageField = "imageUrl" | "aboutImageUrl" | "featuresImageUrl" | "ctaImageUrl";
 
@@ -81,12 +118,13 @@ function uploadFile(file: File): Promise<{ url: string } | { error: string }> {
 }
 
 function ImageUploadField({
-  label, value, onChange, hint,
+  label, value, onChange, hint, onReset,
 }: {
   label: string;
   value: string;
   onChange: (url: string) => void;
   hint?: string;
+  onReset?: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -108,7 +146,16 @@ function ImageUploadField({
 
   return (
     <div>
-      <label style={labelSt}>{label}</label>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
+        <label style={labelSt}>{label}</label>
+        {onReset && (
+          <button type="button" onClick={onReset}
+            title="استعادة الافتراضي (إزالة الصورة)"
+            style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.72rem", fontWeight: 700, padding: 0 }}>
+            ↺ افتراضي
+          </button>
+        )}
+      </div>
       <input
         ref={fileRef}
         type="file"
@@ -150,6 +197,141 @@ function ImageUploadField({
   );
 }
 
+// ── Per-feature compact editor card ────────────────────────────────────────
+function FeatureEditorCard({
+  feat, index, total, onChange, onRemove, onMove, onAutoSuggest,
+}: {
+  feat: FeatureItem;
+  index: number;
+  total: number;
+  onChange: (next: FeatureItem) => void;
+  onRemove: () => void;
+  onMove: (dir: -1 | 1) => void;
+  onAutoSuggest: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const { error: toastErr } = useToast();
+
+  const preview = feat.image ? resolveApiAssetUrl(feat.image) : "";
+
+  const upload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toastErr("الرجاء اختيار صورة فقط");
+      return;
+    }
+    setUploading(true);
+    const r = await uploadFile(file);
+    if ("url" in r) onChange({ ...feat, image: r.url });
+    else toastErr(r.error);
+    setUploading(false);
+  };
+
+  return (
+    <div style={{
+      background: "#f8fafc",
+      border: "1.5px solid #e2e8f0",
+      borderRadius: 12,
+      padding: "0.85rem",
+      display: "grid",
+      gridTemplateColumns: "120px 1fr",
+      gap: "0.85rem",
+    }}>
+      {/* Left: image preview + upload */}
+      <div>
+        <div style={{
+          width: "100%", height: 90, borderRadius: 10, overflow: "hidden",
+          background: preview ? `url(${preview}) center/cover` : `linear-gradient(135deg, ${feat.tint}33, ${feat.tint}aa)`,
+          border: "1px solid #d0dce8",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: preview ? 0 : "1.8rem", color: "white",
+          marginBottom: "0.35rem",
+        }}>
+          {!preview && feat.icon}
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          style={{ display: "none" }}
+          onChange={e => {
+            const f = e.target.files?.[0];
+            if (f) upload(f);
+            e.target.value = "";
+          }}
+        />
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+            style={{ ...ghostBtnSt, background: uploading ? "#cbd5e1" : "#00AAFF", color: "white", border: "none", justifyContent: "center" }}>
+            {uploading ? "..." : (preview ? "📁 تغيير" : "📁 رفع صورة")}
+          </button>
+          {preview && (
+            <button type="button" onClick={() => onChange({ ...feat, image: "" })}
+              style={{ ...ghostBtnSt, color: "#dc2626", borderColor: "#fca5a5", justifyContent: "center" }}>
+              🗑 حذف الصورة
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Right: text + meta + actions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
+          <div>
+            <label style={{ ...labelSt, marginBottom: 2, fontSize: "0.7rem" }}>العنوان بالعربية</label>
+            <input style={inputSt} value={feat.titleAr}
+              onChange={e => onChange({ ...feat, titleAr: e.target.value })}
+              placeholder="مثال: يخت فاخر مكيّف" />
+          </div>
+          <div>
+            <label style={{ ...labelSt, marginBottom: 2, fontSize: "0.7rem" }}>Title (English)</label>
+            <input style={inputSt} dir="ltr" value={feat.titleEn}
+              onChange={e => onChange({ ...feat, titleEn: e.target.value })}
+              placeholder="e.g. Luxury yacht" />
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "70px 80px 1fr auto", gap: "0.5rem", alignItems: "end" }}>
+          <div>
+            <label style={{ ...labelSt, marginBottom: 2, fontSize: "0.7rem" }}>أيقونة</label>
+            <input style={{ ...inputSt, fontSize: "1.2rem", textAlign: "center", padding: "0.35rem" }}
+              value={feat.icon} maxLength={4}
+              onChange={e => onChange({ ...feat, icon: e.target.value })} />
+          </div>
+          <div>
+            <label style={{ ...labelSt, marginBottom: 2, fontSize: "0.7rem" }}>اللون</label>
+            <input type="color" style={{ ...inputSt, padding: "0.15rem", height: 36 }}
+              value={feat.tint}
+              onChange={e => onChange({ ...feat, tint: e.target.value })} />
+          </div>
+          <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", alignItems: "end", paddingBottom: 1 }}>
+            <button type="button" onClick={onAutoSuggest} title="إعادة اقتراح من العنوان"
+              style={{ ...ghostBtnSt, color: "#0369a1", borderColor: "#bae6fd", background: "#f0f9ff" }}>
+              💡 اقتراح
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: "0.25rem", alignItems: "end", paddingBottom: 1 }}>
+            <button type="button" onClick={() => onMove(-1)} disabled={index === 0}
+              title="تحريك لأعلى"
+              style={{ ...ghostBtnSt, padding: "0.4rem 0.55rem", opacity: index === 0 ? 0.4 : 1, cursor: index === 0 ? "not-allowed" : "pointer" }}>
+              ▲
+            </button>
+            <button type="button" onClick={() => onMove(1)} disabled={index === total - 1}
+              title="تحريك لأسفل"
+              style={{ ...ghostBtnSt, padding: "0.4rem 0.55rem", opacity: index === total - 1 ? 0.4 : 1, cursor: index === total - 1 ? "not-allowed" : "pointer" }}>
+              ▼
+            </button>
+            <button type="button" onClick={onRemove} title="حذف الميزة"
+              style={{ ...ghostBtnSt, color: "#dc2626", borderColor: "#fca5a5", padding: "0.4rem 0.55rem" }}>
+              🗑
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminServiceFormPage() {
   const params = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -158,7 +340,7 @@ export default function AdminServiceFormPage() {
   const editId = params.id ? Number(params.id) : null;
   const isEdit = editId !== null && !isNaN(editId);
 
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState<FormState>(EMPTY);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
@@ -168,6 +350,27 @@ export default function AdminServiceFormPage() {
     adminFetch(`/admin/services/${editId}`)
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(d => {
+        // Build features list: prefer rich array, else build from old AR/EN strings.
+        let features: FeatureItem[] = [];
+        if (Array.isArray(d.features) && d.features.length) {
+          features = d.features.map((x: any) => ({
+            titleAr: String(x?.titleAr ?? ""),
+            titleEn: String(x?.titleEn ?? ""),
+            icon: String(x?.icon ?? "✨"),
+            image: String(x?.image ?? ""),
+            tint: String(x?.tint ?? "#00AAFF"),
+          }));
+        } else {
+          const arArr: string[] = Array.isArray(d.featuresAr) ? d.featuresAr : [];
+          const enArr: string[] = Array.isArray(d.featuresEn) ? d.featuresEn : [];
+          const max = Math.max(arArr.length, enArr.length);
+          for (let i = 0; i < max; i++) {
+            const ar = arArr[i] || "";
+            const en = enArr[i] || "";
+            if (!ar && !en) continue;
+            features.push(buildFeatureFromText(ar, en));
+          }
+        }
         setForm({
           slug: d.slug || "",
           icon: d.icon || "✨",
@@ -182,8 +385,7 @@ export default function AdminServiceFormPage() {
           featuresImageUrl: d.featuresImageUrl || "",
           ctaImageUrl: d.ctaImageUrl || "",
           color: d.color || "#00AAFF",
-          featuresAr: Array.isArray(d.featuresAr) ? d.featuresAr.join("\n") : "",
-          featuresEn: Array.isArray(d.featuresEn) ? d.featuresEn.join("\n") : "",
+          features,
           ctaTextAr: d.ctaTextAr || "احجز الآن",
           ctaTextEn: d.ctaTextEn || "Book Now",
           ctaLink: d.ctaLink || "/trips",
@@ -196,6 +398,54 @@ export default function AdminServiceFormPage() {
   }, [editId]);
 
   const setImg = (key: ImageField) => (url: string) => setForm(f => ({ ...f, [key]: url }));
+  const resetImg = (key: ImageField) => () => setForm(f => ({ ...f, [key]: "" }));
+
+  // ── Feature editor handlers ──────────────────────────────────────────────
+  const addFeature = () => {
+    setForm(f => ({ ...f, features: [...f.features, buildFeatureFromText("ميزة جديدة", "New feature")] }));
+  };
+  const updateFeature = (i: number, next: FeatureItem) => {
+    setForm(f => {
+      const copy = f.features.slice();
+      copy[i] = next;
+      return { ...f, features: copy };
+    });
+  };
+  const removeFeature = (i: number) => {
+    setForm(f => ({ ...f, features: f.features.filter((_, idx) => idx !== i) }));
+  };
+  const moveFeature = (i: number, dir: -1 | 1) => {
+    setForm(f => {
+      const j = i + dir;
+      if (j < 0 || j >= f.features.length) return f;
+      const copy = f.features.slice();
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+      return { ...f, features: copy };
+    });
+  };
+  const autoSuggestFeature = (i: number) => {
+    setForm(f => {
+      const copy = f.features.slice();
+      const cur = copy[i];
+      const v = getFeatureVisual([cur.titleAr, cur.titleEn].filter(Boolean).join(" "));
+      copy[i] = { ...cur, icon: v.icon, image: v.image, tint: v.tint };
+      return { ...f, features: copy };
+    });
+  };
+  const resetAllFeatureVisuals = () => {
+    if (!confirm("هترجع كل الأيقونات والصور والألوان لاقتراحاتها التلقائية بناءً على عناوين المميزات. تأكيد؟")) return;
+    setForm(f => ({
+      ...f,
+      features: f.features.map(x => {
+        const v = getFeatureVisual([x.titleAr, x.titleEn].filter(Boolean).join(" "));
+        return { ...x, icon: v.icon, image: v.image, tint: v.tint };
+      }),
+    }));
+  };
+  const clearAllFeatures = () => {
+    if (!confirm("هتمسح كل المميزات المضافة. تأكيد؟")) return;
+    setForm(f => ({ ...f, features: [] }));
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -204,10 +454,24 @@ export default function AdminServiceFormPage() {
       return;
     }
     setSaving(true);
+    // Sanitize features client-side: drop empties, trim.
+    const features = form.features
+      .map(x => ({
+        titleAr: (x.titleAr || "").trim(),
+        titleEn: (x.titleEn || "").trim(),
+        icon: (x.icon || "✨").trim() || "✨",
+        image: (x.image || "").trim(),
+        tint: (x.tint || "#00AAFF").trim(),
+      }))
+      .filter(x => x.titleAr || x.titleEn);
+    // Also derive legacy AR/EN string arrays so older consumers stay in sync.
+    const featuresAr = features.map(x => x.titleAr || x.titleEn).filter(Boolean);
+    const featuresEn = features.map(x => x.titleEn || x.titleAr).filter(Boolean);
     const payload = {
       ...form,
-      featuresAr: form.featuresAr.split("\n").map(s => s.trim()).filter(Boolean),
-      featuresEn: form.featuresEn.split("\n").map(s => s.trim()).filter(Boolean),
+      features,
+      featuresAr,
+      featuresEn,
       sortOrder: Number(form.sortOrder) || 0,
       imageUrl: form.imageUrl.trim() || null,
       aboutImageUrl: form.aboutImageUrl.trim() || null,
@@ -240,7 +504,7 @@ export default function AdminServiceFormPage() {
   }
 
   return (
-    <div style={{ maxWidth: 880, margin: "0 auto", padding: "1.5rem 1rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
+    <div style={{ maxWidth: 920, margin: "0 auto", padding: "1.5rem 1rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
 
       <div style={{ marginBottom: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
@@ -309,7 +573,7 @@ export default function AdminServiceFormPage() {
             🖼️ صور غلاف صفحة التفاصيل
           </h2>
           <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
-            كل صورة بتظهر كخلفية احترافية للسيكشن المخصص لها. لو تركتها فاضية، السيكشن يستخدم تدرج لوني بسيط.
+            كل صورة بتظهر كخلفية احترافية للسيكشن المخصص لها. اضغط <b>"↺ افتراضي"</b> لإزالة الصورة وعرض تدرج لوني بسيط بدلاً منها.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
@@ -317,35 +581,39 @@ export default function AdminServiceFormPage() {
               label="🌅 صورة الغلاف الرئيسية (الهيدر)"
               value={form.imageUrl}
               onChange={setImg("imageUrl")}
+              onReset={resetImg("imageUrl")}
               hint="بتظهر خلف العنوان في أعلى الصفحة"
             />
             <ImageUploadField
               label="📖 صورة سيكشن (نبذة عن الخدمة)"
               value={form.aboutImageUrl}
               onChange={setImg("aboutImageUrl")}
+              onReset={resetImg("aboutImageUrl")}
               hint="بتظهر فوق الوصف الطويل"
             />
             <ImageUploadField
               label="✨ صورة سيكشن (المميزات)"
               value={form.featuresImageUrl}
               onChange={setImg("featuresImageUrl")}
-              hint="بتظهر بجانب قائمة المميزات"
+              onReset={resetImg("featuresImageUrl")}
+              hint="بتظهر فوق قائمة المميزات"
             />
             <ImageUploadField
               label="🎯 صورة سيكشن (دعوة الحجز)"
               value={form.ctaImageUrl}
               onChange={setImg("ctaImageUrl")}
+              onReset={resetImg("ctaImageUrl")}
               hint="بتظهر خلف زر الحجز و الواتساب"
             />
           </div>
         </div>
 
-        {/* Detail page text content */}
+        {/* Long descriptions */}
         <div style={sectionSt}>
           <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
-            محتوى صفحة التفاصيل
+            الوصف الطويل
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
             <div>
               <label style={labelSt}>الوصف الطويل بالعربية</label>
               <textarea style={{ ...inputSt, minHeight: 130, resize: "vertical" }} value={form.longDescriptionAr} onChange={e => setForm(f => ({ ...f, longDescriptionAr: e.target.value }))} />
@@ -355,16 +623,70 @@ export default function AdminServiceFormPage() {
               <textarea style={{ ...inputSt, minHeight: 130, resize: "vertical" }} dir="ltr" value={form.longDescriptionEn} onChange={e => setForm(f => ({ ...f, longDescriptionEn: e.target.value }))} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
-            <div>
-              <label style={labelSt}>المميزات بالعربية (سطر لكل ميزة)</label>
-              <textarea style={{ ...inputSt, minHeight: 110, resize: "vertical" }} placeholder="معدات حديثة&#10;مرشدين محترفين" value={form.featuresAr} onChange={e => setForm(f => ({ ...f, featuresAr: e.target.value }))} />
-            </div>
-            <div>
-              <label style={labelSt}>Features (EN — one per line)</label>
-              <textarea style={{ ...inputSt, minHeight: 110, resize: "vertical" }} dir="ltr" placeholder="Modern gear&#10;Professional guides" value={form.featuresEn} onChange={e => setForm(f => ({ ...f, featuresEn: e.target.value }))} />
+        </div>
+
+        {/* Features — rich editor */}
+        <div style={sectionSt}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+            <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", margin: 0 }}>
+              ✨ مميزات الخدمة
+            </h2>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+              {form.features.length > 0 && (
+                <button type="button" onClick={resetAllFeatureVisuals}
+                  title="ترجع كل أيقونة وصورة ولون لاقتراح الافتراضي بناءً على العنوان"
+                  style={{ ...ghostBtnSt, color: "#0369a1", borderColor: "#bae6fd", background: "#f0f9ff" }}>
+                  ↺ استعادة الاقتراحات الافتراضية
+                </button>
+              )}
+              {form.features.length > 0 && (
+                <button type="button" onClick={clearAllFeatures}
+                  style={{ ...ghostBtnSt, color: "#dc2626", borderColor: "#fca5a5" }}>
+                  🗑 مسح كل المميزات
+                </button>
+              )}
             </div>
           </div>
+          <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
+            كل ميزة لها عنوان عربي/إنجليزي + أيقونة + لون + صورة خلفية. أضف الصورة بنفسك أو اضغط <b>💡 اقتراح</b> لاختيار صورة وأيقونة ولون تلقائيًا حسب العنوان.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+            {form.features.map((feat, i) => (
+              <FeatureEditorCard
+                key={i}
+                feat={feat}
+                index={i}
+                total={form.features.length}
+                onChange={(next) => updateFeature(i, next)}
+                onRemove={() => removeFeature(i)}
+                onMove={(dir) => moveFeature(i, dir)}
+                onAutoSuggest={() => autoSuggestFeature(i)}
+              />
+            ))}
+            {form.features.length === 0 && (
+              <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", padding: "1.25rem", background: "#f8fafc", border: "1.5px dashed #cbd5e1", borderRadius: 10 }}>
+                لا توجد مميزات بعد. اضغط "+ إضافة ميزة" لإضافة أول ميزة.
+              </div>
+            )}
+          </div>
+
+          <button type="button" onClick={addFeature}
+            style={{
+              marginTop: "0.85rem",
+              width: "100%",
+              background: "white",
+              color: "#0369a1",
+              border: "1.5px dashed #00AAFF",
+              borderRadius: 10,
+              padding: "0.7rem",
+              cursor: "pointer",
+              fontFamily: "Cairo, sans-serif",
+              fontSize: "0.88rem",
+              fontWeight: 700,
+            }}>
+            + إضافة ميزة
+          </button>
         </div>
 
         {/* CTA & misc */}

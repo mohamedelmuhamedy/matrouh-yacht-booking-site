@@ -14,6 +14,44 @@ function normalizeFeatures(v: unknown): string[] {
   return [];
 }
 
+const HEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+type RichFeature = { titleAr: string; titleEn: string; icon: string; image: string; tint: string };
+
+function normalizeRichFeatures(v: unknown): RichFeature[] {
+  if (!Array.isArray(v)) return [];
+  const out: RichFeature[] = [];
+  for (const raw of v) {
+    if (!raw || typeof raw !== "object") continue;
+    const o = raw as Record<string, unknown>;
+    const titleAr = String(o.titleAr ?? "").trim();
+    const titleEn = String(o.titleEn ?? "").trim();
+    if (!titleAr && !titleEn) continue;
+    const icon = String(o.icon ?? "✨").slice(0, 8);
+    const image = typeof o.image === "string" ? o.image.trim().slice(0, 2048) : "";
+    const tintRaw = typeof o.tint === "string" ? o.tint.trim() : "";
+    const tint = HEX.test(tintRaw) ? tintRaw : "#00AAFF";
+    out.push({ titleAr, titleEn, icon: icon || "✨", image, tint });
+  }
+  return out.slice(0, 30);
+}
+
+function deriveFeatureFields(b: Record<string, unknown>) {
+  const rich = normalizeRichFeatures((b as any).features);
+  if (rich.length > 0) {
+    return {
+      features: rich,
+      featuresAr: rich.map(f => f.titleAr || f.titleEn).filter(Boolean),
+      featuresEn: rich.map(f => f.titleEn || f.titleAr).filter(Boolean),
+    };
+  }
+  return {
+    features: [] as RichFeature[],
+    featuresAr: normalizeFeatures((b as any).featuresAr),
+    featuresEn: normalizeFeatures((b as any).featuresEn),
+  };
+}
+
 // ─── PUBLIC ─────────────────────────────────────────────────────────────────
 router.get("/services", async (_req, res) => {
   try {
@@ -70,6 +108,7 @@ router.post("/admin/services", authMiddleware, async (req, res) => {
     if (!slug || !titleAr) {
       return res.status(400).json({ error: "slug and titleAr are required" });
     }
+    const featureFields = deriveFeatureFields(b);
     const [row] = await db.insert(services).values({
       slug,
       icon: String(b.icon || "✨"),
@@ -84,8 +123,9 @@ router.post("/admin/services", authMiddleware, async (req, res) => {
       featuresImageUrl: b.featuresImageUrl ? String(b.featuresImageUrl).trim() : null,
       ctaImageUrl: b.ctaImageUrl ? String(b.ctaImageUrl).trim() : null,
       color: String(b.color || "#00AAFF"),
-      featuresAr: normalizeFeatures(b.featuresAr),
-      featuresEn: normalizeFeatures(b.featuresEn),
+      featuresAr: featureFields.featuresAr,
+      featuresEn: featureFields.featuresEn,
+      features: featureFields.features,
       ctaTextAr: String(b.ctaTextAr || "احجز الآن").trim(),
       ctaTextEn: String(b.ctaTextEn || "Book Now").trim(),
       ctaLink: String(b.ctaLink || "/trips").trim(),
@@ -108,6 +148,7 @@ router.put("/admin/services/:id", authMiddleware, async (req, res) => {
     const titleAr = String(b.titleAr || "").trim();
     if (!titleAr) return res.status(400).json({ error: "titleAr is required" });
 
+    const featureFields = deriveFeatureFields(b);
     const updateData: Record<string, unknown> = {
       icon: String(b.icon || "✨"),
       titleAr,
@@ -121,8 +162,9 @@ router.put("/admin/services/:id", authMiddleware, async (req, res) => {
       featuresImageUrl: b.featuresImageUrl ? String(b.featuresImageUrl).trim() : null,
       ctaImageUrl: b.ctaImageUrl ? String(b.ctaImageUrl).trim() : null,
       color: String(b.color || "#00AAFF"),
-      featuresAr: normalizeFeatures(b.featuresAr),
-      featuresEn: normalizeFeatures(b.featuresEn),
+      featuresAr: featureFields.featuresAr,
+      featuresEn: featureFields.featuresEn,
+      features: featureFields.features,
       ctaTextAr: String(b.ctaTextAr || "احجز الآن").trim(),
       ctaTextEn: String(b.ctaTextEn || "Book Now").trim(),
       ctaLink: String(b.ctaLink || "/trips").trim(),

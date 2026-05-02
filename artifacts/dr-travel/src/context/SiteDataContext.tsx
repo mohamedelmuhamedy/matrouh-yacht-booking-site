@@ -96,6 +96,13 @@ export interface DBService {
   color: string;
   featuresAr: string[];
   featuresEn: string[];
+  features?: Array<{
+    titleAr: string;
+    titleEn: string;
+    icon: string;
+    image: string;
+    tint: string;
+  }>;
   ctaTextAr: string;
   ctaTextEn: string;
   ctaLink: string;

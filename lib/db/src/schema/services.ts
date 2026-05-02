@@ -17,6 +17,13 @@ export const services = pgTable("services", {
   color: text("color").notNull().default("#00AAFF"),
   featuresAr: jsonb("features_ar").$type<string[]>().notNull().default([]),
   featuresEn: jsonb("features_en").$type<string[]>().notNull().default([]),
+  features: jsonb("features").$type<Array<{
+    titleAr: string;
+    titleEn: string;
+    icon: string;
+    image: string;
+    tint: string;
+  }>>().notNull().default([]),
   ctaTextAr: text("cta_text_ar").notNull().default("احجز الآن"),
   ctaTextEn: text("cta_text_en").notNull().default("Book Now"),
   ctaLink: text("cta_link").notNull().default("/trips"),

@@ -67,7 +67,7 @@ Schema has been pushed; tables (packages, categories, testimonials, settings, et
 
 ### Services table
 
-`services` table on Supabase has columns: `id, slug (unique), icon, title_ar/en, description_ar/en, long_description_ar/en, image_url, color, features_ar/en (JSONB arrays), cta_text_ar/en, cta_link, sort_order, is_active, created_at, updated_at`.
+`services` table on Supabase has columns: `id, slug (unique), icon, title_ar/en, description_ar/en, long_description_ar/en, image_url, about_image_url, features_image_url, cta_image_url, color, features_ar/en (JSONB string arrays), features (JSONB rich array), cta_text_ar/en, cta_link, sort_order, is_active, created_at, updated_at`.
 
 Seed: `pnpm --filter @workspace/api-server seed-services` (idempotent — uses ON CONFLICT DO NOTHING on slug, so admin edits are preserved).
 
@@ -76,6 +76,14 @@ API:
 - Admin (Bearer JWT): `GET/POST /api/admin/services`, `GET/PUT/DELETE /api/admin/services/:id`.
 
 The admin "toggle visibility" button refetches the full record before PUT to avoid wiping non-toggle fields.
+
+### Rich features editor (admin → service detail page)
+
+Per-feature visual editor lets the admin set image / icon / tint / AR+EN title for every "what's included" card on the service detail page — no code edits needed. Files:
+- `artifacts/dr-travel/src/lib/featureVisuals.ts` — shared `FEATURE_VISUAL_MAP` (24+ keyword → image/icon/tint), `getFeatureVisual()`, `buildFeatureFromText()`, used by both pages.
+- `artifacts/dr-travel/src/admin/AdminServiceFormPage.tsx` — per-card editor (AR/EN title, emoji, color, image upload, ▲▼ reorder, 🗑 delete, 💡 auto-suggest), bulk "↺ restore defaults" + "🗑 clear all", plus per-section image fields each with "↺ افتراضي" reset.
+- `artifacts/dr-travel/src/pages/ServiceDetailPage.tsx` — `getEffectiveFeatures()` prefers rich `features[]` if present, else falls back to legacy AR/EN string arrays + auto-detected visuals.
+- `artifacts/api-server/src/routes/services.ts` — `normalizeRichFeatures()` (drops empty entries, normalizes invalid hex tints to `#00AAFF`, caps at 30) + `deriveFeatureFields()` (when rich `features[]` is non-empty, server derives `featuresAr`/`featuresEn` from it so legacy stays in sync regardless of what the client sends).
 
 ## Workaround for Replit Dev-Proxy Port 5000 Bug (resolved 2026-05-02)
 
