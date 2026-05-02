@@ -136,6 +136,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   show_compare_feature: "true",
   show_testimonials: "true",
   services_link_to_trips: "false",
+  services_detail_pages_enabled: "true",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };

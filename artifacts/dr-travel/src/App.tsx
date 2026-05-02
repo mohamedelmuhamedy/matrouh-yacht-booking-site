@@ -683,6 +683,7 @@ function Services() {
   const [, navigate] = useLocation();
   const ar = lang === "ar";
   const linkToTrips = settings.services_link_to_trips === "true";
+  const detailPagesEnabled = settings.services_detail_pages_enabled !== "false";
 
   // Use DB services when available; fallback to translations for safety
   const items = dbServices.length > 0
@@ -702,7 +703,7 @@ function Services() {
   const handleServiceClick = (slug?: string) => {
     if (linkToTrips) {
       navigate("/trips");
-    } else if (slug) {
+    } else if (slug && detailPagesEnabled) {
       navigate(`/services/${slug}`);
     } else {
       return;
@@ -722,7 +723,7 @@ function Services() {
         </FadeInSection>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
           {items.map((service, i) => {
-            const clickable = linkToTrips || Boolean(service.slug);
+            const clickable = linkToTrips || (Boolean(service.slug) && detailPagesEnabled);
             return (
               <FadeInSection key={service.slug ?? i} delay={i * 70}>
                 <div

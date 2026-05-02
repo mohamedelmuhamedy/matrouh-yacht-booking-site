@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
+import { apiFetch } from "../lib/api";
+import { useSiteData } from "../context/SiteDataContext";
 
 interface Service {
   id: number;
@@ -17,22 +19,55 @@ interface Service {
 export default function AdminServicesPage() {
   const { success, error: toastError } = useToast();
   const [, navigate] = useLocation();
+  const { refetchSettings } = useSiteData();
 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [detailPagesEnabled, setDetailPagesEnabled] = useState(true);
+  const [togglingFeature, setTogglingFeature] = useState(false);
 
   async function load() {
     setLoading(true);
     try {
-      const r = await adminFetch("/admin/services");
-      if (r.ok) setServices(await r.json());
+      const [svcRes, setRes] = await Promise.all([
+        adminFetch("/admin/services"),
+        apiFetch("/api/settings"),
+      ]);
+      if (svcRes.ok) setServices(await svcRes.json());
+      if (setRes.ok) {
+        const s = await setRes.json().catch(() => null);
+        if (s && typeof s === "object") {
+          setDetailPagesEnabled(s.services_detail_pages_enabled !== "false");
+        }
+      }
     } catch {}
     setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
+
+  async function toggleDetailPagesFeature() {
+    if (togglingFeature) return;
+    setTogglingFeature(true);
+    const next = !detailPagesEnabled;
+    try {
+      const r = await adminFetch("/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify({ services_detail_pages_enabled: next ? "true" : "false" }),
+      });
+      if (r.ok) {
+        setDetailPagesEnabled(next);
+        refetchSettings();
+        success(next ? "تم تفعيل صفحات التفاصيل" : "تم إيقاف صفحات التفاصيل");
+      } else {
+        const d = await r.json().catch(() => ({}));
+        toastError(d.error || "فشل التحديث");
+      }
+    } catch { toastError("حدث خطأ في الاتصال"); }
+    setTogglingFeature(false);
+  }
 
   async function toggleActive(svc: Service) {
     setBusy(true);
@@ -82,6 +117,42 @@ export default function AdminServicesPage() {
           onClick={() => navigate("/admin/services/new")}
           style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.65rem 1.4rem", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", whiteSpace: "nowrap" }}>
           + خدمة جديدة
+        </button>
+      </div>
+
+      {/* Feature toggle: enable / disable service detail pages globally */}
+      <div style={{ marginBottom: "1.25rem", background: detailPagesEnabled ? "#e8f4ff" : "#fef3c7", border: `1.5px solid ${detailPagesEnabled ? "#bcdcff" : "#fde68a"}`, borderRadius: 12, padding: "0.9rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap" }}>
+        <span style={{ fontSize: "1.4rem" }}>{detailPagesEnabled ? "👁️" : "🚫"}</span>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ color: "#0D1B2A", fontWeight: 800, fontSize: "0.92rem" }}>
+            صفحات تفاصيل الخدمات
+          </div>
+          <div style={{ color: "#445566", fontSize: "0.78rem", marginTop: "0.15rem", lineHeight: 1.6 }}>
+            {detailPagesEnabled
+              ? "مفعّلة — الضغط على أي بطاقة خدمة بيفتح صفحة التفاصيل الخاصة بيها."
+              : "موقوفة — البطاقات في الصفحة الرئيسية مش هتفتح صفحة تفاصيل."}
+          </div>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={detailPagesEnabled}
+          onClick={toggleDetailPagesFeature}
+          disabled={togglingFeature}
+          aria-label={detailPagesEnabled ? "إيقاف صفحات التفاصيل" : "تفعيل صفحات التفاصيل"}
+          style={{
+            position: "relative", display: "inline-flex", alignItems: "center",
+            width: 56, height: 30, borderRadius: 15, border: "none",
+            cursor: togglingFeature ? "not-allowed" : "pointer",
+            background: detailPagesEnabled ? "#00AAFF" : "#d0dce8",
+            transition: "background 0.2s", flexShrink: 0,
+            opacity: togglingFeature ? 0.6 : 1,
+          }}>
+          <span style={{
+            position: "absolute", top: 3, [detailPagesEnabled ? "right" : "left"]: 3,
+            width: 24, height: 24, borderRadius: "50%", background: "white",
+            transition: "all 0.2s", boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          } as React.CSSProperties} />
         </button>
       </div>
 
