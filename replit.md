@@ -31,7 +31,10 @@ Two workflows are configured:
 1. **Start application** — Frontend on port 5000 (`PORT=5000 API_PORT=3001 pnpm --filter @workspace/dr-travel run dev`), output type webview
 2. **Backend API** — API server on port 3001 (`PORT=3001 pnpm --filter @workspace/api-server run dev`), output type console
 
-The Vite dev server proxies `/api` requests to the backend on port 3001.
+**Two-way proxy setup** (works around the Replit dev-proxy port 5000→80 bug):
+- The Vite dev server proxies `/api/*` to the backend on port 3001 (so the frontend can fetch its API).
+- The Express backend proxies all non-`/api/*` requests to Vite on port 5000 (so the Replit canvas/preview pane, which can only reach port 3001 reliably, can also serve the frontend with HMR).
+- Implementation: `artifacts/api-server/src/app.ts` uses `http-proxy-middleware`, dev-only (`NODE_ENV !== "production"`).
 
 ## Environment Variables / Secrets
 
@@ -60,22 +63,12 @@ Schema has been pushed; tables (packages, categories, testimonials, settings, et
 - Push notifications (VAPID)
 - Media/file upload support
 
-## Known Environment Issue: Public Dev Domain Returns 502
+## Workaround for Replit Dev-Proxy Port 5000 Bug (resolved 2026-05-02)
 
-**Known issue still active as of 2026-05-02.**
+The public Replit dev domain on port 5000 (`https://$REPLIT_DEV_DOMAIN/` and `:5000`) returns HTTP 502 because of a port-mapping mismatch in this Repl: `.replit` maps `localPort=5000 → externalPort=80` (old convention), but Replit's canvas/preview infrastructure expects external port 5000 directly. Both `vite` and `npx serve` reproduce the 502, proving it is not application-specific. Port 3001 (with 1:1 mapping) works fine through the same proxy.
 
-The public Replit dev domain (`https://$REPLIT_DEV_DOMAIN/`) currently returns HTTP 502 for port 5000 (the frontend). This was verified to be **infrastructure-level**, not application code:
+**Fix applied:** Express on port 3001 was made into a unified gateway:
+- `/api/*` → handled by Express routes (existing).
+- everything else → proxied to Vite on `localhost:5000` via `http-proxy-middleware` (with `ws: true` for HMR).
 
-- `curl http://localhost:5000/` → **200 OK** with full HTML
-- `curl https://$REPLIT_DEV_DOMAIN/` → **502 Bad Gateway**
-- The same 502 occurs even when port 5000 is served by an unrelated tool (`npx serve`), proving it is not Vite-specific.
-- Port 3001 (Backend API) on its own external port works fine through the public domain.
-- The workflow correctly reports `OpenPorts: [80]` and `.replit` contains the mapping `localPort=5000 → externalPort=80`.
-
-The internal screenshot tool reaches the app via `http://localhost:5000` directly and successfully renders the splash → home page transition. End-to-end traces show all 4 site-data fetches resolving in ~1.1 s and the splash being removed as expected.
-
-**Resolution paths if the user's preview still shows the splash / blank page:**
-1. Hard-refresh the preview pane (Ctrl/Cmd-Shift-R) to bust any stale service-worker cache.
-2. Restart the Replit workspace (refreshes the dev proxy state).
-3. Roll back to a previous checkpoint if the issue persists.
-4. Deploy the app — the production proxy is independent of the dev proxy and should serve the app correctly on the `.replit.app` domain.
+The canvas/preview iframe (auto-routed to port 3001 as `__default_preview__`) now successfully serves the full frontend with HMR. No changes were needed to the frontend code.
