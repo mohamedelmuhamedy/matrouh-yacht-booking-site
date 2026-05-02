@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useSiteData, type DBPackage } from "../context/SiteDataContext";
-import { apiFetch } from "../lib/api";
+import { apiFetch, storageObjectUrl } from "../lib/api";
 import { formatPrice } from "../data/currencies";
 
 interface ChatMessage {
@@ -51,6 +51,8 @@ export default function AIAssistant() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const T = {
     title: ar ? "مساعد DR Travel" : "DR Travel Assistant",
@@ -64,6 +66,11 @@ export default function AIAssistant() {
     bookNow: ar ? "احجز الآن" : "Book Now",
     askWhatsApp: ar ? "واتساب" : "WhatsApp",
     typing: ar ? "يكتب…" : "typing…",
+    stop: ar ? "إيقاف" : "Stop",
+    clear: ar ? "مسح المحادثة" : "Clear chat",
+    copy: ar ? "نسخ" : "Copy",
+    copied: ar ? "تم النسخ" : "Copied",
+    aborted: ar ? "تم إيقاف الرد." : "Reply stopped.",
     errMsg: ar ? "حصل خطأ، حاول تاني." : "Something went wrong, please try again.",
     rateLimit: ar ? "أسئلة كتير في وقت قصير. استنى دقيقة." : "Too many messages, please wait a moment.",
     notReady: ar ? "المساعد غير مفعّل حالياً." : "Assistant is not configured yet.",
@@ -120,6 +127,8 @@ export default function AIAssistant() {
     const newUser: ChatMessage = { role: "user", content: trimmed, ts: Date.now() };
     setMessages((prev) => [...prev, newUser]);
     setSending(true);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     try {
       const history = [...messages, newUser]
         .slice(-9, -1)
@@ -128,6 +137,7 @@ export default function AIAssistant() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed, lang, history }),
+        signal: ctrl.signal,
       });
       if (res.status === 429) { setError(T.rateLimit); return; }
       if (res.status === 503) { setError(T.notReady); return; }
@@ -141,13 +151,36 @@ export default function AIAssistant() {
         packages: matchPackages(slugs),
         ts: Date.now(),
       }]);
-    } catch {
-      setError(T.errMsg);
+    } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") {
+        setError(T.aborted);
+      } else {
+        setError(T.errMsg);
+      }
     } finally {
       setSending(false);
+      abortRef.current = null;
       inputRef.current?.focus();
     }
-  }, [sending, messages, lang, matchPackages, T.errMsg, T.rateLimit, T.notReady]);
+  }, [sending, messages, lang, matchPackages, T.errMsg, T.rateLimit, T.notReady, T.aborted]);
+
+  const stopReply = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  const clearChat = useCallback(() => {
+    abortRef.current?.abort();
+    setMessages([{ role: "assistant", content: T.greeting, ts: Date.now() }]);
+    setError(null);
+  }, [T.greeting]);
+
+  const copyReply = useCallback(async (idx: number, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIdx(idx);
+      window.setTimeout(() => setCopiedIdx((v) => (v === idx ? null : v)), 1400);
+    } catch {}
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,6 +301,16 @@ export default function AIAssistant() {
                 {T.subtitle}
               </div>
             </div>
+            <button
+              onClick={clearChat}
+              title={T.clear}
+              aria-label={T.clear}
+              style={{
+                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                color: "#cbd5e1", borderRadius: 999, padding: "0.3rem 0.65rem",
+                fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >{T.clear}</button>
           </div>
 
           {/* Messages */}
@@ -288,8 +331,23 @@ export default function AIAssistant() {
                   padding: "0.6rem 0.85rem", maxWidth: "88%",
                   color: m.role === "assistant" ? "#d8ecff" : "#fff8e1",
                   fontSize: "0.85rem", lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                  position: "relative",
                 }}>
                   {m.content}
+                  {m.role === "assistant" && i > 0 && (
+                    <button
+                      onClick={() => void copyReply(i, m.content)}
+                      title={T.copy}
+                      aria-label={T.copy}
+                      style={{
+                        position: "absolute", bottom: -10, [ar ? "left" : "right"]: 6,
+                        background: "rgba(13,27,42,0.95)", border: "1px solid rgba(255,255,255,0.18)",
+                        color: copiedIdx === i ? "#22c55e" : "#9fd4ff",
+                        borderRadius: 999, padding: "2px 8px",
+                        fontSize: "0.65rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      } as React.CSSProperties}
+                    >{copiedIdx === i ? T.copied : T.copy}</button>
+                  )}
                 </div>
                 {m.packages && m.packages.length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", width: "100%" }}>
@@ -302,7 +360,7 @@ export default function AIAssistant() {
                           <div style={{
                             width: "100%", height: 90, borderRadius: 8, overflow: "hidden",
                             marginBottom: "0.55rem",
-                            backgroundImage: `url(${pkg.images[0]})`,
+                            backgroundImage: `url(${storageObjectUrl(pkg.images[0])})`,
                             backgroundSize: "cover", backgroundPosition: "center",
                           }} />
                         )}
@@ -317,7 +375,7 @@ export default function AIAssistant() {
                         </div>
                         <div style={{ display: "flex", gap: "0.4rem" }}>
                           <a
-                            href={`/trips/${pkg.slug}`}
+                            href={`/packages/${pkg.slug}`}
                             onClick={() => setOpen(false)}
                             style={{
                               flex: 1, background: pkg.color,
@@ -346,13 +404,22 @@ export default function AIAssistant() {
             ))}
 
             {sending && (
-              <div style={{
-                alignSelf: "flex-start",
-                background: "rgba(0,170,255,0.10)", border: "1px solid rgba(0,170,255,0.25)",
-                borderRadius: "4px 14px 14px 14px", padding: "0.6rem 0.85rem",
-                color: "#8db5d6", fontSize: "0.78rem",
-              }}>
-                <span className="drtai-typing-dot" /><span className="drtai-typing-dot" /><span className="drtai-typing-dot" />
+              <div style={{ alignSelf: "stretch", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{
+                  background: "rgba(0,170,255,0.10)", border: "1px solid rgba(0,170,255,0.25)",
+                  borderRadius: "4px 14px 14px 14px", padding: "0.6rem 0.85rem",
+                  color: "#8db5d6", fontSize: "0.78rem",
+                }}>
+                  <span className="drtai-typing-dot" /><span className="drtai-typing-dot" /><span className="drtai-typing-dot" />
+                </div>
+                <button
+                  onClick={stopReply}
+                  style={{
+                    background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.45)",
+                    color: "#fca5a5", borderRadius: 999, padding: "0.3rem 0.75rem",
+                    fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >■ {T.stop}</button>
               </div>
             )}
 

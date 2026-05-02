@@ -8,12 +8,14 @@ import {
   siteSettings,
   galleryItems,
   categories,
+  heroSlides,
   type Package,
   type Service,
   type Testimonial,
   type WhyUsCard,
 } from "@workspace/db";
 import { eq, and, asc } from "drizzle-orm";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
@@ -90,6 +92,12 @@ async function buildContext(): Promise<ContextSnapshot> {
   const setRows = await db.select().from(siteSettings);
   const catRows = await db.select().from(categories).orderBy(asc(categories.sortOrder));
   const galCount = await db.select().from(galleryItems).then((r) => r.length).catch(() => 0);
+  const heroCount = await db
+    .select()
+    .from(heroSlides)
+    .where(eq(heroSlides.isActive, true))
+    .then((r) => r.length)
+    .catch(() => 0);
 
   const settings: Record<string, string> = {};
   for (const r of setRows) settings[r.key] = r.value;
@@ -152,9 +160,13 @@ async function buildContext(): Promise<ContextSnapshot> {
   if (svcRows.length) {
     lines.push(`## SERVICES (${svcRows.length})`);
     for (const s of svcRows) {
-      lines.push(`- slug=${s.slug} | EN: ${s.titleEn} | AR: ${s.titleAr} — ${trim(s.descriptionEn, 160)}`);
-      if (s.longDescriptionEn) lines.push(`  detail EN: ${trim(s.longDescriptionEn, 220)}`);
-      if (s.featuresEn?.length) lines.push(`  features: ${s.featuresEn.slice(0, 6).join(" · ")}`);
+      lines.push(`- slug=${s.slug} | EN: ${s.titleEn} | AR: ${s.titleAr}`);
+      if (s.descriptionEn) lines.push(`  desc EN: ${trim(s.descriptionEn, 200)}`);
+      if (s.descriptionAr) lines.push(`  desc AR: ${trim(s.descriptionAr, 200)}`);
+      if (s.longDescriptionEn) lines.push(`  detail EN: ${trim(s.longDescriptionEn, 240)}`);
+      if (s.longDescriptionAr) lines.push(`  detail AR: ${trim(s.longDescriptionAr, 240)}`);
+      if (s.featuresEn?.length) lines.push(`  features EN: ${s.featuresEn.slice(0, 6).join(" · ")}`);
+      if (s.featuresAr?.length) lines.push(`  features AR: ${s.featuresAr.slice(0, 6).join(" · ")}`);
     }
     lines.push("");
   }
@@ -163,15 +175,20 @@ async function buildContext(): Promise<ContextSnapshot> {
     lines.push(`## WHY CHOOSE US (${whyRows.length})`);
     for (const w of whyRows) {
       lines.push(`- slug=${w.slug} | EN: ${w.titleEn} | AR: ${w.titleAr}`);
-      if (w.shortDescEn) lines.push(`  short EN: ${trim(w.shortDescEn, 160)}`);
-      if (w.introEn) lines.push(`  intro EN: ${trim(w.introEn, 200)}`);
-      if (w.bodyEn) lines.push(`  body EN: ${trim(w.bodyEn, 260)}`);
+      if (w.shortDescEn) lines.push(`  short EN: ${trim(w.shortDescEn, 180)}`);
+      if (w.shortDescAr) lines.push(`  short AR: ${trim(w.shortDescAr, 180)}`);
+      if (w.introEn) lines.push(`  intro EN: ${trim(w.introEn, 220)}`);
+      if (w.introAr) lines.push(`  intro AR: ${trim(w.introAr, 220)}`);
+      if (w.bodyEn) lines.push(`  body EN: ${trim(w.bodyEn, 280)}`);
+      if (w.bodyAr) lines.push(`  body AR: ${trim(w.bodyAr, 280)}`);
       if (w.bullets?.length) {
-        const bts = w.bullets.slice(0, 4).map((b) => `${b.titleEn}: ${trim(b.descEn, 70)}`).join(" | ");
-        lines.push(`  bullets: ${bts}`);
+        const btsEn = w.bullets.slice(0, 4).map((b) => `${b.titleEn}: ${trim(b.descEn, 70)}`).join(" | ");
+        const btsAr = w.bullets.slice(0, 4).map((b) => `${b.titleAr}: ${trim(b.descAr, 70)}`).join(" | ");
+        if (btsEn) lines.push(`  bullets EN: ${btsEn}`);
+        if (btsAr) lines.push(`  bullets AR: ${btsAr}`);
       }
       if (w.stats?.length) {
-        const st = w.stats.slice(0, 4).map((s) => `${s.value} ${s.labelEn}`).join(" · ");
+        const st = w.stats.slice(0, 4).map((s) => `${s.value} ${s.labelEn} / ${s.labelAr}`).join(" · ");
         lines.push(`  stats: ${st}`);
       }
     }
@@ -182,8 +199,23 @@ async function buildContext(): Promise<ContextSnapshot> {
     lines.push(`## TESTIMONIALS (${tstRows.length})`);
     for (const t of tstRows.slice(0, 8)) {
       const pkg = t.packageName ? ` · re ${t.packageName}` : "";
-      lines.push(`- ${t.nameEn} ${t.rating}★${pkg}: "${trim(t.textEn, 180)}"`);
+      lines.push(`- ${t.nameEn} / ${t.nameAr} ${t.rating}★${pkg}`);
+      if (t.textEn) lines.push(`  EN: "${trim(t.textEn, 200)}"`);
+      if (t.textAr) lines.push(`  AR: "${trim(t.textAr, 200)}"`);
     }
+    lines.push("");
+  }
+
+  if (heroCount > 0) {
+    const heroTitle = settings.hero_title_en || settings.hero_title || "";
+    const heroTitleAr = settings.hero_title_ar || "";
+    const heroSubEn = settings.hero_subtitle_en || settings.hero_subtitle || "";
+    const heroSubAr = settings.hero_subtitle_ar || "";
+    lines.push(`## HERO: ${heroCount} active hero slides on the homepage.`);
+    if (heroTitle) lines.push(`  Headline EN: ${trim(heroTitle, 160)}`);
+    if (heroTitleAr) lines.push(`  Headline AR: ${trim(heroTitleAr, 160)}`);
+    if (heroSubEn) lines.push(`  Subline EN: ${trim(heroSubEn, 200)}`);
+    if (heroSubAr) lines.push(`  Subline AR: ${trim(heroSubAr, 200)}`);
     lines.push("");
   }
 
@@ -192,11 +224,23 @@ async function buildContext(): Promise<ContextSnapshot> {
     lines.push("");
   }
 
-  if (settings.rewards_enabled === "true" || settings.show_rewards === "true") {
-    lines.push(
-      "## REWARDS: Loyalty program is active — visitors visit /rewards page to earn points and redeem perks on bookings.",
-    );
-    lines.push("");
+  if (
+    settings.rewards_enabled === "true" ||
+    settings.show_rewards === "true" ||
+    settings.referral_enabled === "true"
+  ) {
+    const rewardsLines: string[] = ["## REWARDS / LOYALTY"];
+    rewardsLines.push("- Visitors earn points and referral rewards on /rewards page.");
+    if (settings.points_per_egp) rewardsLines.push(`- Earn rate: ${settings.points_per_egp} points per EGP spent.`);
+    if (settings.referral_reward_value)
+      rewardsLines.push(
+        `- Referral reward: ${settings.referral_reward_value}${settings.referral_reward_type === "percent" ? "%" : " EGP"} per successful booking.`,
+      );
+    if (settings.rewards_min_redeem)
+      rewardsLines.push(`- Minimum redemption: ${settings.rewards_min_redeem} points.`);
+    if (settings.rewards_terms_en) rewardsLines.push(`- Terms EN: ${trim(settings.rewards_terms_en, 220)}`);
+    if (settings.rewards_terms_ar) rewardsLines.push(`- Terms AR: ${trim(settings.rewards_terms_ar, 220)}`);
+    lines.push(...rewardsLines, "");
   }
 
   cachedContext = {
@@ -237,7 +281,7 @@ function readClientIp(req: Request): string {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
-router.post("/ai/refresh-context", (_req, res) => {
+router.post("/ai/refresh-context", authMiddleware, (_req, res) => {
   cachedContext = null;
   return res.json({ ok: true });
 });
