@@ -296,8 +296,16 @@ export default function AIAssistant() {
                     {m.packages.map((pkg) => (
                       <div key={pkg.id} style={{
                         background: `${pkg.color}12`, border: `1px solid ${pkg.color}40`,
-                        borderRadius: "12px", padding: "0.7rem",
+                        borderRadius: "12px", padding: "0.7rem", overflow: "hidden",
                       }}>
+                        {pkg.images && pkg.images[0] && (
+                          <div style={{
+                            width: "100%", height: 90, borderRadius: 8, overflow: "hidden",
+                            marginBottom: "0.55rem",
+                            backgroundImage: `url(${pkg.images[0]})`,
+                            backgroundSize: "cover", backgroundPosition: "center",
+                          }} />
+                        )}
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
                           <span style={{ fontSize: "1.1rem" }}>{pkg.icon}</span>
                           <span style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", flex: 1 }}>

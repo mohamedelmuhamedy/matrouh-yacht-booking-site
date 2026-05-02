@@ -1223,17 +1223,17 @@ function WhyUs() {
   const [, navigate] = useLocation();
   const isAr = lang === "ar";
 
-  const items = whyUsCards.length > 0
-    ? whyUsCards
-        .filter(c => c.isActive)
-        .map(c => ({
-          slug: c.slug,
-          icon: c.icon,
-          color: c.color,
-          title: isAr ? c.titleAr : (c.titleEn || c.titleAr),
-          desc: isAr ? c.shortDescAr : (c.shortDescEn || c.shortDescAr),
-        }))
-    : t.whyUs.items.map((f) => ({ slug: "", icon: f.icon, color: f.color, title: f.title, desc: f.desc }));
+  const items = whyUsCards
+    .filter(c => c.isActive)
+    .map(c => ({
+      slug: c.slug,
+      icon: c.icon,
+      color: c.color,
+      title: isAr ? c.titleAr : (c.titleEn || c.titleAr),
+      desc: isAr ? c.shortDescAr : (c.shortDescEn || c.shortDescAr),
+    }));
+
+  if (items.length === 0) return null;
 
   return (
     <section id="whyus" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
@@ -1583,6 +1583,22 @@ function GalleryDetailPageWrapper() {
   );
 }
 
+// ===== WHY US DETAIL PAGE WRAPPER =====
+function WhyUsDetailPageWrapper() {
+  const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const showAI = settings.show_ai_assistant !== "false";
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
+      <Navbar />
+      <WhyUsDetailPage />
+      <Footer />
+      <WhatsAppFloat />
+      {showAI && <AIAssistant />}
+    </div>
+  );
+}
+
 // ===== SERVICE DETAIL PAGE WRAPPER =====
 function ServiceDetailPageWrapper() {
   const { t } = useLanguage();
@@ -1652,7 +1668,7 @@ function PublicAppShell() {
             <Route path="/gallery" component={GalleryPageWrapper} />
             <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
             <Route path="/services/:slug" component={ServiceDetailPageWrapper} />
-            <Route path="/why-us/:slug" component={WhyUsDetailPage} />
+            <Route path="/why-us/:slug" component={WhyUsDetailPageWrapper} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />
