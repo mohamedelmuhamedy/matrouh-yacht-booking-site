@@ -111,6 +111,11 @@ async function buildContext(): Promise<ContextSnapshot> {
   lines.push(
     `Site: ${settings.site_title || "DR Travel"} — Marsa Matruh tourism (safari, yacht, family, all-inclusive).`,
   );
+  const locAr = settings.location_ar || "مرسى مطروح، مصر";
+  const locEn = settings.location_en || "Marsa Matruh, Egypt";
+  lines.push(`Location (AR): ${locAr}`);
+  lines.push(`Location (EN): ${locEn}`);
+  if (settings.maps_url) lines.push(`Google Maps: ${settings.maps_url}`);
   lines.push(
     `Contact: WhatsApp ${settings.whatsapp_number || "01205756024"} · Phone ${settings.phone_number || "01205756024"}`,
   );
