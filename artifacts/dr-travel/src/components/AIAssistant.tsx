@@ -10,9 +10,62 @@ interface ChatMessage {
   content: string;
   packages?: DBPackage[];
   ts: number;
+  reveal?: number;
 }
 
 const WELCOME_DISMISS_KEY = "drtravel_ai_welcome_dismissed_v1";
+
+function normalizeWhatsApp(raw: string): string {
+  const digits = (raw || "").replace(/[^\d]/g, "");
+  if (!digits) return "201205756024";
+  if (digits.startsWith("00")) return digits.slice(2);
+  if (digits.startsWith("20")) return digits;
+  if (digits.startsWith("0")) return "20" + digits.slice(1);
+  return digits;
+}
+
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const out: React.ReactNode[] = [];
+  let listBuffer: React.ReactNode[] = [];
+  const flushList = () => {
+    if (listBuffer.length) {
+      out.push(<ul key={`ul-${out.length}`} style={{ margin: "0.25rem 0", paddingInlineStart: "1.1rem" }}>{listBuffer}</ul>);
+      listBuffer = [];
+    }
+  };
+  const inline = (s: string, key: string): React.ReactNode => {
+    const parts: React.ReactNode[] = [];
+    const re = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|https?:\/\/\S+)/g;
+    let last = 0;
+    let m: RegExpExecArray | null;
+    let i = 0;
+    while ((m = re.exec(s))) {
+      if (m.index > last) parts.push(s.slice(last, m.index));
+      const tok = m[0];
+      const k = `${key}-${i++}`;
+      if (tok.startsWith("**")) parts.push(<strong key={k}>{tok.slice(2, -2)}</strong>);
+      else if (tok.startsWith("*")) parts.push(<em key={k}>{tok.slice(1, -1)}</em>);
+      else if (tok.startsWith("`")) parts.push(<code key={k} style={{ background: "rgba(255,255,255,0.08)", padding: "0 4px", borderRadius: 4 }}>{tok.slice(1, -1)}</code>);
+      else parts.push(<a key={k} href={tok} target="_blank" rel="noreferrer" style={{ color: "#9fd4ff", textDecoration: "underline" }}>{tok}</a>);
+      last = m.index + tok.length;
+    }
+    if (last < s.length) parts.push(s.slice(last));
+    return parts;
+  };
+  lines.forEach((ln, idx) => {
+    const bullet = ln.match(/^\s*[-•]\s+(.*)$/);
+    if (bullet) {
+      listBuffer.push(<li key={`li-${idx}`} style={{ marginBottom: 2 }}>{inline(bullet[1], `li-${idx}`)}</li>);
+    } else {
+      flushList();
+      if (ln.trim() === "") out.push(<div key={`br-${idx}`} style={{ height: "0.45em" }} />);
+      else out.push(<div key={`p-${idx}`}>{inline(ln, `p-${idx}`)}</div>);
+    }
+  });
+  flushList();
+  return out;
+}
 
 const AssistantIcon = ({ size = 28 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,7 +105,12 @@ export default function AIAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const messagesRef = useRef<ChatMessage[]>([]);
+  const typewriterRef = useRef<number | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => () => { if (typewriterRef.current) window.clearInterval(typewriterRef.current); }, []);
 
   const T = {
     title: ar ? "مساعد DR Travel" : "DR Travel Assistant",
@@ -79,7 +137,7 @@ export default function AIAssistant() {
       : ["Best family trip?", "Cheapest package?", "I'm visiting solo", "Safari vs yacht?"],
   };
 
-  const whatsapp = settings.whatsapp_number || "01205756024";
+  const whatsapp = normalizeWhatsApp(settings.whatsapp_number || "01205756024");
 
   // Auto-show welcome bubble after 3s if not previously dismissed
   useEffect(() => {
@@ -145,12 +203,30 @@ export default function AIAssistant() {
       const data = await res.json();
       const reply = String(data?.reply || "").trim();
       const slugs: string[] = Array.isArray(data?.suggestedPackageSlugs) ? data.suggestedPackageSlugs : [];
+      const finalReply = reply || T.errMsg;
+      const newIdx = messagesRef.current.length;
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: reply || T.errMsg,
+        content: finalReply,
         packages: matchPackages(slugs),
         ts: Date.now(),
+        reveal: 0,
       }]);
+      // Typewriter reveal
+      const total = finalReply.length;
+      const stepMs = 14;
+      const charsPerStep = Math.max(2, Math.ceil(total / 80));
+      const interval = window.setInterval(() => {
+        setMessages((prev) => {
+          const next = prev.slice();
+          const m = next[newIdx];
+          if (!m || m.reveal === undefined) { window.clearInterval(interval); return prev; }
+          if (m.reveal >= m.content.length) { window.clearInterval(interval); next[newIdx] = { ...m, reveal: undefined }; return next; }
+          next[newIdx] = { ...m, reveal: Math.min(m.content.length, m.reveal + charsPerStep) };
+          return next;
+        });
+      }, stepMs);
+      typewriterRef.current = interval;
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") {
         setError(T.aborted);
@@ -166,6 +242,11 @@ export default function AIAssistant() {
 
   const stopReply = useCallback(() => {
     abortRef.current?.abort();
+    if (typewriterRef.current) {
+      window.clearInterval(typewriterRef.current);
+      typewriterRef.current = null;
+      setMessages((prev) => prev.map((m) => (m.reveal !== undefined ? { ...m, reveal: undefined } : m)));
+    }
   }, []);
 
   const clearChat = useCallback(() => {
@@ -204,22 +285,41 @@ export default function AIAssistant() {
         .drtai-chip:hover { background: rgba(0,170,255,0.18); border-color: rgba(0,170,255,0.55); transform: translateY(-1px); }
       `}</style>
 
-      {/* Welcome bubble */}
+      {/* Welcome bubble with suggestion chips */}
       {!open && showWelcomeBubble && (
         <div
           className="drtai-bubble"
-          onClick={() => { dismissWelcome(); setOpen(true); }}
           style={{
             position: "fixed", bottom: "6.5rem", right: "1.5rem", zIndex: 999,
             background: "white", color: "#0D1B2A",
-            padding: "0.7rem 2.2rem 0.7rem 0.95rem", borderRadius: "16px 16px 4px 16px",
+            padding: "0.8rem 0.95rem 0.85rem 0.95rem", borderRadius: "16px 16px 4px 16px",
             boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
-            maxWidth: "240px", fontSize: "0.85rem", fontWeight: 600,
-            cursor: "pointer", lineHeight: 1.4,
-            fontFamily: "inherit",
+            maxWidth: "280px", fontSize: "0.85rem", fontWeight: 600,
+            lineHeight: 1.4, fontFamily: "inherit",
           }}
         >
-          {T.welcomeBubble}
+          <div
+            onClick={() => { dismissWelcome(); setOpen(true); }}
+            style={{ cursor: "pointer", paddingInlineEnd: "1.5rem" }}
+          >{T.welcomeBubble}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.55rem" }}>
+            {T.suggestions.slice(0, 4).map((s, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissWelcome();
+                  setOpen(true);
+                  window.setTimeout(() => void sendMessage(s), 200);
+                }}
+                style={{
+                  background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.35)",
+                  color: "#0D1B2A", padding: "0.3rem 0.55rem", borderRadius: 999,
+                  fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >{s}</button>
+            ))}
+          </div>
           <button
             onClick={dismissWelcome}
             aria-label="Dismiss"
@@ -330,10 +430,15 @@ export default function AIAssistant() {
                   borderRadius: m.role === "assistant" ? "4px 14px 14px 14px" : "14px 4px 14px 14px",
                   padding: "0.6rem 0.85rem", maxWidth: "88%",
                   color: m.role === "assistant" ? "#d8ecff" : "#fff8e1",
-                  fontSize: "0.85rem", lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                  fontSize: "0.85rem", lineHeight: 1.65, wordBreak: "break-word",
                   position: "relative",
                 }}>
-                  {m.content}
+                  {m.role === "assistant"
+                    ? renderMarkdown(m.reveal !== undefined ? m.content.slice(0, m.reveal) : m.content)
+                    : m.content}
+                  {m.reveal !== undefined && m.reveal < m.content.length && (
+                    <span style={{ display: "inline-block", width: 7, height: 13, marginInlineStart: 2, background: "#9fd4ff", verticalAlign: "middle", animation: "drtai-typing 0.9s infinite" }} />
+                  )}
                   {m.role === "assistant" && i > 0 && (
                     <button
                       onClick={() => void copyReply(i, m.content)}

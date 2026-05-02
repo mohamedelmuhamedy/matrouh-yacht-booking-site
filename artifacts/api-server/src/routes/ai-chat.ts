@@ -294,20 +294,47 @@ router.post("/ai/chat", async (req, res) => {
     if (!checkRate(readClientIp(req)))
       return res.status(429).json({ error: "Too many requests, try again in a minute." });
 
-    const body = (req.body ?? {}) as { message?: unknown; lang?: unknown; history?: unknown };
-    const userMessage = String(body.message ?? "").trim().slice(0, MAX_USER_CHARS);
-    if (!userMessage) return res.status(400).json({ error: "Message required" });
+    const body = (req.body ?? {}) as {
+      message?: unknown;
+      messages?: unknown;
+      lang?: unknown;
+      history?: unknown;
+    };
 
     const lang: "ar" | "en" = body.lang === "en" ? "en" : "ar";
-    const historyRaw: unknown[] = Array.isArray(body.history) ? body.history : [];
+
+    // Accept two contracts:
+    //   A) { message, history?, lang }
+    //   B) { messages: [...], lang }   (last user message + earlier history)
+    let userMessage = "";
     const history: ChatTurn[] = [];
-    for (const raw of historyRaw.slice(-MAX_HISTORY)) {
-      if (!raw || typeof raw !== "object") continue;
-      const m = raw as { role?: unknown; content?: unknown };
-      if ((m.role === "user" || m.role === "assistant") && typeof m.content === "string") {
-        history.push({ role: m.role, content: m.content.slice(0, 1200) });
+
+    const collectTurns = (arr: unknown[]): { role: "user" | "assistant"; content: string }[] => {
+      const out: { role: "user" | "assistant"; content: string }[] = [];
+      for (const raw of arr) {
+        if (!raw || typeof raw !== "object") continue;
+        const m = raw as { role?: unknown; content?: unknown };
+        if ((m.role === "user" || m.role === "assistant") && typeof m.content === "string") {
+          out.push({ role: m.role, content: m.content.slice(0, 1200) });
+        }
       }
+      return out;
+    };
+
+    if (Array.isArray(body.messages)) {
+      const turns = collectTurns(body.messages);
+      const lastUser = [...turns].reverse().find((t) => t.role === "user");
+      userMessage = (lastUser?.content ?? "").trim().slice(0, MAX_USER_CHARS);
+      const lastUserIdx = lastUser ? turns.lastIndexOf(lastUser) : -1;
+      const earlier = lastUserIdx >= 0 ? turns.slice(0, lastUserIdx) : turns;
+      for (const t of earlier.slice(-MAX_HISTORY)) history.push(t);
+    } else {
+      userMessage = String(body.message ?? "").trim().slice(0, MAX_USER_CHARS);
+      const historyRaw: unknown[] = Array.isArray(body.history) ? body.history : [];
+      for (const t of collectTurns(historyRaw).slice(-MAX_HISTORY)) history.push(t);
     }
+
+    if (!userMessage) return res.status(400).json({ error: "Message required" });
 
     const ctx = await buildContext();
 
