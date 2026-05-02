@@ -12,3 +12,4 @@ export * from "./services";
 export * from "./hero_slides";
 export * from "./push_subscriptions";
 export * from "./app_secrets";
+export * from "./why_us_cards";

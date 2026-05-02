@@ -10,7 +10,8 @@
     "seed-admin": "tsx ./scripts/seed-admin.ts",
     "seed-data": "tsx ./scripts/seed-data.ts",
     "seed-services": "tsx ./scripts/seed-services.ts",
-    "seed-service-images": "tsx ./scripts/seed-service-images.ts"
+    "seed-service-images": "tsx ./scripts/seed-service-images.ts",
+    "seed-why-us": "tsx ./scripts/seed-why-us.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

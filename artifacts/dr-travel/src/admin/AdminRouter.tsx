@@ -15,6 +15,8 @@ import AdminGalleryPage from "./AdminGalleryPage";
 import AdminCategoriesPage from "./AdminCategoriesPage";
 import AdminServicesPage from "./AdminServicesPage";
 import AdminServiceFormPage from "./AdminServiceFormPage";
+import AdminWhyUsPage from "./AdminWhyUsPage";
+import AdminWhyUsFormPage from "./AdminWhyUsFormPage";
 import AdminHeroSlidesPage from "./AdminHeroSlidesPage";
 import PushNotificationsPage from "./PushNotificationsPage";
 
@@ -92,6 +94,15 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/services">
         <AdminGuard><AdminServicesPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/why-us/new">
+        <AdminGuard><AdminWhyUsFormPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/why-us/:id/edit">
+        <AdminGuard><AdminWhyUsFormPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/why-us">
+        <AdminGuard><AdminWhyUsPage /></AdminGuard>
       </Route>
       <Route path="/admin/hero-slides">
         <AdminGuard><AdminHeroSlidesPage /></AdminGuard>

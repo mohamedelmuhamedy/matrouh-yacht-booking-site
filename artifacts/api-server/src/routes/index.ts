@@ -16,6 +16,7 @@ import servicesRouter from "./services";
 import heroSlidesRouter from "./admin-hero-slides";
 import fsUploadRouter from "./fs-upload";
 import pushRouter from "./push";
+import whyUsRouter from "./why-us";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(servicesRouter);
 router.use(heroSlidesRouter);
 router.use(fsUploadRouter);
 router.use(pushRouter);
+router.use(whyUsRouter);
 
 export default router;

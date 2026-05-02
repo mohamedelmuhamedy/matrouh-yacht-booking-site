@@ -110,6 +110,26 @@ export interface DBService {
   isActive: boolean;
 }
 
+export interface DBWhyUsCard {
+  id: number;
+  slug: string;
+  icon: string;
+  color: string;
+  titleAr: string; titleEn: string;
+  shortDescAr: string; shortDescEn: string;
+  heroImageUrl: string | null;
+  accentImageUrl: string | null;
+  introAr: string; introEn: string;
+  bodyAr: string; bodyEn: string;
+  bullets: { icon: string; titleAr: string; titleEn: string; descAr: string; descEn: string }[];
+  stats: { icon: string; value: string; labelAr: string; labelEn: string }[];
+  galleryImages: string[];
+  ctaTextAr: string; ctaTextEn: string;
+  ctaLink: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export type SiteSettings = Record<string, string>;
 
 interface SiteDataContextType {
@@ -118,6 +138,7 @@ interface SiteDataContextType {
   settings: SiteSettings;
   categories: DBCategory[];
   services: DBService[];
+  whyUsCards: DBWhyUsCard[];
   packagesLoading: boolean;
   settingsLoading: boolean;
   isInitializing: boolean;
@@ -125,6 +146,7 @@ interface SiteDataContextType {
   refetchSettings: () => void;
   refetchCategories: () => void;
   refetchServices: () => void;
+  refetchWhyUsCards: () => void;
 }
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
@@ -157,6 +179,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [categories, setCategories] = useState<DBCategory[]>([]);
   const [services, setServices] = useState<DBService[]>([]);
+  const [whyUsCards, setWhyUsCards] = useState<DBWhyUsCard[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -230,6 +253,16 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  const fetchWhyUsCards = useCallback(async () => {
+    try {
+      const r = await apiFetch("/api/why-us");
+      if (r.ok) {
+        const data = await r.json();
+        if (Array.isArray(data)) setWhyUsCards(data);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -240,6 +273,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         fetchSettings(),
         fetchCategories(),
         fetchServices(),
+        fetchWhyUsCards(),
       ]);
 
       if (isMounted) setIsInitializing(false);
@@ -250,7 +284,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [fetchPackages, fetchTestimonials, fetchSettings, fetchCategories, fetchServices]);
+  }, [fetchPackages, fetchTestimonials, fetchSettings, fetchCategories, fetchServices, fetchWhyUsCards]);
 
   useEffect(() => {
     if (!apiFailed) return;
@@ -268,10 +302,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       fetchSettings();
       fetchCategories();
       fetchServices();
+      fetchWhyUsCards();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [fetchPackages, fetchSettings, fetchCategories, fetchServices]);
+  }, [fetchPackages, fetchSettings, fetchCategories, fetchServices, fetchWhyUsCards]);
 
   return (
     <SiteDataContext.Provider value={{
@@ -280,6 +315,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       settings,
       categories,
       services,
+      whyUsCards,
       packagesLoading,
       settingsLoading,
       isInitializing,
@@ -287,6 +323,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       refetchSettings: fetchSettings,
       refetchCategories: fetchCategories,
       refetchServices: fetchServices,
+      refetchWhyUsCards: fetchWhyUsCards,
     }}>
       {children}
     </SiteDataContext.Provider>

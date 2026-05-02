@@ -13,6 +13,7 @@ import TripsPage from "./pages/TripsPage";
 import GalleryPage from "./pages/GalleryPage";
 import GalleryDetailPage from "./pages/GalleryDetailPage";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
+import WhyUsDetailPage from "./pages/WhyUsDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import PushPrompt from "./components/PushPrompt";
@@ -1217,7 +1218,23 @@ function PackagesAndBooking() {
 
 // ===== WHY US =====
 function WhyUs() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const { whyUsCards } = useSiteData();
+  const [, navigate] = useLocation();
+  const isAr = lang === "ar";
+
+  const items = whyUsCards.length > 0
+    ? whyUsCards
+        .filter(c => c.isActive)
+        .map(c => ({
+          slug: c.slug,
+          icon: c.icon,
+          color: c.color,
+          title: isAr ? c.titleAr : (c.titleEn || c.titleAr),
+          desc: isAr ? c.shortDescAr : (c.shortDescEn || c.shortDescAr),
+        }))
+    : t.whyUs.items.map((f) => ({ slug: "", icon: f.icon, color: f.color, title: f.title, desc: f.desc }));
+
   return (
     <section id="whyus" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -1229,18 +1246,48 @@ function WhyUs() {
           </div>
         </FadeInSection>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
-          {t.whyUs.items.map((f, i) => (
-            <FadeInSection key={i} delay={i * 70}>
-              <div className="why-card" style={{ position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "80px", height: "80px", borderRadius: "50%", background: `${f.color}08`, border: `1px solid ${f.color}15` }} />
-                <div style={{ width: 56, height: 56, borderRadius: "14px", background: `${f.color}10`, border: `1px solid ${f.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", marginBottom: "1rem", position: "relative" }}>
-                  {f.icon}
+          {items.map((f, i) => {
+            const clickable = !!f.slug;
+            const onClick = clickable ? () => { navigate(`/why-us/${f.slug}`); window.scrollTo({ top: 0 }); } : undefined;
+            return (
+              <FadeInSection key={f.slug || i} delay={i * 70}>
+                <div
+                  className="why-card"
+                  onClick={onClick}
+                  role={clickable ? "button" : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
+                  style={{
+                    position: "relative", overflow: "hidden",
+                    cursor: clickable ? "pointer" : "default",
+                    transition: "transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease",
+                  }}
+                  onMouseEnter={clickable ? (e) => {
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-6px)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 18px 40px ${f.color}25`;
+                    (e.currentTarget as HTMLElement).style.borderColor = `${f.color}55`;
+                  } : undefined}
+                  onMouseLeave={clickable ? (e) => {
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "";
+                    (e.currentTarget as HTMLElement).style.borderColor = "";
+                  } : undefined}
+                >
+                  <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "80px", height: "80px", borderRadius: "50%", background: `${f.color}08`, border: `1px solid ${f.color}15` }} />
+                  <div style={{ width: 56, height: 56, borderRadius: "14px", background: `${f.color}10`, border: `1px solid ${f.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", marginBottom: "1rem", position: "relative" }}>
+                    {f.icon}
+                  </div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{f.title}</h3>
+                  <p style={{ color: "#667788", fontSize: "0.85rem", lineHeight: 1.8 }}>{f.desc}</p>
+                  {clickable && (
+                    <div style={{ marginTop: "1rem", color: f.color, fontSize: "0.82rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                      {isAr ? "اعرف أكتر" : "Learn more"} {isAr ? "←" : "→"}
+                    </div>
+                  )}
                 </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{f.title}</h3>
-                <p style={{ color: "#667788", fontSize: "0.85rem", lineHeight: 1.8 }}>{f.desc}</p>
-              </div>
-            </FadeInSection>
-          ))}
+              </FadeInSection>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1605,6 +1652,7 @@ function PublicAppShell() {
             <Route path="/gallery" component={GalleryPageWrapper} />
             <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
             <Route path="/services/:slug" component={ServiceDetailPageWrapper} />
+            <Route path="/why-us/:slug" component={WhyUsDetailPage} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />
