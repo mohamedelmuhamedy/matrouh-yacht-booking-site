@@ -342,8 +342,9 @@ router.post("/ai/chat", async (req, res) => {
     const ctx = await buildContext();
 
     // ── Visitor rewards snapshot ──
-    // Requires a server-issued signed token (from /api/referral/verify or
-    // /api/referral/register) that proves ownership of the referral code.
+    // Requires a server-issued signed token (currently only minted by
+    // /api/referral/register, the one moment we know the caller owns the
+    // code) that proves ownership of the referral code.
     // We never trust a client-supplied raw code (anyone can know another
     // visitor's shareable code → IDOR risk).
     const visitorToken = (() => {
