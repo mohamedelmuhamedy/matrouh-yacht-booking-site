@@ -28,6 +28,55 @@ export interface DBService {
   isActive: boolean;
 }
 
+// ── Keyword → visual mapping for feature chips ────────────────────────────────
+// Each feature string is matched against AR/EN keywords and assigned a real
+// stock photo background, themed icon, and tint colour. Falls back to a neutral
+// ocean visual if nothing matches.
+type FeatureVisual = { icon: string; image: string; tint: string };
+
+const FEATURE_VISUAL_MAP: Array<{ keywords: string[] } & FeatureVisual> = [
+  { keywords: ["يخت", "قارب", "مركب", "yacht", "boat", "vessel"], icon: "⛵", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=600&auto=format&fit=crop&q=80", tint: "#0077B6" },
+  { keywords: ["كابن", "كابتن", "طاقم", "بحار", "captain", "crew", "sailor", "skipper", "helm"], icon: "🧭", image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=600&auto=format&fit=crop&q=80", tint: "#264653" },
+  { keywords: ["مشروب", "وجب", "طعام", "قهو", "أكل", "drink", "food", "meal", "snack", "coffee", "refresh", "beverage"], icon: "🥤", image: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&auto=format&fit=crop&q=80", tint: "#E76F51" },
+  { keywords: ["غطس", "غوص", "snorkel", "dive", "diving", "scuba"], icon: "🤿", image: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&auto=format&fit=crop&q=80", tint: "#00B4D8" },
+  { keywords: ["معد", "أدوات", "تجهيز", "equipment", "gear", "kit"], icon: "🎒", image: "https://images.unsplash.com/photo-1530541930197-ff16ac917b0e?w=600&auto=format&fit=crop&q=80", tint: "#2A9D8F" },
+  { keywords: ["مكيف", "تكييف", "راحة", "air condition", "air-condition", "comfort", "cooling"], icon: "❄️", image: "https://images.unsplash.com/photo-1610641818989-c2051b5e2cfd?w=600&auto=format&fit=crop&q=80", tint: "#48CAE4" },
+  { keywords: ["صحرا", "سفاري", "كثبان", "desert", "safari", "dune", "sand"], icon: "🏜️", image: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?w=600&auto=format&fit=crop&q=80", tint: "#E9C46A" },
+  { keywords: ["جيب", "سيارة", "دفع", "jeep", "4x4", "suv", "off-road", "offroad"], icon: "🚙", image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop&q=80", tint: "#bc6c25" },
+  { keywords: ["شاطئ", "بحر", "رمال", "beach", "shore", "ocean", "sea"], icon: "🏖️", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80", tint: "#0096C7" },
+  { keywords: ["غروب", "شروق", "منظر", "إطلالة", "sunset", "sunrise", "view", "scenic", "panorama"], icon: "🌅", image: "https://images.unsplash.com/photo-1495344517868-8ebaf0a2044a?w=600&auto=format&fit=crop&q=80", tint: "#F4A261" },
+  { keywords: ["صيد", "سمك", "fish", "fishing", "catch"], icon: "🎣", image: "https://images.unsplash.com/photo-1545566239-0789ed1f6e3a?w=600&auto=format&fit=crop&q=80", tint: "#1D3557" },
+  { keywords: ["موسيق", "حفل", "ترفيه", "أغاني", "music", "party", "entertain", "dj"], icon: "🎶", image: "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&auto=format&fit=crop&q=80", tint: "#9D4EDD" },
+  { keywords: ["خيم", "مبيت", "مخيم", "نار", "camp", "tent", "overnight", "bonfire"], icon: "⛺", image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&auto=format&fit=crop&q=80", tint: "#6A994E" },
+  { keywords: ["كواد", "بيك", "دراج", "quad", "atv", "buggy", "bike"], icon: "🏍️", image: "https://images.unsplash.com/photo-1571992072039-c6f78fcc7ae6?w=600&auto=format&fit=crop&q=80", tint: "#D62828" },
+  { keywords: ["جمل", "خيل", "حصان", "camel", "horse", "ride"], icon: "🐪", image: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=600&auto=format&fit=crop&q=80", tint: "#A0522D" },
+  { keywords: ["سعر", "خصم", "عرض", "تخفيض", "price", "discount", "offer", "deal"], icon: "💎", image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop&q=80", tint: "#C9A84C" },
+  { keywords: ["أمان", "تأمين", "حماية", "safe", "safety", "secure", "insurance"], icon: "🛡️", image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&auto=format&fit=crop&q=80", tint: "#2D6A4F" },
+  { keywords: ["وقت", "ساعة", "مدة", "time", "hour", "duration", "schedule"], icon: "🕒", image: "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=600&auto=format&fit=crop&q=80", tint: "#5E548E" },
+  { keywords: ["صور", "تصوير", "كاميرا", "photo", "camera", "shoot", "shot"], icon: "📸", image: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&auto=format&fit=crop&q=80", tint: "#7209B7" },
+  { keywords: ["دليل", "مرشد", "guide", "tour"], icon: "🧑‍✈️", image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&auto=format&fit=crop&q=80", tint: "#3D348B" },
+  { keywords: ["نقل", "مواصلات", "توصيل", "transport", "transfer", "pickup", "shuttle"], icon: "🚐", image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&auto=format&fit=crop&q=80", tint: "#457B9D" },
+  { keywords: ["فندق", "إقامة", "غرف", "hotel", "stay", "accommodation", "room", "resort"], icon: "🏨", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&auto=format&fit=crop&q=80", tint: "#264653" },
+  { keywords: ["مسبح", "حمام سباحة", "pool", "swim", "swimming"], icon: "🏊", image: "https://images.unsplash.com/photo-1563299796-17596ed6b017?w=600&auto=format&fit=crop&q=80", tint: "#0096C7" },
+  { keywords: ["سبا", "مساج", "استرخاء", "spa", "massage", "relax", "wellness"], icon: "💆", image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&auto=format&fit=crop&q=80", tint: "#B5838D" },
+];
+
+const DEFAULT_FEATURE_VISUAL: FeatureVisual = {
+  icon: "✨",
+  image: "https://images.unsplash.com/photo-1530541930197-ff16ac917b0e?w=600&auto=format&fit=crop&q=80",
+  tint: "#00AAFF",
+};
+
+function getFeatureVisual(text: string): FeatureVisual {
+  const lower = (text || "").toLowerCase();
+  for (const entry of FEATURE_VISUAL_MAP) {
+    if (entry.keywords.some(kw => lower.includes(kw.toLowerCase()))) {
+      return { icon: entry.icon, image: entry.image, tint: entry.tint };
+    }
+  }
+  return DEFAULT_FEATURE_VISUAL;
+}
+
 export default function ServiceDetailPage() {
   const [, params] = useRoute("/services/:slug");
   const [, navigate] = useLocation();
@@ -121,37 +170,37 @@ export default function ServiceDetailPage() {
   };
 
   // Section banner — reusable hero strip with image + dark overlay + label
-  const SectionBanner = ({ image, label, title, height = 180 }: { image: string; label: string; title: string; height?: number }) => (
+  const SectionBanner = ({ image, label, title, height = 150 }: { image: string; label: string; title: string; height?: number }) => (
     <div style={{
       position: "relative",
-      borderRadius: 18,
+      borderRadius: 16,
       overflow: "hidden",
       height,
-      marginBottom: "1.5rem",
+      marginBottom: "1.25rem",
       background: image
-        ? `linear-gradient(135deg, rgba(13,27,42,0.55) 0%, rgba(13,27,42,0.85) 100%), url(${image}) center/cover`
-        : `linear-gradient(135deg, ${accent}40 0%, rgba(13,27,42,0.85) 100%)`,
-      border: `1px solid ${accent}30`,
-      boxShadow: `0 6px 30px rgba(0,0,0,0.35)`,
+        ? `linear-gradient(${ar ? "270deg" : "90deg"}, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.55) 70%, rgba(13,27,42,0.35) 100%), url(${image}) center/cover`
+        : `linear-gradient(135deg, ${accent}30 0%, rgba(13,27,42,0.85) 100%)`,
+      border: `1px solid ${accent}25`,
+      boxShadow: `0 6px 28px rgba(0,0,0,0.35)`,
       display: "flex",
-      alignItems: "flex-end",
-      padding: "1.5rem 1.75rem",
+      alignItems: "center",
+      padding: "1.4rem 1.75rem",
     }}>
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(0deg, rgba(13,27,42,0.6) 0%, transparent 60%)`, pointerEvents: "none" }} />
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", maxWidth: "70%" }}>
         <div style={{
-          display: "inline-block",
-          fontSize: "0.72rem", fontWeight: 800,
+          display: "inline-flex", alignItems: "center", gap: "0.5rem",
+          fontSize: "0.7rem", fontWeight: 800,
           letterSpacing: "1.5px", textTransform: "uppercase",
-          color: accent, marginBottom: "0.4rem",
+          color: accent, marginBottom: "0.45rem",
           textShadow: "0 2px 8px rgba(0,0,0,0.5)",
         }}>
+          <span style={{ width: 22, height: 2, background: accent, borderRadius: 2 }} />
           {label}
         </div>
         <h2 style={{
-          fontSize: "1.5rem", fontWeight: 900, color: "white",
+          fontSize: "clamp(1.25rem, 2.5vw, 1.55rem)", fontWeight: 900, color: "white",
           margin: 0, lineHeight: 1.2,
-          textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+          textShadow: "0 2px 12px rgba(0,0,0,0.65)",
         }}>
           {title}
         </h2>
@@ -326,53 +375,88 @@ export default function ServiceDetailPage() {
             />
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "1rem",
+              gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
+              gap: "0.85rem",
             }}>
-              {features.map((feat, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
-                    border: `1px solid ${accent}30`,
-                    borderRadius: 14,
-                    padding: "1.1rem 1.2rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.85rem",
-                    color: "#e2e8f0",
-                    fontWeight: 600,
-                    fontSize: "0.97rem",
-                    transition: "all 0.25s",
-                    backdropFilter: "blur(6px)",
-                    cursor: "default",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = `linear-gradient(135deg, ${accent}18 0%, ${accent}05 100%)`;
-                    e.currentTarget.style.borderColor = `${accent}80`;
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                    e.currentTarget.style.boxShadow = `0 10px 30px ${accent}25`;
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)";
-                    e.currentTarget.style.borderColor = `${accent}30`;
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <span style={{
-                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                    color: "white", borderRadius: "50%",
-                    width: 32, height: 32,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "0.9rem", fontWeight: 800, flexShrink: 0,
-                    boxShadow: `0 4px 12px ${accent}55`,
-                  }}>
-                    ✓
-                  </span>
-                  <span style={{ lineHeight: 1.5 }}>{feat}</span>
-                </div>
-              ))}
+              {features.map((feat, i) => {
+                const v = getFeatureVisual(feat);
+                return (
+                  <div
+                    key={i}
+                    className="dr-feature-card"
+                    style={{
+                      position: "relative",
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      height: 165,
+                      border: `1px solid rgba(255,255,255,0.10)`,
+                      background: `#0D1B2A`,
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      transition: "transform 0.35s cubic-bezier(.2,.7,.2,1), box-shadow 0.35s, border-color 0.35s",
+                      cursor: "default",
+                      animation: `dr-feat-fade-in 0.5s cubic-bezier(.2,.7,.2,1) ${i * 60}ms both`,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = "translateY(-6px)";
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${v.tint}55`;
+                      e.currentTarget.style.borderColor = `${v.tint}aa`;
+                      const img = e.currentTarget.querySelector(".dr-feat-img") as HTMLDivElement | null;
+                      if (img) img.style.transform = "scale(1.08)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.4)";
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+                      const img = e.currentTarget.querySelector(".dr-feat-img") as HTMLDivElement | null;
+                      if (img) img.style.transform = "scale(1)";
+                    }}
+                  >
+                    {/* zooming background image */}
+                    <div
+                      className="dr-feat-img"
+                      style={{
+                        position: "absolute", inset: 0,
+                        backgroundImage: `url(${v.image})`,
+                        backgroundSize: "cover", backgroundPosition: "center",
+                        transition: "transform 0.6s cubic-bezier(.2,.7,.2,1)",
+                      }}
+                    />
+                    {/* dark gradient + colour wash overlay */}
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: `linear-gradient(180deg, rgba(13,27,42,0.15) 0%, rgba(13,27,42,0.55) 50%, rgba(13,27,42,0.95) 100%), linear-gradient(135deg, ${v.tint}25 0%, transparent 60%)`,
+                      pointerEvents: "none",
+                    }} />
+                    {/* content */}
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      padding: "0.95rem 1rem",
+                      display: "flex", flexDirection: "column", justifyContent: "space-between",
+                    }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 12,
+                        background: `linear-gradient(135deg, ${v.tint}, ${v.tint}cc)`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "1.2rem",
+                        boxShadow: `0 6px 18px ${v.tint}88, inset 0 0 0 1px rgba(255,255,255,0.2)`,
+                      }}>
+                        {v.icon}
+                      </div>
+                      <div style={{
+                        color: "white", fontWeight: 800,
+                        fontSize: "0.95rem", lineHeight: 1.35,
+                        textShadow: "0 2px 10px rgba(0,0,0,0.85)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}>
+                        {feat}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
