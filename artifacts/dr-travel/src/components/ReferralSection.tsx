@@ -43,9 +43,13 @@ export default function ReferralSection() {
           isActive: data.isActive ?? true,
         });
         localStorage.setItem("drtravel-referral-code", data.code);
+        if (data.visitorToken) {
+          try { localStorage.setItem("drtravel-visitor-token", data.visitorToken); } catch {}
+        }
         setPhase("found");
       } else {
         localStorage.removeItem("drtravel-referral-code");
+        try { localStorage.removeItem("drtravel-visitor-token"); } catch {}
         setPhase("none");
       }
     } catch {
@@ -65,6 +69,9 @@ export default function ReferralSection() {
       });
       if (r.ok) {
         const data = await r.json();
+        if (data.visitorToken) {
+          try { localStorage.setItem("drtravel-visitor-token", data.visitorToken); } catch {}
+        }
         await verifyCode(data.code);
       } else {
         const err = await r.json().catch(() => ({}));

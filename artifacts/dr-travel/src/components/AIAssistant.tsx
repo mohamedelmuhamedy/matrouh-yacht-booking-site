@@ -191,8 +191,8 @@ export default function AIAssistant() {
       const history = [...messages, newUser]
         .slice(-9, -1)
         .map((m) => ({ role: m.role, content: m.content }));
-      let referralCode = "";
-      try { referralCode = (localStorage.getItem("drtravel-referral-code") || "").trim(); } catch {}
+      let visitorToken = "";
+      try { visitorToken = (localStorage.getItem("drtravel-visitor-token") || "").trim(); } catch {}
       const res = await apiFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -200,7 +200,7 @@ export default function AIAssistant() {
           message: trimmed,
           lang,
           history,
-          ...(referralCode ? { visitor: { referralCode } } : {}),
+          ...(visitorToken ? { visitor: { token: visitorToken } } : {}),
         }),
         signal: ctrl.signal,
       });

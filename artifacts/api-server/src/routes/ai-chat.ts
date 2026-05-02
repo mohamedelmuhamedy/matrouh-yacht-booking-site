@@ -17,7 +17,8 @@ import {
   type WhyUsCard,
 } from "@workspace/db";
 import { eq, and, asc } from "drizzle-orm";
-import { authMiddleware } from "../middleware/auth";
+import jwt from "jsonwebtoken";
+import { authMiddleware, getJwtSecret } from "../middleware/auth";
 
 const router = Router();
 
@@ -340,57 +341,58 @@ router.post("/ai/chat", async (req, res) => {
 
     const ctx = await buildContext();
 
-    // ── Visitor rewards snapshot (privacy: code + counts only, no name/phone) ──
-    const rawVisitorCode = (() => {
-      const b = req.body as { visitor?: { referralCode?: unknown }; referralCode?: unknown };
-      const fromVisitor = b?.visitor && typeof b.visitor === "object" ? b.visitor.referralCode : undefined;
-      const fromTop = b?.referralCode;
-      const v = fromVisitor ?? fromTop;
-      return typeof v === "string" ? v.trim().toUpperCase().slice(0, 32) : "";
+    // ── Visitor rewards snapshot ──
+    // Requires a server-issued signed token (from /api/referral/verify or
+    // /api/referral/register) that proves ownership of the referral code.
+    // We never trust a client-supplied raw code (anyone can know another
+    // visitor's shareable code → IDOR risk).
+    const visitorToken = (() => {
+      const b = req.body as { visitor?: { token?: unknown } };
+      const t = b?.visitor && typeof b.visitor === "object" ? b.visitor.token : undefined;
+      return typeof t === "string" ? t : "";
     })();
 
     let visitorBlock = "";
-    if (rawVisitorCode && /^[A-Z0-9_-]{3,32}$/.test(rawVisitorCode)) {
+    if (visitorToken) {
       try {
-        const [codeRow] = await db
-          .select()
-          .from(referralCodes)
-          .where(eq(referralCodes.code, rawVisitorCode));
-        if (codeRow && codeRow.isActive) {
-          const rewardRows = await db
+        const decoded = jwt.verify(visitorToken, getJwtSecret()) as { kind?: string; code?: string };
+        if (decoded?.kind === "visitor" && typeof decoded.code === "string") {
+          const code = decoded.code.toUpperCase();
+          const [codeRow] = await db
             .select()
-            .from(referralRewards)
-            .where(eq(referralRewards.referralCodeId, codeRow.id));
-          let approvedTotal = 0;
-          let pendingCount = 0;
-          let approvedCount = 0;
-          let rejectedCount = 0;
-          for (const r of rewardRows) {
-            if (r.status === "approved") {
-              approvedCount += 1;
-              const v = parseFloat(r.rewardValue);
-              if (!Number.isNaN(v)) approvedTotal += v;
-            } else if (r.status === "pending") pendingCount += 1;
-            else if (r.status === "rejected") rejectedCount += 1;
+            .from(referralCodes)
+            .where(eq(referralCodes.code, code));
+          if (codeRow && codeRow.isActive) {
+            const rewardRows = await db
+              .select()
+              .from(referralRewards)
+              .where(eq(referralRewards.referralCodeId, codeRow.id));
+            let approvedTotal = 0;
+            let approvedCount = 0;
+            for (const r of rewardRows) {
+              if (r.status === "approved") {
+                approvedCount += 1;
+                const v = parseFloat(r.rewardValue);
+                if (!Number.isNaN(v)) approvedTotal += v;
+              }
+            }
+            const tier =
+              approvedCount >= 10 ? "Gold" : approvedCount >= 4 ? "Silver" : approvedCount >= 1 ? "Bronze" : "New";
+            const lines = [
+              "## VISITOR REWARDS (verified — the person you are chatting with)",
+              `- Referral code: ${codeRow.code}`,
+              `- Tier: ${tier}`,
+              `- Code uses: ${codeRow.usedCount ?? 0}`,
+              `- Approved rewards: ${approvedCount}`,
+              `- Approved rewards total value: ${approvedTotal} (EGP or % per reward_type setting)`,
+              `Privacy: do NOT reveal personal name, phone, or any other visitor's code.`,
+            ];
+            visitorBlock = "\n\n" + lines.join("\n");
           }
-          const tier =
-            approvedCount >= 10 ? "Gold" : approvedCount >= 4 ? "Silver" : approvedCount >= 1 ? "Bronze" : "New";
-          const lines = [
-            "## VISITOR REWARDS (the person you are chatting with)",
-            `- Referral code: ${codeRow.code}`,
-            `- Status: active`,
-            `- Tier: ${tier}`,
-            `- Code uses: ${codeRow.usedCount ?? 0}`,
-            `- Approved rewards: ${approvedCount}`,
-            `- Pending rewards: ${pendingCount}`,
-            `- Rejected rewards: ${rejectedCount}`,
-            `- Approved rewards total value: ${approvedTotal} (in EGP or % depending on reward_type setting)`,
-            `Privacy: do NOT reveal personal name, phone, or other visitors' codes.`,
-          ];
-          visitorBlock = "\n\n" + lines.join("\n");
         }
       } catch (e) {
-        console.error("visitor rewards lookup failed:", e instanceof Error ? e.message : e);
+        // Invalid/expired token → silently omit the block (assistant will
+        // direct the visitor to /rewards per the prompt rule).
       }
     }
 

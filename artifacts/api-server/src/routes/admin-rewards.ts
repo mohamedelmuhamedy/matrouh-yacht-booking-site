@@ -1,10 +1,15 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { referralCodes, referralRewards, siteSettings, bookings } from "@workspace/db/schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware, getJwtSecret } from "../middleware/auth";
 
 const router = Router();
+
+function signVisitorToken(code: string): string {
+  return jwt.sign({ kind: "visitor", code }, getJwtSecret(), { expiresIn: "365d" });
+}
 
 function generateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -173,7 +178,8 @@ router.get("/referral/verify", async (req, res) => {
     if (!code) return res.status(400).json({ error: "Code required" });
     const [found] = await db.select().from(referralCodes).where(eq(referralCodes.code, code));
     if (!found || !found.isActive) return res.status(404).json({ valid: false });
-    return res.json({ valid: true, code: found.code, nameAr: found.nameAr, nameEn: found.nameEn, usedCount: found.usedCount, approvedCount: found.approvedCount, isActive: found.isActive });
+    const visitorToken = signVisitorToken(found.code);
+    return res.json({ valid: true, code: found.code, nameAr: found.nameAr, nameEn: found.nameEn, usedCount: found.usedCount, approvedCount: found.approvedCount, isActive: found.isActive, visitorToken });
   } catch (err: any) {
     return res.status(500).json({ error: "Server error" });
   }
@@ -190,7 +196,8 @@ router.post("/referral/register", async (req, res) => {
       email: "", notes: "تسجيل ذاتي", isActive: true, usedCount: 0, approvedCount: 0,
       createdAt: new Date(), updatedAt: new Date(),
     }).returning();
-    return res.status(201).json({ code: created.code, nameAr: created.nameAr });
+    const visitorToken = signVisitorToken(created.code);
+    return res.status(201).json({ code: created.code, nameAr: created.nameAr, visitorToken });
   } catch (err: any) {
     return res.status(500).json({ error: "Failed to register" });
   }
