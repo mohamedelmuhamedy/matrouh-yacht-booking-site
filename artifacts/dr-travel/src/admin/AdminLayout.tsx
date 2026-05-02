@@ -6,6 +6,7 @@ const NAV = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
   { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
   { path: "/admin/categories",   icon: "🏷️", label: "الفئات" },
+  { path: "/admin/services",     icon: "🎯", label: "الخدمات" },
   { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: true },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },

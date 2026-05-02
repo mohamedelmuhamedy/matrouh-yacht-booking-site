@@ -59,6 +59,18 @@ externalPort = 3001
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 22704
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "PORT=3001 node artifacts/api-server/dist/index.js & PORT=5000 npx serve -s artifacts/dr-travel/dist -l 5000"]

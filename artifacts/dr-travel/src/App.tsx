@@ -12,6 +12,7 @@ import RewardsPage from "./pages/RewardsPage";
 import TripsPage from "./pages/TripsPage";
 import GalleryPage from "./pages/GalleryPage";
 import GalleryDetailPage from "./pages/GalleryDetailPage";
+import ServiceDetailPage from "./pages/ServiceDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import PushPrompt from "./components/PushPrompt";
@@ -677,13 +678,35 @@ function StatsBar() {
 // ===== SERVICES =====
 function Services() {
   const { t } = useLanguage();
-  const { settings } = useSiteData();
+  const { settings, services: dbServices } = useSiteData();
+  const { lang } = useLanguage();
   const [, navigate] = useLocation();
+  const ar = lang === "ar";
   const linkToTrips = settings.services_link_to_trips === "true";
 
-  const handleServiceClick = () => {
-    if (!linkToTrips) return;
-    navigate("/trips");
+  // Use DB services when available; fallback to translations for safety
+  const items = dbServices.length > 0
+    ? dbServices.map(s => ({
+        slug: s.slug,
+        icon: s.icon,
+        name: ar ? s.titleAr : (s.titleEn || s.titleAr),
+        desc: ar ? s.descriptionAr : (s.descriptionEn || s.descriptionAr),
+      }))
+    : t.services.items.map((s) => ({
+        slug: undefined as string | undefined,
+        icon: s.icon,
+        name: s.name,
+        desc: s.desc,
+      }));
+
+  const handleServiceClick = (slug?: string) => {
+    if (linkToTrips) {
+      navigate("/trips");
+    } else if (slug) {
+      navigate(`/services/${slug}`);
+    } else {
+      return;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -698,23 +721,26 @@ function Services() {
           </div>
         </FadeInSection>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
-          {t.services.items.map((service, i) => (
-            <FadeInSection key={i} delay={i * 70}>
-              <div
-                className="service-card"
-                onClick={linkToTrips ? handleServiceClick : undefined}
-                onKeyDown={linkToTrips ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleServiceClick(); } } : undefined}
-                role={linkToTrips ? "link" : undefined}
-                tabIndex={linkToTrips ? 0 : undefined}
-                style={linkToTrips ? { cursor: "pointer" } : undefined}
-                aria-label={linkToTrips ? service.name : undefined}
-              >
-                <div className="service-icon-wrap">{service.icon}</div>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
-                <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8 }}>{service.desc}</p>
-              </div>
-            </FadeInSection>
-          ))}
+          {items.map((service, i) => {
+            const clickable = linkToTrips || Boolean(service.slug);
+            return (
+              <FadeInSection key={service.slug ?? i} delay={i * 70}>
+                <div
+                  className="service-card"
+                  onClick={clickable ? () => handleServiceClick(service.slug) : undefined}
+                  onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleServiceClick(service.slug); } } : undefined}
+                  role={clickable ? "link" : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  style={clickable ? { cursor: "pointer" } : undefined}
+                  aria-label={clickable ? service.name : undefined}
+                >
+                  <div className="service-icon-wrap">{service.icon}</div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
+                  <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8 }}>{service.desc}</p>
+                </div>
+              </FadeInSection>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1491,6 +1517,17 @@ function GalleryDetailPageWrapper() {
   );
 }
 
+// ===== SERVICE DETAIL PAGE WRAPPER =====
+function ServiceDetailPageWrapper() {
+  const { t } = useLanguage();
+  return (
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
+      <Navbar />
+      <ServiceDetailPage />
+    </div>
+  );
+}
+
 const INITIAL_SPLASH_SETTLE_DELAY_MS = 1_000;
 const INITIAL_SPLASH_FADE_MS = 600;
 
@@ -1543,6 +1580,7 @@ function PublicAppShell() {
             <Route path="/rewards" component={RewardsPage} />
             <Route path="/gallery" component={GalleryPageWrapper} />
             <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
+            <Route path="/services/:slug" component={ServiceDetailPageWrapper} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />

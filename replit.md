@@ -56,12 +56,25 @@ Schema has been pushed; tables (packages, categories, testimonials, settings, et
 ## Key Features
 
 - Travel packages browsing and booking
-- Admin dashboard (CRUD for packages, categories, hero sliders, testimonials, bookings)
+- Services CRUD: each home-page service card opens its own detail page at `/services/:slug` (8 default services pre-seeded). Admin manages them at `/admin/services`. The `services_link_to_trips` setting still overrides per-service links when ON.
+- Admin dashboard (CRUD for packages, categories, hero sliders, testimonials, bookings, services)
 - Arabic/English localization (RTL support)
 - Currency switching
 - Referral reward system
 - Push notifications (VAPID)
 - Media/file upload support
+
+### Services table
+
+`services` table on Supabase has columns: `id, slug (unique), icon, title_ar/en, description_ar/en, long_description_ar/en, image_url, color, features_ar/en (JSONB arrays), cta_text_ar/en, cta_link, sort_order, is_active, created_at, updated_at`.
+
+Seed: `pnpm --filter @workspace/api-server seed-services` (idempotent — uses ON CONFLICT DO NOTHING on slug, so admin edits are preserved).
+
+API:
+- Public: `GET /api/services`, `GET /api/services/:slug` (only active services).
+- Admin (Bearer JWT): `GET/POST /api/admin/services`, `GET/PUT/DELETE /api/admin/services/:id`.
+
+The admin "toggle visibility" button refetches the full record before PUT to avoid wiping non-toggle fields.
 
 ## Workaround for Replit Dev-Proxy Port 5000 Bug (resolved 2026-05-02)
 

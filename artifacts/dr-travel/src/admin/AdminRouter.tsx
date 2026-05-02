@@ -13,6 +13,8 @@ import SettingsPage from "./SettingsPage";
 import AdminRewardsPage from "./AdminRewardsPage";
 import AdminGalleryPage from "./AdminGalleryPage";
 import AdminCategoriesPage from "./AdminCategoriesPage";
+import AdminServicesPage from "./AdminServicesPage";
+import AdminServiceFormPage from "./AdminServiceFormPage";
 import AdminHeroSlidesPage from "./AdminHeroSlidesPage";
 import PushNotificationsPage from "./PushNotificationsPage";
 
@@ -81,6 +83,15 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/categories">
         <AdminGuard><AdminCategoriesPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/services/new">
+        <AdminGuard><AdminServiceFormPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/services/:id/edit">
+        <AdminGuard><AdminServiceFormPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/services">
+        <AdminGuard><AdminServicesPage /></AdminGuard>
       </Route>
       <Route path="/admin/hero-slides">
         <AdminGuard><AdminHeroSlidesPage /></AdminGuard>

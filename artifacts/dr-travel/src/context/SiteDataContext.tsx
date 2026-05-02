@@ -79,6 +79,27 @@ export interface DBCategory {
   sortOrder: number;
 }
 
+export interface DBService {
+  id: number;
+  slug: string;
+  icon: string;
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  longDescriptionAr: string;
+  longDescriptionEn: string;
+  imageUrl: string | null;
+  color: string;
+  featuresAr: string[];
+  featuresEn: string[];
+  ctaTextAr: string;
+  ctaTextEn: string;
+  ctaLink: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export type SiteSettings = Record<string, string>;
 
 interface SiteDataContextType {
@@ -86,12 +107,14 @@ interface SiteDataContextType {
   testimonials: DBTestimonial[];
   settings: SiteSettings;
   categories: DBCategory[];
+  services: DBService[];
   packagesLoading: boolean;
   settingsLoading: boolean;
   isInitializing: boolean;
   refetchPackages: (options?: { silent?: boolean }) => Promise<boolean>;
   refetchSettings: () => void;
   refetchCategories: () => void;
+  refetchServices: () => void;
 }
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
@@ -122,6 +145,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [testimonials, setTestimonials] = useState<DBTestimonial[]>([]);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [categories, setCategories] = useState<DBCategory[]>([]);
+  const [services, setServices] = useState<DBService[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -185,6 +209,16 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  const fetchServices = useCallback(async () => {
+    try {
+      const r = await apiFetch("/api/services");
+      if (r.ok) {
+        const data = await r.json();
+        if (Array.isArray(data)) setServices(data);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -194,6 +228,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         fetchTestimonials(),
         fetchSettings(),
         fetchCategories(),
+        fetchServices(),
       ]);
 
       if (isMounted) setIsInitializing(false);
@@ -204,7 +239,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [fetchPackages, fetchTestimonials, fetchSettings, fetchCategories]);
+  }, [fetchPackages, fetchTestimonials, fetchSettings, fetchCategories, fetchServices]);
 
   useEffect(() => {
     if (!apiFailed) return;
@@ -221,10 +256,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       void fetchPackages({ silent: true });
       fetchSettings();
       fetchCategories();
+      fetchServices();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [fetchPackages, fetchSettings, fetchCategories]);
+  }, [fetchPackages, fetchSettings, fetchCategories, fetchServices]);
 
   return (
     <SiteDataContext.Provider value={{
@@ -232,12 +268,14 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       testimonials,
       settings,
       categories,
+      services,
       packagesLoading,
       settingsLoading,
       isInitializing,
       refetchPackages: fetchPackages,
       refetchSettings: fetchSettings,
       refetchCategories: fetchCategories,
+      refetchServices: fetchServices,
     }}>
       {children}
     </SiteDataContext.Provider>

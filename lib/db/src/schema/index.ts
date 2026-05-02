@@ -8,6 +8,7 @@ export * from "./referral_rewards";
 export * from "./gallery_albums";
 export * from "./gallery_items";
 export * from "./categories";
+export * from "./services";
 export * from "./hero_slides";
 export * from "./push_subscriptions";
 export * from "./app_secrets";
