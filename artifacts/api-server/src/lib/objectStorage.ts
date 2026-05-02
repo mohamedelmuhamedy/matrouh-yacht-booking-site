@@ -50,11 +50,16 @@ export class ObjectStorageService {
   }
 
   getSupabaseUrl(): string {
-    const raw =
-      process.env.SUPABASE_URL ||
-      process.env.SUPABASE_PROJECT_URL ||
-      DEFAULT_SUPABASE_URL;
-    return raw.replace(/\/+$/, "");
+    const candidates = [
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_PROJECT_URL,
+    ];
+    for (const c of candidates) {
+      if (typeof c === "string" && /^https?:\/\//i.test(c.trim())) {
+        return c.trim().replace(/\/+$/, "");
+      }
+    }
+    return DEFAULT_SUPABASE_URL.replace(/\/+$/, "");
   }
 
   getServiceRoleKey(): string {
