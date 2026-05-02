@@ -43,9 +43,6 @@ export default function ReferralSection() {
           isActive: data.isActive ?? true,
         });
         localStorage.setItem("drtravel-referral-code", data.code);
-        if (data.visitorToken) {
-          try { localStorage.setItem("drtravel-visitor-token", data.visitorToken); } catch {}
-        }
         setPhase("found");
       } else {
         localStorage.removeItem("drtravel-referral-code");

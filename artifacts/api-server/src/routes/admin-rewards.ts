@@ -7,6 +7,8 @@ import { authMiddleware, getJwtSecret } from "../middleware/auth";
 
 const router = Router();
 
+// SECURITY: only call after the server has verified the caller owns the
+// code (currently: only at the moment of self-registration).
 function signVisitorToken(code: string): string {
   return jwt.sign({ kind: "visitor", code }, getJwtSecret(), { expiresIn: "365d" });
 }
@@ -178,8 +180,10 @@ router.get("/referral/verify", async (req, res) => {
     if (!code) return res.status(400).json({ error: "Code required" });
     const [found] = await db.select().from(referralCodes).where(eq(referralCodes.code, code));
     if (!found || !found.isActive) return res.status(404).json({ valid: false });
-    const visitorToken = signVisitorToken(found.code);
-    return res.json({ valid: true, code: found.code, nameAr: found.nameAr, nameEn: found.nameEn, usedCount: found.usedCount, approvedCount: found.approvedCount, isActive: found.isActive, visitorToken });
+    // SECURITY: do NOT mint a visitor token here. Referral codes are
+    // shareable, so anyone who knows a code can hit this public endpoint.
+    // Tokens are only issued at /referral/register (proven ownership).
+    return res.json({ valid: true, code: found.code, nameAr: found.nameAr, nameEn: found.nameEn, usedCount: found.usedCount, approvedCount: found.approvedCount, isActive: found.isActive });
   } catch (err: any) {
     return res.status(500).json({ error: "Server error" });
   }
