@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
+import { apiUrl, resolveApiAssetUrl } from "../lib/api";
 
 const EMPTY = {
   slug: "",
@@ -13,6 +14,9 @@ const EMPTY = {
   longDescriptionAr: "",
   longDescriptionEn: "",
   imageUrl: "",
+  aboutImageUrl: "",
+  featuresImageUrl: "",
+  ctaImageUrl: "",
   color: "#00AAFF",
   featuresAr: "" as string,
   featuresEn: "" as string,
@@ -51,6 +55,101 @@ const sectionSt: React.CSSProperties = {
   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
 
+type ImageField = "imageUrl" | "aboutImageUrl" | "featuresImageUrl" | "ctaImageUrl";
+
+function uploadFile(file: File): Promise<{ url: string } | { error: string }> {
+  return new Promise((resolve) => {
+    const token = localStorage.getItem("admin_token");
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", apiUrl("/api/admin/storage/upload"));
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("X-Content-Type", file.type);
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const { publicUrl, url } = JSON.parse(xhr.responseText);
+          resolve({ url: publicUrl || url });
+        } catch { resolve({ error: "خطأ في استجابة الخادم" }); }
+      } else {
+        try { resolve({ error: JSON.parse(xhr.responseText)?.error || `فشل الرفع (${xhr.status})` }); }
+        catch { resolve({ error: `فشل الرفع (${xhr.status})` }); }
+      }
+    };
+    xhr.onerror = () => resolve({ error: "خطأ في الاتصال بالخادم" });
+    xhr.send(file);
+  });
+}
+
+function ImageUploadField({
+  label, value, onChange, hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  hint?: string;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const { error: toastErr } = useToast();
+  const preview = value ? resolveApiAssetUrl(value) : "";
+
+  const handlePick = () => fileRef.current?.click();
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toastErr("الرجاء اختيار صورة فقط");
+      return;
+    }
+    setUploading(true);
+    const r = await uploadFile(file);
+    if ("url" in r) onChange(r.url);
+    else toastErr(r.error);
+    setUploading(false);
+  };
+
+  return (
+    <div>
+      <label style={labelSt}>{label}</label>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        style={{ display: "none" }}
+        onChange={e => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+          e.target.value = "";
+        }}
+      />
+      <div style={{
+        display: "flex", gap: "0.6rem", alignItems: "center",
+        padding: "0.6rem", border: "1.5px dashed #d0dce8", borderRadius: 10,
+        background: "#fafbfc",
+      }}>
+        {preview ? (
+          <img src={preview} alt="" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flexShrink: 0, background: "#eef" }} />
+        ) : (
+          <div style={{ width: 64, height: 48, borderRadius: 6, background: "#eef2f7", display: "flex", alignItems: "center", justifyContent: "center", color: "#aabbcc", flexShrink: 0, fontSize: "1.3rem" }}>🖼️</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            <button type="button" onClick={handlePick} disabled={uploading}
+              style={{ background: uploading ? "#94a3b8" : "#00AAFF", color: "white", border: "none", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
+              {uploading ? "جاري الرفع..." : (preview ? "تغيير" : "📁 رفع صورة")}
+            </button>
+            {preview && (
+              <button type="button" onClick={() => onChange("")}
+                style={{ background: "white", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
+                حذف
+              </button>
+            )}
+          </div>
+          {hint && <div style={{ color: "#94a3b8", fontSize: "0.7rem", marginTop: "0.3rem" }}>{hint}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminServiceFormPage() {
   const params = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -79,6 +178,9 @@ export default function AdminServiceFormPage() {
           longDescriptionAr: d.longDescriptionAr || "",
           longDescriptionEn: d.longDescriptionEn || "",
           imageUrl: d.imageUrl || "",
+          aboutImageUrl: d.aboutImageUrl || "",
+          featuresImageUrl: d.featuresImageUrl || "",
+          ctaImageUrl: d.ctaImageUrl || "",
           color: d.color || "#00AAFF",
           featuresAr: Array.isArray(d.featuresAr) ? d.featuresAr.join("\n") : "",
           featuresEn: Array.isArray(d.featuresEn) ? d.featuresEn.join("\n") : "",
@@ -93,6 +195,8 @@ export default function AdminServiceFormPage() {
       .finally(() => setLoading(false));
   }, [editId]);
 
+  const setImg = (key: ImageField) => (url: string) => setForm(f => ({ ...f, [key]: url }));
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.slug.trim() || !form.titleAr.trim()) {
@@ -106,6 +210,9 @@ export default function AdminServiceFormPage() {
       featuresEn: form.featuresEn.split("\n").map(s => s.trim()).filter(Boolean),
       sortOrder: Number(form.sortOrder) || 0,
       imageUrl: form.imageUrl.trim() || null,
+      aboutImageUrl: form.aboutImageUrl.trim() || null,
+      featuresImageUrl: form.featuresImageUrl.trim() || null,
+      ctaImageUrl: form.ctaImageUrl.trim() || null,
     };
     try {
       const r = isEdit
@@ -196,15 +303,48 @@ export default function AdminServiceFormPage() {
           </div>
         </div>
 
-        {/* Detail page content */}
+        {/* Cover images for the detail page sections */}
+        <div style={sectionSt}>
+          <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+            🖼️ صور غلاف صفحة التفاصيل
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
+            كل صورة بتظهر كخلفية احترافية للسيكشن المخصص لها. لو تركتها فاضية، السيكشن يستخدم تدرج لوني بسيط.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
+            <ImageUploadField
+              label="🌅 صورة الغلاف الرئيسية (الهيدر)"
+              value={form.imageUrl}
+              onChange={setImg("imageUrl")}
+              hint="بتظهر خلف العنوان في أعلى الصفحة"
+            />
+            <ImageUploadField
+              label="📖 صورة سيكشن (نبذة عن الخدمة)"
+              value={form.aboutImageUrl}
+              onChange={setImg("aboutImageUrl")}
+              hint="بتظهر فوق الوصف الطويل"
+            />
+            <ImageUploadField
+              label="✨ صورة سيكشن (المميزات)"
+              value={form.featuresImageUrl}
+              onChange={setImg("featuresImageUrl")}
+              hint="بتظهر بجانب قائمة المميزات"
+            />
+            <ImageUploadField
+              label="🎯 صورة سيكشن (دعوة الحجز)"
+              value={form.ctaImageUrl}
+              onChange={setImg("ctaImageUrl")}
+              hint="بتظهر خلف زر الحجز و الواتساب"
+            />
+          </div>
+        </div>
+
+        {/* Detail page text content */}
         <div style={sectionSt}>
           <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             محتوى صفحة التفاصيل
           </h2>
-          <div style={{ marginBottom: "0.85rem" }}>
-            <label style={labelSt}>صورة الهيدر (URL — اختياري)</label>
-            <input style={inputSt} dir="ltr" placeholder="https://..." value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
-          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
             <div>
               <label style={labelSt}>الوصف الطويل بالعربية</label>

@@ -90,6 +90,9 @@ export interface DBService {
   longDescriptionAr: string;
   longDescriptionEn: string;
   imageUrl: string | null;
+  aboutImageUrl: string | null;
+  featuresImageUrl: string | null;
+  ctaImageUrl: string | null;
   color: string;
   featuresAr: string[];
   featuresEn: string[];

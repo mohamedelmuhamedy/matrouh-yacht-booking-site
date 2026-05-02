@@ -15,6 +15,9 @@ export interface DBService {
   longDescriptionAr: string;
   longDescriptionEn: string;
   imageUrl: string | null;
+  aboutImageUrl: string | null;
+  featuresImageUrl: string | null;
+  ctaImageUrl: string | null;
   color: string;
   featuresAr: string[];
   featuresEn: string[];
@@ -57,9 +60,7 @@ export default function ServiceDetailPage() {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [slug]);
 
-  const goHome = () => {
-    navigate("/#services");
-  };
+  const goHome = () => navigate("/#services");
 
   if (loading) {
     return (
@@ -96,6 +97,9 @@ export default function ServiceDetailPage() {
   const ctaText = ar ? service.ctaTextAr : (service.ctaTextEn || service.ctaTextAr);
   const ctaLink = service.ctaLink || "/trips";
   const heroImage = service.imageUrl ? resolveApiAssetUrl(service.imageUrl) : "";
+  const aboutImage = service.aboutImageUrl ? resolveApiAssetUrl(service.aboutImageUrl) : "";
+  const featuresImage = service.featuresImageUrl ? resolveApiAssetUrl(service.featuresImageUrl) : "";
+  const ctaImage = service.ctaImageUrl ? resolveApiAssetUrl(service.ctaImageUrl) : "";
   const accent = service.color || "#00AAFF";
   const whatsapp = settings.whatsapp_number || "";
 
@@ -116,156 +120,148 @@ export default function ServiceDetailPage() {
     window.open(`https://wa.me/${number}?text=${msg}`, "_blank", "noopener,noreferrer");
   };
 
+  // Section banner — reusable hero strip with image + dark overlay + label
+  const SectionBanner = ({ image, label, title, height = 180 }: { image: string; label: string; title: string; height?: number }) => (
+    <div style={{
+      position: "relative",
+      borderRadius: 18,
+      overflow: "hidden",
+      height,
+      marginBottom: "1.5rem",
+      background: image
+        ? `linear-gradient(135deg, rgba(13,27,42,0.55) 0%, rgba(13,27,42,0.85) 100%), url(${image}) center/cover`
+        : `linear-gradient(135deg, ${accent}40 0%, rgba(13,27,42,0.85) 100%)`,
+      border: `1px solid ${accent}30`,
+      boxShadow: `0 6px 30px rgba(0,0,0,0.35)`,
+      display: "flex",
+      alignItems: "flex-end",
+      padding: "1.5rem 1.75rem",
+    }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(0deg, rgba(13,27,42,0.6) 0%, transparent 60%)`, pointerEvents: "none" }} />
+      <div style={{ position: "relative" }}>
+        <div style={{
+          display: "inline-block",
+          fontSize: "0.72rem", fontWeight: 800,
+          letterSpacing: "1.5px", textTransform: "uppercase",
+          color: accent, marginBottom: "0.4rem",
+          textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+        }}>
+          {label}
+        </div>
+        <h2 style={{
+          fontSize: "1.5rem", fontWeight: 900, color: "white",
+          margin: 0, lineHeight: 1.2,
+          textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+        }}>
+          {title}
+        </h2>
+      </div>
+    </div>
+  );
+
   return (
     <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "#0D1B2A", minHeight: "100vh", color: "white" }}>
 
-      {/* HERO — matches the site's dark navy + gold/blue accent palette */}
+      {/* Floating back-to-home button — always visible while scrolling */}
+      <button
+        onClick={goHome}
+        aria-label={ar ? "العودة للصفحة الرئيسية" : "Back to home"}
+        style={{
+          position: "fixed",
+          top: "84px",
+          [ar ? "right" : "left"]: "1.25rem",
+          zIndex: 50,
+          background: "rgba(13,27,42,0.85)",
+          backdropFilter: "blur(12px)",
+          color: "white",
+          border: `1.5px solid ${accent}55`,
+          borderRadius: 50,
+          padding: "0.6rem 1.1rem",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          fontSize: "0.85rem",
+          fontWeight: 700,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          boxShadow: "0 6px 24px rgba(0,0,0,0.45)",
+          transition: "all 0.25s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = `linear-gradient(135deg, ${accent}, ${accent}cc)`;
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.borderColor = accent;
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "rgba(13,27,42,0.85)";
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.borderColor = `${accent}55`;
+        }}
+      >
+        <span style={{ fontSize: "1.1rem" }}>{ar ? "→" : "←"}</span>
+        <span>{ar ? "الرئيسية" : "Home"}</span>
+      </button>
+
+      {/* HERO — full-width parallax with deep gradient overlay */}
       <section style={{
         position: "relative",
-        background: heroImage
-          ? `linear-gradient(135deg, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.78) 50%, rgba(8,16,26,0.92) 100%), url(${heroImage}) center/cover`
-          : `radial-gradient(ellipse at 30% 0%, ${accent}28 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.12) 0%, transparent 50%), #0D1B2A`,
-        padding: "7rem 1.5rem 4.5rem",
+        minHeight: "62vh",
+        display: "flex", alignItems: "center", justifyContent: "center",
         textAlign: "center",
+        padding: "8rem 1.5rem 5rem",
         overflow: "hidden",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: heroImage
+          ? `linear-gradient(135deg, rgba(13,27,42,0.78) 0%, rgba(13,27,42,0.55) 50%, rgba(8,16,26,0.92) 100%), url(${heroImage}) center/cover fixed`
+          : `radial-gradient(ellipse at 30% 0%, ${accent}38 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.18) 0%, transparent 50%), #0D1B2A`,
+        borderBottom: `1px solid ${accent}30`,
       }}>
-        {/* Decorative wave bottom */}
-        <div style={{ position: "absolute", inset: 0, opacity: 0.15, background: `radial-gradient(circle at 50% 100%, ${accent}, transparent 60%)`, pointerEvents: "none" }} />
+        {/* Decorative blobs */}
+        <div style={{ position: "absolute", top: "-100px", insetInlineStart: "-100px", width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${accent}25, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-150px", insetInlineEnd: "-150px", width: 500, height: 500, borderRadius: "50%", background: `radial-gradient(circle, rgba(201,168,76,0.15), transparent 70%)`, pointerEvents: "none" }} />
 
-        <div style={{ position: "relative", maxWidth: 820, margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: 880, margin: "0 auto", zIndex: 2 }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: "0.5rem",
-            background: `${accent}15`, border: `1px solid ${accent}40`,
-            color: accent, padding: "0.4rem 1rem", borderRadius: 50,
-            fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.5px",
-            marginBottom: "1.25rem",
+            display: "inline-flex", alignItems: "center", gap: "0.55rem",
+            background: `${accent}20`, border: `1.5px solid ${accent}55`,
+            color: "white", padding: "0.5rem 1.1rem", borderRadius: 50,
+            fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.5px",
+            marginBottom: "1.5rem",
+            backdropFilter: "blur(8px)",
+            boxShadow: `0 4px 20px ${accent}30`,
           }}>
-            <span style={{ fontSize: "1rem" }}>{service.icon}</span>
+            <span style={{ fontSize: "1.1rem" }}>{service.icon}</span>
             <span>{ar ? "خدماتنا" : "Our Services"}</span>
           </div>
 
           <h1 style={{
-            fontSize: "clamp(2rem, 4.5vw, 3rem)", fontWeight: 900,
-            margin: "0 0 1rem", lineHeight: 1.15, letterSpacing: "-0.5px",
+            fontSize: "clamp(2.2rem, 5.5vw, 3.6rem)", fontWeight: 900,
+            margin: "0 0 1.1rem", lineHeight: 1.1, letterSpacing: "-0.5px",
             background: `linear-gradient(135deg, #ffffff 0%, ${accent} 100%)`,
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             backgroundClip: "text",
+            textShadow: heroImage ? "0 4px 30px rgba(0,0,0,0.5)" : "none",
           }}>
             {title}
           </h1>
 
           <p style={{
-            fontSize: "1.05rem", lineHeight: 1.85, color: "#b8c5d3",
-            maxWidth: 640, margin: "0 auto",
+            fontSize: "1.1rem", lineHeight: 1.85, color: "#cbd5e1",
+            maxWidth: 640, margin: "0 auto 2rem",
+            textShadow: heroImage ? "0 2px 8px rgba(0,0,0,0.6)" : "none",
           }}>
             {desc}
           </p>
-        </div>
-      </section>
 
-      {/* CONTENT */}
-      <section style={{ maxWidth: 960, margin: "0 auto", padding: "4rem 1.5rem 2rem" }}>
-
-        {longDesc && (
-          <div style={{ marginBottom: features.length ? "3.5rem" : "2rem" }}>
-            <div className="section-label" style={{ marginBottom: "0.75rem" }}>
-              {ar ? "نبذة عن الخدمة" : "About this service"}
-            </div>
-            <h2 className="section-title" style={{ fontSize: "1.6rem", marginBottom: "1.25rem", textAlign: ar ? "right" : "left" }}>
-              {ar ? "اعرف أكتر" : "Learn more"}
-            </h2>
-            <p style={{
-              color: "#b8c5d3", fontSize: "1.02rem", lineHeight: 2,
-              margin: 0, whiteSpace: "pre-line",
-            }}>
-              {longDesc}
-            </p>
-          </div>
-        )}
-
-        {features.length > 0 && (
-          <div style={{ marginBottom: "3.5rem" }}>
-            <div className="section-label" style={{ marginBottom: "0.75rem" }}>
-              {ar ? "ما يميز هذه الخدمة" : "What's included"}
-            </div>
-            <h2 className="section-title" style={{ fontSize: "1.6rem", marginBottom: "1.5rem", textAlign: ar ? "right" : "left" }}>
-              {ar ? "كل اللي هتلاقيه" : "Everything you'll get"}
-            </h2>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "0.85rem",
-            }}>
-              {features.map((feat, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: `1px solid ${accent}30`,
-                    borderRadius: 14,
-                    padding: "1rem 1.1rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    color: "#dde6ee",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    transition: "all 0.25s",
-                    backdropFilter: "blur(6px)",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = `${accent}12`;
-                    e.currentTarget.style.borderColor = `${accent}60`;
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                    e.currentTarget.style.borderColor = `${accent}30`;
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <span style={{
-                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                    color: "white", borderRadius: "50%",
-                    width: 28, height: 28,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "0.85rem", fontWeight: 800, flexShrink: 0,
-                    boxShadow: `0 2px 8px ${accent}55`,
-                  }}>
-                    ✓
-                  </span>
-                  <span style={{ lineHeight: 1.5 }}>{feat}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* CTA card */}
-        <div style={{
-          padding: "2.5rem 1.75rem",
-          background: `linear-gradient(135deg, ${accent}18 0%, rgba(201,168,76,0.08) 100%)`,
-          borderRadius: 20,
-          border: `1.5px solid ${accent}35`,
-          textAlign: "center",
-          boxShadow: `0 8px 40px ${accent}15`,
-        }}>
-          <h3 style={{ color: "white", fontSize: "1.35rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
-            {ar ? "جاهز تبدأ تجربتك؟" : "Ready to start your experience?"}
-          </h3>
-          <p style={{ color: "#99aabb", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>
-            {ar ? "احجز الآن أو تواصل معنا للاستفسار" : "Book now or contact us with any questions"}
-          </p>
+          {/* Quick CTAs in hero */}
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
             <button
               onClick={handleCta}
               style={{
                 background: `linear-gradient(135deg, ${accent}, ${accent}dd)`,
-                color: "white", border: "none", borderRadius: 12,
+                color: "white", border: "none", borderRadius: 14,
                 padding: "0.95rem 2rem", cursor: "pointer",
                 fontWeight: 800, fontFamily: "inherit", fontSize: "0.98rem",
-                boxShadow: `0 6px 20px ${accent}55`,
+                boxShadow: `0 8px 24px ${accent}55`,
                 transition: "transform 0.2s",
               }}
               onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
@@ -277,54 +273,201 @@ export default function ServiceDetailPage() {
               <button
                 onClick={handleWhatsApp}
                 style={{
-                  background: "#25D366", color: "white", border: "none",
-                  borderRadius: 12, padding: "0.95rem 1.65rem", cursor: "pointer",
-                  fontWeight: 800, fontFamily: "inherit", fontSize: "0.98rem",
+                  background: "rgba(255,255,255,0.08)", color: "white",
+                  border: "1.5px solid rgba(255,255,255,0.2)", borderRadius: 14,
+                  padding: "0.95rem 1.65rem", cursor: "pointer",
+                  fontWeight: 700, fontFamily: "inherit", fontSize: "0.95rem",
                   display: "inline-flex", alignItems: "center", gap: "0.55rem",
-                  boxShadow: "0 6px 20px rgba(37,211,102,0.45)",
+                  backdropFilter: "blur(8px)",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(37,211,102,0.85)"; e.currentTarget.style.borderColor = "#25D366"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}
+              >
+                💬 {ar ? "استفسر الآن" : "Ask now"}
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CONTENT */}
+      <section style={{ maxWidth: 980, margin: "0 auto", padding: "4rem 1.5rem 2rem" }}>
+
+        {longDesc && (
+          <div style={{ marginBottom: "3.5rem" }}>
+            <SectionBanner
+              image={aboutImage}
+              label={ar ? "نبذة عن الخدمة" : "About this service"}
+              title={ar ? "اعرف أكتر عن تجربتنا" : "Learn more about us"}
+            />
+            <div style={{
+              background: "rgba(255,255,255,0.025)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: "1.75rem 2rem",
+            }}>
+              <p style={{
+                color: "#cbd5e1", fontSize: "1.05rem", lineHeight: 2,
+                margin: 0, whiteSpace: "pre-line",
+              }}>
+                {longDesc}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {features.length > 0 && (
+          <div style={{ marginBottom: "3.5rem" }}>
+            <SectionBanner
+              image={featuresImage}
+              label={ar ? "ما يميز هذه الخدمة" : "What's included"}
+              title={ar ? "كل اللي هتلاقيه معانا" : "Everything you'll get"}
+            />
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "1rem",
+            }}>
+              {features.map((feat, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                    border: `1px solid ${accent}30`,
+                    borderRadius: 14,
+                    padding: "1.1rem 1.2rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.85rem",
+                    color: "#e2e8f0",
+                    fontWeight: 600,
+                    fontSize: "0.97rem",
+                    transition: "all 0.25s",
+                    backdropFilter: "blur(6px)",
+                    cursor: "default",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = `linear-gradient(135deg, ${accent}18 0%, ${accent}05 100%)`;
+                    e.currentTarget.style.borderColor = `${accent}80`;
+                    e.currentTarget.style.transform = "translateY(-3px)";
+                    e.currentTarget.style.boxShadow = `0 10px 30px ${accent}25`;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)";
+                    e.currentTarget.style.borderColor = `${accent}30`;
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <span style={{
+                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                    color: "white", borderRadius: "50%",
+                    width: 32, height: 32,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.9rem", fontWeight: 800, flexShrink: 0,
+                    boxShadow: `0 4px 12px ${accent}55`,
+                  }}>
+                    ✓
+                  </span>
+                  <span style={{ lineHeight: 1.5 }}>{feat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CTA card with optional cover image */}
+        <div style={{
+          position: "relative",
+          padding: "3rem 2rem",
+          borderRadius: 22,
+          border: `1.5px solid ${accent}45`,
+          textAlign: "center",
+          overflow: "hidden",
+          background: ctaImage
+            ? `linear-gradient(135deg, rgba(13,27,42,0.85) 0%, rgba(13,27,42,0.7) 100%), url(${ctaImage}) center/cover`
+            : `linear-gradient(135deg, ${accent}22 0%, rgba(201,168,76,0.1) 100%)`,
+          boxShadow: `0 12px 50px ${accent}20`,
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, ${accent}12 0%, transparent 70%)`, pointerEvents: "none" }} />
+          <div style={{ position: "relative" }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>{service.icon}</div>
+            <h3 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: "0 0 0.5rem", textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
+              {ar ? "جاهز تبدأ تجربتك؟" : "Ready to start your experience?"}
+            </h3>
+            <p style={{ color: "#cbd5e1", fontSize: "1rem", margin: "0 0 1.75rem", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
+              {ar ? "احجز الآن أو تواصل معنا للاستفسار" : "Book now or contact us with any questions"}
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={handleCta}
+                style={{
+                  background: `linear-gradient(135deg, ${accent}, ${accent}dd)`,
+                  color: "white", border: "none", borderRadius: 14,
+                  padding: "1rem 2.25rem", cursor: "pointer",
+                  fontWeight: 800, fontFamily: "inherit", fontSize: "1rem",
+                  boxShadow: `0 8px 24px ${accent}66`,
                   transition: "transform 0.2s",
                 }}
                 onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
                 onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}
               >
-                💬 {ar ? "واتساب" : "WhatsApp"}
+                {ctaText}
               </button>
-            )}
+              {whatsapp && (
+                <button
+                  onClick={handleWhatsApp}
+                  style={{
+                    background: "#25D366", color: "white", border: "none",
+                    borderRadius: 14, padding: "1rem 1.75rem", cursor: "pointer",
+                    fontWeight: 800, fontFamily: "inherit", fontSize: "1rem",
+                    display: "inline-flex", alignItems: "center", gap: "0.55rem",
+                    boxShadow: "0 8px 24px rgba(37,211,102,0.5)",
+                    transition: "transform 0.2s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}
+                >
+                  💬 {ar ? "واتساب" : "WhatsApp"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Back-to-home link — explicit, large, easy to find */}
+        {/* Bottom back-to-home */}
         <div style={{ marginTop: "3rem", textAlign: "center", paddingBottom: "1rem" }}>
           <button
             onClick={goHome}
             style={{
               background: "transparent",
-              color: "#b8c5d3",
-              border: "1.5px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              padding: "0.85rem 1.75rem",
+              color: "#cbd5e1",
+              border: "1.5px solid rgba(255,255,255,0.18)",
+              borderRadius: 14,
+              padding: "0.95rem 2rem",
               cursor: "pointer",
               fontFamily: "inherit",
-              fontSize: "0.92rem",
+              fontSize: "0.95rem",
               fontWeight: 700,
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.5rem",
+              gap: "0.55rem",
               transition: "all 0.25s",
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)";
+              e.currentTarget.style.background = `${accent}20`;
+              e.currentTarget.style.borderColor = accent;
               e.currentTarget.style.color = "white";
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-              e.currentTarget.style.color = "#b8c5d3";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+              e.currentTarget.style.color = "#cbd5e1";
             }}
           >
             <span>{ar ? "→" : "←"}</span>
-            <span>{ar ? "كل الخدمات" : "All services"}</span>
+            <span>{ar ? "تصفح كل الخدمات" : "Browse all services"}</span>
           </button>
         </div>
       </section>
