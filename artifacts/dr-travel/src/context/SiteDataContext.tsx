@@ -112,6 +112,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   show_ai_assistant: "true",
   show_compare_feature: "true",
   show_testimonials: "true",
+  services_link_to_trips: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };

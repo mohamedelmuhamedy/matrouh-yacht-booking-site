@@ -42,6 +42,7 @@ const DEFAULTS: Record<string, string> = {
   show_testimonials: "true",
   show_scroll_indicator: "true",
   show_hero_pagination: "true",
+  services_link_to_trips: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };
@@ -134,6 +135,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "show_testimonials", label: "قسم التقييمات", type: "boolean", hint: "إظهار أو إخفاء قسم آراء العملاء" },
       { key: "show_scroll_indicator", label: "علامة التمرير (Scroll Indicator)", type: "boolean", hint: "إظهار أو إخفاء علامة السهم المتحركة أسفل الهيرو" },
       { key: "show_hero_pagination", label: "نقاط تصفح الهيرو (Pagination Dots)", type: "boolean", hint: "إظهار أو إخفاء النقاط أسفل صور الهيرو عند وجود أكتر من صورة" },
+      { key: "services_link_to_trips", label: "الضغط على الخدمات يفتح صفحة تفاصيل الرحلات", type: "boolean", hint: "لما يتفعّل، الضغط على أي بطاقة خدمة في الصفحة الرئيسية بيوّدي العميل مباشرة لصفحة /trips" },
     ],
   },
 ];

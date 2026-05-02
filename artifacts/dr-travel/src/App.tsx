@@ -677,6 +677,16 @@ function StatsBar() {
 // ===== SERVICES =====
 function Services() {
   const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const [, navigate] = useLocation();
+  const linkToTrips = settings.services_link_to_trips === "true";
+
+  const handleServiceClick = () => {
+    if (!linkToTrips) return;
+    navigate("/trips");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <section id="services" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -690,7 +700,15 @@ function Services() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
           {t.services.items.map((service, i) => (
             <FadeInSection key={i} delay={i * 70}>
-              <div className="service-card">
+              <div
+                className="service-card"
+                onClick={linkToTrips ? handleServiceClick : undefined}
+                onKeyDown={linkToTrips ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleServiceClick(); } } : undefined}
+                role={linkToTrips ? "link" : undefined}
+                tabIndex={linkToTrips ? 0 : undefined}
+                style={linkToTrips ? { cursor: "pointer" } : undefined}
+                aria-label={linkToTrips ? service.name : undefined}
+              >
                 <div className="service-icon-wrap">{service.icon}</div>
                 <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
                 <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8 }}>{service.desc}</p>
