@@ -3,13 +3,15 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const rawPort = process.env.PORT ?? "3000";
+const rawPort = process.env.PORT ?? "5000";
 const parsedPort = Number(rawPort);
-const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
+const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 5000;
 
 const rawBasePath = process.env.BASE_PATH?.trim() || "/";
 const basePath =
   rawBasePath === "/" ? rawBasePath : `/${rawBasePath.replace(/^\/+/, "")}`;
+
+const apiServerPort = process.env.API_PORT ?? "3001";
 
 export default defineConfig({
   base: basePath,
@@ -33,6 +35,12 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ["**/.*"],
+    },
+    proxy: {
+      "/api": {
+        target: `http://localhost:${apiServerPort}`,
+        changeOrigin: true,
+      },
     },
   },
   preview: {
