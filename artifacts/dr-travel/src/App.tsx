@@ -187,10 +187,14 @@ function AnimatedCounter({ target, duration = 1800, locale }: { target: number; 
   return <span ref={ref}>{count.toLocaleString(locale)}</span>;
 }
 
-function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+function FadeInSection({ children, delay = 0, fillHeight = false }: { children: React.ReactNode; delay?: number; fillHeight?: boolean }) {
   const { ref, isVisible } = useIntersectionObserver();
   return (
-    <div ref={ref} className={`fade-in-up ${isVisible ? "visible" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div
+      ref={ref}
+      className={`fade-in-up ${isVisible ? "visible" : ""}`}
+      style={{ transitionDelay: `${delay}ms`, ...(fillHeight ? { height: "100%" } : {}) }}
+    >
       {children}
     </div>
   );
@@ -689,6 +693,7 @@ function Services() {
   const ar = lang === "ar";
   const linkToTrips = settings.services_link_to_trips === "true";
   const detailPagesEnabled = settings.services_detail_pages_enabled !== "false";
+  const uniformCards = settings.uniform_home_cards === "true";
 
   // Use DB services when available; fallback to translations for safety
   const items = dbServices.length > 0
@@ -726,23 +731,26 @@ function Services() {
             <p className="section-subtitle">{t.services.sectionSubtitle}</p>
           </div>
         </FadeInSection>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem", ...(uniformCards ? { gridAutoRows: "1fr" } : {}) }}>
           {items.map((service, i) => {
             const clickable = linkToTrips || (Boolean(service.slug) && detailPagesEnabled);
             return (
-              <FadeInSection key={service.slug ?? i} delay={i * 70}>
+              <FadeInSection key={service.slug ?? i} delay={i * 70} fillHeight={uniformCards}>
                 <div
                   className="service-card"
                   onClick={clickable ? () => handleServiceClick(service.slug) : undefined}
                   onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleServiceClick(service.slug); } } : undefined}
                   role={clickable ? "link" : undefined}
                   tabIndex={clickable ? 0 : undefined}
-                  style={clickable ? { cursor: "pointer" } : undefined}
+                  style={{
+                    ...(clickable ? { cursor: "pointer" } : {}),
+                    ...(uniformCards ? { height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" } : {}),
+                  }}
                   aria-label={clickable ? service.name : undefined}
                 >
                   <div className="service-icon-wrap">{service.icon}</div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
-                  <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8 }}>{service.desc}</p>
+                  <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
                 </div>
               </FadeInSection>
             );
@@ -1219,9 +1227,10 @@ function PackagesAndBooking() {
 // ===== WHY US =====
 function WhyUs() {
   const { t, lang } = useLanguage();
-  const { whyUsCards } = useSiteData();
+  const { whyUsCards, settings } = useSiteData();
   const [, navigate] = useLocation();
   const isAr = lang === "ar";
+  const uniformCards = settings.uniform_home_cards === "true";
 
   const items = whyUsCards
     .filter(c => c.isActive)
@@ -1245,12 +1254,12 @@ function WhyUs() {
             <p className="section-subtitle">{t.whyUs.sectionSubtitle}</p>
           </div>
         </FadeInSection>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "1.25rem", ...(uniformCards ? { gridAutoRows: "1fr" } : {}) }}>
           {items.map((f, i) => {
             const clickable = !!f.slug;
             const onClick = clickable ? () => { navigate(`/why-us/${f.slug}`); window.scrollTo({ top: 0 }); } : undefined;
             return (
-              <FadeInSection key={f.slug || i} delay={i * 70}>
+              <FadeInSection key={f.slug || i} delay={i * 70} fillHeight={uniformCards}>
                 <div
                   className="why-card"
                   onClick={onClick}
@@ -1261,6 +1270,7 @@ function WhyUs() {
                     position: "relative", overflow: "hidden",
                     cursor: clickable ? "pointer" : "default",
                     transition: "transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease",
+                    ...(uniformCards ? { height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" } : {}),
                   }}
                   onMouseEnter={clickable ? (e) => {
                     (e.currentTarget as HTMLElement).style.transform = "translateY(-6px)";
@@ -1278,9 +1288,9 @@ function WhyUs() {
                     {f.icon}
                   </div>
                   <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{f.title}</h3>
-                  <p style={{ color: "#667788", fontSize: "0.85rem", lineHeight: 1.8 }}>{f.desc}</p>
+                  <p style={{ color: "#667788", fontSize: "0.85rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{f.desc}</p>
                   {clickable && (
-                    <div style={{ marginTop: "1rem", color: f.color, fontSize: "0.82rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                    <div style={{ marginTop: "1rem", color: f.color, fontSize: "0.82rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem", ...(uniformCards ? { alignSelf: "flex-start" } : {}) }}>
                       {isAr ? "اعرف أكتر" : "Learn more"} {isAr ? "←" : "→"}
                     </div>
                   )}

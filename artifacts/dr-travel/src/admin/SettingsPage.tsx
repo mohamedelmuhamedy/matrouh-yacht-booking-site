@@ -44,6 +44,7 @@ const DEFAULTS: Record<string, string> = {
   show_hero_pagination: "true",
   services_link_to_trips: "false",
   services_detail_pages_enabled: "true",
+  uniform_home_cards: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };
@@ -138,6 +139,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "show_hero_pagination", label: "نقاط تصفح الهيرو (Pagination Dots)", type: "boolean", hint: "إظهار أو إخفاء النقاط أسفل صور الهيرو عند وجود أكتر من صورة" },
       { key: "services_detail_pages_enabled", label: "تفعيل صفحات تفاصيل الخدمات", type: "boolean", hint: "لما يتفعّل، كل خدمة في الصفحة الرئيسية ليها صفحة تفاصيل خاصة بيها (/services/<slug>). لو وقّفته، البطاقات مش هتفتح صفحة تفاصيل" },
       { key: "services_link_to_trips", label: "الضغط على الخدمات يفتح صفحة تفاصيل الرحلات", type: "boolean", hint: "لما يتفعّل، الضغط على أي بطاقة خدمة في الصفحة الرئيسية بيوّدي العميل مباشرة لصفحة /trips. هذا الإعداد له الأولوية على صفحات تفاصيل الخدمات" },
+      { key: "uniform_home_cards", label: "توحيد حجم البطاقات (خدماتنا و'ليه DR Travel')", type: "boolean", hint: "لما يتفعّل، كل البطاقات في قسم 'خدماتنا' وقسم 'ليه DR Travel' هتبقى بنفس الارتفاع بالظبط مهما كان طول النص جوّاها" },
     ],
   },
 ];
