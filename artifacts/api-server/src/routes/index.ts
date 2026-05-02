@@ -17,6 +17,7 @@ import heroSlidesRouter from "./admin-hero-slides";
 import fsUploadRouter from "./fs-upload";
 import pushRouter from "./push";
 import whyUsRouter from "./why-us";
+import aiChatRouter from "./ai-chat";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(heroSlidesRouter);
 router.use(fsUploadRouter);
 router.use(pushRouter);
 router.use(whyUsRouter);
+router.use(aiChatRouter);
 
 export default router;

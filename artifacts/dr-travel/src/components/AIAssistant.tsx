@@ -1,290 +1,418 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "../LanguageContext";
 import { useCurrency } from "../context/CurrencyContext";
-import { useSiteData } from "../context/SiteDataContext";
-import { PACKAGES_DATA, type PackageData } from "../data/packages";
+import { useSiteData, type DBPackage } from "../context/SiteDataContext";
+import { apiFetch } from "../lib/api";
 import { formatPrice } from "../data/currencies";
 
-interface Message {
-  from: "bot" | "user";
-  text: string;
-  options?: string[];
-  packages?: PackageData[];
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  packages?: DBPackage[];
+  ts: number;
 }
 
-interface UserAnswers {
-  groupType?: string;
-  hasChildren?: boolean;
-  budget?: number;
-  tripType?: string;
-  isForeigner?: boolean;
-}
+const WELCOME_DISMISS_KEY = "drtravel_ai_welcome_dismissed_v1";
 
-const WhatsAppIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+const AssistantIcon = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ai-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#00AAFF" />
+        <stop offset="1" stopColor="#C9A84C" />
+      </linearGradient>
+    </defs>
+    <path d="M16 3.2 19 11l8 3-8 3-3 8-3-8-8-3 8-3 3-7.8Z" fill="url(#ai-grad)" />
+    <circle cx="25.5" cy="6.5" r="1.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="6.5" cy="24.5" r="1.2" fill="#FFFFFF" opacity="0.7" />
   </svg>
 );
 
-function recommendPackages(answers: UserAnswers): PackageData[] {
-  const scores = PACKAGES_DATA.map(pkg => {
-    let score = 0;
-    if (answers.hasChildren && pkg.childrenFriendly) score += 3;
-    if (!answers.hasChildren && !pkg.familyFriendly) score += 1;
-    if (answers.isForeigner && pkg.foreignerFriendly) score += 2;
-    if (answers.budget !== undefined) {
-      if (pkg.priceEGP <= answers.budget) score += 2;
-      else if (pkg.priceEGP <= answers.budget * 1.3) score += 1;
-    }
-    if (answers.tripType === "safari" && pkg.category === "safari") score += 3;
-    if (answers.tripType === "yacht" && pkg.category === "yacht") score += 3;
-    if (answers.tripType === "complete" && pkg.category === "complete") score += 3;
-    if (answers.tripType === "family" && pkg.category === "family") score += 3;
-    if (pkg.featured) score += 1;
-    return { pkg, score };
-  });
-  return scores.sort((a, b) => b.score - a.score).slice(0, 2).map(s => s.pkg);
-}
+const SendIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+);
+
+const WhatsAppIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+);
 
 export default function AIAssistant() {
   const { lang } = useLanguage();
   const { currency } = useCurrency();
-  const { settings } = useSiteData();
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<UserAnswers>({});
-  const [done, setDone] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
+  const { settings, packages, packagesLoading } = useSiteData();
   const ar = lang === "ar";
 
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showWelcomeBubble, setShowWelcomeBubble] = useState(false);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const T = {
-    title: ar ? "المساعد الذكي 🤖" : "AI Travel Assistant 🤖",
-    subtitle: ar ? "سأساعدك تختار الباقة المثالية" : "I'll help you find the perfect package",
-    placeholder: ar ? "اختر من الخيارات أدناه..." : "Choose from options below...",
-    restart: ar ? "ابدأ من جديد" : "Start over",
-    close: ar ? "إغلاق" : "Close",
+    title: ar ? "مساعد DR Travel" : "DR Travel Assistant",
+    subtitle: ar ? "متصل الآن • يجاوب فوراً" : "Online now · instant replies",
+    placeholder: ar ? "اسأل عن أي رحلة أو خدمة…" : "Ask about any trip or service…",
+    send: ar ? "إرسال" : "Send",
+    greeting: ar
+      ? "أهلاً! 👋 أنا مساعد DR Travel، أقدر أساعدك تختار أنسب رحلة، أقارن باقات، وأجاوب على أي سؤال."
+      : "Hi! 👋 I'm the DR Travel assistant. I can help you pick the perfect trip, compare packages, and answer any question.",
+    welcomeBubble: ar ? "محتاج مساعدة في اختيار رحلتك؟" : "Need help picking your trip?",
     bookNow: ar ? "احجز الآن" : "Book Now",
-    askWhatsApp: ar ? "استفسر واتساب" : "Ask on WhatsApp",
-    viewDetails: ar ? "تفاصيل الباقة" : "Package Details",
-    recommended: ar ? "الباقة الموصى بها لك:" : "Recommended packages for you:",
-    reason: ar ? "لأنها تناسبك بناءً على اختياراتك" : "Because it matches your preferences",
+    askWhatsApp: ar ? "واتساب" : "WhatsApp",
+    typing: ar ? "يكتب…" : "typing…",
+    errMsg: ar ? "حصل خطأ، حاول تاني." : "Something went wrong, please try again.",
+    rateLimit: ar ? "أسئلة كتير في وقت قصير. استنى دقيقة." : "Too many messages, please wait a moment.",
+    notReady: ar ? "المساعد غير مفعّل حالياً." : "Assistant is not configured yet.",
+    suggestions: ar
+      ? ["إيه أفضل رحلة عائلية؟", "أرخص باقة عندكم؟", "عايز أزور بمفردي", "إيه الفرق بين السفاري واليخت؟"]
+      : ["Best family trip?", "Cheapest package?", "I'm visiting solo", "Safari vs yacht?"],
   };
 
-  const FLOW: { questionAr: string; questionEn: string; options: { labelAr: string; labelEn: string; value: string }[]; key: keyof UserAnswers }[] = [
-    {
-      questionAr: "مرحباً! 👋 من سيأتي معك في الرحلة؟",
-      questionEn: "Hello! 👋 Who will be joining you on this trip?",
-      key: "groupType",
-      options: [
-        { labelAr: "👨‍👩‍👧‍👦 عائلة مع أطفال", labelEn: "👨‍👩‍👧‍👦 Family with children", value: "family" },
-        { labelAr: "💑 زوجين أو أصدقاء", labelEn: "💑 Couple or friends", value: "couple" },
-        { labelAr: "👥 مجموعة", labelEn: "👥 Group", value: "group" },
-        { labelAr: "🙋 بمفردي", labelEn: "🙋 Solo", value: "solo" },
-      ],
-    },
-    {
-      questionAr: "هل معك أطفال في الرحلة؟",
-      questionEn: "Will there be children on the trip?",
-      key: "hasChildren",
-      options: [
-        { labelAr: "✅ نعم، معي أطفال", labelEn: "✅ Yes, with children", value: "true" },
-        { labelAr: "❌ لا، بدون أطفال", labelEn: "❌ No children", value: "false" },
-      ],
-    },
-    {
-      questionAr: "ما هي ميزانيتك للفرد تقريباً؟",
-      questionEn: "What's your approximate budget per person?",
-      key: "budget",
-      options: [
-        { labelAr: "💰 أقل من ٥٠٠ جنيه", labelEn: "💰 Under 500 EGP", value: "450" },
-        { labelAr: "💰 ٥٠٠ – ١٠٠٠ جنيه", labelEn: "💰 500 – 1000 EGP", value: "900" },
-        { labelAr: "💰 ١٠٠٠ – ١٥٠٠ جنيه", labelEn: "💰 1000 – 1500 EGP", value: "1400" },
-        { labelAr: "💎 أكثر من ١٥٠٠ جنيه", labelEn: "💎 Over 1500 EGP", value: "9999" },
-      ],
-    },
-    {
-      questionAr: "ما نوع التجربة التي تبحث عنها؟",
-      questionEn: "What type of experience are you looking for?",
-      key: "tripType",
-      options: [
-        { labelAr: "🏜️ سفاري ومغامرة", labelEn: "🏜️ Safari & Adventure", value: "safari" },
-        { labelAr: "🚢 رحلة يخت بحرية", labelEn: "🚢 Yacht Sea Trip", value: "yacht" },
-        { labelAr: "⭐ تجربة شاملة", labelEn: "⭐ All-Inclusive", value: "complete" },
-        { labelAr: "👨‍👩‍👧‍👦 نشاط عائلي", labelEn: "👨‍👩‍👧‍👦 Family Activity", value: "family" },
-      ],
-    },
-    {
-      questionAr: "هل أنت زائر من خارج مصر؟",
-      questionEn: "Are you visiting from outside Egypt?",
-      key: "isForeigner",
-      options: [
-        { labelAr: "🌍 نعم، زائر أجنبي", labelEn: "🌍 Yes, foreign visitor", value: "true" },
-        { labelAr: "🇪🇬 لا، مصري", labelEn: "🇪🇬 No, Egyptian", value: "false" },
-      ],
-    },
-  ];
+  const whatsapp = settings.whatsapp_number || "01205756024";
 
-  const initChat = () => {
-    const q = FLOW[0];
-    setMessages([{
-      from: "bot",
-      text: ar ? q.questionAr : q.questionEn,
-      options: q.options.map(o => ar ? o.labelAr : o.labelEn),
-    }]);
-    setStep(0);
-    setAnswers({});
-    setDone(false);
-  };
-
+  // Auto-show welcome bubble after 3s if not previously dismissed
   useEffect(() => {
-    if (open && messages.length === 0) initChat();
+    if (open) return;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(WELCOME_DISMISS_KEY) === "1") return;
+    const tm = window.setTimeout(() => setShowWelcomeBubble(true), 3000);
+    return () => window.clearTimeout(tm);
   }, [open]);
+
+  const dismissWelcome = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setShowWelcomeBubble(false);
+    try { localStorage.setItem(WELCOME_DISMISS_KEY, "1"); } catch {}
+  }, []);
+
+  // Seed with greeting on first open
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      setMessages([{ role: "assistant", content: T.greeting, ts: Date.now() }]);
+    }
+    if (open) setShowWelcomeBubble(false);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, sending]);
 
-  const handleOption = (optionLabel: string) => {
-    const q = FLOW[step];
-    const opt = q.options.find(o => (ar ? o.labelAr : o.labelEn) === optionLabel);
-    if (!opt) return;
-
-    const value = opt.value;
-    const newAnswers = { ...answers };
-
-    if (q.key === "hasChildren" || q.key === "isForeigner") {
-      (newAnswers as any)[q.key] = value === "true";
-    } else if (q.key === "budget") {
-      (newAnswers as any)[q.key] = parseInt(value);
-    } else {
-      (newAnswers as any)[q.key] = value;
+  const matchPackages = useCallback((slugs: string[]): DBPackage[] => {
+    if (!slugs?.length || packagesLoading) return [];
+    const found: DBPackage[] = [];
+    for (const s of slugs) {
+      const p = packages.find((x) => x.slug === s);
+      if (p && !found.includes(p)) found.push(p);
+      if (found.length >= 3) break;
     }
+    return found;
+  }, [packages, packagesLoading]);
 
-    setAnswers(newAnswers);
-
-    const userMsg: Message = { from: "user", text: optionLabel };
-    const nextStep = step + 1;
-
-    if (nextStep < FLOW.length) {
-      const nextQ = FLOW[nextStep];
-      const botMsg: Message = {
-        from: "bot",
-        text: ar ? nextQ.questionAr : nextQ.questionEn,
-        options: nextQ.options.map(o => ar ? o.labelAr : o.labelEn),
-      };
-      setMessages(prev => [...prev, userMsg, botMsg]);
-      setStep(nextStep);
-    } else {
-      const recs = recommendPackages(newAnswers);
-      const botMsg: Message = {
-        from: "bot",
-        text: T.recommended,
-        packages: recs,
-      };
-      setMessages(prev => [...prev, userMsg, botMsg]);
-      setDone(true);
+  const sendMessage = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
+    setError(null);
+    setInput("");
+    const newUser: ChatMessage = { role: "user", content: trimmed, ts: Date.now() };
+    setMessages((prev) => [...prev, newUser]);
+    setSending(true);
+    try {
+      const history = [...messages, newUser]
+        .slice(-9, -1)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const res = await apiFetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, lang, history }),
+      });
+      if (res.status === 429) { setError(T.rateLimit); return; }
+      if (res.status === 503) { setError(T.notReady); return; }
+      if (!res.ok) { setError(T.errMsg); return; }
+      const data = await res.json();
+      const reply = String(data?.reply || "").trim();
+      const slugs: string[] = Array.isArray(data?.suggestedPackageSlugs) ? data.suggestedPackageSlugs : [];
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: reply || T.errMsg,
+        packages: matchPackages(slugs),
+        ts: Date.now(),
+      }]);
+    } catch {
+      setError(T.errMsg);
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
     }
+  }, [sending, messages, lang, matchPackages, T.errMsg, T.rateLimit, T.notReady]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void sendMessage(input);
   };
 
-  const lastMsg = messages[messages.length - 1];
+  const showSuggestions = messages.length <= 1 && !sending;
 
   return (
     <>
-      {/* Floating button — always bottom-right (physical), opposite side from WhatsApp (bottom-left) */}
+      <style>{`
+        @keyframes drtai-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,170,255,0.55), 0 8px 28px rgba(0,170,255,0.45); } 50% { box-shadow: 0 0 0 14px rgba(0,170,255,0), 0 8px 32px rgba(201,168,76,0.55); } }
+        @keyframes drtai-pop { from { opacity:0; transform: translateY(8px) scale(0.92);} to { opacity:1; transform: translateY(0) scale(1);} }
+        @keyframes drtai-typing { 0%,60%,100% { opacity:0.25; transform: translateY(0);} 30% { opacity:1; transform: translateY(-3px);} }
+        .drtai-launch { animation: drtai-pulse 2.4s ease-in-out infinite; }
+        .drtai-bubble, .drtai-panel, .drtai-msg { animation: drtai-pop 0.25s ease-out; }
+        .drtai-typing-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#C9A84C; margin:0 2px; animation: drtai-typing 1.2s infinite ease-in-out; }
+        .drtai-typing-dot:nth-child(2){ animation-delay:0.15s; }
+        .drtai-typing-dot:nth-child(3){ animation-delay:0.3s; }
+        .drtai-chip { transition: all 0.2s; }
+        .drtai-chip:hover { background: rgba(0,170,255,0.18); border-color: rgba(0,170,255,0.55); transform: translateY(-1px); }
+      `}</style>
+
+      {/* Welcome bubble */}
+      {!open && showWelcomeBubble && (
+        <div
+          className="drtai-bubble"
+          onClick={() => { dismissWelcome(); setOpen(true); }}
+          style={{
+            position: "fixed", bottom: "6.5rem", right: "1.5rem", zIndex: 999,
+            background: "white", color: "#0D1B2A",
+            padding: "0.7rem 2.2rem 0.7rem 0.95rem", borderRadius: "16px 16px 4px 16px",
+            boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+            maxWidth: "240px", fontSize: "0.85rem", fontWeight: 600,
+            cursor: "pointer", lineHeight: 1.4,
+            fontFamily: "inherit",
+          }}
+        >
+          {T.welcomeBubble}
+          <button
+            onClick={dismissWelcome}
+            aria-label="Dismiss"
+            style={{
+              position: "absolute", top: 4, right: 4,
+              width: 22, height: 22, borderRadius: "50%",
+              background: "rgba(13,27,42,0.08)", border: "none", color: "#0D1B2A",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, lineHeight: 1, padding: 0,
+            }}
+          >×</button>
+        </div>
+      )}
+
+      {/* Floating launcher */}
       <button
-        onClick={() => setOpen(!open)}
-        style={{ position: "fixed", bottom: "2rem", right: "1.5rem", zIndex: 998, width: 60, height: 60, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 24px rgba(99,102,241,0.55)", transition: "all 0.3s", fontSize: "1.5rem" }}
+        onClick={() => { setOpen((o) => !o); dismissWelcome(); }}
+        aria-label={T.title}
         title={T.title}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.12) rotate(5deg)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(99,102,241,0.7)"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1) rotate(0deg)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(99,102,241,0.55)"; }}>
-        {open ? "✕" : "🤖"}
+        className={open ? "" : "drtai-launch"}
+        style={{
+          position: "fixed", bottom: "2rem", right: "1.5rem", zIndex: 998,
+          width: 60, height: 60, borderRadius: "50%",
+          background: open ? "#0D1B2A" : "linear-gradient(135deg,#0D1B2A 0%,#0a3550 60%,#00AAFF 130%)",
+          border: "1px solid rgba(255,255,255,0.12)", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "transform 0.25s",
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1.08)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+      >
+        {open ? (
+          <span style={{ color: "white", fontSize: "1.5rem", fontWeight: 300 }}>×</span>
+        ) : (
+          <>
+            <AssistantIcon size={30} />
+            <span style={{
+              position: "absolute", bottom: 4, right: 4,
+              width: 12, height: 12, borderRadius: "50%",
+              background: "#22c55e", border: "2px solid #0D1B2A",
+            }} />
+          </>
+        )}
       </button>
 
-      {/* Chat window — anchored to bottom-right above the button */}
+      {/* Chat panel */}
       {open && (
-        <div style={{ position: "fixed", bottom: "5.5rem", right: "1.5rem", zIndex: 997, width: "min(360px, calc(100vw - 2rem))", background: "#0a1520", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", display: "flex", flexDirection: "column", maxHeight: "520px" }}>
-
+        <div
+          className="drtai-panel"
+          style={{
+            position: "fixed", bottom: "5.5rem", right: "1.5rem", zIndex: 997,
+            width: "min(380px, calc(100vw - 2rem))", maxHeight: "min(620px, calc(100vh - 7rem))",
+            background: "#0a1520",
+            border: "1px solid rgba(0,170,255,0.25)", borderRadius: "20px",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+            display: "flex", flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
           {/* Header */}
-          <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1))", borderRadius: "20px 20px 0 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>🤖</div>
-            <div>
-              <div style={{ color: "white", fontWeight: 700, fontSize: "0.9rem" }}>{T.title}</div>
-              <div style={{ color: "#8899aa", fontSize: "0.72rem" }}>{T.subtitle}</div>
+          <div style={{
+            padding: "0.9rem 1.1rem",
+            background: "linear-gradient(135deg, rgba(0,170,255,0.18), rgba(201,168,76,0.12))",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            display: "flex", alignItems: "center", gap: "0.7rem",
+          }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: "50%",
+              background: "linear-gradient(135deg,#0D1B2A,#00AAFF)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}>
+              <AssistantIcon size={22} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: "white", fontWeight: 800, fontSize: "0.92rem" }}>{T.title}</div>
+              <div style={{ color: "#8db5d6", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
+                {T.subtitle}
+              </div>
             </div>
           </div>
 
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {messages.map((msg, i) => (
-              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: msg.from === "bot" ? "flex-start" : "flex-end", gap: "0.5rem" }}>
-                {msg.text && (
-                  <div style={{
-                    background: msg.from === "bot" ? "rgba(99,102,241,0.12)" : "rgba(0,170,255,0.15)",
-                    border: `1px solid ${msg.from === "bot" ? "rgba(99,102,241,0.25)" : "rgba(0,170,255,0.25)"}`,
-                    borderRadius: msg.from === "bot" ? "4px 14px 14px 14px" : "14px 4px 14px 14px",
-                    padding: "0.6rem 0.9rem",
-                    maxWidth: "85%",
-                    color: msg.from === "bot" ? "#c7d2fe" : "white",
-                    fontSize: "0.82rem",
-                    lineHeight: 1.6,
-                  }}>
-                    {msg.text}
-                  </div>
-                )}
-
-                {/* Quick reply options */}
-                {msg.options && i === messages.length - 1 && !done && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", width: "100%" }}>
-                    {msg.options.map((opt, j) => (
-                      <button key={j} onClick={() => handleOption(opt)}
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: "10px", padding: "0.55rem 0.85rem", color: "#c7d2fe", fontSize: "0.8rem", cursor: "pointer", textAlign: "inherit", fontFamily: "Cairo, sans-serif", transition: "all 0.2s" }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.15)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(99,102,241,0.5)"; }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(99,102,241,0.25)"; }}>
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Package recommendations */}
-                {msg.packages && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%" }}>
-                    {msg.packages.map(pkg => (
-                      <div key={pkg.id} style={{ background: `${pkg.color}10`, border: `1px solid ${pkg.color}33`, borderRadius: "14px", padding: "0.85rem" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
-                          <span style={{ fontSize: "1.25rem" }}>{pkg.icon}</span>
-                          <span style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem" }}>{ar ? pkg.titleAr : pkg.titleEn}</span>
+          <div style={{
+            flex: 1, overflowY: "auto", padding: "1rem",
+            display: "flex", flexDirection: "column", gap: "0.7rem",
+          }}>
+            {messages.map((m, i) => (
+              <div key={i} className="drtai-msg" style={{
+                display: "flex", flexDirection: "column",
+                alignItems: m.role === "assistant" ? "flex-start" : "flex-end",
+                gap: "0.5rem",
+              }}>
+                <div style={{
+                  background: m.role === "assistant" ? "rgba(0,170,255,0.10)" : "rgba(201,168,76,0.18)",
+                  border: `1px solid ${m.role === "assistant" ? "rgba(0,170,255,0.25)" : "rgba(201,168,76,0.35)"}`,
+                  borderRadius: m.role === "assistant" ? "4px 14px 14px 14px" : "14px 4px 14px 14px",
+                  padding: "0.6rem 0.85rem", maxWidth: "88%",
+                  color: m.role === "assistant" ? "#d8ecff" : "#fff8e1",
+                  fontSize: "0.85rem", lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                }}>
+                  {m.content}
+                </div>
+                {m.packages && m.packages.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", width: "100%" }}>
+                    {m.packages.map((pkg) => (
+                      <div key={pkg.id} style={{
+                        background: `${pkg.color}12`, border: `1px solid ${pkg.color}40`,
+                        borderRadius: "12px", padding: "0.7rem",
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                          <span style={{ fontSize: "1.1rem" }}>{pkg.icon}</span>
+                          <span style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", flex: 1 }}>
+                            {ar ? pkg.titleAr : pkg.titleEn}
+                          </span>
                         </div>
-                        <div style={{ color: "#8899aa", fontSize: "0.75rem", marginBottom: "0.5rem" }}>{T.reason}</div>
-                        <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.65rem" }}>
+                        <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.88rem", marginBottom: "0.55rem" }}>
                           {formatPrice(pkg.priceEGP, currency, lang, settings)} / {ar ? "فرد" : "person"}
                         </div>
-                        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                          <a href={`#packages`} onClick={() => setOpen(false)}
-                            style={{ flex: 1, background: pkg.color, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: "0.5rem 0.6rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo, sans-serif" }}>
-                            {T.bookNow}
-                          </a>
-                          <a href={`https://wa.me/201205756024?text=${encodeURIComponent(ar ? `مرحباً، أريد الاستفسار عن ${pkg.titleAr}` : `Hello, I'd like to inquire about the ${pkg.titleEn}`)}`}
+                        <div style={{ display: "flex", gap: "0.4rem" }}>
+                          <a
+                            href={`/trips/${pkg.slug}`}
+                            onClick={() => setOpen(false)}
+                            style={{
+                              flex: 1, background: pkg.color,
+                              color: pkg.color === "#C9A84C" ? "#0D1B2A" : "white",
+                              padding: "0.45rem 0.55rem", borderRadius: "8px",
+                              fontWeight: 700, fontSize: "0.75rem", textDecoration: "none",
+                              textAlign: "center", fontFamily: "inherit",
+                            }}
+                          >{T.bookNow}</a>
+                          <a
+                            href={`https://wa.me/${whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(ar ? `استفسار عن ${pkg.titleAr}` : `Inquiry about ${pkg.titleEn}`)}`}
                             target="_blank" rel="noreferrer"
-                            style={{ flex: 1, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.5rem 0.6rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.3rem" }}>
-                            <WhatsAppIcon />{T.askWhatsApp}
-                          </a>
+                            style={{
+                              background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.4)",
+                              color: "#25D366", padding: "0.45rem 0.6rem", borderRadius: "8px",
+                              fontWeight: 700, fontSize: "0.72rem", textDecoration: "none",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                            }}
+                          ><WhatsAppIcon />{T.askWhatsApp}</a>
                         </div>
                       </div>
                     ))}
-                    {/* Restart */}
-                    <button onClick={initChat}
-                      style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#667788", padding: "0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.78rem", fontFamily: "Cairo, sans-serif" }}>
-                      🔄 {T.restart}
-                    </button>
                   </div>
                 )}
               </div>
             ))}
+
+            {sending && (
+              <div style={{
+                alignSelf: "flex-start",
+                background: "rgba(0,170,255,0.10)", border: "1px solid rgba(0,170,255,0.25)",
+                borderRadius: "4px 14px 14px 14px", padding: "0.6rem 0.85rem",
+                color: "#8db5d6", fontSize: "0.78rem",
+              }}>
+                <span className="drtai-typing-dot" /><span className="drtai-typing-dot" /><span className="drtai-typing-dot" />
+              </div>
+            )}
+
+            {error && (
+              <div style={{
+                alignSelf: "stretch", background: "rgba(220,38,38,0.12)",
+                border: "1px solid rgba(220,38,38,0.35)", color: "#fca5a5",
+                padding: "0.5rem 0.75rem", borderRadius: 10, fontSize: "0.78rem", textAlign: "center",
+              }}>{error}</div>
+            )}
+
+            {showSuggestions && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
+                {T.suggestions.map((s, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => void sendMessage(s)}
+                    className="drtai-chip"
+                    style={{
+                      background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.3)",
+                      color: "#9fd4ff", padding: "0.4rem 0.7rem", borderRadius: 999,
+                      fontSize: "0.74rem", cursor: "pointer", fontFamily: "inherit",
+                    }}
+                  >{s}</button>
+                ))}
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
+
+          {/* Input */}
+          <form onSubmit={handleSubmit} style={{
+            padding: "0.7rem 0.8rem",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(0,0,0,0.25)",
+            display: "flex", gap: "0.5rem", alignItems: "center",
+          }}>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={T.placeholder}
+              disabled={sending}
+              dir={ar ? "rtl" : "ltr"}
+              style={{
+                flex: 1, background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999,
+                padding: "0.55rem 0.95rem", color: "white", fontSize: "0.85rem",
+                outline: "none", fontFamily: "inherit",
+              }}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.5)"; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            />
+            <button
+              type="submit"
+              disabled={sending || !input.trim()}
+              aria-label={T.send}
+              style={{
+                width: 38, height: 38, borderRadius: "50%",
+                background: input.trim() && !sending ? "linear-gradient(135deg,#00AAFF,#C9A84C)" : "rgba(255,255,255,0.08)",
+                border: "none",
+                color: "white", cursor: input.trim() && !sending ? "pointer" : "not-allowed",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}
+            ><SendIcon /></button>
+          </form>
         </div>
       )}
     </>
