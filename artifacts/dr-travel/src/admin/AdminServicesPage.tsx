@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import { apiFetch } from "../lib/api";
-import { useSiteData } from "../context/SiteDataContext";
 
 interface Service {
   id: number;
@@ -19,7 +18,6 @@ interface Service {
 export default function AdminServicesPage() {
   const { success, error: toastError } = useToast();
   const [, navigate] = useLocation();
-  const { refetchSettings } = useSiteData();
 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +57,6 @@ export default function AdminServicesPage() {
       });
       if (r.ok) {
         setDetailPagesEnabled(next);
-        refetchSettings();
         success(next ? "تم تفعيل صفحات التفاصيل" : "تم إيقاف صفحات التفاصيل");
       } else {
         const d = await r.json().catch(() => ({}));
