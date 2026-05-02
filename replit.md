@@ -56,7 +56,8 @@ Schema has been pushed; tables (packages, categories, testimonials, settings, et
 ## Key Features
 
 - Travel packages browsing and booking
-- Services CRUD: each home-page service card opens its own detail page at `/services/:slug` (8 default services pre-seeded). Admin manages them at `/admin/services`. The `services_link_to_trips` setting still overrides per-service links when ON.
+- Services CRUD: each home-page service card opens its own detail page at `/services/:slug` (8 default services pre-seeded). Admin manages them at `/admin/services`. The `services_link_to_trips` setting still overrides per-service links when ON; `services_detail_pages_enabled` (default true) globally toggles whether cards open detail pages.
+- ServiceDetailPage uses the site's dark navy + gold/blue palette and is wrapped with Navbar + Footer + WhatsAppFloat + AIAssistant (matching HomePage shell). Bottom CTA button + Navbar links all route back home; navigating from any non-`/` page via Navbar links goes to `/<hash>` and HomePage scrolls to the hash on mount.
 - Admin dashboard (CRUD for packages, categories, hero sliders, testimonials, bookings, services)
 - Arabic/English localization (RTL support)
 - Currency switching

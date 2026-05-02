@@ -340,8 +340,12 @@ function Navbar() {
   }, []);
 
   const scrollTo = (id: string) => {
-    document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);
+    if (location !== "/" && location !== "") {
+      navigate("/" + id);
+      return;
+    }
+    document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   const textAlign = lang === "ar" ? "right" : "left";
@@ -1450,6 +1454,20 @@ function HomePage() {
   const { settings } = useSiteData();
   const showAI = settings.show_ai_assistant !== "false";
   const showTestimonials = settings.show_testimonials !== "false";
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else if (attempts++ < 20) {
+        setTimeout(tryScroll, 100);
+      }
+    };
+    tryScroll();
+  }, []);
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <ScrollProgress />
@@ -1521,10 +1539,15 @@ function GalleryDetailPageWrapper() {
 // ===== SERVICE DETAIL PAGE WRAPPER =====
 function ServiceDetailPageWrapper() {
   const { t } = useLanguage();
+  const { settings } = useSiteData();
+  const showAI = settings.show_ai_assistant !== "false";
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <Navbar />
       <ServiceDetailPage />
+      <Footer />
+      <WhatsAppFloat />
+      {showAI && <AIAssistant />}
     </div>
   );
 }

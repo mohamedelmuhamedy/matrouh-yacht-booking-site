@@ -750,3 +750,10 @@ html[dir="ltr"] {
 @media (max-width: 520px) {
   .book-modal-card { padding: 1.5rem 1.25rem; border-radius: 20px; }
 }
+
+/* Keyboard focus visibility for service detail page CTAs */
+main button:focus-visible,
+main a:focus-visible {
+  outline: 2px solid #00AAFF;
+  outline-offset: 3px;
+}

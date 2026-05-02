@@ -57,9 +57,13 @@ export default function ServiceDetailPage() {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [slug]);
 
+  const goHome = () => {
+    navigate("/#services");
+  };
+
   if (loading) {
     return (
-      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo, sans-serif", color: "#667788" }}>
+      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", color: "#667788", background: "#0D1B2A" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
           <div>{ar ? "جاري التحميل..." : "Loading..."}</div>
@@ -70,14 +74,14 @@ export default function ServiceDetailPage() {
 
   if (notFound || !service) {
     return (
-      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo, sans-serif", padding: "2rem", textAlign: "center" }}>
+      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", padding: "2rem", textAlign: "center", background: "#0D1B2A" }}>
         <div>
           <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
-          <h1 style={{ color: "#0D1B2A", fontSize: "1.5rem", marginBottom: "0.5rem" }}>{ar ? "الخدمة غير موجودة" : "Service not found"}</h1>
-          <p style={{ color: "#667788", marginBottom: "1.5rem" }}>{ar ? "ربما تم حذف هذه الخدمة أو تغيير رابطها." : "This service may have been removed or its link changed."}</p>
+          <h1 style={{ color: "white", fontSize: "1.5rem", marginBottom: "0.5rem" }}>{ar ? "الخدمة غير موجودة" : "Service not found"}</h1>
+          <p style={{ color: "#99aabb", marginBottom: "1.5rem" }}>{ar ? "ربما تم حذف هذه الخدمة أو تغيير رابطها." : "This service may have been removed or its link changed."}</p>
           <button
             onClick={() => navigate("/")}
-            style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.7rem 1.5rem", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
+            style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem 1.75rem", cursor: "pointer", fontWeight: 800, fontFamily: "inherit", fontSize: "0.95rem", boxShadow: "0 4px 16px rgba(0,170,255,0.35)" }}>
             {ar ? "العودة للرئيسية" : "Back to Home"}
           </button>
         </div>
@@ -92,7 +96,7 @@ export default function ServiceDetailPage() {
   const ctaText = ar ? service.ctaTextAr : (service.ctaTextEn || service.ctaTextAr);
   const ctaLink = service.ctaLink || "/trips";
   const heroImage = service.imageUrl ? resolveApiAssetUrl(service.imageUrl) : "";
-  const color = service.color || "#00AAFF";
+  const accent = service.color || "#00AAFF";
   const whatsapp = settings.whatsapp_number || "";
 
   const handleCta = () => {
@@ -113,84 +117,217 @@ export default function ServiceDetailPage() {
   };
 
   return (
-    <div dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "#f7f9fb", minHeight: "100vh" }}>
-      {/* Hero */}
+    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "#0D1B2A", minHeight: "100vh", color: "white" }}>
+
+      {/* HERO — matches the site's dark navy + gold/blue accent palette */}
       <section style={{
-        background: heroImage
-          ? `linear-gradient(135deg, rgba(13,27,42,0.85), rgba(13,27,42,0.6)), url(${heroImage}) center/cover`
-          : `linear-gradient(135deg, ${color}25, #0D1B2A)`,
-        color: "white",
-        padding: "4rem 1.5rem 3rem",
-        textAlign: "center",
         position: "relative",
+        background: heroImage
+          ? `linear-gradient(135deg, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.78) 50%, rgba(8,16,26,0.92) 100%), url(${heroImage}) center/cover`
+          : `radial-gradient(ellipse at 30% 0%, ${accent}28 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.12) 0%, transparent 50%), #0D1B2A`,
+        padding: "7rem 1.5rem 4.5rem",
+        textAlign: "center",
         overflow: "hidden",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}>
-        <button
-          onClick={() => navigate("/")}
-          style={{ position: "absolute", top: 16, [ar ? "right" : "left"]: 16, background: "rgba(255,255,255,0.12)", color: "white", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 10, padding: "0.5rem 0.95rem", cursor: "pointer", fontFamily: "inherit", fontSize: "0.85rem", fontWeight: 600, backdropFilter: "blur(8px)" } as React.CSSProperties}>
-          {ar ? "← الرئيسية" : "← Home"}
-        </button>
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <div style={{ fontSize: "5rem", marginBottom: "0.75rem", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }}>{service.icon}</div>
-          <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 900, margin: "0 0 0.75rem", textShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>{title}</h1>
-          <p style={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#e0e8f0", maxWidth: 640, margin: "0 auto" }}>{desc}</p>
+        {/* Decorative wave bottom */}
+        <div style={{ position: "absolute", inset: 0, opacity: 0.15, background: `radial-gradient(circle at 50% 100%, ${accent}, transparent 60%)`, pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", maxWidth: 820, margin: "0 auto" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "0.5rem",
+            background: `${accent}15`, border: `1px solid ${accent}40`,
+            color: accent, padding: "0.4rem 1rem", borderRadius: 50,
+            fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.5px",
+            marginBottom: "1.25rem",
+          }}>
+            <span style={{ fontSize: "1rem" }}>{service.icon}</span>
+            <span>{ar ? "خدماتنا" : "Our Services"}</span>
+          </div>
+
+          <h1 style={{
+            fontSize: "clamp(2rem, 4.5vw, 3rem)", fontWeight: 900,
+            margin: "0 0 1rem", lineHeight: 1.15, letterSpacing: "-0.5px",
+            background: `linear-gradient(135deg, #ffffff 0%, ${accent} 100%)`,
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            {title}
+          </h1>
+
+          <p style={{
+            fontSize: "1.05rem", lineHeight: 1.85, color: "#b8c5d3",
+            maxWidth: 640, margin: "0 auto",
+          }}>
+            {desc}
+          </p>
         </div>
       </section>
 
-      {/* Content */}
-      <section style={{ maxWidth: 900, margin: "-2rem auto 0", padding: "0 1rem 3rem", position: "relative", zIndex: 2 }}>
-        <div style={{ background: "white", borderRadius: 20, padding: "2rem 1.75rem", boxShadow: "0 8px 32px rgba(13,27,42,0.08)", border: "1px solid #e0e8f0" }}>
+      {/* CONTENT */}
+      <section style={{ maxWidth: 960, margin: "0 auto", padding: "4rem 1.5rem 2rem" }}>
 
-          {longDesc && (
-            <div style={{ marginBottom: features.length ? "2rem" : "1rem" }}>
-              <h2 style={{ color: "#0D1B2A", fontSize: "1.2rem", fontWeight: 800, margin: "0 0 0.85rem", paddingBottom: "0.6rem", borderBottom: `3px solid ${color}` }}>
-                {ar ? "نبذة عن الخدمة" : "About this Service"}
-              </h2>
-              <p style={{ color: "#445566", fontSize: "1rem", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{longDesc}</p>
+        {longDesc && (
+          <div style={{ marginBottom: features.length ? "3.5rem" : "2rem" }}>
+            <div className="section-label" style={{ marginBottom: "0.75rem" }}>
+              {ar ? "نبذة عن الخدمة" : "About this service"}
             </div>
-          )}
-
-          {features.length > 0 && (
-            <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ color: "#0D1B2A", fontSize: "1.2rem", fontWeight: 800, margin: "0 0 1rem", paddingBottom: "0.6rem", borderBottom: `3px solid ${color}` }}>
-                {ar ? "ما يميز هذه الخدمة" : "What's Included"}
-              </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem" }}>
-                {features.map((feat, i) => (
-                  <div key={i} style={{ background: `${color}10`, border: `1px solid ${color}30`, borderRadius: 12, padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.65rem", color: "#0D1B2A", fontWeight: 600, fontSize: "0.92rem" }}>
-                    <span style={{ background: color, color: "white", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", flexShrink: 0 }}>✓</span>
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* CTA */}
-          <div style={{ marginTop: "2rem", padding: "1.5rem", background: `linear-gradient(135deg, ${color}15, ${color}05)`, borderRadius: 16, border: `1.5px solid ${color}30`, textAlign: "center" }}>
-            <h3 style={{ color: "#0D1B2A", fontSize: "1.1rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
-              {ar ? "جاهز تبدأ تجربتك؟" : "Ready to start your experience?"}
-            </h3>
-            <p style={{ color: "#667788", fontSize: "0.9rem", margin: "0 0 1rem" }}>
-              {ar ? "احجز الآن أو تواصل معنا للاستفسار" : "Book now or contact us with any questions"}
+            <h2 className="section-title" style={{ fontSize: "1.6rem", marginBottom: "1.25rem", textAlign: ar ? "right" : "left" }}>
+              {ar ? "اعرف أكتر" : "Learn more"}
+            </h2>
+            <p style={{
+              color: "#b8c5d3", fontSize: "1.02rem", lineHeight: 2,
+              margin: 0, whiteSpace: "pre-line",
+            }}>
+              {longDesc}
             </p>
-            <div style={{ display: "flex", gap: "0.65rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button
-                onClick={handleCta}
-                style={{ background: color, color: "white", border: "none", borderRadius: 12, padding: "0.85rem 1.75rem", cursor: "pointer", fontWeight: 800, fontFamily: "inherit", fontSize: "0.95rem", boxShadow: `0 4px 16px ${color}55` }}>
-                {ctaText}
-              </button>
-              {whatsapp && (
-                <button
-                  onClick={handleWhatsApp}
-                  style={{ background: "#25D366", color: "white", border: "none", borderRadius: 12, padding: "0.85rem 1.5rem", cursor: "pointer", fontWeight: 800, fontFamily: "inherit", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.45rem", boxShadow: "0 4px 16px rgba(37,211,102,0.4)" }}>
-                  💬 {ar ? "واتساب" : "WhatsApp"}
-                </button>
-              )}
+          </div>
+        )}
+
+        {features.length > 0 && (
+          <div style={{ marginBottom: "3.5rem" }}>
+            <div className="section-label" style={{ marginBottom: "0.75rem" }}>
+              {ar ? "ما يميز هذه الخدمة" : "What's included"}
+            </div>
+            <h2 className="section-title" style={{ fontSize: "1.6rem", marginBottom: "1.5rem", textAlign: ar ? "right" : "left" }}>
+              {ar ? "كل اللي هتلاقيه" : "Everything you'll get"}
+            </h2>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "0.85rem",
+            }}>
+              {features.map((feat, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: `1px solid ${accent}30`,
+                    borderRadius: 14,
+                    padding: "1rem 1.1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    color: "#dde6ee",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    transition: "all 0.25s",
+                    backdropFilter: "blur(6px)",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = `${accent}12`;
+                    e.currentTarget.style.borderColor = `${accent}60`;
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                    e.currentTarget.style.borderColor = `${accent}30`;
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <span style={{
+                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                    color: "white", borderRadius: "50%",
+                    width: 28, height: 28,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.85rem", fontWeight: 800, flexShrink: 0,
+                    boxShadow: `0 2px 8px ${accent}55`,
+                  }}>
+                    ✓
+                  </span>
+                  <span style={{ lineHeight: 1.5 }}>{feat}</span>
+                </div>
+              ))}
             </div>
           </div>
+        )}
+
+        {/* CTA card */}
+        <div style={{
+          padding: "2.5rem 1.75rem",
+          background: `linear-gradient(135deg, ${accent}18 0%, rgba(201,168,76,0.08) 100%)`,
+          borderRadius: 20,
+          border: `1.5px solid ${accent}35`,
+          textAlign: "center",
+          boxShadow: `0 8px 40px ${accent}15`,
+        }}>
+          <h3 style={{ color: "white", fontSize: "1.35rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
+            {ar ? "جاهز تبدأ تجربتك؟" : "Ready to start your experience?"}
+          </h3>
+          <p style={{ color: "#99aabb", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>
+            {ar ? "احجز الآن أو تواصل معنا للاستفسار" : "Book now or contact us with any questions"}
+          </p>
+          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={handleCta}
+              style={{
+                background: `linear-gradient(135deg, ${accent}, ${accent}dd)`,
+                color: "white", border: "none", borderRadius: 12,
+                padding: "0.95rem 2rem", cursor: "pointer",
+                fontWeight: 800, fontFamily: "inherit", fontSize: "0.98rem",
+                boxShadow: `0 6px 20px ${accent}55`,
+                transition: "transform 0.2s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
+              onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}
+            >
+              {ctaText}
+            </button>
+            {whatsapp && (
+              <button
+                onClick={handleWhatsApp}
+                style={{
+                  background: "#25D366", color: "white", border: "none",
+                  borderRadius: 12, padding: "0.95rem 1.65rem", cursor: "pointer",
+                  fontWeight: 800, fontFamily: "inherit", fontSize: "0.98rem",
+                  display: "inline-flex", alignItems: "center", gap: "0.55rem",
+                  boxShadow: "0 6px 20px rgba(37,211,102,0.45)",
+                  transition: "transform 0.2s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
+                onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}
+              >
+                💬 {ar ? "واتساب" : "WhatsApp"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Back-to-home link — explicit, large, easy to find */}
+        <div style={{ marginTop: "3rem", textAlign: "center", paddingBottom: "1rem" }}>
+          <button
+            onClick={goHome}
+            style={{
+              background: "transparent",
+              color: "#b8c5d3",
+              border: "1.5px solid rgba(255,255,255,0.15)",
+              borderRadius: 12,
+              padding: "0.85rem 1.75rem",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: "0.92rem",
+              fontWeight: 700,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              transition: "all 0.25s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)";
+              e.currentTarget.style.color = "white";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+              e.currentTarget.style.color = "#b8c5d3";
+            }}
+          >
+            <span>{ar ? "→" : "←"}</span>
+            <span>{ar ? "كل الخدمات" : "All services"}</span>
+          </button>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
