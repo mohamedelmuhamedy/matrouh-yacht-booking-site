@@ -6,6 +6,10 @@ import * as schema from "./schema";
 const { Pool } = pg;
 
 function getConnectionString(): string {
+  if (process.env.SUPABASE_DATABASE_URL) {
+    return process.env.SUPABASE_DATABASE_URL;
+  }
+
   if (
     process.env.PGHOST &&
     process.env.PGUSER &&
