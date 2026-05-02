@@ -9,6 +9,8 @@ import {
   galleryItems,
   categories,
   heroSlides,
+  referralCodes,
+  referralRewards,
   type Package,
   type Service,
   type Testimonial,
@@ -338,6 +340,60 @@ router.post("/ai/chat", async (req, res) => {
 
     const ctx = await buildContext();
 
+    // ── Visitor rewards snapshot (privacy: code + counts only, no name/phone) ──
+    const rawVisitorCode = (() => {
+      const b = req.body as { visitor?: { referralCode?: unknown }; referralCode?: unknown };
+      const fromVisitor = b?.visitor && typeof b.visitor === "object" ? b.visitor.referralCode : undefined;
+      const fromTop = b?.referralCode;
+      const v = fromVisitor ?? fromTop;
+      return typeof v === "string" ? v.trim().toUpperCase().slice(0, 32) : "";
+    })();
+
+    let visitorBlock = "";
+    if (rawVisitorCode && /^[A-Z0-9_-]{3,32}$/.test(rawVisitorCode)) {
+      try {
+        const [codeRow] = await db
+          .select()
+          .from(referralCodes)
+          .where(eq(referralCodes.code, rawVisitorCode));
+        if (codeRow && codeRow.isActive) {
+          const rewardRows = await db
+            .select()
+            .from(referralRewards)
+            .where(eq(referralRewards.referralCodeId, codeRow.id));
+          let approvedTotal = 0;
+          let pendingCount = 0;
+          let approvedCount = 0;
+          let rejectedCount = 0;
+          for (const r of rewardRows) {
+            if (r.status === "approved") {
+              approvedCount += 1;
+              const v = parseFloat(r.rewardValue);
+              if (!Number.isNaN(v)) approvedTotal += v;
+            } else if (r.status === "pending") pendingCount += 1;
+            else if (r.status === "rejected") rejectedCount += 1;
+          }
+          const tier =
+            approvedCount >= 10 ? "Gold" : approvedCount >= 4 ? "Silver" : approvedCount >= 1 ? "Bronze" : "New";
+          const lines = [
+            "## VISITOR REWARDS (the person you are chatting with)",
+            `- Referral code: ${codeRow.code}`,
+            `- Status: active`,
+            `- Tier: ${tier}`,
+            `- Code uses: ${codeRow.usedCount ?? 0}`,
+            `- Approved rewards: ${approvedCount}`,
+            `- Pending rewards: ${pendingCount}`,
+            `- Rejected rewards: ${rejectedCount}`,
+            `- Approved rewards total value: ${approvedTotal} (in EGP or % depending on reward_type setting)`,
+            `Privacy: do NOT reveal personal name, phone, or other visitors' codes.`,
+          ];
+          visitorBlock = "\n\n" + lines.join("\n");
+        }
+      } catch (e) {
+        console.error("visitor rewards lookup failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
     const slugRule =
       lang === "ar"
         ? `إذا اقترحت باقة معينة، أنهِ ردك بسطر منفصل بالشكل التالي بالضبط: [[slugs:slug1,slug2]] حيث slug1 من قائمة الـ slugs أعلاه. لا تذكر هذا السطر في النص العادي.`
@@ -353,10 +409,12 @@ router.post("/ai/chat", async (req, res) => {
 - اقترح باقات محددة بأسمائها عند المناسبة، واذكر السعر بالجنيه المصري.
 - أجب في 2–4 جمل قصيرة في معظم الأحيان. استخدم القوائم النقطية فقط عند مقارنة 2+ باقات.
 - إذا انحرف المستخدم عن السياحة، أعده برفق إلى موضوع رحلات مطروح.
+- إذا سأل المستخدم عن نقاطه أو مستواه أو مكافآته أو كود الإحالة الخاص به، استخدم قسم "VISITOR REWARDS" أدناه إن وجد، وأخبره بالأرقام بصراحة. إن لم يوجد القسم، أخبره أنه لم يسجّل في برنامج الإحالة بعد ووجّهه لصفحة /rewards.
+- لا تكشف اسماً أو رقم هاتف أو كود إحالة شخص آخر.
 - ${slugRule}
 
 === بيانات الموقع المباشرة ===
-${ctx.text}
+${ctx.text}${visitorBlock}
 === انتهت البيانات ===`
         : `You are "DR Travel Assistant" — a friendly, professional travel assistant for DR Travel in Marsa Matruh, Egypt. Respond concisely and helpfully in clear English.
 
@@ -366,10 +424,12 @@ Strict rules:
 - Recommend specific packages by name when appropriate, mention price in EGP.
 - Keep replies to 2–4 short sentences usually. Use bullet points only when comparing 2+ packages.
 - If the user goes off-topic, gently steer back to Marsa Matruh trips.
+- If the user asks about their points, tier, rewards, or referral code, use the "VISITOR REWARDS" section below if present and tell them the numbers plainly. If that section is missing, tell them they haven't registered in the referral program yet and point them to the /rewards page.
+- Never reveal another person's name, phone, or referral code.
 - ${slugRule}
 
 === LIVE SITE DATA ===
-${ctx.text}
+${ctx.text}${visitorBlock}
 === END DATA ===`;
 
     const upstreamMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
