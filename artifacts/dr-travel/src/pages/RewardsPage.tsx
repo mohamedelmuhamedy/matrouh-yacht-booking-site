@@ -5,6 +5,7 @@ import ReferralSection from "../components/ReferralSection";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import CurrencySwitcher from "../components/CurrencySwitcher";
 import AIAssistant from "../components/AIAssistant";
+import SeoHead from "../components/SeoHead";
 
 const WhatsAppIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -81,6 +82,12 @@ export default function RewardsPage() {
 
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif", minHeight: "100vh", background: "var(--bg-page)" }}>
+      <SeoHead
+        title={t.lang === "ar" ? "برنامج المكافآت | DR Travel" : "Rewards Program | DR Travel"}
+        description={t.lang === "ar" ? "اكسب نقاطًا مع كل حجز واستبدلها بخصومات وهدايا حصرية." : "Earn points on every booking and redeem for exclusive discounts and gifts."}
+        path="/rewards"
+        lang={t.lang === "ar" ? "ar" : "en"}
+      />
       <RewardsNavbar />
 
       {/* Page header */}

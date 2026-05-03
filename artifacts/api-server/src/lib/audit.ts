@@ -9,8 +9,8 @@ export interface AuditEntry {
 }
 
 export async function recordAudit(req: Request, entry: AuditEntry): Promise<void> {
+  const admin = (req as unknown as { admin?: { username?: string } }).admin;
   try {
-    const admin = (req as unknown as { admin?: { username?: string } }).admin;
     await db.insert(adminAuditLog).values({
       adminUsername: admin?.username ?? "",
       action: entry.action,
@@ -21,6 +21,10 @@ export async function recordAudit(req: Request, entry: AuditEntry): Promise<void
       userAgent: String(req.headers["user-agent"] ?? "").slice(0, 256),
     });
   } catch (err) {
-    console.error("[audit] failed:", err);
+    console.error(
+      `[audit] failed to record action=${entry.action} entity=${entry.entity}`,
+      err,
+    );
+    throw err;
   }
 }

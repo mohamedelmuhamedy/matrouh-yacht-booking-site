@@ -18,6 +18,7 @@ import WhyUsDetailPage from "./pages/WhyUsDetailPage";
 import SharePage from "./pages/SharePage";
 import TicketPage from "./pages/TicketPage";
 import VerifyPage from "./pages/VerifyPage";
+import SeoHead from "./components/SeoHead";
 import NotFoundPage from "./pages/NotFoundPage";
 // AdminRouter is loaded lazily so the public bundle never ships the admin
 // pages or their dependencies (jspdf, html2canvas, html5-qrcode, etc.).
@@ -1895,8 +1896,16 @@ function HomePage() {
     };
     tryScroll();
   }, []);
+  const ar = t.lang === "ar";
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
+      <SeoHead
+        title={ar ? `${settings.brand_name || "DR Travel"} | رحلات وباقات سياحية` : `${settings.brand_name || "DR Travel"} | Trips & Travel Packages`}
+        description={ar ? (settings.brand_tagline_ar || "احجز رحلتك القادمة مع DR Travel — باقات سياحية مميزة بأسعار تنافسية.") : (settings.brand_tagline_en || "Book your next trip with DR Travel — curated travel packages at competitive prices.")}
+        path="/"
+        lang={ar ? "ar" : "en"}
+        image={settings.logo_url || undefined}
+      />
       <ScrollProgress />
       <Navbar />
       <Hero />

@@ -61,7 +61,7 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
         .returning();
       if (!updated) return null;
       if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
-        const issued = await ensureTicketToken(id, tx as unknown as typeof db);
+        const issued = await ensureTicketToken(id, tx);
         if (issued) {
           updated.ticketToken = issued.token;
           updated.ticketNumber = issued.ticketNumber;

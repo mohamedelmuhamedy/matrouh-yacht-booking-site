@@ -3,6 +3,7 @@ import { db, siteSettings } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { invalidateAiContextCache } from "./ai-chat";
+import { recordAudit } from "../lib/audit";
 
 const router = Router();
 
@@ -59,6 +60,11 @@ router.put("/admin/settings", authMiddleware, async (req, res) => {
       }
     });
     if (aiSettingsTouched) invalidateAiContextCache();
+    await recordAudit(req, {
+      action: "settings.update",
+      entity: "settings",
+      metadata: { keys: entries.map(([k]) => k).slice(0, 100), count: entries.length },
+    });
     return res.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed to update settings";

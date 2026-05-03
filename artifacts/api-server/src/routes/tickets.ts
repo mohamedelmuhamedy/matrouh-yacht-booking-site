@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, bookings, siteSettings } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -52,20 +52,24 @@ export interface IssuedTicket {
   signature: string;
 }
 
-type DbLike = typeof db;
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-async function ensureTicketTokenInTx(tx: DbLike, bookingId: number): Promise<IssuedTicket | null> {
-  const locked = await tx.execute(
-    sql`select id, ticket_token, ticket_number, ticket_issued_at from bookings where id = ${bookingId} for update`,
-  );
-  // node-postgres returns rows on .rows
-  const rows = (locked as unknown as { rows: Array<Record<string, unknown>> }).rows;
-  const row = rows && rows[0];
+async function ensureTicketTokenInTx(tx: Tx, bookingId: number): Promise<IssuedTicket | null> {
+  const [row] = await tx
+    .select({
+      id: bookings.id,
+      ticketToken: bookings.ticketToken,
+      ticketNumber: bookings.ticketNumber,
+      ticketIssuedAt: bookings.ticketIssuedAt,
+    })
+    .from(bookings)
+    .where(eq(bookings.id, bookingId))
+    .for("update");
   if (!row) return null;
 
-  let token = typeof row.ticket_token === "string" && row.ticket_token.length >= 16 ? row.ticket_token : null;
-  let ticketNumber = typeof row.ticket_number === "string" && row.ticket_number.length > 0 ? row.ticket_number : null;
-  const hasIssuedAt = !!row.ticket_issued_at;
+  let token = row.ticketToken && row.ticketToken.length >= 16 ? row.ticketToken : null;
+  let ticketNumber = row.ticketNumber && row.ticketNumber.length > 0 ? row.ticketNumber : null;
+  const hasIssuedAt = !!row.ticketIssuedAt;
 
   const updates: Record<string, unknown> = {};
   if (!token) {
@@ -90,10 +94,10 @@ async function ensureTicketTokenInTx(tx: DbLike, bookingId: number): Promise<Iss
 
 export async function ensureTicketToken(
   bookingId: number,
-  txArg?: DbLike,
+  txArg?: Tx,
 ): Promise<IssuedTicket | null> {
   if (txArg) return ensureTicketTokenInTx(txArg, bookingId);
-  return db.transaction((tx) => ensureTicketTokenInTx(tx as unknown as DbLike, bookingId));
+  return db.transaction((tx) => ensureTicketTokenInTx(tx, bookingId));
 }
 
 const PUBLIC_SETTING_KEYS = new Set([
@@ -303,23 +307,23 @@ router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
     const result = await db.transaction(async (tx) => {
-      const locked = await tx.execute(
-        sql`select id, status, ticket_used_at from bookings where ticket_token = ${token} for update`,
-      );
-      const rows = (locked as unknown as { rows: Array<Record<string, unknown>> }).rows;
-      const row = rows && rows[0];
+      const [row] = await tx
+        .select({ id: bookings.id, status: bookings.status, ticketUsedAt: bookings.ticketUsedAt })
+        .from(bookings)
+        .where(eq(bookings.ticketToken, token))
+        .for("update");
       if (!row) return { error: "not_found" as const };
       if (row.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
-      if (row.status !== "confirmed") return { error: "not_confirmed" as const, status: row.status as string };
-      if (row.ticket_used_at) {
-        return { already: true, ticketUsedAt: row.ticket_used_at as Date };
+      if (row.status !== "confirmed") return { error: "not_confirmed" as const, status: row.status };
+      if (row.ticketUsedAt) {
+        return { already: true, ticketUsedAt: row.ticketUsedAt };
       }
       const adminUser = (req as unknown as { admin?: { username?: string } }).admin?.username || "admin";
       const usedAt = new Date();
       await tx.update(bookings)
         .set({ ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
-        .where(eq(bookings.id, row.id as number));
-      return { id: row.id as number, ticketUsedAt: usedAt, ticketUsedBy: adminUser };
+        .where(eq(bookings.id, row.id));
+      return { id: row.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser };
     });
 
     if ("error" in result) {

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { apiFetch, resolveApiAssetUrl } from "../lib/api";
+import SeoHead from "../components/SeoHead";
 
 interface GalleryItem {
   id: number; url: string; type: string; caption: string;
@@ -269,6 +270,14 @@ export default function GalleryDetailPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo,Montserrat,sans-serif", direction: ar ? "rtl" : "ltr" }}>
+      <SeoHead
+        title={`${ar ? album.titleAr : (album.titleEn || album.titleAr)} | DR Travel`}
+        description={String((ar ? album.descriptionAr : album.descriptionEn) || "").slice(0, 160)}
+        image={album.coverImage || undefined}
+        path={`/gallery/${slug}`}
+        lang={ar ? "ar" : "en"}
+        type="article"
+      />
 
       {/* Hero banner */}
       <div style={{ position: "relative", minHeight: 260, overflow: "hidden" }}>

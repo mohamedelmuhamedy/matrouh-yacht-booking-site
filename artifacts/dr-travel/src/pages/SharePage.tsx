@@ -3,6 +3,7 @@ import { useSiteData } from "../context/SiteDataContext";
 import { useLanguage } from "../LanguageContext";
 import { apiUrl } from "../lib/api";
 import ShareCard from "../components/ShareCard";
+import SeoHead from "./../components/SeoHead";
 
 function readSourceFromUrl(): string {
   if (typeof window === "undefined") return "";
@@ -56,5 +57,18 @@ export default function SharePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <ShareCard settings={settings} />;
+  const cardName = (ar ? settings.card_display_name_ar : settings.card_display_name_en) || settings.brand_name || "DR Travel";
+  const cardTagline = (ar ? settings.card_tagline_ar : settings.card_tagline_en) || (ar ? settings.brand_tagline_ar : settings.brand_tagline_en) || "";
+  return (
+    <>
+      <SeoHead
+        title={cardTagline ? `${cardName} — ${cardTagline}` : cardName}
+        description={cardTagline || (ar ? "بطاقة المشاركة الرسمية" : "Official share card")}
+        path="/card"
+        lang={ar ? "ar" : "en"}
+        image={settings.logo_url || undefined}
+      />
+      <ShareCard settings={settings} />
+    </>
+  );
 }

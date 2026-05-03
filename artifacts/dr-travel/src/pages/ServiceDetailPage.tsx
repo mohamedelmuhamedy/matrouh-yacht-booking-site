@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { useSiteData } from "../context/SiteDataContext";
+import SeoHead from "../components/SeoHead";
 import { apiFetch, resolveApiAssetUrl } from "../lib/api";
 import { buildFeatureFromText, isFeatureItem, type FeatureItem } from "../lib/featureVisuals";
 
@@ -183,6 +184,14 @@ export default function ServiceDetailPage() {
 
   return (
     <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "var(--text-primary)" }}>
+      <SeoHead
+        title={`${title} | DR Travel`}
+        description={String(desc || "").slice(0, 160)}
+        image={heroImage || undefined}
+        path={`/services/${slug || ""}`}
+        lang={ar ? "ar" : "en"}
+        type="article"
+      />
 
       {/* Floating back-to-home button — always visible while scrolling */}
       <button

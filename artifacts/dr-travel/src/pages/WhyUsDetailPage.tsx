@@ -3,6 +3,7 @@ import { useRoute, useLocation, Link } from "wouter";
 import { apiFetch } from "../lib/api";
 import { useLanguage } from "../LanguageContext";
 import { useSiteData } from "../context/SiteDataContext";
+import SeoHead from "../components/SeoHead";
 
 type Bullet = { icon: string; titleAr: string; titleEn: string; descAr: string; descEn: string };
 type Stat = { icon: string; value: string; labelAr: string; labelEn: string };
@@ -180,6 +181,14 @@ export default function WhyUsDetailPage() {
 
   return (
     <div style={{ background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
+      <SeoHead
+        title={`${title} | DR Travel`}
+        description={String(shortDesc || intro || "").slice(0, 160)}
+        image={heroImg || undefined}
+        path={`/why-us/${slug}`}
+        lang={isAr ? "ar" : "en"}
+        type="article"
+      />
       <style>{`
         @keyframes float-up { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
         @keyframes pulse-ring { 0%{transform:scale(.95);opacity:.7} 70%{transform:scale(1.4);opacity:0} 100%{transform:scale(1.4);opacity:0} }

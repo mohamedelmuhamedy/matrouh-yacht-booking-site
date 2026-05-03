@@ -39,6 +39,7 @@ const NAV: NavItem[] = [
   { path: "/admin/share-card",   icon: "🪪", label: "بطاقة المشاركة" },
   { path: "/admin/push",         icon: "🔔", label: "الإشعارات" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
+  { path: "/admin/audit",        icon: "📜", label: "سجل التدقيق" },
 ];
 const BOTTOM_NAV = NAV.filter(n =>
   n.path !== "/admin/testimonials" &&
