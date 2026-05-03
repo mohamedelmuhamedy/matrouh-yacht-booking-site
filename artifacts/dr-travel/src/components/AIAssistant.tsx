@@ -114,7 +114,8 @@ export default function AIAssistant() {
 
   const T = {
     title: ar ? "مساعد DR Travel" : "DR Travel Assistant",
-    subtitle: ar ? "متصل الآن • يجاوب فوراً" : "Online now · instant replies",
+    onlineBadge: ar ? "متصل الآن" : "Online",
+    subtitle: ar ? "يجاوب فوراً" : "instant replies",
     placeholder: ar ? "اسأل عن أي رحلة أو خدمة…" : "Ask about any trip or service…",
     send: ar ? "إرسال" : "Send",
     greeting: ar
@@ -502,9 +503,18 @@ export default function AIAssistant() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "0.92rem" }}>{T.title}</div>
-              <div style={{ color: "var(--text-secondary)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-                {T.subtitle}
+              <div style={{ color: "var(--text-secondary)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  background: "#22c55e", color: "#ffffff",
+                  padding: "1px 8px", borderRadius: 999,
+                  fontSize: "0.66rem", fontWeight: 800, lineHeight: 1.5,
+                  boxShadow: "0 0 0 2px rgba(34,197,94,0.18)",
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ffffff", display: "inline-block" }} />
+                  {T.onlineBadge}
+                </span>
+                <span style={{ opacity: 0.85 }}>{T.subtitle}</span>
               </div>
             </div>
             <button
