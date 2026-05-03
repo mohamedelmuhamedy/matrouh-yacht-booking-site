@@ -171,6 +171,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
   services_detail_pages_enabled: "true",
   uniform_home_cards: "false",
   show_footer_map: "false",
+  brand_name: "DR TRAVEL",
+  brand_short_name: "DR Travel",
+  brand_tagline_ar: "يخت سياحة وسفاري · مرسى مطروح",
+  brand_tagline_en: "Yacht Tourism & Safari",
+  dev_name: "Yousef Mostafa",
+  dev_contact_url: "https://wa.me/201007752842",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };

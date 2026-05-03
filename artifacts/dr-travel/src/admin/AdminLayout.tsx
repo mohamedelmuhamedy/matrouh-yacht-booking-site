@@ -1,6 +1,25 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAdmin, adminFetch } from "./AdminContext";
+import { apiUrl } from "../lib/api";
+
+function useAdminBrandName() {
+  const [brand, setBrand] = useState<string>("DR TRAVEL");
+  useEffect(() => {
+    let alive = true;
+    fetch(apiUrl("/api/settings"))
+      .then(r => r.ok ? r.json() : null)
+      .then((data: Record<string, string> | null) => {
+        if (!alive || !data) return;
+        if (typeof data.brand_name === "string" && data.brand_name.trim()) {
+          setBrand(data.brand_name);
+        }
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  return brand;
+}
 
 const NAV = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
@@ -62,6 +81,7 @@ function playBookingBeep() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const brandName = useAdminBrandName();
   const { user, logout } = useAdmin();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -154,7 +174,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             )}
           </button>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "0.9rem", letterSpacing: "1px" }}>
-            DR TRAVEL
+            {brandName}
           </div>
           <a href="/" target="_blank" style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: 8, padding: "0.35rem 0.65rem" }}>
             🌐
@@ -173,7 +193,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {/* Drawer header */}
               <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
-                  <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "0.95rem", fontFamily: "Montserrat, sans-serif", letterSpacing: "1px" }}>DR TRAVEL</div>
+                  <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "0.95rem", fontFamily: "Montserrat, sans-serif", letterSpacing: "1px" }}>{brandName}</div>
                   <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.65rem", marginTop: 2 }}>Admin Panel</div>
                 </div>
                 <button onClick={() => setDrawerOpen(false)}
@@ -266,7 +286,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         {drawerOpen && (
           <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
-            <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "1rem", letterSpacing: "1px" }}>DR TRAVEL</div>
+            <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "1rem", letterSpacing: "1px" }}>{brandName}</div>
             <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.7rem" }}>Admin Panel</div>
           </div>
         )}

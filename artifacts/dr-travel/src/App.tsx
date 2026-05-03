@@ -365,8 +365,8 @@ function Navbar() {
             <span style={{ position: "absolute", bottom: 0, left: 0, width: 11, height: 11, borderRadius: "50%", background: "#25D366", border: "2px solid #0a1520" }} />
           </div>
           <div>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>DR TRAVEL</div>
-            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.5px" }}>Yousef Mostafa</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
+            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.5px" }}>{settings.dev_name || "Yousef Mostafa"}</div>
           </div>
         </div>
 
@@ -425,7 +425,7 @@ function Navbar() {
             {/* Install App — platform-aware */}
             <button onClick={() => { setMenuOpen(false); handleInstallApp(); }}
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: isInstalled ? "linear-gradient(135deg,#10B981,#065F46)" : "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
-              {isInstalled ? "✓" : "📲"} {isInstalled ? installBtnLabel : (ar ? "تحميل تطبيق DR Travel" : "Install DR Travel App")}
+              {isInstalled ? "✓" : "📲"} {isInstalled ? installBtnLabel : (ar ? `تحميل تطبيق ${settings.brand_short_name || "DR Travel"}` : `Install ${settings.brand_short_name || "DR Travel"} App`)}
             </button>
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.85rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginTop: "0.75rem", fontFamily: "Cairo, sans-serif" }}>
@@ -444,7 +444,7 @@ function Navbar() {
             <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📲</div>
               <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
-                {ar ? "تثبيت تطبيق DR Travel" : "Install DR Travel App"}
+                {ar ? `تثبيت تطبيق ${settings.brand_short_name || "DR Travel"}` : `Install ${settings.brand_short_name || "DR Travel"} App`}
               </h3>
               <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
                 {isIOS
@@ -1250,7 +1250,7 @@ function WhyUs() {
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
             <div className="section-label">{t.whyUs.sectionLabel}</div>
-            <h2 className="section-title">{t.whyUs.sectionTitle}</h2>
+            <h2 className="section-title">{(settings.brand_short_name && settings.brand_short_name !== "DR Travel") ? t.whyUs.sectionTitle.split("DR Travel").join(settings.brand_short_name) : t.whyUs.sectionTitle}</h2>
             <p className="section-subtitle">{t.whyUs.sectionSubtitle}</p>
           </div>
         </FadeInSection>
@@ -1379,6 +1379,18 @@ function Footer() {
   const waNum = settings.whatsapp_number || "201205756024";
   const phone = settings.phone_number || "+20 120 575 6024";
   const showMap = settings.show_footer_map === "true";
+  const brandShort = settings.brand_short_name || "DR Travel";
+  const brandify = (s: string) => brandShort === "DR Travel" ? s : s.split("DR Travel").join(brandShort);
+  const DEFAULT_DEV_URL = "https://wa.me/201007752842";
+  const devContactHref = (() => {
+    const raw = settings.dev_contact_url || DEFAULT_DEV_URL;
+    try {
+      const u = new URL(raw);
+      if (u.protocol !== "http:" && u.protocol !== "https:") return DEFAULT_DEV_URL;
+    } catch { return DEFAULT_DEV_URL; }
+    const sep = raw.includes("?") ? "&" : "?";
+    return `${raw}${sep}text=${encodeURIComponent(brandify(f.devWaMessage))}`;
+  })();
   const DEFAULT_MAPS_URL = "https://maps.google.com/?q=Mersa+Matruh,+Egypt";
   const mapsUrl = (() => {
     const raw = settings.maps_url || DEFAULT_MAPS_URL;
@@ -1416,11 +1428,11 @@ function Footer() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.9rem", marginBottom: "1.25rem" }}>
               <img src={logoSrc} alt="DR Travel" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.4)", boxShadow: "0 0 20px rgba(0,170,255,0.2)" }} />
               <div>
-                <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "1.05rem", letterSpacing: "1.5px" }}>DR TRAVEL</div>
-                <div style={{ color: "#445566", fontSize: "0.65rem" }}>Yacht Tourism & Safari</div>
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "1.05rem", letterSpacing: "1.5px" }}>{settings.brand_name || "DR TRAVEL"}</div>
+                <div style={{ color: "#445566", fontSize: "0.65rem" }}>{lang === "ar" ? (settings.brand_tagline_ar || "يخت سياحة وسفاري · مرسى مطروح") : (settings.brand_tagline_en || "Yacht Tourism & Safari")}</div>
               </div>
             </div>
-            <p style={{ color: "#445566", fontSize: "0.875rem", lineHeight: 2, marginBottom: "1.5rem" }}>{f.brandDesc}</p>
+            <p style={{ color: "#445566", fontSize: "0.875rem", lineHeight: 2, marginBottom: "1.5rem" }}>{brandify(f.brandDesc)}</p>
             <div style={{ display: "flex", gap: "0.55rem", flexWrap: "wrap" }}>
               {socialLinks.map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
@@ -1543,7 +1555,7 @@ function Footer() {
         <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(0,170,255,0.2),transparent)", marginBottom: "1.5rem" }} />
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-          <p style={{ color: "#2a3845", fontSize: "0.78rem", margin: 0 }}>{f.copyright}</p>
+          <p style={{ color: "#2a3845", fontSize: "0.78rem", margin: 0 }}>{brandify(f.copyright)}</p>
           <button onClick={scrollToTop}
             style={{ background: "rgba(0,170,255,0.07)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", width: 36, height: 36, borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "white"; }}
@@ -1556,8 +1568,8 @@ function Footer() {
       {/* Developer strip */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", background: "rgba(0,0,0,0.2)", padding: "0.85rem 1.5rem" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <span style={{ color: "#1e2d3d", fontSize: "0.73rem" }}>{f.devLabel}</span>
-          <a href={`https://wa.me/201007752842?text=${encodeURIComponent(f.devWaMessage)}`} target="_blank" rel="noreferrer"
+          <span style={{ color: "#1e2d3d", fontSize: "0.73rem" }}>{f.devLabel}{settings.dev_name ? ` — ${settings.dev_name}` : ""}</span>
+          <a href={devContactHref} target="_blank" rel="noreferrer"
             style={{ color: "#25D366", textDecoration: "none", fontSize: "0.73rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem", border: "1px solid rgba(37,211,102,0.18)", borderRadius: "20px", padding: "0.2rem 0.7rem", background: "rgba(37,211,102,0.05)", transition: "all 0.3s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.12)"; (e.currentTarget as HTMLElement).style.transform = "scale(1.04)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.05)"; (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>

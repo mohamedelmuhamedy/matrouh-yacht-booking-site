@@ -17,6 +17,12 @@ import {
 } from "../lib/siteFonts";
 
 const DEFAULTS: Record<string, string> = {
+  brand_name: "DR TRAVEL",
+  brand_short_name: "DR Travel",
+  brand_tagline_ar: "يخت سياحة وسفاري · مرسى مطروح",
+  brand_tagline_en: "Yacht Tourism & Safari",
+  dev_name: "Yousef Mostafa",
+  dev_contact_url: "https://wa.me/201007752842",
   business_name_ar: "DR Travel",
   business_name_en: "DR Travel",
   location_ar: "مرسى مطروح، مصر",
@@ -53,6 +59,19 @@ const DEFAULTS: Record<string, string> = {
 type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text" | "select"; hint?: string; options?: { value: string; label: string }[] };
 
 const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: string }[] = [
+  {
+    title: "العلامة التجارية / Branding",
+    icon: "🪪",
+    section: "branding",
+    keys: [
+      { key: "brand_name", label: "اسم العلامة (يظهر بالحروف الكبيرة في الهيدر والفوتر)", placeholder: "DR TRAVEL", hint: "ده الاسم اللي بيظهر جنب الشعار في الموقع كله — هيدر، فوتر، صفحة الأدمن، وصفحة المكافآت" },
+      { key: "brand_short_name", label: "الاسم القصير (يستخدم في النصوص والرسائل)", placeholder: "DR Travel", hint: "ده الاسم اللي بيظهر داخل الجمل، مثل 'ليه DR Travel؟' أو في رسائل الواتساب. غيّره وكل المواضع تتحدّث تلقائيًا" },
+      { key: "brand_tagline_ar", label: "الشعار النصي تحت اسم العلامة (عربي)", placeholder: "يخت سياحة وسفاري · مرسى مطروح" },
+      { key: "brand_tagline_en", label: "Brand tagline (English)", placeholder: "Yacht Tourism & Safari" },
+      { key: "dev_name", label: "اسم المطوّر (يظهر تحت اسم العلامة في الهيدر و في شريط الفوتر)", placeholder: "Yousef Mostafa", hint: "اسم اللي طوّر الموقع — هيظهر في الهيدر تحت اسم العلامة وفي شريط 'تواصل مع المطور' أسفل الفوتر" },
+      { key: "dev_contact_url", label: "رابط تواصل المطوّر", placeholder: "https://wa.me/201007752842", hint: "رابط الواتساب أو الموقع اللي زر 'تواصل مع المطور' بيوّدّي عليه" },
+    ],
+  },
   {
     title: "بيانات الشركة",
     icon: "🏢",

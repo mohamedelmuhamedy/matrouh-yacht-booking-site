@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
+import { useSiteData } from "../context/SiteDataContext";
 import ReferralSection from "../components/ReferralSection";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import CurrencySwitcher from "../components/CurrencySwitcher";
@@ -21,6 +22,7 @@ function GlobeIcon() {
 
 function RewardsNavbar() {
   const { t, lang, setLang } = useLanguage();
+  const { settings } = useSiteData();
   const [, navigate] = useLocation();
   const ar = lang === "ar";
 
@@ -34,8 +36,8 @@ function RewardsNavbar() {
             <span style={{ position: "absolute", bottom: 0, left: 0, width: 11, height: 11, borderRadius: "50%", background: "#25D366", border: "2px solid #0a1520" }} />
           </div>
           <div>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>DR TRAVEL</div>
-            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)" }}>Yousef Mostafa</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
+            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)" }}>{settings.dev_name || "Yousef Mostafa"}</div>
           </div>
         </div>
 
