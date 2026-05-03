@@ -82,11 +82,11 @@
   --modal-backdrop:    rgba(13,27,42,0.55);
   --scrollbar-track:   #e2e8f0;
   --navbar-scrolled:   rgba(255,255,255,0.92);
-  --hero-overlay-strong: rgba(13,27,42,0.55);
-  --hero-overlay-mid:    rgba(13,27,42,0.25);
+  --hero-overlay-strong: rgba(13,27,42,0.88);
+  --hero-overlay-mid:    rgba(13,27,42,0.42);
   --navbar-mobile:     rgba(255,255,255,0.97);
-  --hero-overlay-1:    rgba(13,27,42,0.55);
-  --hero-overlay-2:    rgba(13,27,42,0.25);
+  --hero-overlay-1:    rgba(13,27,42,0.85);
+  --hero-overlay-2:    rgba(13,27,42,0.4);
   --section-subtitle:  #64748b;
 }
 

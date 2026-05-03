@@ -330,7 +330,7 @@ export default function ServiceDetailPage() {
               padding: "1.75rem 2rem",
             }}>
               <p style={{
-                color: "#cbd5e1", fontSize: "1.05rem", lineHeight: 2,
+                color: "var(--text-secondary)", fontSize: "1.05rem", lineHeight: 2,
                 margin: 0, whiteSpace: "pre-line",
               }}>
                 {longDesc}
@@ -500,7 +500,7 @@ export default function ServiceDetailPage() {
             onClick={goHome}
             style={{
               background: "transparent",
-              color: "#cbd5e1",
+              color: "var(--text-secondary)",
               border: "1.5px solid var(--border-strong)",
               borderRadius: 14,
               padding: "0.95rem 2rem",
@@ -521,7 +521,7 @@ export default function ServiceDetailPage() {
             onMouseLeave={e => {
               e.currentTarget.style.background = "transparent";
               e.currentTarget.style.borderColor = "var(--border-strong)";
-              e.currentTarget.style.color = "#cbd5e1";
+              e.currentTarget.style.color = "var(--text-secondary)";
             }}
           >
             <span>{ar ? "→" : "←"}</span>
