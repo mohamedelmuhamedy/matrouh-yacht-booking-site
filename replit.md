@@ -16,6 +16,19 @@ pnpm monorepo with the following packages:
 - `lib/api-zod` — Generated Zod validation schemas
 - `scripts` — Utility scripts
 
+### Visual / e2e tests
+
+`artifacts/dr-travel/tests/` holds a Playwright suite that guards the
+theme system: toggle persistence + full-page screenshots of `/`,
+`/trips`, and `/admin/dashboard` in light + dark. Run with
+`pnpm --filter @workspace/dr-travel test:e2e`; refresh baselines with
+`test:e2e:update`. Config auto-starts both servers; admin login uses
+`ADMIN_USERNAME` / `ADMIN_PASSWORD` (defaults `admin` / `drtravel2024`).
+Baselines are committed under
+`artifacts/dr-travel/tests/visual.spec.ts-snapshots/` and
+`.github/workflows/visual-tests.yml` runs the suite on every PR. See
+`artifacts/dr-travel/tests/README.md`.
+
 ## Stack
 
 - **Frontend:** React 19, Vite v7, TypeScript, Tailwind CSS v4, Radix UI, TanStack Query, Wouter
