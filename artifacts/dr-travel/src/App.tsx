@@ -726,12 +726,14 @@ function Services() {
     ? dbServices.map(s => ({
         slug: s.slug,
         icon: s.icon,
+        color: s.color || "#00AAFF",
         name: ar ? s.titleAr : (s.titleEn || s.titleAr),
         desc: ar ? s.descriptionAr : (s.descriptionEn || s.descriptionAr),
       }))
     : t.services.items.map((s) => ({
         slug: undefined as string | undefined,
         icon: s.icon,
+        color: "#00AAFF",
         name: s.name,
         desc: s.desc,
       }));
@@ -771,14 +773,18 @@ function Services() {
                   style={{
                     ...(clickable ? { cursor: "pointer" } : {}),
                     ...(uniformCards ? { height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" } : {}),
+                    borderColor: `${service.color}33`,
+                    ["--svc-color" as string]: service.color,
                   }}
                   aria-label={clickable ? service.name : undefined}
                 >
-                  <div className="service-icon-wrap">{service.icon}</div>
+                  <div className="service-icon-wrap" style={{ background: `${service.color}18`, border: `1px solid ${service.color}30` }}>
+                    {service.icon}
+                  </div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.6rem" }}>{service.name}</h3>
                   <p style={{ color: "var(--section-subtitle)", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
                   {clickable && (
-                    <div className="service-card-cta">
+                    <div className="service-card-cta" style={{ color: service.color }}>
                       <span>{lang === "ar" ? "اعرف أكثر" : "Learn More"}</span>
                       <span className="service-card-cta-arrow">{lang === "ar" ? " ←" : " →"}</span>
                     </div>

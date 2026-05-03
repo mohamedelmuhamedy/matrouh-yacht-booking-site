@@ -329,8 +329,9 @@ html[dir="ltr"] {
 }
 .service-card:hover {
   transform: translateY(-10px);
-  border-color: rgba(0,170,255,0.35);
-  box-shadow: 0 20px 60px rgba(0,170,255,0.15), 0 0 0 1px rgba(0,170,255,0.1);
+  border-color: color-mix(in srgb, var(--svc-color, #00AAFF) 50%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--svc-color, #00AAFF) 20%, transparent),
+              0 0 0 1px color-mix(in srgb, var(--svc-color, #00AAFF) 15%, transparent);
 }
 .service-card:hover::before { opacity: 1; }
 
