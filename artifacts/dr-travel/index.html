@@ -190,6 +190,22 @@
     </style>
 
     <script>
+      // ── Theme: apply data-theme before first paint to prevent FOUC ──
+      (function() {
+        try {
+          var stored = localStorage.getItem('dr-theme');
+          var pref = (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system';
+          var theme = pref === 'system'
+            ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+            : pref;
+          document.documentElement.setAttribute('data-theme', theme);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f8fb' : '#0D1B2A');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+
       window.__drTravelInstallPrompt = null;
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();

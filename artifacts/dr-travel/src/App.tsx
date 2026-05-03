@@ -5,6 +5,7 @@ import { LanguageProvider, useLanguage } from "./LanguageContext";
 import { CurrencyProvider, useCurrency } from "./context/CurrencyContext";
 import { SiteDataProvider, useSiteData, type DBPackage, type DBTestimonial, type SiteSettings } from "./context/SiteDataContext";
 import CurrencySwitcher from "./components/CurrencySwitcher";
+import ThemeSwitch from "./components/ThemeSwitch";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
 import PackageDetail from "./pages/PackageDetail";
@@ -392,6 +393,7 @@ function Navbar() {
             </button>
             <CurrencySwitcher />
             <LangSwitcher />
+            <ThemeSwitch size="sm" />
             <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
               style={{ background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.55rem 1.25rem", borderRadius: "50px", fontWeight: 700, fontSize: "0.85rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.4rem", transition: "all 0.3s", boxShadow: "0 4px 16px rgba(37,211,102,0.3)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 22px rgba(37,211,102,0.45)"; }}
@@ -406,6 +408,7 @@ function Navbar() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <CurrencySwitcher />
             <LangSwitcher />
+            <ThemeSwitch size="sm" />
             <button onClick={() => setMenuOpen(!menuOpen)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
               {[0, 1, 2].map(i => (

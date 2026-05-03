@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAdmin, adminFetch } from "./AdminContext";
 import { apiUrl } from "../lib/api";
+import ThemeSwitch from "../components/ThemeSwitch";
 import "./admin-mobile.css";
 
 function useAdminBrandName() {
@@ -192,9 +193,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "0.9rem", letterSpacing: "1px" }}>
             {brandName}
           </div>
-          <a href="/" target="_blank" style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: 8, padding: "0.35rem 0.65rem" }}>
-            🌐
-          </a>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ThemeSwitch size="sm" />
+            <a href="/" target="_blank" style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: 8, padding: "0.35rem 0.65rem" }}>
+              🌐
+            </a>
+          </div>
         </header>
 
         {/* Drawer overlay */}
@@ -363,6 +367,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <span style={{ color: "#667788", fontSize: "0.8rem" }}>
               {new Date().toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </span>
+            <ThemeSwitch size="sm" />
             <a href="/" target="_blank" style={{ color: "#00AAFF", textDecoration: "none", fontSize: "0.85rem", fontWeight: 600 }}>
               🌐 عرض الموقع
             </a>
