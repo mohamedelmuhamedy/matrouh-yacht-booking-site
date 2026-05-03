@@ -134,7 +134,7 @@ export default function TripReminderBanner() {
         <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "#fff", marginBottom: 2 }}>
           {R.headline}
         </div>
-        <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis" }}>
           {subline}
         </div>
       </div>
@@ -163,7 +163,7 @@ export default function TripReminderBanner() {
         style={{
           background: "none",
           border: "none",
-          color: "var(--text-muted)",
+          color: "rgba(255,255,255,0.65)",
           fontSize: "1.05rem",
           cursor: "pointer",
           padding: "2px 6px",
