@@ -3,7 +3,9 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Ticket, { formatPhoneIntl, type TicketData } from "../components/Ticket";
-import { apiFetch, apiUrl } from "../lib/api";
+import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
+import { downloadQrPng } from "../components/ShareCardQR";
+import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -158,6 +160,32 @@ export default function BookingsPage() {
   };
 
   const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
+
+  const downloadTicketQr = async () => {
+    if (!ticketData || !ticketData.ticketToken) return;
+    setTicketBusy("qr");
+    try {
+      const s = ticketData.settings || {};
+      const url = ticketPublicUrl(ticketData.ticketToken);
+      const fg = s.card_qr_fg || "#0D1B2A";
+      const bg = s.card_qr_bg || "#FFFFFF";
+      const logoSrc = resolveApiAssetUrl(s.logo_url) || logoFallback;
+      const baseName = (s.brand_short_name || s.brand_name || "dr-travel")
+        .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      const ticketNo = ticketData.ticketNumber || `DRT-${String(ticketData.id).padStart(5, "0")}`;
+      const safeNo = ticketNo.replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      await downloadQrPng({
+        url, fg, bg, logoSrc, size: 1024, margin: 2,
+        filename: `${baseName}-ticket-${safeNo}-qr.png`,
+      });
+      success("تم تنزيل QR التذكرة");
+    } catch {
+      toastError("فشل توليد QR");
+    } finally {
+      setTicketBusy("");
+    }
+  };
+
   const ticketPdfAbsoluteUrl = (token: string) => {
     const u = apiUrl(`/api/tickets/${token}.pdf`);
     return /^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`;
@@ -541,6 +569,10 @@ export default function BookingsPage() {
               <button onClick={copyTicketLink} disabled={!ticketData || !!ticketBusy || ticketDownloading}
                 style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
                 🔗 {ticketBusy === "copy" ? "جاري التجهيز..." : "نسخ رابط PDF"}
+              </button>
+              <button onClick={downloadTicketQr} disabled={!ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading} title="تنزيل QR لصفحة التذكرة"
+                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && ticketData.ticketToken && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                📱 {ticketBusy === "qr" ? "جاري التجهيز..." : "تنزيل QR"}
               </button>
               {ticketData && ticketData.ticketToken && (
                 <a href={`/verify/${ticketData.ticketToken}${ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : ""}`} target="_blank" rel="noreferrer"

@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { storageObjectUrl } from "../lib/api";
+import { apiFetch, resolveApiAssetUrl, storageObjectUrl } from "../lib/api";
+import { downloadQrPng } from "../components/ShareCardQR";
+import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 
 const STATUS_BADGES: Record<string, { label: string; color: string; bg: string }> = {
   published: { label: "منشور", color: "#10B981", bg: "#10B98115" },
@@ -18,6 +20,8 @@ export default function PackagesPage() {
   const [confirmArchive, setConfirmArchive] = useState<any | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [duplicating, setDuplicating] = useState<number | null>(null);
+  const [qrBusy, setQrBusy] = useState<number | null>(null);
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const { success, error: toastError } = useToast();
 
   const load = () => {
@@ -28,6 +32,35 @@ export default function PackagesPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    apiFetch("/api/settings").then(r => r.json()).then(data => {
+      if (data && typeof data === "object") setSettings(data as Record<string, string>);
+    }).catch(() => { /* non-blocking */ });
+  }, []);
+
+  const downloadPackageQr = async (pkg: any) => {
+    if (!pkg.slug) { toastError("لا يمكن إنشاء QR بدون رابط الباقة"); return; }
+    setQrBusy(pkg.id);
+    try {
+      const url = `${window.location.origin}/packages/${pkg.slug}`;
+      const fg = settings.card_qr_fg || "#0D1B2A";
+      const bg = settings.card_qr_bg || "#FFFFFF";
+      const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoFallback;
+      const baseName = (settings.brand_short_name || settings.brand_name || "dr-travel")
+        .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      const slugSafe = String(pkg.slug).replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      await downloadQrPng({
+        url, fg, bg, logoSrc, size: 1024, margin: 2,
+        filename: `${baseName}-pkg-${slugSafe}-qr.png`,
+      });
+      success(`تم تنزيل QR للباقة "${pkg.titleAr}"`);
+    } catch {
+      toastError("فشل توليد QR");
+    } finally {
+      setQrBusy(null);
+    }
+  };
 
   const archivePackage = async (pkg: any) => {
     try {
@@ -169,6 +202,10 @@ export default function PackagesPage() {
                       <button onClick={() => duplicate(pkg.id, pkg.titleAr)} disabled={duplicating === pkg.id}
                         style={{ padding: "0.4rem 0.75rem", border: "1px solid #A855F730", borderRadius: "8px", cursor: "pointer", background: "#A855F708", color: "#A855F7", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: duplicating === pkg.id ? 0.6 : 1 }}>
                         📋 نسخ
+                      </button>
+                      <button onClick={() => downloadPackageQr(pkg)} disabled={qrBusy === pkg.id} title="تنزيل QR للباقة"
+                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #0D1B2A30", borderRadius: "8px", cursor: qrBusy === pkg.id ? "wait" : "pointer", background: "#0D1B2A08", color: "#0D1B2A", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: qrBusy === pkg.id ? 0.6 : 1 }}>
+                        {qrBusy === pkg.id ? "⏳ QR" : "📱 QR"}
                       </button>
                       <button onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}
                         style={{ padding: "0.4rem 0.75rem", border: "1px solid #00AAFF30", borderRadius: "8px", cursor: "pointer", background: "#00AAFF08", color: "#00AAFF", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>

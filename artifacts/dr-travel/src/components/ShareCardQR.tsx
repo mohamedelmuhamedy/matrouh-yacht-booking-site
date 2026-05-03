@@ -69,7 +69,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-async function generatePngDataUrl(opts: QRBaseProps): Promise<string> {
+export async function generatePngDataUrl(opts: QRBaseProps): Promise<string> {
   const { url, fg, bg, size, margin = 2, logoSrc } = opts;
   const canvas = document.createElement("canvas");
   await QRCode.toCanvas(canvas, url || " ", {
@@ -112,7 +112,7 @@ function escapeXml(value: string): string {
   }[ch] || ch));
 }
 
-async function generateSvg(opts: QRBaseProps): Promise<string> {
+export async function generateSvg(opts: QRBaseProps): Promise<string> {
   const { url, fg, bg, size, margin = 2, logoSrc } = opts;
   const baseSvg = await QRCode.toString(url || " ", {
     type: "svg",
@@ -162,6 +162,22 @@ async function generateSvg(opts: QRBaseProps): Promise<string> {
     svg = svg.replace("<svg ", `<svg xmlns:xlink="http://www.w3.org/1999/xlink" `);
   }
   return svg;
+}
+
+export type { QRBaseProps };
+
+export async function downloadQrPng(opts: QRBaseProps & { filename: string }): Promise<void> {
+  const dataUrl = await generatePngDataUrl(opts);
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = u;
+  a.download = opts.filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(u);
 }
 
 export function useQrPng(opts: QRBaseProps): string {
