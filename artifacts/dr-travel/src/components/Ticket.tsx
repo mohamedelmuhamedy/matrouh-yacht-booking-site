@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { resolveApiAssetUrl } from "../lib/api";
-import { useLanguage } from "../LanguageContext";
+import { ar as arT } from "../translations/ar";
+import { en as enT } from "../translations/en";
 
 export interface TicketData {
   id: number;
@@ -123,8 +124,7 @@ export interface TicketProps {
 export default function Ticket({ data, lang, publicUrl }: TicketProps) {
   const ar = lang === "ar";
   const dir = ar ? "rtl" : "ltr";
-  const { t: tr } = useLanguage();
-  const T = tr.ticket;
+  const T = (ar ? arT : enT).ticket;
   const s = data.settings || {};
   const [qrUrl, setQrUrl] = useState<string>("");
 
