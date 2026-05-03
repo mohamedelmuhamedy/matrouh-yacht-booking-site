@@ -7,6 +7,7 @@ import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
 import { downloadQrPng } from "../components/ShareCardQR";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import html2canvas from "html2canvas";
+import * as htmlToImage from "html-to-image";
 import jsPDF from "jspdf";
 import "./bookings.css";
 
@@ -457,23 +458,46 @@ export default function BookingsPage() {
     return pdf.output("blob");
   };
 
-  // Fast PNG download — single canvas capture, no PDF assembly, no upload.
+  // Fast PNG download using html-to-image (SVG foreignObject) — preserves
+  // gradients, radial backgrounds and SVG-data-URL patterns natively, so the
+  // ticket looks exactly like it does on screen (no sanitization needed).
   const downloadTicketImage = async () => {
     if (!ticketData) return;
+    if (!ticketRef.current) { toastError("فشل تجهيز الصورة"); return; }
     setTicketDownloading(true);
     try {
       if (ticketFieldsDirty) {
         const ok = await saveTicketFields();
         if (!ok) return;
       }
-      const canvas = await generateTicketCanvas();
-      if (!canvas) {
-        toastError("فشل تجهيز الصورة");
-        return;
-      }
-      const blob: Blob | null = await new Promise(resolve => {
-        try { canvas.toBlob(b => resolve(b), "image/png", 0.92); }
-        catch (err) { console.error("[downloadTicketImage] toBlob failed:", err); resolve(null); }
+      const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
+      if (!node) { toastError("فشل تجهيز الصورة"); return; }
+      // Wait for fonts + images so we don't capture a half-rendered ticket.
+      try {
+        const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
+        if (fonts?.ready) await fonts.ready;
+      } catch { /* ignore */ }
+      const imgs = Array.from(node.querySelectorAll("img"));
+      await Promise.all(imgs.map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>(resolve => {
+          const done = () => resolve();
+          img.addEventListener("load", done, { once: true });
+          img.addEventListener("error", done, { once: true });
+          setTimeout(done, 4000);
+        });
+      }));
+      await new Promise(r => setTimeout(r, 150));
+      const w = Math.ceil(node.offsetWidth || 800);
+      const h = Math.ceil(node.offsetHeight || 1130);
+      // pixelRatio 3 = retina-quality crisp text; cacheBust avoids stale image fetches.
+      const blob = await htmlToImage.toBlob(node, {
+        pixelRatio: 3,
+        cacheBust: true,
+        backgroundColor: "#ffffff",
+        width: w,
+        height: h,
+        style: { transform: "none", margin: "0" },
       });
       if (!blob) { toastError("فشل تجهيز الصورة"); return; }
       const safeName = (ticketData.name || "ticket").replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "ticket";
