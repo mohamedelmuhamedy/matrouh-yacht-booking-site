@@ -36,7 +36,7 @@ router.get("/admin/bookings", authMiddleware, async (req, res) => {
 
     const rows = await query.orderBy(desc(bookings.createdAt));
     return res.json(rows);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return res.status(500).json({ error: "Failed to fetch bookings" });
   }
 });
@@ -60,8 +60,36 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
       if (token) updated.ticketToken = token;
     }
     return res.json(updated);
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to update" });
+  } catch (err: unknown) {
+    return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to update" });
+  }
+});
+
+router.put("/admin/bookings/:id/ticket-fields", authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const body = req.body as {
+      meetingTime?: string;
+      pickupLocation?: string;
+      pickupLocationAr?: string;
+      supervisorName?: string;
+      supervisorPhone?: string;
+    };
+    const cap = (s: unknown, n: number) => String(s ?? "").slice(0, n);
+    const [updated] = await db.update(bookings).set({
+      meetingTime: cap(body.meetingTime, 64),
+      pickupLocation: cap(body.pickupLocation, 256),
+      pickupLocationAr: cap(body.pickupLocationAr, 256),
+      supervisorName: cap(body.supervisorName, 128),
+      supervisorPhone: cap(body.supervisorPhone, 32),
+      updatedAt: new Date(),
+    }).where(eq(bookings.id, id)).returning();
+    if (!updated) return res.status(404).json({ error: "Booking not found" });
+    return res.json(updated);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to update ticket fields";
+    return res.status(500).json({ error: msg });
   }
 });
 
@@ -76,8 +104,8 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res)
     }
     const token = await ensureTicketToken(id);
     return res.json({ token, bookingId: id });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to issue ticket" });
+  } catch (err: unknown) {
+    return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to issue ticket" });
   }
 });
 
@@ -92,8 +120,8 @@ router.put("/admin/bookings/:id/notes", authMiddleware, async (req, res) => {
       .returning();
     if (!updated) return res.status(404).json({ error: "Booking not found" });
     return res.json(updated);
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to update notes" });
+  } catch (err: unknown) {
+    return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to update notes" });
   }
 });
 
@@ -123,7 +151,7 @@ router.get("/admin/bookings/export/csv", authMiddleware, async (_req, res) => {
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="bookings-${new Date().toISOString().split("T")[0]}.csv"`);
     return res.send("\uFEFF" + csvRows.join("\n"));
-  } catch (err: any) {
+  } catch (err: unknown) {
     return res.status(500).json({ error: "Failed to export bookings" });
   }
 });
@@ -135,8 +163,8 @@ router.delete("/admin/bookings/:id", authMiddleware, async (req, res) => {
     const [deleted] = await db.delete(bookings).where(eq(bookings.id, id)).returning();
     if (!deleted) return res.status(404).json({ error: "Not found" });
     return res.json({ success: true });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to delete" });
+  } catch (err: unknown) {
+    return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to delete" });
   }
 });
 

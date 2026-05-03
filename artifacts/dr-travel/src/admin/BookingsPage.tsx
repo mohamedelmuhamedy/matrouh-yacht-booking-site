@@ -7,6 +7,45 @@ import { apiFetch } from "../lib/api";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+interface Booking {
+  id: number;
+  name: string;
+  phone: string;
+  packageId: number | null;
+  packageName: string;
+  packageNameAr: string;
+  date: string;
+  adults: number;
+  children: number;
+  infants: number;
+  notes: string;
+  adminNotes: string;
+  currency: string;
+  priceAtBooking: number | null;
+  status: string;
+  referralCode: string;
+  ticketToken: string | null;
+  meetingTime?: string;
+  pickupLocation?: string;
+  pickupLocationAr?: string;
+  supervisorName?: string;
+  supervisorPhone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TicketFieldsForm {
+  meetingTime: string;
+  pickupLocation: string;
+  pickupLocationAr: string;
+  supervisorName: string;
+  supervisorPhone: string;
+}
+
+const EMPTY_TICKET_FIELDS: TicketFieldsForm = {
+  meetingTime: "", pickupLocation: "", pickupLocationAr: "", supervisorName: "", supervisorPhone: "",
+};
+
 const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
   { value: "contacted", label: "تم التواصل", color: "#F59E0B" },
@@ -16,20 +55,23 @@ const STATUS_OPTIONS = [
 ];
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState<number | null>(null);
-  const [noteBooking, setNoteBooking] = useState<any | null>(null);
+  const [noteBooking, setNoteBooking] = useState<Booking | null>(null);
   const [noteText, setNoteText] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [ticketBooking, setTicketBooking] = useState<any | null>(null);
+  const [ticketBooking, setTicketBooking] = useState<Booking | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [ticketLang, setTicketLang] = useState<"ar" | "en">("ar");
   const [ticketLoading, setTicketLoading] = useState(false);
   const [ticketDownloading, setTicketDownloading] = useState(false);
+  const [ticketBusy, setTicketBusy] = useState<string>("");
+  const [ticketFields, setTicketFields] = useState<TicketFieldsForm>(EMPTY_TICKET_FIELDS);
+  const [ticketFieldsDirty, setTicketFieldsDirty] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
   const { success, error: toastError } = useToast();
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,7 +99,8 @@ export default function BookingsPage() {
     try {
       const r = await adminFetch(`/admin/bookings/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) });
       if (!r.ok) throw new Error();
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b));
+      const updated = await r.json() as Partial<Booking>;
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updated, status } : b));
       success("تم تحديث الحالة");
     } catch { toastError("فشل تحديث الحالة"); }
     setUpdating(null);
@@ -112,21 +155,36 @@ export default function BookingsPage() {
   };
 
   const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
+  const ticketPdfAbsoluteUrl = (token: string) => `${window.location.origin}/api/tickets/${token}.pdf`;
 
-  const openTicket = async (booking: any) => {
+  const reloadTicket = async (token: string): Promise<TicketData | null> => {
+    const dr = await apiFetch(`/api/tickets/${encodeURIComponent(token)}`);
+    if (!dr.ok) return null;
+    const data = await dr.json() as TicketData;
+    setTicketData(data);
+    setTicketFields({
+      meetingTime: data.meetingTime || "",
+      pickupLocation: data.pickupLocation || "",
+      pickupLocationAr: data.pickupLocationAr || "",
+      supervisorName: data.supervisorName || "",
+      supervisorPhone: data.supervisorPhone || "",
+    });
+    setTicketFieldsDirty(false);
+    return data;
+  };
+
+  const openTicket = async (booking: Booking) => {
     setTicketBooking(booking);
     setTicketData(null);
     setTicketLoading(true);
-    const initialLang: "ar" | "en" = (booking.packageNameAr && booking.packageNameAr.length > 0) ? "ar" : "en";
+    const initialLang: "ar" | "en" = booking.packageNameAr && booking.packageNameAr.length > 0 ? "ar" : "en";
     setTicketLang(initialLang);
     try {
       const tr = await adminFetch(`/admin/bookings/${booking.id}/issue-ticket`, { method: "POST" });
       if (!tr.ok) throw new Error();
-      const { token } = await tr.json();
-      const dr = await apiFetch(`/api/tickets/${encodeURIComponent(token)}`);
-      if (!dr.ok) throw new Error();
-      const data: TicketData = await dr.json();
-      setTicketData(data);
+      const { token } = await tr.json() as { token: string };
+      const data = await reloadTicket(token);
+      if (!data) throw new Error();
     } catch {
       toastError("فشل تجهيز التذكرة");
       setTicketBooking(null);
@@ -138,33 +196,71 @@ export default function BookingsPage() {
   const closeTicket = () => {
     setTicketBooking(null);
     setTicketData(null);
+    setTicketFields(EMPTY_TICKET_FIELDS);
+    setTicketFieldsDirty(false);
+    setTicketBusy("");
+  };
+
+  const saveTicketFields = async (): Promise<boolean> => {
+    if (!ticketBooking) return false;
+    try {
+      const r = await adminFetch(`/admin/bookings/${ticketBooking.id}/ticket-fields`, {
+        method: "PUT", body: JSON.stringify(ticketFields),
+      });
+      if (!r.ok) throw new Error();
+      setBookings(prev => prev.map(b => b.id === ticketBooking.id ? { ...b, ...ticketFields } : b));
+      if (ticketData?.ticketToken) await reloadTicket(ticketData.ticketToken);
+      setTicketFieldsDirty(false);
+      return true;
+    } catch {
+      toastError("فشل حفظ بيانات التذكرة");
+      return false;
+    }
+  };
+
+  const generateTicketBlob = async (): Promise<Blob | null> => {
+    if (!ticketRef.current || !ticketData) return null;
+    const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
+    if (!node) return null;
+    try {
+      const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
+      if (fonts?.ready) await fonts.ready;
+    } catch { /* ignore */ }
+    await new Promise(r => setTimeout(r, 280));
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 24;
+    const maxW = pageW - margin * 2;
+    const maxH = pageH - margin * 2;
+    const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+    const w = canvas.width * ratio;
+    const h = canvas.height * ratio;
+    const x = (pageW - w) / 2;
+    const y = (pageH - h) / 2;
+    pdf.addImage(imgData, "PNG", x, y, w, h);
+    return pdf.output("blob");
   };
 
   const downloadTicketPdf = async () => {
-    if (!ticketRef.current || !ticketData) return;
+    if (!ticketData) return;
     setTicketDownloading(true);
     try {
-      const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
-      if (!node) throw new Error("ticket node missing");
-      try { if (document.fonts && (document.fonts as any).ready) await (document.fonts as any).ready; } catch {}
-      // Wait for QR + images to settle
-      await new Promise(r => setTimeout(r, 250));
-      const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 24;
-      const maxW = pageW - margin * 2;
-      const maxH = pageH - margin * 2;
-      const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
-      const w = canvas.width * ratio;
-      const h = canvas.height * ratio;
-      const x = (pageW - w) / 2;
-      const y = (pageH - h) / 2;
-      pdf.addImage(imgData, "PNG", x, y, w, h);
+      if (ticketFieldsDirty) {
+        const ok = await saveTicketFields();
+        if (!ok) return;
+      }
+      const blob = await generateTicketBlob();
+      if (!blob) throw new Error();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
       const safeName = ticketData.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g, "").trim().replace(/\s+/g, "-").slice(0, 40) || "guest";
-      pdf.save(`dr-travel-ticket-${ticketData.id}-${safeName}.pdf`);
+      a.download = `dr-travel-ticket-${ticketData.id}-${safeName}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
       success("تم تنزيل التذكرة");
     } catch {
       toastError("فشل تنزيل التذكرة");
@@ -173,26 +269,58 @@ export default function BookingsPage() {
     }
   };
 
-  const sendTicketWhatsApp = () => {
+  const uploadTicketPdfToServer = async (): Promise<string | null> => {
+    if (!ticketBooking || !ticketData) return null;
+    if (ticketFieldsDirty) {
+      const ok = await saveTicketFields();
+      if (!ok) return null;
+    }
+    const blob = await generateTicketBlob();
+    if (!blob) { toastError("فشل توليد ملف PDF"); return null; }
+    const r = await adminFetch(`/admin/bookings/${ticketBooking.id}/ticket-pdf`, {
+      method: "POST", headers: { "Content-Type": "application/pdf" }, body: blob,
+    });
+    if (!r.ok) { toastError("فشل رفع ملف PDF"); return null; }
+    const j = await r.json() as { token: string; url: string };
+    if (ticketData.ticketToken) await reloadTicket(ticketData.ticketToken);
+    return ticketPdfAbsoluteUrl(j.token);
+  };
+
+  const sendTicketWhatsApp = async () => {
     if (!ticketData || !ticketData.ticketToken) return;
-    const url = ticketPublicUrl(ticketData.ticketToken);
-    const intl = formatPhoneIntl(ticketData.phone);
-    const ar = ticketLang === "ar";
-    const pkg = ar ? (ticketData.packageNameAr || ticketData.packageName) : (ticketData.packageName || ticketData.packageNameAr);
-    const msg = ar
-      ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: DRT-${String(ticketData.id).padStart(5, "0")}\n\nرابط التذكرة:\n${url}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
-      : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: DRT-${String(ticketData.id).padStart(5, "0")}\n\nTicket link:\n${url}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
-    window.open(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+    setTicketBusy("whatsapp");
+    try {
+      const pdfUrl = await uploadTicketPdfToServer();
+      if (!pdfUrl) return;
+      const verifyUrl = ticketPublicUrl(ticketData.ticketToken);
+      const intl = formatPhoneIntl(ticketData.phone);
+      const ar = ticketLang === "ar";
+      const pkg = ar ? ticketData.packageNameAr || ticketData.packageName : ticketData.packageName || ticketData.packageNameAr;
+      const ticketNo = `DRT-${String(ticketData.id).padStart(5, "0")}`;
+      const msg = ar
+        ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
+        : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
+      window.open(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+      success("تم تجهيز رسالة الواتساب");
+    } finally {
+      setTicketBusy("");
+    }
   };
 
   const copyTicketLink = async () => {
     if (!ticketData || !ticketData.ticketToken) return;
-    const url = ticketPublicUrl(ticketData.ticketToken);
+    setTicketBusy("copy");
     try {
-      await navigator.clipboard.writeText(url);
-      success("تم نسخ رابط التذكرة");
-    } catch {
-      toastError("تعذر نسخ الرابط");
+      const pdfUrl = await uploadTicketPdfToServer();
+      if (!pdfUrl) return;
+      try {
+        await navigator.clipboard.writeText(pdfUrl);
+        success("تم نسخ رابط ملف PDF");
+      } catch {
+        toastError("تعذر نسخ الرابط");
+      }
+    } finally {
+      setTicketBusy("");
     }
   };
 
@@ -359,24 +487,50 @@ export default function BookingsPage() {
               </div>
             </div>
 
+            {/* Editable trip operations */}
+            <div style={{ background: "white", borderRadius: 12, padding: "0.85rem 1rem", border: "1px solid #e2e8f0", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.6rem" }}>
+              <FieldInput label="وقت الانطلاق" placeholder="مثال: 8:00 صباحاً" value={ticketFields.meetingTime}
+                onChange={v => { setTicketFields(p => ({ ...p, meetingTime: v })); setTicketFieldsDirty(true); }} />
+              <FieldInput label="نقطة التجمع (عربي)" placeholder="مثال: مرسى مطروح، أمام الفندق" value={ticketFields.pickupLocationAr}
+                onChange={v => { setTicketFields(p => ({ ...p, pickupLocationAr: v })); setTicketFieldsDirty(true); }} />
+              <FieldInput label="Pickup (English)" placeholder="ex: Marsa Matruh, hotel lobby" value={ticketFields.pickupLocation}
+                onChange={v => { setTicketFields(p => ({ ...p, pickupLocation: v })); setTicketFieldsDirty(true); }} />
+              <FieldInput label="اسم المشرف" placeholder="مثال: أحمد سيد" value={ticketFields.supervisorName}
+                onChange={v => { setTicketFields(p => ({ ...p, supervisorName: v })); setTicketFieldsDirty(true); }} />
+              <FieldInput label="هاتف المشرف" placeholder="01XXXXXXXXX" value={ticketFields.supervisorPhone}
+                onChange={v => { setTicketFields(p => ({ ...p, supervisorPhone: v })); setTicketFieldsDirty(true); }} />
+              <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <button onClick={saveTicketFields} disabled={!ticketFieldsDirty}
+                  style={{ background: ticketFieldsDirty ? "#0D1B2A" : "#cbd5e1", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>
+                  💾 حفظ بيانات الرحلة
+                </button>
+              </div>
+            </div>
+
             {/* Action bar */}
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading}
-                style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading ? 0.6 : 1 }}>
+              <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading || !!ticketBusy}
+                style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>
                 ⬇️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل PDF"}
               </button>
-              <button onClick={sendTicketWhatsApp} disabled={!ticketData}
-                style={{ background: "#25D366", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData ? 0.6 : 1 }}>
-                💬 إرسال على واتساب
+              <button onClick={sendTicketWhatsApp} disabled={!ticketData || !!ticketBusy || ticketDownloading}
+                style={{ background: "#25D366", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                💬 {ticketBusy === "whatsapp" ? "جاري التجهيز..." : "إرسال على واتساب"}
               </button>
-              <button onClick={copyTicketLink} disabled={!ticketData}
-                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData ? 0.6 : 1 }}>
-                🔗 نسخ الرابط
+              <button onClick={copyTicketLink} disabled={!ticketData || !!ticketBusy || ticketDownloading}
+                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                🔗 {ticketBusy === "copy" ? "جاري التجهيز..." : "نسخ رابط PDF"}
               </button>
               {ticketData && ticketData.ticketToken && (
                 <a href={ticketPublicUrl(ticketData.ticketToken)} target="_blank" rel="noreferrer"
                   style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
                   ↗️ صفحة التحقق
+                </a>
+              )}
+              {ticketData?.pdfUrl && (
+                <a href={ticketData.pdfUrl} target="_blank" rel="noreferrer"
+                  style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
+                  📄 آخر PDF منشور
                 </a>
               )}
             </div>
@@ -420,5 +574,18 @@ function FilterTab({ value, current, count, label, color, onClick }: { value: st
       style={{ background: active ? color : "white", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s" }}>
       {label} {count > 0 && <span style={{ background: active ? "rgba(255,255,255,0.3)" : `${color}20`, borderRadius: "50px", padding: "0.1rem 0.4rem", marginRight: "0.25rem" }}>{count}</span>}
     </button>
+  );
+}
+
+function FieldInput({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (v: string) => void }) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ fontSize: "0.7rem", color: "#475569", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>{label}</span>
+      <input
+        type="text" value={value} placeholder={placeholder}
+        onChange={e => onChange(e.target.value)}
+        style={{ padding: "0.45rem 0.65rem", borderRadius: 8, border: "1px solid #cbd5e1", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", outline: "none", background: "white" }}
+      />
+    </label>
   );
 }

@@ -19,7 +19,12 @@ export const bookings = pgTable("bookings", {
   priceAtBooking: integer("price_at_booking"),
   status: text("status").notNull().default("new"),
   referralCode: text("referral_code").notNull().default(""),
-  ticketToken: text("ticket_token"),
+  ticketToken: text("ticket_token").unique(),
+  meetingTime: text("meeting_time").notNull().default(""),
+  pickupLocation: text("pickup_location").notNull().default(""),
+  pickupLocationAr: text("pickup_location_ar").notNull().default(""),
+  supervisorName: text("supervisor_name").notNull().default(""),
+  supervisorPhone: text("supervisor_phone").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

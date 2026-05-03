@@ -18,8 +18,15 @@ export interface TicketData {
   currency: string;
   priceAtBooking?: number | null;
   status: string;
+  meetingTime?: string | null;
+  pickupLocation?: string | null;
+  pickupLocationAr?: string | null;
+  supervisorName?: string | null;
+  supervisorPhone?: string | null;
   issuedAt?: string | Date | null;
   createdAt?: string | Date | null;
+  pdfAvailable?: boolean;
+  pdfUrl?: string | null;
   settings: Record<string, string>;
 }
 
@@ -104,17 +111,27 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
     name: "الاسم", phone: "الهاتف", pkg: "الباقة", date: "تاريخ الرحلة",
     adults: "بالغون", children: "أطفال", infants: "رضع", total: "الإجمالي", price: "إجمالي السعر",
     notesLbl: "ملاحظات", notice: "يرجى التواجد قبل ٣٠ دقيقة من موعد الانطلاق",
-    verify: "امسح الكود للتحقق من التذكرة", verifyShort: "تحقق",
-    contact: "للاستفسار", brand: brand, tagline,
+    verify: "امسح الكود للتحقق من التذكرة",
+    contact: "للاستفسار",
+    meetingTime: "وقت الانطلاق", pickup: "نقطة التجمع", supervisor: "المشرف المسؤول",
   } : {
     ticket: "Booking Ticket", confirmed: "Confirmed", number: "Ticket No.", issued: "Issued",
     customer: "Customer Details", trip: "Trip Details", group: "Group Size",
     name: "Name", phone: "Phone", pkg: "Package", date: "Trip Date",
     adults: "Adults", children: "Children", infants: "Infants", total: "Total", price: "Total Price",
     notesLbl: "Notes", notice: "Please arrive 30 minutes before departure",
-    verify: "Scan to verify this ticket", verifyShort: "Verify",
-    contact: "For inquiries", brand, tagline,
+    verify: "Scan to verify this ticket",
+    contact: "For inquiries",
+    meetingTime: "Departure Time", pickup: "Pickup Point", supervisor: "Trip Supervisor",
   };
+
+  const pickupTxt = ar
+    ? (data.pickupLocationAr || data.pickupLocation || "")
+    : (data.pickupLocation || data.pickupLocationAr || "");
+  const supervisorTxt = data.supervisorName
+    ? (data.supervisorPhone ? `${data.supervisorName} · ${data.supervisorPhone}` : data.supervisorName)
+    : "";
+  const hasOps = !!(data.meetingTime || pickupTxt || supervisorTxt);
 
   return (
     <div
@@ -199,10 +216,17 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
 
         {/* trip block */}
         <SectionTitle accent={BRAND.gold}>{T.trip}</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, marginBottom: hasOps ? 12 : 14 }}>
           <StatField label={T.pkg} value={pkg || "—"} accent={BRAND.gold} />
           <StatField label={T.date} value={formatDate(data.date, lang)} accent={BRAND.gold} />
+          <StatField label={T.meetingTime} value={data.meetingTime || "—"} accent={BRAND.gold} />
         </div>
+        {hasOps && (pickupTxt || supervisorTxt) && (
+          <div style={{ display: "grid", gridTemplateColumns: pickupTxt && supervisorTxt ? "1fr 1fr" : "1fr", gap: 12, marginBottom: 14 }}>
+            {pickupTxt ? <StatField label={T.pickup} value={pickupTxt} accent={BRAND.gold} /> : null}
+            {supervisorTxt ? <StatField label={T.supervisor} value={supervisorTxt} accent={BRAND.gold} /> : null}
+          </div>
+        )}
 
         {/* group block */}
         <SectionTitle accent="#10B981">{T.group}</SectionTitle>
