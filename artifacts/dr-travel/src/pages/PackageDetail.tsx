@@ -7,6 +7,7 @@ import { getPackageBySlug, getSimilarPackages, PACKAGES_DATA } from "../data/pac
 import { formatPrice } from "../data/currencies";
 import { usePersonalization } from "../hooks/usePersonalization";
 import { apiFetch, storageObjectUrl } from "../lib/api";
+import DatePicker from "../components/DatePicker";
 
 const WhatsAppIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -776,11 +777,13 @@ export default function PackageDetail() {
                   </div>
                   <div>
                     <label className="book-label">{ar ? "تاريخ الرحلة" : "Trip Date"}</label>
-                    <input className={`book-field${bookErrors.date ? " book-error" : ""}`}
-                      type="date" dir="ltr"
-                      min={new Date().toISOString().split("T")[0]}
+                    <DatePicker
                       value={bookForm.date}
-                      onChange={e => { setBookForm(f => ({ ...f, date: e.target.value })); setBookErrors(x => ({ ...x, date: "" })); setBookSubmitError(""); }} />
+                      onChange={v => { setBookForm(f => ({ ...f, date: v })); setBookErrors(x => ({ ...x, date: "" })); setBookSubmitError(""); }}
+                      min={new Date().toISOString().split("T")[0]}
+                      lang={ar ? "ar" : "en"}
+                      hasError={!!bookErrors.date}
+                    />
                     {bookErrors.date && <div style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{bookErrors.date}</div>}
                   </div>
                 </div>

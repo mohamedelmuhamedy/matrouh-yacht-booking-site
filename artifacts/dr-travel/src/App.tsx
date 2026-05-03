@@ -24,6 +24,7 @@ import PushPrompt from "./components/PushPrompt";
 import TripReminderBanner from "./components/TripReminderBanner";
 import { PACKAGES_DATA } from "./data/packages";
 import HeroSlider from "./components/HeroSlider";
+import DatePicker from "./components/DatePicker";
 import { formatPrice, CurrencyCode } from "./data/currencies";
 import { apiFetch, resolveApiAssetUrl } from "./lib/api";
 import {
@@ -1095,7 +1096,13 @@ function PackagesAndBooking() {
                     {/* Date */}
                     <div>
                       <label style={labelStyle}>{bk.date}</label>
-                      <input type="date" {...inp("date")} style={{ colorScheme: "dark" }} min={today} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                      <DatePicker
+                        value={form.date}
+                        onChange={v => setForm({ ...form, date: v })}
+                        min={today}
+                        lang={lang as "ar" | "en"}
+                        hasError={!!errors.date}
+                      />
                       {errors.date && <p style={{ color: "#ff6b6b", fontSize: "0.75rem", marginTop: "0.3rem" }}>{errors.date}</p>}
                     </div>
 
