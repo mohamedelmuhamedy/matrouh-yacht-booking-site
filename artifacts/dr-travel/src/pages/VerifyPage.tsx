@@ -85,7 +85,7 @@ export default function VerifyPage() {
       case "used": return { color: "#F59E0B", icon: "🟡", label: T.used, desc: T.descUsed };
       case "cancelled": return { color: "#EF4444", icon: "🚫", label: T.cancelled, desc: T.descCancelled };
       case "invalid": return { color: "#EF4444", icon: "❌", label: T.invalid, desc: T.descInvalid };
-      default: return { color: "var(--text-muted)", icon: "⏳", label: T.loading, desc: "" };
+      default: return { color: "rgba(255,255,255,0.55)", icon: "⏳", label: T.loading, desc: "" };
     }
   })();
 
@@ -118,14 +118,14 @@ export default function VerifyPage() {
             padding: "5px 18px", borderRadius: 50, fontSize: 13, fontWeight: 800, letterSpacing: 1,
             textTransform: "uppercase",
           }}>{meta.label}</div>
-          <div style={{ marginTop: 10, color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.6, fontWeight: 600 }}>
+          <div style={{ marginTop: 10, color: "#475569", fontSize: 14, lineHeight: 1.6, fontWeight: 600 }}>
             {meta.desc}
           </div>
 
           {t && (
             <div style={{
               marginTop: 18, textAlign: ar ? "right" : "left",
-              background: "var(--bg-surface)", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px",
+              background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px",
               display: "flex", flexDirection: "column", gap: 8,
             }}>
               <Row label={T.ticketNo} value={<code style={{ direction: "ltr", display: "inline-block", color: NAVY, fontWeight: 800 }}>{t.ticketNumber}</code>} />
@@ -168,7 +168,7 @@ export default function VerifyPage() {
           )}
         </div>
 
-        <div style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
+        <div style={{ textAlign: "center", color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
           🔒 {T.poweredBy}
         </div>
       </div>
@@ -179,7 +179,7 @@ export default function VerifyPage() {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
-      <span style={{ color: "var(--text-secondary)", fontWeight: 700 }}>{label}</span>
+      <span style={{ color: "#475569", fontWeight: 700 }}>{label}</span>
       <span style={{ color: NAVY, fontWeight: 700, textAlign: "end", maxWidth: "60%", wordBreak: "break-word" }}>{value}</span>
     </div>
   );
