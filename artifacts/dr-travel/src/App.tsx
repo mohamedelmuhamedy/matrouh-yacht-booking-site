@@ -412,7 +412,7 @@ function Navbar() {
             <button onClick={() => setMenuOpen(!menuOpen)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
               {[0, 1, 2].map(i => (
-                <span key={i} style={{ width: 24, height: 2, background: "white", display: "block", borderRadius: "2px", transition: "all 0.3s",
+                <span key={i} style={{ width: 24, height: 2, background: "var(--text-primary)", display: "block", borderRadius: "2px", transition: "all 0.3s",
                   transform: i === 0 && menuOpen ? "rotate(45deg) translate(5px,5px)" : i === 2 && menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none",
                   opacity: i === 1 && menuOpen ? 0 : 1 }} />
               ))}
@@ -423,11 +423,11 @@ function Navbar() {
 
       {/* Mobile menu */}
       {isMobile && (
-        <div style={{ overflow: "hidden", maxHeight: menuOpen ? "500px" : "0", transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)", background: "rgba(8,16,26,0.98)", backdropFilter: "blur(20px)" }}>
-          <div style={{ padding: "0.75rem 1.5rem 1.25rem", borderTop: "1px solid rgba(0,170,255,0.15)" }}>
+        <div style={{ overflow: "hidden", maxHeight: menuOpen ? "500px" : "0", transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)", background: "var(--navbar-mobile)", backdropFilter: "blur(20px)" }}>
+          <div style={{ padding: "0.75rem 1.5rem 1.25rem", borderTop: "1px solid var(--border)" }}>
             {navLinks.map(link => (
               <button key={link.href} onClick={() => scrollTo(link.href)}
-                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "rgba(255,255,255,0.88)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid rgba(255,255,255,0.08)", transition: "color 0.2s" }}>
+                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "var(--text-primary)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid var(--border)", transition: "color 0.2s" }}>
                 {link.label}
               </button>
             ))}
@@ -775,9 +775,9 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
   if (packages.length === 0) return null;
   const ar = lang === "ar";
   return (
-    <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "rgba(8,16,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,170,255,0.25)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+    <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "var(--navbar-mobile)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, flexWrap: "wrap" }}>
-        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem", flexShrink: 0 }}>
+        <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem", flexShrink: 0 }}>
           {ar ? `${packages.length} باقات للمقارنة` : `${packages.length} packages to compare`}
         </span>
         {packages.map(p => (

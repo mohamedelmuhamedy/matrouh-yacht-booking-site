@@ -63,7 +63,7 @@ const LINK_FIELDS: { key: string; toggleKey: string; valueKey: string; labelAr: 
   { key: "maps",      toggleKey: "card_show_maps",      valueKey: "maps_url",        labelAr: "موقع جوجل ماب",               labelEn: "Google Maps",     placeholder: "https://maps.google.com/?q=...", type: "url" },
 ];
 
-const SOLID_COLOR_PRESETS = ["#0D1B2A", "var(--bg-page-2)", "#1a3a5c", "#0e3a1f", "#3a2a10", "#2d0e2e", "#000000"];
+const SOLID_COLOR_PRESETS = ["#0D1B2A", "#10243a", "#1a3a5c", "#0e3a1f", "#3a2a10", "#2d0e2e", "#000000"];
 const ACCENT_COLOR_PRESETS = ["#00AAFF", "#C9A84C", "#25D366", "#A855F7", "#EC4899", "#F97316", "#16a34a", "#06B6D4"];
 
 export default function AdminShareCardPage() {

@@ -67,7 +67,7 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
   }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: "white", borderRadius: 14, border: "1.5px solid #e0e8f0",
+    background: "var(--bg-surface-solid)", borderRadius: 14, border: "1.5px solid var(--border)",
     padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem",
     direction: ar ? "rtl" : "ltr",
   };
@@ -89,12 +89,12 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
   return (
     <div style={cardStyle}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>{tx.title}</h3>
+        <h3 style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem" }}>{tx.title}</h3>
         <button type="button" onClick={load} disabled={loading}
           style={{
             padding: "0.45rem 0.9rem", borderRadius: 8,
-            border: "1.5px solid #d0dce8", background: "white",
-            color: "#0D1B2A", fontWeight: 800, fontSize: "0.78rem",
+            border: "1.5px solid var(--border-strong)", background: "var(--bg-surface-solid)",
+            color: "var(--text-primary)", fontWeight: 800, fontSize: "0.78rem",
             fontFamily: "Cairo, sans-serif", cursor: loading ? "wait" : "pointer",
           }}>
           {loading ? tx.loading : tx.refresh}
@@ -140,7 +140,7 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
                   return (
                     <tr key={row.source || `__none_${i}`} style={{ borderTop: "1px solid #eef2f6" }}>
                       <td style={tdStyle(ar)}>
-                        <span style={{ color: "#0D1B2A", fontWeight: 700 }}>{label}</span>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{label}</span>
                         {row.source && (
                           <span style={{ color: "var(--section-subtitle)", marginInlineStart: "0.5rem", direction: "ltr", fontSize: "0.78rem" }}>
                             ?s={row.source}
@@ -172,8 +172,8 @@ const thStyleNum: React.CSSProperties = {
 };
 const tdStyle = (ar: boolean): React.CSSProperties => ({
   textAlign: ar ? "right" : "left",
-  padding: "0.55rem 0.7rem", color: "#0D1B2A",
+  padding: "0.55rem 0.7rem", color: "var(--text-primary)",
 });
 const tdStyleNum: React.CSSProperties = {
-  textAlign: "center", padding: "0.55rem 0.7rem", color: "#0D1B2A", fontWeight: 700,
+  textAlign: "center", padding: "0.55rem 0.7rem", color: "var(--text-primary)", fontWeight: 700,
 };
