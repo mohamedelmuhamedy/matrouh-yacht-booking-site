@@ -991,7 +991,13 @@ function PackagesAndBooking() {
             const whyTrip = lang === "ar" ? pkg.whyThisTripAr : pkg.whyThisTripEn;
             return (
               <div key={pkg.id} className="pkg-card-anim" style={{ animationDelay: `${i * 75}ms` }}>
-                <div className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`}>
+                <div
+                  role={pkg.slug ? "link" : undefined}
+                  tabIndex={pkg.slug ? 0 : undefined}
+                  onClick={() => { if (pkg.slug) navigate(`/packages/${pkg.slug}`); }}
+                  onKeyDown={e => { if (pkg.slug && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); navigate(`/packages/${pkg.slug}`); } }}
+                  className={`pkg-card${pkg.featured ? " featured" : ""}${selectedPkg?.id === pkg.id ? " selected" : ""}`}
+                  style={{ cursor: pkg.slug ? "pointer" : "default" }}>
                   {pkg.badge && (
                     <div style={{ position: "absolute", top: "1rem", insetInlineStart: "1rem", background: pkg.badgeColor!, color: pkg.featured ? "#0D1B2A" : "white", padding: "0.25rem 0.75rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 800 }}>
                       {pkg.badge}
@@ -1038,7 +1044,7 @@ function PackagesAndBooking() {
                           {formatPrice(pkg.priceNum, currency as CurrencyCode, lang, settings)}
                         </div>
                       </div>
-                      <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "var(--bg-surface-2)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "var(--section-subtitle)", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "var(--border)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+                      <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "linear-gradient(135deg,#00AAFF,#0086C9)") : "var(--bg-surface-2)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "var(--text-primary)", border: `1.5px solid ${selectedPkg?.id === pkg.id ? "transparent" : "var(--border-strong)"}`, borderRadius: "12px", padding: "0.85rem 1.6rem", fontSize: "0.95rem", fontWeight: 800, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif", boxShadow: selectedPkg?.id === pkg.id ? "0 8px 22px rgba(0,170,255,0.35)" : "none", minWidth: 120 }}>
                         {selectedPkg?.id === pkg.id ? t.packages.selectedBtn : t.packages.selectBtn}
                       </button>
                     </div>
