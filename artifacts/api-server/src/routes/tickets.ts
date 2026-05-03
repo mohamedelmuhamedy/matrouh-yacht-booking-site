@@ -217,6 +217,7 @@ router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
       return res.json({
         ok: true,
         already: true,
+        status: "used",
         ticketUsedAt: b.ticketUsedAt,
         ticketUsedBy: b.ticketUsedBy,
       });
@@ -226,7 +227,7 @@ router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
     await db.update(bookings)
       .set({ ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
       .where(eq(bookings.id, b.id));
-    return res.json({ ok: true, already: false, ticketUsedAt: usedAt, ticketUsedBy: adminUser });
+    return res.json({ ok: true, already: false, status: "used", ticketUsedAt: usedAt, ticketUsedBy: adminUser });
   } catch (err) {
     console.error("[tickets.use] error:", err);
     return res.status(500).json({ error: "Failed to mark ticket as used" });
