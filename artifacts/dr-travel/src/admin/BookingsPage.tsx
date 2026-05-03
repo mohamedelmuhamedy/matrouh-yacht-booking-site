@@ -118,6 +118,8 @@ export default function BookingsPage() {
   const [ticketBusy, setTicketBusy] = useState<string>("");
   const [ticketFields, setTicketFields] = useState<TicketFieldsForm>(EMPTY_TICKET_FIELDS);
   const [ticketFieldsDirty, setTicketFieldsDirty] = useState(false);
+  const [autoTicketAction, setAutoTicketAction] = useState<"whatsapp" | "download" | null>(null);
+  const pendingWhatsAppPopupRef = useRef<Window | null>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
   const { success, error: toastError } = useToast();
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -133,6 +135,27 @@ export default function BookingsPage() {
   };
 
   useEffect(() => { load(); }, [filter]);
+
+  // Auto-run download / WhatsApp once the ticket is fully loaded after a row
+  // shortcut click ("⬇️ تنزيل PDF" / "📤 إرسال للعميل").
+  useEffect(() => {
+    if (!autoTicketAction) return;
+    if (!ticketData || ticketLoading) return;
+    const action = autoTicketAction;
+    setAutoTicketAction(null);
+    (async () => {
+      // Give the off-screen Ticket a frame to mount + fonts/images to settle.
+      await new Promise(r => setTimeout(r, 350));
+      try {
+        if (action === "download") await downloadTicketPdf();
+        else if (action === "whatsapp") await sendTicketWhatsApp();
+      } finally {
+        // Auto-close the modal so the row-shortcut feels like a one-click op.
+        setTimeout(() => closeTicket(), 600);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketData, ticketLoading, autoTicketAction]);
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
@@ -248,12 +271,17 @@ export default function BookingsPage() {
     return data;
   };
 
-  const openTicket = async (booking: Booking) => {
-    if (booking.status !== "confirmed") {
-      toastError("يجب تأكيد الحجز أولاً قبل إصدار التذكرة");
-      return;
+  const openTicket = async (booking: Booking, autoAction?: "whatsapp" | "download") => {
+    // For auto-WhatsApp from a row click we must open the popup synchronously
+    // inside the gesture so popup-blockers do not swallow it after the async
+    // ticket-load + PDF upload chain.
+    if (autoAction === "whatsapp") {
+      // Do NOT pass "noopener" here — we need to keep the popup reference so
+      // we can redirect it to wa.me after the async upload finishes.
+      pendingWhatsAppPopupRef.current = window.open("about:blank", "_blank");
     }
     setTicketBooking(booking);
+    setAutoTicketAction(autoAction || null);
     setTicketData(null);
     setTicketLoading(true);
     const initialLang: "ar" | "en" = booking.packageNameAr && booking.packageNameAr.length > 0 ? "ar" : "en";
@@ -272,17 +300,28 @@ export default function BookingsPage() {
       console.error("[openTicket]", err);
       toastError(msg ? `فشل تجهيز التذكرة: ${msg}` : "فشل تجهيز التذكرة");
       setTicketBooking(null);
+      // Close any popup pre-opened for an autoAction so it doesn't orphan.
+      if (pendingWhatsAppPopupRef.current && !pendingWhatsAppPopupRef.current.closed) {
+        pendingWhatsAppPopupRef.current.close();
+      }
+      pendingWhatsAppPopupRef.current = null;
+      setAutoTicketAction(null);
     } finally {
       setTicketLoading(false);
     }
   };
 
   const closeTicket = () => {
+    if (pendingWhatsAppPopupRef.current && !pendingWhatsAppPopupRef.current.closed) {
+      pendingWhatsAppPopupRef.current.close();
+    }
+    pendingWhatsAppPopupRef.current = null;
     setTicketBooking(null);
     setTicketData(null);
     setTicketFields(EMPTY_TICKET_FIELDS);
     setTicketFieldsDirty(false);
     setTicketBusy("");
+    setAutoTicketAction(null);
   };
 
   const saveTicketFields = async (): Promise<boolean> => {
@@ -466,10 +505,11 @@ export default function BookingsPage() {
 
   const sendTicketWhatsApp = async () => {
     if (!ticketData || !ticketData.ticketToken) return;
-    // Open the popup synchronously (with a placeholder URL) inside the click
-    // gesture, then redirect once the upload is ready. This avoids popup
-    // blockers swallowing the wa.me link after our async upload.
-    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
+    // Reuse a popup that was opened earlier inside a click gesture (e.g. from
+    // the row "إرسال للعميل" button); otherwise open one now.
+    const popup = pendingWhatsAppPopupRef.current
+      || window.open("about:blank", "_blank");
+    pendingWhatsAppPopupRef.current = null;
     setTicketBusy("whatsapp");
     try {
       const pdfUrl = await uploadTicketPdfToServer();
@@ -485,6 +525,8 @@ export default function BookingsPage() {
         : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
       const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
       if (popup && !popup.closed) {
+        // Sever opener BEFORE navigating cross-origin to prevent reverse-tabnabbing.
+        try { (popup as Window & { opener: Window | null }).opener = null; } catch { /* ignore */ }
         popup.location.href = waUrl;
       } else {
         window.open(waUrl, "_blank", "noopener,noreferrer");
@@ -718,11 +760,15 @@ export default function BookingsPage() {
                       <select value={b.status} disabled={updating === b.id} onChange={e => updateStatus(b.id, e.target.value)} className="bk-status-select">
                         {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
-                      {b.status === "confirmed" && (
-                        <button className="bk-btn is-ticket" onClick={() => openTicket(b)} title="تذكرة الحجز">
-                          🎫 تذكرة
-                        </button>
-                      )}
+                      <button className="bk-btn is-ticket" onClick={() => openTicket(b)} title="تذكرة الحجز">
+                        🎫 تذكرة
+                      </button>
+                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "whatsapp")} title="إرسال التذكرة على واتساب العميل مباشرة">
+                        📤 إرسال للعميل
+                      </button>
+                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
+                        ⬇️ تنزيل PDF
+                      </button>
                       <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer" className="bk-btn is-wa">
                         💬 واتساب
                       </a>

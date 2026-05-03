@@ -102,9 +102,8 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res)
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [b] = await db.select().from(bookings).where(eq(bookings.id, id));
     if (!b) return res.status(404).json({ error: "Booking not found" });
-    if (b.status !== "confirmed") {
-      return res.status(400).json({ error: "Booking must be confirmed first" });
-    }
+    // Tickets are now issued for every booking regardless of status — admin
+    // can download / send the ticket right away after creation.
     const issued = await ensureTicketToken(id);
     if (!issued) return res.status(500).json({ error: "Token issuance failed" });
     return res.json({

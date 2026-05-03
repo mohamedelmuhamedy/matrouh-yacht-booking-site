@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, bookings } from "@workspace/db";
 import { createReferralRewardIfNeeded } from "./admin-rewards";
+import { ensureTicketToken } from "./tickets";
 
 const router = Router();
 
@@ -27,6 +28,11 @@ router.post("/bookings", async (req, res) => {
     if (referralCode) {
       await createReferralRewardIfNeeded(booking.id, (referralCode || "").toUpperCase().trim(), name, packageName || packageNameAr || "");
     }
+
+    // Issue a ticket immediately for every new booking so the admin can
+    // download / send it right away — no longer gated on confirmation.
+    try { await ensureTicketToken(booking.id); }
+    catch (err) { console.error("[public-bookings] ensureTicketToken failed:", err); }
 
     return res.status(201).json({ success: true, id: booking.id });
   } catch (err: any) {
