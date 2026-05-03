@@ -177,6 +177,22 @@ export default function AIAssistant() {
     return found;
   }, [packages, packagesLoading]);
 
+  const runTypewriter = useCallback((idx: number, finalReply: string) => {
+    const stepMs = 14;
+    const charsPerStep = Math.max(2, Math.ceil(finalReply.length / 80));
+    const interval = window.setInterval(() => {
+      setMessages((prev) => {
+        const next = prev.slice();
+        const m = next[idx];
+        if (!m || m.reveal === undefined) { window.clearInterval(interval); return prev; }
+        if (m.reveal >= m.content.length) { window.clearInterval(interval); next[idx] = { ...m, reveal: undefined }; return next; }
+        next[idx] = { ...m, reveal: Math.min(m.content.length, m.reveal + charsPerStep) };
+        return next;
+      });
+    }, stepMs);
+    typewriterRef.current = interval;
+  }, []);
+
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
@@ -187,26 +203,121 @@ export default function AIAssistant() {
     setSending(true);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+
+    const history = [...messages, newUser]
+      .slice(-9, -1)
+      .map((m) => ({ role: m.role, content: m.content }));
+    let visitorToken = "";
+    try { visitorToken = (localStorage.getItem("drtravel-visitor-token") || "").trim(); } catch {}
+    const requestBody = JSON.stringify({
+      message: trimmed,
+      lang,
+      history,
+      ...(visitorToken ? { visitor: { token: visitorToken } } : {}),
+    });
+
+    const supportsStream =
+      typeof window !== "undefined" &&
+      typeof (window as unknown as { ReadableStream?: unknown }).ReadableStream !== "undefined" &&
+      typeof TextDecoder !== "undefined";
+
     try {
-      const history = [...messages, newUser]
-        .slice(-9, -1)
-        .map((m) => ({ role: m.role, content: m.content }));
-      let visitorToken = "";
-      try { visitorToken = (localStorage.getItem("drtravel-visitor-token") || "").trim(); } catch {}
       const res = await apiFetch("/api/ai/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmed,
-          lang,
-          history,
-          ...(visitorToken ? { visitor: { token: visitorToken } } : {}),
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(supportsStream ? { Accept: "text/event-stream" } : {}),
+        },
+        body: requestBody,
         signal: ctrl.signal,
       });
       if (res.status === 429) { setError(T.rateLimit); return; }
       if (res.status === 503) { setError(T.notReady); return; }
       if (!res.ok) { setError(T.errMsg); return; }
+
+      const contentType = (res.headers.get("content-type") || "").toLowerCase();
+      const isStream = supportsStream && contentType.includes("text/event-stream") && !!res.body;
+
+      if (isStream) {
+        // Append empty assistant bubble immediately, fill as tokens arrive.
+        const newIdx = messagesRef.current.length;
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "",
+          ts: Date.now(),
+          reveal: 0, // 0 means "currently streaming" → cursor shown
+        }]);
+
+        const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let accumulated = "";
+        let finalSlugs: string[] = [];
+        let serverReply: string | null = null;
+
+        const applyDelta = (chunk: string) => {
+          accumulated += chunk;
+          const snapshot = accumulated;
+          setMessages((prev) => {
+            const next = prev.slice();
+            const m = next[newIdx];
+            if (!m) return prev;
+            next[newIdx] = { ...m, content: snapshot, reveal: snapshot.length };
+            return next;
+          });
+        };
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let sepIdx: number;
+          while ((sepIdx = buffer.indexOf("\n\n")) !== -1) {
+            const rawEvent = buffer.slice(0, sepIdx);
+            buffer = buffer.slice(sepIdx + 2);
+            const dataLines: string[] = [];
+            for (const ln of rawEvent.split("\n")) {
+              if (ln.startsWith("data:")) dataLines.push(ln.slice(5).trimStart());
+            }
+            if (!dataLines.length) continue;
+            const payload = dataLines.join("\n");
+            try {
+              const evt = JSON.parse(payload) as {
+                type?: string;
+                text?: string;
+                reply?: string;
+                suggestedPackageSlugs?: string[];
+                error?: string;
+              };
+              if (evt.type === "delta" && typeof evt.text === "string") {
+                applyDelta(evt.text);
+              } else if (evt.type === "done") {
+                if (Array.isArray(evt.suggestedPackageSlugs)) finalSlugs = evt.suggestedPackageSlugs;
+                if (typeof evt.reply === "string") serverReply = evt.reply;
+              } else if (evt.type === "error") {
+                setError(evt.error || T.errMsg);
+              }
+            } catch {
+              // ignore malformed event
+            }
+          }
+        }
+
+        // Finalize: prefer server-cleaned reply (which strips slug tag) and clear cursor.
+        const finalText = (serverReply ?? accumulated).trim() || T.errMsg;
+        const matched = matchPackages(finalSlugs);
+        setMessages((prev) => {
+          const next = prev.slice();
+          const m = next[newIdx];
+          if (!m) return prev;
+          next[newIdx] = { ...m, content: finalText, reveal: undefined, packages: matched };
+          return next;
+        });
+        return;
+      }
+
+      // Fallback: JSON path with typewriter reveal.
       const data = await res.json();
       const reply = String(data?.reply || "").trim();
       const slugs: string[] = Array.isArray(data?.suggestedPackageSlugs) ? data.suggestedPackageSlugs : [];
@@ -219,24 +330,12 @@ export default function AIAssistant() {
         ts: Date.now(),
         reveal: 0,
       }]);
-      // Typewriter reveal
-      const total = finalReply.length;
-      const stepMs = 14;
-      const charsPerStep = Math.max(2, Math.ceil(total / 80));
-      const interval = window.setInterval(() => {
-        setMessages((prev) => {
-          const next = prev.slice();
-          const m = next[newIdx];
-          if (!m || m.reveal === undefined) { window.clearInterval(interval); return prev; }
-          if (m.reveal >= m.content.length) { window.clearInterval(interval); next[newIdx] = { ...m, reveal: undefined }; return next; }
-          next[newIdx] = { ...m, reveal: Math.min(m.content.length, m.reveal + charsPerStep) };
-          return next;
-        });
-      }, stepMs);
-      typewriterRef.current = interval;
+      runTypewriter(newIdx, finalReply);
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") {
         setError(T.aborted);
+        // Clear any in-progress streaming cursor.
+        setMessages((prev) => prev.map((m) => (m.reveal !== undefined ? { ...m, reveal: undefined } : m)));
       } else {
         setError(T.errMsg);
       }
@@ -245,7 +344,7 @@ export default function AIAssistant() {
       abortRef.current = null;
       inputRef.current?.focus();
     }
-  }, [sending, messages, lang, matchPackages, T.errMsg, T.rateLimit, T.notReady, T.aborted]);
+  }, [sending, messages, lang, matchPackages, runTypewriter, T.errMsg, T.rateLimit, T.notReady, T.aborted]);
 
   const stopReply = useCallback(() => {
     abortRef.current?.abort();

@@ -481,6 +481,142 @@ ${ctx.text}${visitorBlock}
     ];
 
     const referer = String(req.headers.origin ?? req.headers.referer ?? "https://drtravel.local");
+    const wantsStream = String(req.headers.accept ?? "").toLowerCase().includes("text/event-stream");
+
+    if (wantsStream) {
+      const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": referer,
+          "X-Title": "DR Travel Assistant",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({
+          model: ctx.model,
+          messages: upstreamMessages,
+          temperature: ctx.temperature,
+          max_tokens: ctx.maxTokens,
+          stream: true,
+        }),
+      });
+
+      if (!upstream.ok || !upstream.body) {
+        const errText = await upstream.text().catch(() => "");
+        console.error("OpenRouter stream error:", upstream.status, errText.slice(0, 300));
+        return res.status(502).json({ error: "AI upstream error", status: upstream.status });
+      }
+
+      res.status(200);
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      res.flushHeaders?.();
+
+      const sendEvent = (obj: unknown) => {
+        res.write(`data: ${JSON.stringify(obj)}\n\n`);
+      };
+
+      const reader = (upstream.body as unknown as ReadableStream<Uint8Array>).getReader();
+      let aborted = false;
+      const cleanupUpstream = () => {
+        try { reader.cancel().catch(() => {}); } catch {}
+      };
+      req.on("close", () => { aborted = true; cleanupUpstream(); });
+      res.on("close", () => { aborted = true; cleanupUpstream(); });
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let full = "";
+      // Tail buffer: hold back text that *might* be the start of a
+      // `[[slugs:...]]` control tag so users never see it flash mid-stream.
+      // Once we see `[[` we swallow everything after it (the tag must be
+      // last per the system prompt). Without `[[`, we keep the last few
+      // chars buffered until we can prove they aren't `[[`.
+      let pending = "";
+      const TAIL_HOLD = 4; // longer than "[[" so partial brackets aren't emitted
+      let tagSeen = false;
+
+      const emitFromBuffer = (final = false) => {
+        if (tagSeen) { pending = ""; return; }
+        const idx = pending.indexOf("[[");
+        if (idx !== -1) {
+          const safe = pending.slice(0, idx);
+          if (safe) sendEvent({ type: "delta", text: safe });
+          pending = "";
+          tagSeen = true;
+          return;
+        }
+        if (final) {
+          if (pending) sendEvent({ type: "delta", text: pending });
+          pending = "";
+          return;
+        }
+        if (pending.length > TAIL_HOLD) {
+          const releaseLen = pending.length - TAIL_HOLD;
+          const safe = pending.slice(0, releaseLen);
+          pending = pending.slice(releaseLen);
+          if (safe) sendEvent({ type: "delta", text: safe });
+        }
+      };
+
+      try {
+        while (!aborted) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          // Parse SSE lines: each event ends with \n\n
+          let nlIdx: number;
+          while ((nlIdx = buffer.indexOf("\n")) !== -1) {
+            const line = buffer.slice(0, nlIdx).replace(/\r$/, "");
+            buffer = buffer.slice(nlIdx + 1);
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload) continue;
+            if (payload === "[DONE]") { buffer = ""; break; }
+            try {
+              const parsed = JSON.parse(payload) as {
+                choices?: { delta?: { content?: string } }[];
+              };
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (typeof delta === "string" && delta.length > 0) {
+                full += delta;
+                pending += delta;
+                emitFromBuffer(false);
+              }
+            } catch {
+              // ignore unparseable keep-alives / comments
+            }
+          }
+        }
+        emitFromBuffer(true);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error("AI stream read error:", msg);
+        if (!aborted) sendEvent({ type: "error", error: "AI stream interrupted" });
+      }
+
+      const rawReply = full.trim();
+      if (!rawReply) {
+        if (!aborted) sendEvent({ type: "error", error: "Empty AI response" });
+        res.end();
+        return;
+      }
+
+      const { cleaned, slugs } = extractSlugs(rawReply, ctx);
+      sendEvent({
+        type: "done",
+        reply: cleaned || rawReply,
+        suggestedPackageSlugs: slugs,
+        model: ctx.model,
+      });
+      res.end();
+      return;
+    }
+
     const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
