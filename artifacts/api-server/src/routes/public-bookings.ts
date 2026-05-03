@@ -132,17 +132,6 @@ router.post("/bookings", async (req, res) => {
       }
     }
 
-    // Promo code application (atomic increment)
-    let appliedPromoCode = "";
-    let discountAmount = 0;
-    if (promoCodeRaw && priceAtBooking) {
-      const result = await consumePromoCode(promoCodeRaw, priceAtBooking, packageId);
-      if (result) {
-        appliedPromoCode = result.codeRow.code;
-        discountAmount = result.discount;
-      }
-    }
-
     const key = idempotencyKey(phone, packageId, packageName, date);
     const recent = getRecentBooking(key);
     if (recent) {
@@ -205,6 +194,17 @@ router.post("/bookings", async (req, res) => {
           );
         if (dupRows.length > 0) {
           return { id: dupRows[0]!.id, deduped: true } as { id: number; deduped: boolean };
+        }
+
+        // Promo code consumption — only after dedup, so duplicate submits don't re-consume
+        let appliedPromoCode = "";
+        let discountAmount = 0;
+        if (promoCodeRaw && priceAtBooking) {
+          const result = await consumePromoCode(promoCodeRaw, priceAtBooking, packageId);
+          if (result) {
+            appliedPromoCode = result.codeRow.code;
+            discountAmount = result.discount;
+          }
         }
 
         const [row] = await tx

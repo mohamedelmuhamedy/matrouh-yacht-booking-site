@@ -84,13 +84,17 @@ router.get("/reviews/by-token/:token", async (req, res) => {
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Booking not found" });
     const [existing] = await db.select().from(bookingReviews).where(eq(bookingReviews.bookingId, b.id));
+    // Mask PII: only return first name initial + first letter, not full name
+    const fullName = b.name || "";
+    const firstName = fullName.trim().split(/\s+/)[0] || "";
+    const maskedName = firstName ? firstName[0] + "***" : "";
     return res.json({
       bookingId: b.id,
-      customerName: b.name,
+      customerName: maskedName,
       packageName: b.packageNameAr || b.packageName,
       date: b.date,
       alreadyReviewed: !!existing,
-      review: existing || null,
+      review: existing ? { id: existing.id, status: existing.status, rating: existing.rating } : null,
     });
   } catch (err) {
     console.error("[reviews] lookup:", err);
