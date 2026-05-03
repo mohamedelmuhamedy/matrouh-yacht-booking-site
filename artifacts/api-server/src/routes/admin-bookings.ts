@@ -102,7 +102,7 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res)
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [b] = await db.select().from(bookings).where(eq(bookings.id, id));
     if (!b) return res.status(404).json({ error: "Booking not found" });
-    if (b.status !== "confirmed" && b.status !== "completed") {
+    if (b.status !== "confirmed") {
       return res.status(400).json({ error: "Booking must be confirmed first" });
     }
     const issued = await ensureTicketToken(id);

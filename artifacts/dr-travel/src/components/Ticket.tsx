@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { resolveApiAssetUrl } from "../lib/api";
+import { useLanguage } from "../LanguageContext";
 
 export interface TicketData {
   id: number;
@@ -122,6 +123,8 @@ export interface TicketProps {
 export default function Ticket({ data, lang, publicUrl }: TicketProps) {
   const ar = lang === "ar";
   const dir = ar ? "rtl" : "ltr";
+  const { t: tr } = useLanguage();
+  const T = tr.ticket;
   const s = data.settings || {};
   const [qrUrl, setQrUrl] = useState<string>("");
 
@@ -166,32 +169,6 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
     : "—";
 
   const isUsed = !!data.ticketUsedAt;
-
-  const T = ar ? {
-    ticket: "تذكرة الحجز", confirmed: "مؤكدة", used: "تم الاستخدام", number: "رقم التذكرة", issued: "تاريخ الإصدار",
-    customer: "بيانات العميل", trip: "تفاصيل الرحلة", group: "عدد الأفراد",
-    name: "الاسم", phone: "الهاتف", pkg: "الباقة", date: "تاريخ الرحلة",
-    adults: "بالغون", children: "أطفال", infants: "رضع", total: "الإجمالي", price: "إجمالي السعر",
-    notesLbl: "ملاحظات", notice: "يرجى التواجد قبل ٣٠ دقيقة من موعد الانطلاق",
-    verify: "امسح الكود للتحقق من التذكرة",
-    contact: "للاستفسار",
-    meetingTime: "وقت الانطلاق", pickup: "نقطة التجمع", supervisor: "المشرف المسؤول",
-    secCode: "رمز الأمان",
-    securityFooter: "مستند مؤمَّن — أي تعديل يبطل التوقيع · امسح الكود للتحقق",
-    authentic: "تذكرة أصلية",
-  } : {
-    ticket: "Booking Ticket", confirmed: "Confirmed", used: "Used", number: "Ticket No.", issued: "Issued",
-    customer: "Customer Details", trip: "Trip Details", group: "Group Size",
-    name: "Name", phone: "Phone", pkg: "Package", date: "Trip Date",
-    adults: "Adults", children: "Children", infants: "Infants", total: "Total", price: "Total Price",
-    notesLbl: "Notes", notice: "Please arrive 30 minutes before departure",
-    verify: "Scan to verify this ticket",
-    contact: "For inquiries",
-    meetingTime: "Departure Time", pickup: "Pickup Point", supervisor: "Trip Supervisor",
-    secCode: "Security Code",
-    securityFooter: "Tamper-evident document — any change voids the signature · scan to verify",
-    authentic: "Authentic Ticket",
-  };
 
   const pickupTxt = ar
     ? (data.pickupLocationAr || data.pickupLocation || "")

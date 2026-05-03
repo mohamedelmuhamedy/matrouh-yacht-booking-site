@@ -23,18 +23,19 @@ function checksumOf(input: string): string {
   return bufferToBase32(h, 2);
 }
 
-export function generateTicketNumber(bookingId: number, seedHex: string): string {
+export function generateTicketNumber(_bookingId: number, seedHex: string): string {
   const year = new Date().getFullYear() % 100;
-  const seed = (seedHex || crypto.randomBytes(8).toString("hex")).toUpperCase();
-  const core = bufferToBase32(Buffer.from(seed.slice(0, 12), "hex").length ? Buffer.from(seed.slice(0, 12), "hex") : crypto.randomBytes(6), 6);
-  const idPart = String(bookingId).padStart(4, "0").slice(-4);
-  const body = `${idPart}${core}`;
+  const seedBuf = seedHex && /^[0-9a-fA-F]+$/.test(seedHex)
+    ? Buffer.from(seedHex.slice(0, 12), "hex")
+    : crypto.randomBytes(6);
+  const buf = seedBuf.length >= 4 ? seedBuf : crypto.randomBytes(6);
+  const body = bufferToBase32(buf, 6);
   const ck = checksumOf(`DR-${year}-${body}`);
   return `DR-${year}-${body}-${ck}`;
 }
 
 export function verifyTicketNumberChecksum(num: string): boolean {
-  const m = /^DR-(\d{2})-([A-Z0-9]+)-([A-Z0-9]{2})$/.exec(num || "");
+  const m = /^DR-(\d{2})-([A-Z0-9]{6})-([A-Z0-9]{2})$/.exec(num || "");
   if (!m) return false;
   const expected = checksumOf(`DR-${m[1]}-${m[2]}`);
   return expected === m[3];

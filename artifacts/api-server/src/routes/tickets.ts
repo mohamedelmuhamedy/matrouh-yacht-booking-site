@@ -85,7 +85,7 @@ router.get("/tickets/verify/:token", async (req, res) => {
     let derivedStatus: "valid" | "used" | "cancelled" | "invalid" = "valid";
     if (b.status === "cancelled") derivedStatus = "cancelled";
     else if (b.ticketUsedAt) derivedStatus = "used";
-    else if (b.status !== "confirmed" && b.status !== "completed") {
+    else if (b.status !== "confirmed") {
       derivedStatus = "invalid";
     }
 
@@ -120,7 +120,7 @@ router.get("/tickets/:token.pdf", async (req, res) => {
     if (!token || token.length < 16) return res.status(404).end();
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).end();
-    if (b.status !== "confirmed" && b.status !== "completed") return res.status(403).end();
+    if (b.status !== "confirmed") return res.status(403).end();
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     if (!fs.existsSync(pdfPath)) return res.status(404).json({ error: "PDF not yet generated" });
     res.setHeader("Content-Type", "application/pdf");
@@ -140,7 +140,7 @@ router.get("/tickets/:token", async (req, res) => {
     if (!token || token.length < 16) return res.status(404).json({ error: "Not found" });
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Not found" });
-    if (b.status !== "confirmed" && b.status !== "completed") {
+    if (b.status !== "confirmed") {
       return res.status(403).json({ error: "Ticket not yet available" });
     }
     const settingsRows = await db.select().from(siteSettings);
@@ -207,7 +207,7 @@ router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
     if (b.status === "cancelled") {
       return res.status(409).json({ error: "Booking is cancelled", status: "cancelled" });
     }
-    if (b.status !== "confirmed" && b.status !== "completed") {
+    if (b.status !== "confirmed") {
       return res.status(409).json({ error: "Booking not confirmed", status: b.status });
     }
     if (b.ticketUsedAt) {
@@ -241,7 +241,7 @@ router.post(
       if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
       const [b] = await db.select().from(bookings).where(eq(bookings.id, id));
       if (!b) return res.status(404).json({ error: "Booking not found" });
-      if (b.status !== "confirmed" && b.status !== "completed") {
+      if (b.status !== "confirmed") {
         return res.status(400).json({ error: "Booking must be confirmed first" });
       }
       const issued = await ensureTicketToken(id);

@@ -29,8 +29,9 @@ const GOLD = "#C9A84C";
 
 export default function VerifyPage() {
   const [, params] = useRoute("/verify/:token");
-  const { lang } = useLanguage();
+  const { lang, t: tr } = useLanguage();
   const ar = lang === "ar";
+  const T = tr.verify;
   const dir = ar ? "rtl" : "ltr";
   const [state, setState] = useState<VerifyStatus>("loading");
   const [data, setData] = useState<VerifyResponse | null>(null);
@@ -69,61 +70,13 @@ export default function VerifyPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` },
       });
       if (!r.ok) throw new Error();
-      setFeedback({ kind: "ok", msg: ar ? "تم تأكيد الدخول" : "Entry confirmed" });
+      setFeedback({ kind: "ok", msg: T.feedbackOk });
       await load();
     } catch {
-      setFeedback({ kind: "err", msg: ar ? "فشل تأكيد الدخول" : "Failed to confirm entry" });
+      setFeedback({ kind: "err", msg: T.feedbackErr });
     } finally {
       setMarking(false);
     }
-  };
-
-  const T = ar ? {
-    verify: "التحقق من التذكرة",
-    valid: "صالحة",
-    used: "مستخدمة",
-    cancelled: "ملغاة",
-    invalid: "غير صالحة",
-    loading: "جاري التحقق...",
-    descValid: "هذه التذكرة أصلية وصالحة للدخول.",
-    descUsed: "تم استخدام هذه التذكرة عند الدخول مسبقاً.",
-    descCancelled: "هذا الحجز ملغى.",
-    descInvalid: "لم نتمكن من التحقق من هذه التذكرة. قد تكون مزوّرة أو منتهية الصلاحية.",
-    ticketNo: "رقم التذكرة",
-    customer: "العميل",
-    pkg: "الباقة",
-    date: "التاريخ",
-    group: "العدد",
-    issued: "تاريخ الإصدار",
-    usedAt: "تاريخ الاستخدام",
-    confirmEntry: "✓ تأكيد الدخول",
-    confirming: "جاري التأكيد...",
-    adminNote: "هذه الأداة للموظفين فقط — سجّل الدخول من لوحة الإدارة لتأكيد الدخول.",
-    adminLogin: "تسجيل الدخول",
-    poweredBy: "DR Travel · نظام تذاكر مؤمَّن",
-  } : {
-    verify: "Ticket Verification",
-    valid: "Valid",
-    used: "Used",
-    cancelled: "Cancelled",
-    invalid: "Invalid",
-    loading: "Verifying...",
-    descValid: "This ticket is authentic and valid for entry.",
-    descUsed: "This ticket has already been used at the gate.",
-    descCancelled: "This booking is cancelled.",
-    descInvalid: "We could not verify this ticket. It may be forged or expired.",
-    ticketNo: "Ticket No.",
-    customer: "Customer",
-    pkg: "Package",
-    date: "Date",
-    group: "Group",
-    issued: "Issued",
-    usedAt: "Used at",
-    confirmEntry: "✓ Confirm entry",
-    confirming: "Confirming...",
-    adminNote: "Staff only — sign in to the admin panel to confirm entry.",
-    adminLogin: "Sign in",
-    poweredBy: "DR Travel · Secure Ticketing",
   };
 
   const meta = (() => {
@@ -151,7 +104,7 @@ export default function VerifyPage() {
       <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ textAlign: "center", marginTop: 6 }}>
           <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>DR TRAVEL</div>
-          <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4 }}>{T.verify}</div>
+          <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4 }}>{T.title}</div>
         </div>
 
         <div style={{

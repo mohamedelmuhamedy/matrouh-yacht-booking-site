@@ -6,8 +6,9 @@ import { apiFetch } from "../lib/api";
 
 export default function TicketPage() {
   const [, params] = useRoute("/ticket/:token");
-  const { lang } = useLanguage();
+  const { lang, t: tr } = useLanguage();
   const ar = lang === "ar";
+  const T = tr.ticket;
   const [data, setData] = useState<TicketData | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -24,16 +25,18 @@ export default function TicketPage() {
 
   useEffect(() => {
     if (!data) return;
-    const name = ar ? "تذكرة الحجز" : "Booking Ticket";
-    document.title = `${name} · DRT-${String(data.id).padStart(5, "0")}`;
-  }, [data, ar]);
+    document.title = `${T.pageTitle} · DRT-${String(data.id).padStart(5, "0")}`;
+  }, [data, T.pageTitle]);
 
-  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/ticket/${token}` : "";
+  const sig = data?.ticketSignature || "";
+  const publicUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/verify/${token}${sig ? `?sig=${encodeURIComponent(sig)}` : ""}`
+    : "";
 
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", color: "white", fontFamily: "Cairo, sans-serif" }}>
-        <div style={{ fontSize: "1.1rem" }}>{ar ? "جاري تحميل التذكرة..." : "Loading ticket..."}</div>
+        <div style={{ fontSize: "1.1rem" }}>{T.loading}</div>
       </div>
     );
   }
@@ -42,8 +45,8 @@ export default function TicketPage() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", color: "white", fontFamily: "Cairo, sans-serif", flexDirection: "column", gap: 10, padding: "1rem", textAlign: "center" }}>
         <div style={{ fontSize: "3rem" }}>🎫</div>
-        <div style={{ fontSize: "1.05rem", fontWeight: 700 }}>{ar ? "هذه التذكرة غير متاحة" : "This ticket is not available"}</div>
-        <div style={{ fontSize: "0.9rem", opacity: 0.7 }}>{ar ? "تأكد من الرابط أو تواصل مع DR Travel" : "Please verify the link or contact DR Travel"}</div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 700 }}>{T.unavailableTitle}</div>
+        <div style={{ fontSize: "0.9rem", opacity: 0.7 }}>{T.unavailableHint}</div>
       </div>
     );
   }
@@ -73,7 +76,7 @@ export default function TicketPage() {
           fontWeight: 700, fontSize: "0.9rem",
         }}
       >
-        🖨 {ar ? "طباعة التذكرة" : "Print Ticket"}
+        {T.print}
       </button>
       <style>{`
         @media print {
