@@ -387,6 +387,13 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            {/* Rewards & Referral */}
+            <button onClick={() => navigate("/rewards")}
+              style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.35)", color: "#C9A84C", padding: "0.4rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.8rem", transition: "all 0.2s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.2)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.12)"; }}>
+              🎁 {ar ? "الإحالة والمكافآت" : "Rewards"}
+            </button>
             {/* Install App — platform-aware */}
             <button onClick={handleInstallApp}
               style={{ background: isInstalled ? "linear-gradient(135deg,#10B981,#065F46)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.45rem 0.95rem", borderRadius: "50px", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.35rem" }}>
@@ -432,6 +439,11 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            {/* Rewards & Referral */}
+            <button onClick={() => { setMenuOpen(false); navigate("/rewards"); }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.35)", color: "#C9A84C", padding: "0.85rem", borderRadius: "12px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.95rem", marginTop: "0.5rem" }}>
+              🎁 {ar ? "الإحالة والمكافآت" : "Rewards & Referral"}
+            </button>
             {/* Install App — platform-aware */}
             <button onClick={() => { setMenuOpen(false); handleInstallApp(); }}
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", background: isInstalled ? "linear-gradient(135deg,#10B981,#065F46)" : "linear-gradient(135deg,#00AAFF,#0066cc)", border: "none", borderRadius: "10px", color: "white", padding: "0.85rem 1rem", fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, marginTop: "0.5rem" }}>
