@@ -363,7 +363,7 @@ export default function AdminRewardsPage() {
                   <div style={{ gridColumn: "span 2" }}>
                     <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>الكود (اتركه فارغاً للتوليد التلقائي)</label>
                     <input
-                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "#00AAFF", fontFamily: "monospace", fontSize: "1rem", fontWeight: 700, outline: "none", boxSizing: "border-box", letterSpacing: "2px", direction: "ltr" }}
+                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "var(--input-bg)", color: "#00AAFF", fontFamily: "monospace", fontSize: "1rem", fontWeight: 700, outline: "none", boxSizing: "border-box", letterSpacing: "2px", direction: "ltr" }}
                       placeholder="DRT-XXXXXX"
                       value={codeForm.code}
                       onChange={e => setCodeForm(p => ({ ...p, code: e.target.value.toUpperCase() }))}

@@ -26,10 +26,10 @@ interface Testimonial extends TestimonialForm {
 
 const dark = {
   card: "var(--bg-surface-solid)",
-  input: "#0d1824",
-  border: "var(--border-strong)",
+  input: "var(--input-bg)",
+  border: "var(--input-border)",
   label: "var(--text-secondary)",
-  text: "#ffffff",
+  text: "var(--input-text)",
   sub: "var(--text-muted)",
 };
 

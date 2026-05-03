@@ -384,7 +384,7 @@ export default function AdminHeroSlidesPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                   {/* Thumbnail / video preview */}
                   {isVideo ? (
-                    <div style={{ width: 140, height: 90, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#0d1824", position: "relative" }}>
+                    <div style={{ width: 140, height: 90, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "var(--bg-surface-sunk)", position: "relative" }}>
                       <video
                         ref={el => { videoPreviewRefs.current[slide.id] = el; }}
                         src={toImgUrl(slide.url)}
