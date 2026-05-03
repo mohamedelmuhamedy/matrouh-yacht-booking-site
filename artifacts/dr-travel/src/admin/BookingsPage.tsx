@@ -118,7 +118,7 @@ export default function BookingsPage() {
   const [ticketBusy, setTicketBusy] = useState<string>("");
   const [ticketFields, setTicketFields] = useState<TicketFieldsForm>(EMPTY_TICKET_FIELDS);
   const [ticketFieldsDirty, setTicketFieldsDirty] = useState(false);
-  const [autoTicketAction, setAutoTicketAction] = useState<"whatsapp" | "download" | null>(null);
+  const [autoTicketAction, setAutoTicketAction] = useState<"whatsapp" | "download" | "image" | null>(null);
   const pendingWhatsAppPopupRef = useRef<Window | null>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
   const { success, error: toastError } = useToast();
@@ -148,6 +148,7 @@ export default function BookingsPage() {
       await new Promise(r => setTimeout(r, 350));
       try {
         if (action === "download") await downloadTicketPdf();
+        else if (action === "image") await downloadTicketImage();
         else if (action === "whatsapp") await sendTicketWhatsApp();
       } finally {
         // Auto-close the modal so the row-shortcut feels like a one-click op.
@@ -271,7 +272,7 @@ export default function BookingsPage() {
     return data;
   };
 
-  const openTicket = async (booking: Booking, autoAction?: "whatsapp" | "download") => {
+  const openTicket = async (booking: Booking, autoAction?: "whatsapp" | "download" | "image") => {
     // For auto-WhatsApp from a row click we must open the popup synchronously
     // inside the gesture so popup-blockers do not swallow it after the async
     // ticket-load + PDF upload chain.
@@ -341,14 +342,15 @@ export default function BookingsPage() {
     }
   };
 
-  const generateTicketBlob = async (): Promise<Blob | null> => {
+  // Capture the off-screen ticket node to a canvas. Shared by PDF + image flows.
+  const generateTicketCanvas = async (): Promise<HTMLCanvasElement | null> => {
     if (!ticketRef.current || !ticketData) {
-      console.error("[generateTicketBlob] missing ticketRef or ticketData");
+      console.error("[generateTicketCanvas] missing ticketRef or ticketData");
       return null;
     }
     const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
     if (!node) {
-      console.error("[generateTicketBlob] [data-ticket-root] not found in ticketRef");
+      console.error("[generateTicketCanvas] [data-ticket-root] not found in ticketRef");
       return null;
     }
     try {
@@ -414,7 +416,7 @@ export default function BookingsPage() {
         onclone: sanitizeForHtml2Canvas,
       });
     } catch (err) {
-      console.error("[generateTicketBlob] html2canvas (useCORS) failed:", err);
+      console.error("[generateTicketCanvas] html2canvas (useCORS) failed:", err);
       try {
         canvas = await html2canvas(node, {
           scale: 2, backgroundColor: "#ffffff", useCORS: false, allowTaint: true, logging: false,
@@ -423,10 +425,16 @@ export default function BookingsPage() {
           onclone: sanitizeForHtml2Canvas,
         });
       } catch (err2) {
-        console.error("[generateTicketBlob] html2canvas retry failed:", err2);
+        console.error("[generateTicketCanvas] html2canvas retry failed:", err2);
         throw err2;
       }
     }
+    return canvas;
+  };
+
+  const generateTicketBlob = async (): Promise<Blob | null> => {
+    const canvas = await generateTicketCanvas();
+    if (!canvas) return null;
     let imgData: string;
     try {
       imgData = canvas.toDataURL("image/png");
@@ -447,6 +455,43 @@ export default function BookingsPage() {
     const y = (pageH - h) / 2;
     pdf.addImage(imgData, "PNG", x, y, w, h);
     return pdf.output("blob");
+  };
+
+  // Fast PNG download — single canvas capture, no PDF assembly, no upload.
+  const downloadTicketImage = async () => {
+    if (!ticketData) return;
+    setTicketDownloading(true);
+    try {
+      if (ticketFieldsDirty) {
+        const ok = await saveTicketFields();
+        if (!ok) return;
+      }
+      const canvas = await generateTicketCanvas();
+      if (!canvas) {
+        toastError("فشل تجهيز الصورة");
+        return;
+      }
+      const blob: Blob | null = await new Promise(resolve => {
+        try { canvas.toBlob(b => resolve(b), "image/png", 0.92); }
+        catch (err) { console.error("[downloadTicketImage] toBlob failed:", err); resolve(null); }
+      });
+      if (!blob) { toastError("فشل تجهيز الصورة"); return; }
+      const safeName = (ticketData.name || "ticket").replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "ticket";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dr-travel-ticket-${ticketBooking?.id || ""}-${safeName}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      success("تم تنزيل صورة التذكرة");
+    } catch (err) {
+      console.error("[downloadTicketImage]", err);
+      toastError("فشل تنزيل صورة التذكرة");
+    } finally {
+      setTicketDownloading(false);
+    }
   };
 
   const downloadTicketPdf = async () => {
@@ -766,6 +811,9 @@ export default function BookingsPage() {
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b, "whatsapp")} title="إرسال التذكرة على واتساب العميل مباشرة">
                         📤 إرسال للعميل
                       </button>
+                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "image")} title="تحميل التذكرة كصورة (سريع)">
+                        🖼️ صورة
+                      </button>
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
                         ⬇️ تنزيل PDF
                       </button>
@@ -864,6 +912,11 @@ export default function BookingsPage() {
 
             {/* Action bar */}
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <button onClick={downloadTicketImage} disabled={!ticketData || ticketDownloading || !!ticketBusy}
+                title="تحميل التذكرة كصورة (أسرع — ثوانٍ)"
+                style={{ background: "#7c3aed", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>
+                🖼️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل صورة"}
+              </button>
               <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading || !!ticketBusy}
                 style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>
                 ⬇️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل PDF"}
