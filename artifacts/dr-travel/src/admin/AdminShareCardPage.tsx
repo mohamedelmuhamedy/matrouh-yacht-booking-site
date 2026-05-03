@@ -4,7 +4,15 @@ import { useToast } from "../components/Toast";
 import { apiUrl } from "../lib/api";
 import ShareCard, { GRADIENT_PRESETS, THEME_OPTIONS } from "../components/ShareCard";
 import { AdminQRSection } from "../components/ShareCardQR";
+import ShareCardScanStats from "../components/ShareCardScanStats";
 import { type SiteSettings } from "../context/SiteDataContext";
+
+const QR_SOURCE_PRESETS = [
+  { value: "flyer",   labelAr: "فلاير",      labelEn: "Flyer" },
+  { value: "boat",    labelAr: "المركب",     labelEn: "Boat" },
+  { value: "office",  labelAr: "المكتب",     labelEn: "Office" },
+  { value: "digital", labelAr: "رقمي",       labelEn: "Digital" },
+];
 
 const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.7rem 0.9rem", borderRadius: "10px",
@@ -64,6 +72,7 @@ export default function AdminShareCardPage() {
   const [saving, setSaving] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const [bgError, setBgError] = useState("");
+  const [qrSource, setQrSource] = useState("");
   const bgFileRef = useRef<HTMLInputElement>(null);
   const settingsRef = useRef<SiteSettings>({});
   const { success, error: toastError } = useToast();
@@ -375,12 +384,18 @@ export default function AdminShareCardPage() {
             logoUrl={settings.logo_url}
             filenameBase={settings.brand_short_name || settings.brand_name || "dr-travel-share"}
             brandAccent={accent}
+            source={qrSource}
+            sourcePresets={QR_SOURCE_PRESETS}
             onChange={patch => {
               if (patch.fg !== undefined) update("card_qr_fg", patch.fg);
               if (patch.bg !== undefined) update("card_qr_bg", patch.bg);
               if (patch.embedOnCard !== undefined) updateBool("card_qr_show_on_card", patch.embedOnCard);
+              if (patch.source !== undefined) setQrSource(patch.source);
             }}
           />
+
+          {/* Scan analytics */}
+          <ShareCardScanStats sourcePresets={QR_SOURCE_PRESETS} />
 
           {/* Save */}
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-start", position: "sticky", bottom: 0, background: "#f0f4f8", padding: "0.5rem 0" }}>

@@ -20,6 +20,7 @@ import pushRouter from "./push";
 import whyUsRouter from "./why-us";
 import aiChatRouter from "./ai-chat";
 import ticketsRouter from "./tickets";
+import shareScanRouter from "./share-scan";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(pushRouter);
 router.use(whyUsRouter);
 router.use(aiChatRouter);
 router.use(ticketsRouter);
+router.use(shareScanRouter);
 
 export default router;

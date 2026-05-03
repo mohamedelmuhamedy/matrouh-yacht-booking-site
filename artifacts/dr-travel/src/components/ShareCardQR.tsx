@@ -236,7 +236,20 @@ interface AdminQRSectionProps {
   logoUrl?: string;
   filenameBase?: string;
   brandAccent: string;
-  onChange: (patch: { fg?: string; bg?: string; embedOnCard?: boolean }) => void;
+  source?: string;
+  sourcePresets?: { value: string; labelAr: string; labelEn: string }[];
+  onChange: (patch: { fg?: string; bg?: string; embedOnCard?: boolean; source?: string }) => void;
+}
+
+export function sanitizeSourceTag(raw: string): string {
+  return (raw || "").trim().slice(0, 32).replace(/[^a-zA-Z0-9._-]/g, "").toLowerCase();
+}
+
+export function withSourceParam(baseUrl: string, source: string): string {
+  const clean = sanitizeSourceTag(source);
+  if (!clean) return baseUrl;
+  const sep = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${sep}s=${encodeURIComponent(clean)}`;
 }
 
 const SIZE_OPTIONS: { key: "small" | "medium" | "large" | "print"; px: number }[] = [
@@ -247,7 +260,7 @@ const SIZE_OPTIONS: { key: "small" | "medium" | "large" | "print"; px: number }[
 ];
 
 export function AdminQRSection({
-  url, fg, bg, embedOnCard, logoUrl, filenameBase, brandAccent, onChange,
+  url, fg, bg, embedOnCard, logoUrl, filenameBase, brandAccent, source = "", sourcePresets = [], onChange,
 }: AdminQRSectionProps) {
   const { t, lang } = useLanguage();
   const tx = t.shareCardQr;
@@ -259,13 +272,16 @@ export function AdminQRSection({
   const [feedback, setFeedback] = useState("");
 
   const logoSrc = resolveApiAssetUrl(logoUrl) || logoFallback;
-  const previewPng = useQrPng({ url, fg, bg, logoSrc, size: 360, margin: 2 });
+  const cleanSource = sanitizeSourceTag(source);
+  const taggedUrl = withSourceParam(url, cleanSource);
+  const previewPng = useQrPng({ url: taggedUrl, fg, bg, logoSrc, size: 360, margin: 2 });
 
   const ratio = contrastRatio(fg, bg);
   const lowContrast = ratio < 3;
   const sizePx = SIZE_OPTIONS.find(s => s.key === size)?.px || 512;
   const baseName = (filenameBase || "share").replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
-  const filename = `${baseName}-qr.${format}`;
+  const sourceSuffix = cleanSource ? `-${cleanSource}` : "";
+  const filename = `${baseName}${sourceSuffix}-qr.${format}`;
 
   const showFeedback = (m: string) => {
     setFeedback(m);
@@ -274,10 +290,10 @@ export function AdminQRSection({
 
   const buildBlob = async (chosenFormat: "png" | "svg"): Promise<Blob> => {
     if (chosenFormat === "svg") {
-      const svg = await generateSvg({ url, fg, bg, size: sizePx, margin: 2, logoSrc });
+      const svg = await generateSvg({ url: taggedUrl, fg, bg, size: sizePx, margin: 2, logoSrc });
       return new Blob([svg], { type: "image/svg+xml" });
     }
-    const dataUrl = await generatePngDataUrl({ url, fg, bg, size: sizePx, margin: 2, logoSrc });
+    const dataUrl = await generatePngDataUrl({ url: taggedUrl, fg, bg, size: sizePx, margin: 2, logoSrc });
     const res = await fetch(dataUrl);
     return await res.blob();
   };
@@ -330,10 +346,10 @@ export function AdminQRSection({
     try {
       // Web Share API only reliably handles raster images; share PNG.
       const blob = await buildBlob("png");
-      const file = new File([blob], `${baseName}-qr.png`, { type: "image/png" });
+      const file = new File([blob], `${baseName}${sourceSuffix}-qr.png`, { type: "image/png" });
       const nav = navigator as NavigatorWithShare;
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
-        await nav.share({ files: [file], title: "QR", text: url });
+        await nav.share({ files: [file], title: "QR", text: taggedUrl });
         showFeedback(tx.feedbackShare);
       } else {
         await onDownload();
@@ -390,12 +406,68 @@ export function AdminQRSection({
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
         <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>📱 {tx.sectionTitle}</h3>
-        <a href={url} target="_blank" rel="noreferrer"
-          style={{ color: "#667788", fontSize: "0.78rem", direction: "ltr", textDecoration: "none" }}>
-          {url}
+        <a href={taggedUrl} target="_blank" rel="noreferrer"
+          style={{ color: "#667788", fontSize: "0.78rem", direction: "ltr", textDecoration: "none", wordBreak: "break-all", textAlign: "right" }}>
+          {taggedUrl}
         </a>
       </div>
       <p style={{ margin: 0, color: "#667788", fontSize: "0.78rem" }}>{tx.description}</p>
+
+      {sourcePresets.length > 0 && (
+        <div style={{
+          background: "#f8fafc", border: "1.5px solid #e0e8f0", borderRadius: 12,
+          padding: "0.75rem 0.85rem", display: "flex", flexDirection: "column", gap: "0.5rem",
+        }}>
+          <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem" }}>
+            {tx.sourceLabel}
+          </div>
+          <div style={{ color: "#667788", fontSize: "0.74rem", lineHeight: 1.6 }}>
+            {tx.sourceHelp}
+          </div>
+          <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+            <button type="button" onClick={() => onChange({ source: "" })}
+              style={{
+                padding: "0.4rem 0.75rem", borderRadius: 8,
+                border: `2px solid ${cleanSource === "" ? "#00AAFF" : "#e0e8f0"}`,
+                background: cleanSource === "" ? "rgba(0,170,255,0.08)" : "white",
+                color: "#0D1B2A", fontWeight: 700, fontSize: "0.78rem",
+                fontFamily: "Cairo, sans-serif", cursor: "pointer",
+              }}>
+              {tx.sourceNone}
+            </button>
+            {sourcePresets.map(p => {
+              const active = cleanSource === sanitizeSourceTag(p.value);
+              return (
+                <button key={p.value} type="button" onClick={() => onChange({ source: p.value })}
+                  style={{
+                    padding: "0.4rem 0.75rem", borderRadius: 8,
+                    border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
+                    background: active ? "rgba(0,170,255,0.08)" : "white",
+                    color: "#0D1B2A", fontWeight: 700, fontSize: "0.78rem",
+                    fontFamily: "Cairo, sans-serif", cursor: "pointer",
+                  }}>
+                  {ar ? p.labelAr : p.labelEn}
+                  <span style={{ color: "#667788", fontWeight: 500, marginInlineStart: "0.35rem", direction: "ltr" }}>
+                    · {p.value}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <input
+            type="text"
+            value={source}
+            onChange={e => onChange({ source: e.target.value })}
+            placeholder={tx.sourceCustomPlaceholder}
+            style={{
+              padding: "0.5rem 0.7rem", borderRadius: 8,
+              border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.82rem",
+              fontFamily: "Cairo, sans-serif", direction: "ltr",
+              color: "#0D1B2A", background: "white",
+            }}
+          />
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "1.2rem", alignItems: "start" }}
         className="qr-section-grid">
