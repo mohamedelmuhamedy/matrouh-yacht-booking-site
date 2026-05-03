@@ -8,6 +8,7 @@ import CurrencySwitcher from "./components/CurrencySwitcher";
 import ThemeSwitch from "./components/ThemeSwitch";
 import CompareModal from "./components/CompareModal";
 import AIAssistant from "./components/AIAssistant";
+import CustomerPhotosGallery from "./components/CustomerPhotosGallery";
 import PackageDetail from "./pages/PackageDetail";
 import RewardsPage from "./pages/RewardsPage";
 import TripsPage from "./pages/TripsPage";
@@ -2036,6 +2037,7 @@ function HomePage() {
       <PackagesAndBooking />
       <WhyUs />
       {showTestimonials && <Reviews />}
+      <CustomerPhotosGallery />
       <Footer />
       <WhatsAppFloat />
       {showAI && <AIAssistant />}

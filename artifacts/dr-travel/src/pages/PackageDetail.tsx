@@ -9,6 +9,7 @@ import { usePersonalization } from "../hooks/usePersonalization";
 import { apiFetch, storageObjectUrl } from "../lib/api";
 import DatePicker from "../components/DatePicker";
 import SeoHead from "../components/SeoHead";
+import CustomerPhotosGallery from "../components/CustomerPhotosGallery";
 
 const WhatsAppIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -722,6 +723,9 @@ export default function PackageDetail() {
           </div>
         )}
       </div>
+
+      {/* Customer photos for this package */}
+      <CustomerPhotosGallery packageId={Number(pkg.id)} />
 
     {/* ===== BOOKING MODAL ===== */}
     {showBook && (
