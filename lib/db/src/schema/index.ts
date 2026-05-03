@@ -16,3 +16,7 @@ export * from "./why_us_cards";
 export * from "./qr_scans";
 export * from "./admin_audit_log";
 export * from "./ai_quota";
+export * from "./promo_codes";
+export * from "./booking_reviews";
+export * from "./waitlist";
+export * from "./package_capacity";

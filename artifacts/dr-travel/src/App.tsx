@@ -18,6 +18,7 @@ import WhyUsDetailPage from "./pages/WhyUsDetailPage";
 import SharePage from "./pages/SharePage";
 import TicketPage from "./pages/TicketPage";
 import VerifyPage from "./pages/VerifyPage";
+import ReviewPage from "./pages/ReviewPage";
 import SeoHead from "./components/SeoHead";
 import NotFoundPage from "./pages/NotFoundPage";
 // AdminRouter is loaded lazily so the public bundle never ships the admin
@@ -830,9 +831,11 @@ function PackagesAndBooking() {
   const PACKAGES: DisplayPkg[] = allDbPkgs.map(p => dbPkgToDisplay(p, lang, currency, settings));
 
   const [selectedPkg, setSelectedPkg] = useState<DisplayPkg | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "", referralCode: "" });
+  const [form, setForm] = useState({ name: "", phone: "", date: "", adults: "1", children: "0", infants: "0", notes: "", referralCode: "", promoCode: "" });
   const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [referralName, setReferralName] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [promoInfo, setPromoInfo] = useState<{ discount: number; finalAmount: number; error?: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -902,6 +905,33 @@ function PackagesAndBooking() {
     return () => clearTimeout(t);
   }, [form.referralCode, lang]);
 
+  /* ── Promo code debounced verify ── */
+  useEffect(() => {
+    const code = form.promoCode.trim().toUpperCase();
+    if (!code) { setPromoStatus("idle"); setPromoInfo(null); return; }
+    if (code.length < 3) return;
+    const baseAmount = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
+    setPromoStatus("checking");
+    const tm = setTimeout(async () => {
+      try {
+        const r = await apiFetch("/api/promo-codes/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, packageId: selectedPkg?.id, baseAmount }),
+        });
+        const data = await r.json();
+        if (data.valid) {
+          setPromoStatus("valid");
+          setPromoInfo({ discount: data.discount, finalAmount: data.finalAmount });
+        } else {
+          setPromoStatus("invalid");
+          setPromoInfo({ discount: 0, finalAmount: baseAmount, error: data.error });
+        }
+      } catch { setPromoStatus("invalid"); setPromoInfo(null); }
+    }, 500);
+    return () => clearTimeout(tm);
+  }, [form.promoCode, selectedPkg?.id, form.adults]);
+
   const today = new Date().toISOString().split("T")[0];
   const bk = t.booking;
   const estimatedPrice = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
@@ -928,9 +958,8 @@ function PackagesAndBooking() {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
-      setShowModal(true);
       try {
-        await apiFetch("/api/bookings", {
+        const r = await apiFetch("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -943,10 +972,38 @@ function PackagesAndBooking() {
             notes: form.notes, currency: "EGP",
             priceAtBooking: estimatedPrice || null,
             referralCode: referralStatus === "valid" ? form.referralCode.trim().toUpperCase() : undefined,
+            promoCode: promoStatus === "valid" ? form.promoCode.trim().toUpperCase() : undefined,
           }),
         });
+        if (r.status === 409) {
+          const data = await r.json().catch(() => ({}));
+          if (data.error === "CAPACITY_FULL") {
+            const join = window.confirm(
+              lang === "ar"
+                ? `للأسف هذا التاريخ ممتلئ (${data.bookedSeats || 0}/${data.maxSeats || 0}). هل ترغب في الانضمام لقائمة الانتظار؟ سنخطرك فور توفر مقاعد.`
+                : `This date is full (${data.bookedSeats || 0}/${data.maxSeats || 0}). Would you like to join the waitlist? We'll notify you when seats open up.`
+            );
+            if (join) {
+              const wr = await apiFetch("/api/waitlist", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: form.name, phone: form.phone,
+                  packageId: selectedPkg?.id, packageName: selectedPkg?.name ?? "",
+                  date: form.date,
+                  groupSize: (parseInt(form.adults) || 1) + (parseInt(form.children) || 0),
+                  notes: form.notes,
+                }),
+              });
+              alert(wr.ok
+                ? (lang === "ar" ? "✅ تم تسجيلك في قائمة الانتظار. سنتواصل معك قريباً." : "✅ You've been added to the waitlist. We'll contact you soon.")
+                : (lang === "ar" ? "حدث خطأ، يرجى المحاولة مرة أخرى." : "Error, please try again."));
+            }
+            return;
+          }
+        }
+        setShowModal(true);
       } catch {
-        // Booking saves to DB silently — WhatsApp flow continues regardless
+        setShowModal(true);
       }
     }
   };
@@ -1184,6 +1241,32 @@ function PackagesAndBooking() {
                         <p style={{ color: "#EF4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>
                           {lang === "ar" ? "كود غير صحيح أو غير مفعّل" : "Invalid or inactive code"}
                         </p>
+                      )}
+                    </div>
+
+                    {/* Promo / discount code */}
+                    <div>
+                      <label style={labelStyle}>{lang === "ar" ? "كود خصم (اختياري)" : "Promo Code (optional)"}</label>
+                      <div style={{ position: "relative" }}>
+                        <input className="form-input"
+                          style={{ fontFamily: "Montserrat, monospace", letterSpacing: "2px", fontWeight: 700, fontSize: "0.95rem",
+                            borderColor: promoStatus === "valid" ? "#10B981" : promoStatus === "invalid" ? "#EF4444" : undefined,
+                            color: promoStatus === "valid" ? "#10B981" : undefined,
+                            paddingInlineEnd: promoStatus !== "idle" ? "2.5rem" : undefined }}
+                          placeholder="SUMMER20"
+                          value={form.promoCode}
+                          onChange={e => setForm({ ...form, promoCode: e.target.value.toUpperCase() })} />
+                        {promoStatus === "checking" && <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--section-subtitle)", fontSize: "0.75rem" }}>⏳</span>}
+                        {promoStatus === "valid" && <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#10B981", fontSize: "1rem" }}>✓</span>}
+                        {promoStatus === "invalid" && <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#EF4444", fontSize: "1rem" }}>✗</span>}
+                      </div>
+                      {promoStatus === "valid" && promoInfo && (
+                        <p style={{ color: "#10B981", fontSize: "0.78rem", marginTop: "0.3rem", fontWeight: 700 }}>
+                          ✅ {lang === "ar" ? `خصم ${promoInfo.discount.toLocaleString("ar-EG")} ج.م — السعر النهائي ${promoInfo.finalAmount.toLocaleString("ar-EG")} ج.م` : `Discount EGP ${promoInfo.discount} — Final EGP ${promoInfo.finalAmount}`}
+                        </p>
+                      )}
+                      {promoStatus === "invalid" && promoInfo?.error && (
+                        <p style={{ color: "#EF4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>{promoInfo.error}</p>
                       )}
                     </div>
 
@@ -2063,6 +2146,7 @@ function PublicAppShell() {
             <Route path="/share" component={SharePage} />
             <Route path="/ticket/:token" component={TicketPage} />
             <Route path="/verify/:token" component={VerifyPage} />
+            <Route path="/review/:token" component={ReviewPage} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />

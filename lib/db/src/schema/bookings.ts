@@ -17,6 +17,8 @@ export const bookings = pgTable("bookings", {
   adminNotes: text("admin_notes").notNull().default(""),
   currency: text("currency").notNull().default("EGP"),
   priceAtBooking: integer("price_at_booking"),
+  promoCode: text("promo_code").notNull().default(""),
+  discountAmount: integer("discount_amount").notNull().default(0),
   status: text("status").notNull().default("new"),
   referralCode: text("referral_code").notNull().default(""),
   ticketToken: text("ticket_token").unique(),

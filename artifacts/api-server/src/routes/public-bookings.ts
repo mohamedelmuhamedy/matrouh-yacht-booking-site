@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { db, bookings, packages } from "@workspace/db";
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, ne, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { createReferralRewardIfNeeded } from "./admin-rewards";
 import { ensureTicketToken } from "./tickets";
+import { consumePromoCode } from "./admin-promo-codes";
+import { checkCapacity } from "./admin-capacity";
 
 const router = Router();
 
@@ -65,6 +67,7 @@ router.post("/bookings", async (req, res) => {
     const notes = String(body.notes ?? "").trim().slice(0, 2000);
     const currency = String(body.currency ?? "EGP").trim().slice(0, 8) || "EGP";
     const referralCode = String(body.referralCode ?? "").toUpperCase().trim().slice(0, 32);
+    const promoCodeRaw = String(body.promoCode ?? "").toUpperCase().trim().slice(0, 32);
 
     if (!name) return res.status(400).json({ error: "Name is required" });
     if (!isValidPhone(phoneRaw)) {
@@ -116,6 +119,30 @@ router.post("/bookings", async (req, res) => {
       }
     }
 
+    // Pre-flight capacity check (best-effort; final atomic check inside transaction below)
+    if (packageId !== null) {
+      const requested = (adults || 0) + (children || 0);
+      const cap = await checkCapacity(packageId, date, requested);
+      if (!cap.ok) {
+        return res.status(409).json({
+          error: cap.reason,
+          code: "CAPACITY_FULL",
+          remaining: cap.remaining,
+        });
+      }
+    }
+
+    // Promo code application (atomic increment)
+    let appliedPromoCode = "";
+    let discountAmount = 0;
+    if (promoCodeRaw && priceAtBooking) {
+      const result = await consumePromoCode(promoCodeRaw, priceAtBooking, packageId);
+      if (result) {
+        appliedPromoCode = result.codeRow.code;
+        discountAmount = result.discount;
+      }
+    }
+
     const key = idempotencyKey(phone, packageId, packageName, date);
     const recent = getRecentBooking(key);
     if (recent) {
@@ -134,63 +161,97 @@ router.post("/bookings", async (req, res) => {
 
     const flight = (async (): Promise<number> => {
       const since = new Date(Date.now() - IDEMPOTENCY_TTL_MS);
-      const dupRows = await db
-        .select({ id: bookings.id })
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.phone, phone),
-            eq(bookings.date, date),
-            gte(bookings.createdAt, since),
-            packageId !== null
-              ? eq(bookings.packageId, packageId)
-              : eq(bookings.packageName, packageName),
-          ),
-        );
-      if (dupRows.length > 0) {
-        rememberBooking(key, dupRows[0]!.id);
-        return dupRows[0]!.id;
-      }
+      const requested = (adults || 0) + (children || 0);
+      const booking = await db.transaction(async (tx) => {
+        if (packageId !== null) {
+          // Lock the capacity row (if any) to serialize concurrent bookings for same package+date
+          const capRows = await tx.execute(
+            sql`SELECT id, max_seats FROM package_capacity WHERE package_id = ${packageId} AND date = ${date} FOR UPDATE`,
+          );
+          const capRow = (capRows as any).rows?.[0] ?? (Array.isArray(capRows) ? (capRows as any)[0] : undefined);
+          const maxSeats = Number(capRow?.max_seats ?? 0);
+          if (capRow && maxSeats > 0) {
+            const sumRes = await tx
+              .select({ total: sql<number>`COALESCE(SUM(${bookings.adults} + ${bookings.children}), 0)` })
+              .from(bookings)
+              .where(and(
+                eq(bookings.packageId, packageId),
+                eq(bookings.date, date),
+                ne(bookings.status, "cancelled"),
+              ));
+            const booked = Number(sumRes[0]?.total ?? 0);
+            const remaining = Math.max(0, maxSeats - booked);
+            if (remaining < requested) {
+              const err = new Error(`CAPACITY_FULL:${remaining}`);
+              (err as any).code = "CAPACITY_FULL";
+              (err as any).remaining = remaining;
+              throw err;
+            }
+          }
+        }
 
-      const [booking] = await db
-        .insert(bookings)
-        .values({
-          name,
-          phone,
-          packageId,
-          packageName,
-          packageNameAr,
-          date,
-          adults,
-          children,
-          infants,
-          notes,
-          currency,
-          priceAtBooking,
-          referralCode,
-          status: "new",
-        })
-        .returning();
+        const dupRows = await tx
+          .select({ id: bookings.id })
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.phone, phone),
+              eq(bookings.date, date),
+              gte(bookings.createdAt, since),
+              packageId !== null
+                ? eq(bookings.packageId, packageId)
+                : eq(bookings.packageName, packageName),
+            ),
+          );
+        if (dupRows.length > 0) {
+          return { id: dupRows[0]!.id, deduped: true } as { id: number; deduped: boolean };
+        }
+
+        const [row] = await tx
+          .insert(bookings)
+          .values({
+            name,
+            phone,
+            packageId,
+            packageName,
+            packageNameAr,
+            date,
+            adults,
+            children,
+            infants,
+            notes,
+            currency,
+            priceAtBooking,
+            promoCode: appliedPromoCode,
+            discountAmount,
+            referralCode,
+            status: "new",
+          })
+          .returning();
+        return { id: row.id, deduped: false } as { id: number; deduped: boolean };
+      });
 
       rememberBooking(key, booking.id);
 
-      if (referralCode) {
-        try {
-          await createReferralRewardIfNeeded(
-            booking.id,
-            referralCode,
-            name,
-            packageName || packageNameAr || "",
-          );
-        } catch (err) {
-          console.error("[public-bookings] referral reward failed:", err);
+      if (!booking.deduped) {
+        if (referralCode) {
+          try {
+            await createReferralRewardIfNeeded(
+              booking.id,
+              referralCode,
+              name,
+              packageName || packageNameAr || "",
+            );
+          } catch (err) {
+            console.error("[public-bookings] referral reward failed:", err);
+          }
         }
-      }
 
-      try {
-        await ensureTicketToken(booking.id);
-      } catch (err) {
-        console.error("[public-bookings] ensureTicketToken failed:", err);
+        try {
+          await ensureTicketToken(booking.id);
+        } catch (err) {
+          console.error("[public-bookings] ensureTicketToken failed:", err);
+        }
       }
 
       return booking.id;
@@ -205,7 +266,14 @@ router.post("/bookings", async (req, res) => {
     }
 
     return res.status(201).json({ success: true, id: createdId });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === "CAPACITY_FULL") {
+      return res.status(409).json({
+        error: `المقاعد المتاحة لهذا اليوم ${err.remaining ?? 0} فقط`,
+        code: "CAPACITY_FULL",
+        remaining: err.remaining ?? 0,
+      });
+    }
     const msg = err instanceof Error ? err.message : "Failed to create booking";
     console.error("[public-bookings] error:", msg);
     return res.status(500).json({ error: "Failed to create booking" });

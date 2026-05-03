@@ -22,6 +22,11 @@ import aiChatRouter from "./ai-chat";
 import ticketsRouter from "./tickets";
 import shareScanRouter from "./share-scan";
 import adminAuditRouter from "./admin-audit";
+import adminPromoCodesRouter from "./admin-promo-codes";
+import adminReviewsRouter from "./admin-reviews";
+import adminWaitlistRouter from "./admin-waitlist";
+import adminCapacityRouter from "./admin-capacity";
+import adminUsersRouter from "./admin-users";
 
 const router: IRouter = Router();
 
@@ -48,5 +53,10 @@ router.use(aiChatRouter);
 router.use(ticketsRouter);
 router.use(shareScanRouter);
 router.use(adminAuditRouter);
+router.use(adminPromoCodesRouter);
+router.use(adminReviewsRouter);
+router.use(adminWaitlistRouter);
+router.use(adminCapacityRouter);
+router.use(adminUsersRouter);
 
 export default router;

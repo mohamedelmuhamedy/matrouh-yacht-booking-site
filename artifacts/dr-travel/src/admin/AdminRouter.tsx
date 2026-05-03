@@ -23,6 +23,13 @@ import AdminShareCardPage from "./AdminShareCardPage";
 import PushNotificationsPage from "./PushNotificationsPage";
 import AdminScannerPage from "./AdminScannerPage";
 import AdminAuditPage from "./AdminAuditPage";
+import AdminPromoCodesPage from "./AdminPromoCodesPage";
+import AdminReviewsPage from "./AdminReviewsPage";
+import AdminWaitlistPage from "./AdminWaitlistPage";
+import AdminCapacityPage from "./AdminCapacityPage";
+import AdminUsersPage from "./AdminUsersPage";
+import AdminCalendarPage from "./AdminCalendarPage";
+import AdminStatsPage from "./AdminStatsPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAdmin();
@@ -122,6 +129,27 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/audit">
         <AdminGuard><AdminAuditPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/promo-codes">
+        <AdminGuard><AdminPromoCodesPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/reviews">
+        <AdminGuard><AdminReviewsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/waitlist">
+        <AdminGuard><AdminWaitlistPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/capacity">
+        <AdminGuard><AdminCapacityPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/users">
+        <AdminGuard><AdminUsersPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/calendar">
+        <AdminGuard><AdminCalendarPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/stats">
+        <AdminGuard><AdminStatsPage /></AdminGuard>
       </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>

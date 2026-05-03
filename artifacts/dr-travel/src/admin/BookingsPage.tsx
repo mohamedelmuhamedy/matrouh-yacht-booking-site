@@ -895,6 +895,18 @@ export default function BookingsPage() {
                   </div>
                   <div className="bk-trail" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
                     <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer" className="bk-icon-btn is-wa" title="واتساب">💬</a>
+                    {b.status === "completed" && b.ticketToken && (
+                      <a
+                        href={(() => {
+                          const url = `${window.location.origin}/review/${b.ticketToken}`;
+                          const num = b.phone.replace(/\D/g, "");
+                          const intl = num.startsWith("0") ? "2" + num : num.startsWith("20") ? num : "20" + num;
+                          const msg = encodeURIComponent(`أهلاً ${b.name} 🌟\nسعدنا برحلتك معنا في ${b.packageNameAr || b.packageName}.\nنرجو تخصيص دقيقة لتقييم تجربتك من هنا:\n${url}\nشكرًا لك! - DR Travel`);
+                          return `https://wa.me/${intl}?text=${msg}`;
+                        })()}
+                        target="_blank" rel="noreferrer"
+                        className="bk-icon-btn is-wa" title="إرسال رابط تقييم الرحلة">🌟</a>
+                    )}
                     <button className="bk-icon-btn is-chevron" title={isOpen ? "طي" : "توسيع"} onClick={() => toggleExpanded(b.id)}>
                       <span className="bk-chev">▾</span>
                     </button>
