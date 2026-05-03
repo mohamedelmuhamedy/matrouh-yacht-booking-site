@@ -103,8 +103,9 @@ export default function AdminScannerPage() {
         () => {}
       );
       setScanning(true);
-    } catch (e: any) {
-      setCameraError(e?.message ? `${T.cameraError} (${e.message})` : T.cameraError);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "";
+      setCameraError(msg ? `${T.cameraError} (${msg})` : T.cameraError);
       setScanning(false);
     } finally {
       startingRef.current = false;
@@ -153,7 +154,6 @@ export default function AdminScannerPage() {
   const markUsed = async () => {
     const t = data?.ticket;
     if (!t || !adminToken) return;
-    // need to recover token from last scan
     const parsed = parseScanned(lastScanRef.current);
     if (!parsed) return;
     setMarking(true);
@@ -293,7 +293,6 @@ export default function AdminScannerPage() {
               background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px",
               display: "flex", flexDirection: "column", gap: 8,
             }}>
-              {/* HUGE name + count for gate staff */}
               <div style={{
                 textAlign: "center", padding: "8px 4px 12px", borderBottom: "1px dashed #cbd5e1", marginBottom: 4,
               }}>
