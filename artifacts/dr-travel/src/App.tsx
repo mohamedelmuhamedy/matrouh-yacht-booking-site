@@ -1378,6 +1378,25 @@ function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const waNum = settings.whatsapp_number || "201205756024";
   const phone = settings.phone_number || "+20 120 575 6024";
+  const showMap = settings.show_footer_map === "true";
+  const DEFAULT_MAPS_URL = "https://maps.google.com/?q=Mersa+Matruh,+Egypt";
+  const mapsUrl = (() => {
+    const raw = settings.maps_url || DEFAULT_MAPS_URL;
+    try {
+      const u = new URL(raw);
+      if (u.protocol === "http:" || u.protocol === "https:") return raw;
+    } catch { /* ignore */ }
+    return DEFAULT_MAPS_URL;
+  })();
+  const mapQuery = (() => {
+    try {
+      const u = new URL(mapsUrl);
+      const q = u.searchParams.get("q") || u.searchParams.get("query");
+      if (q) return q;
+    } catch { /* ignore */ }
+    return lang === "ar" ? (settings.location_ar || "مرسى مطروح، مصر") : (settings.location_en || "Marsa Matruh, Egypt");
+  })();
+  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&hl=${lang}&z=12&output=embed`;
   const socialLinks = [
     { label: "Facebook", href: settings.facebook_url || "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
     { label: "Instagram", href: settings.instagram_url || "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C", bg: "rgba(225,48,108,0.12)" },
@@ -1450,7 +1469,7 @@ function Footer() {
                   {item.text}
                 </a>
               ))}
-              <a href={settings.maps_url || "https://maps.google.com/?q=Mersa+Matruh,+Egypt"} target="_blank" rel="noreferrer"
+              <a href={mapsUrl} target="_blank" rel="noreferrer"
                 style={{ color: "#445566", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", transition: "color 0.3s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#C9A84C")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#445566")}>
@@ -1463,6 +1482,62 @@ function Footer() {
               </div>
             </div>
           </div>
+
+          {/* Map (optional) */}
+          {showMap && (
+            <div>
+              <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ width: 3, height: 16, background: "#C9A84C", borderRadius: 2, display: "inline-block" }} />
+                {lang === "ar" ? "موقعنا على الخريطة" : "Find us on the map"}
+              </h4>
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={lang === "ar" ? "افتح موقعنا في Google Maps" : "Open our location in Google Maps"}
+                style={{
+                  display: "block", position: "relative", width: "100%", aspectRatio: "1 / 1",
+                  borderRadius: "12px", overflow: "hidden",
+                  border: "1px solid rgba(201,168,76,0.25)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+                  textDecoration: "none", transition: "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 14px 32px rgba(201,168,76,0.25)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,168,76,0.55)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(0,0,0,0.35)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,168,76,0.25)";
+                }}
+              >
+                <iframe
+                  title="DR Travel location"
+                  src={embedUrl}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, pointerEvents: "none", filter: "saturate(0.9) contrast(0.95)" }}
+                />
+                <span aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%)" }} />
+                <span style={{
+                  position: "absolute", insetInlineStart: 12, bottom: 12,
+                  display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                  background: "rgba(201,168,76,0.95)", color: "#0a1520",
+                  fontSize: "0.72rem", fontWeight: 800,
+                  padding: "0.35rem 0.7rem", borderRadius: "999px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                }}>
+                  <span style={{ display: "inline-flex", width: 14, height: 14 }}><LocationIcon /></span>
+                  {lang === "ar" ? "افتح في Google Maps" : "Open in Google Maps"}
+                </span>
+              </a>
+              <p style={{ color: "#445566", fontSize: "0.78rem", margin: "0.85rem 0 0", lineHeight: 1.7 }}>
+                {lang === "ar" ? (settings.location_ar || "مرسى مطروح، مصر") : (settings.location_en || "Marsa Matruh, Egypt")}
+              </p>
+            </div>
+          )}
         </div>
 
         <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(0,170,255,0.2),transparent)", marginBottom: "1.5rem" }} />

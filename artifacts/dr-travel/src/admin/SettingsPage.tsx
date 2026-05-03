@@ -45,6 +45,7 @@ const DEFAULTS: Record<string, string> = {
   services_link_to_trips: "false",
   services_detail_pages_enabled: "true",
   uniform_home_cards: "false",
+  show_footer_map: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };
@@ -140,6 +141,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "services_detail_pages_enabled", label: "تفعيل صفحات تفاصيل الخدمات", type: "boolean", hint: "لما يتفعّل، كل خدمة في الصفحة الرئيسية ليها صفحة تفاصيل خاصة بيها (/services/<slug>). لو وقّفته، البطاقات مش هتفتح صفحة تفاصيل" },
       { key: "services_link_to_trips", label: "الضغط على الخدمات يفتح صفحة تفاصيل الرحلات", type: "boolean", hint: "لما يتفعّل، الضغط على أي بطاقة خدمة في الصفحة الرئيسية بيوّدي العميل مباشرة لصفحة /trips. هذا الإعداد له الأولوية على صفحات تفاصيل الخدمات" },
       { key: "uniform_home_cards", label: "توحيد حجم البطاقات (خدماتنا و'ليه DR Travel')", type: "boolean", hint: "لما يتفعّل، كل البطاقات في قسم 'خدماتنا' وقسم 'ليه DR Travel' هتبقى بنفس الارتفاع بالظبط مهما كان طول النص جوّاها" },
+      { key: "show_footer_map", label: "إظهار خريطة الموقع في الفوتر", type: "boolean", hint: "لما يتفعّل، بتظهر خريطة جوجل صغيرة على شمال الفوتر، والباقي بيتزحزح يمين شوية. الضغط على الخريطة بيفتح المكان على Google Maps. لو معطّل، الفوتر يفضل زي ما هو" },
     ],
   },
 ];

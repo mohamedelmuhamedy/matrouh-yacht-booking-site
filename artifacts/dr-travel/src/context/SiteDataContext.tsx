@@ -170,6 +170,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   services_link_to_trips: "false",
   services_detail_pages_enabled: "true",
   uniform_home_cards: "false",
+  show_footer_map: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
 };
