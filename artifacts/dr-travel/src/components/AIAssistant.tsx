@@ -420,7 +420,7 @@ export default function AIAssistant() {
                 }}
                 style={{
                   background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.35)",
-                  color: "#0D1B2A", padding: "0.3rem 0.55rem", borderRadius: 999,
+                  color: "var(--text-primary)", padding: "0.3rem 0.55rem", borderRadius: 999,
                   fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
                 }}
               >{s}</button>
@@ -432,7 +432,7 @@ export default function AIAssistant() {
             style={{
               position: "absolute", top: 4, right: 4,
               width: 22, height: 22, borderRadius: "50%",
-              background: "rgba(13,27,42,0.08)", border: "none", color: "#0D1B2A",
+              background: "var(--bg-surface-2)", border: "none", color: "var(--text-primary)",
               cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 14, lineHeight: 1, padding: 0,
             }}
@@ -535,7 +535,7 @@ export default function AIAssistant() {
                   border: `1px solid ${m.role === "assistant" ? "rgba(0,170,255,0.25)" : "rgba(201,168,76,0.35)"}`,
                   borderRadius: m.role === "assistant" ? "4px 14px 14px 14px" : "14px 4px 14px 14px",
                   padding: "0.6rem 0.85rem", maxWidth: "88%",
-                  color: m.role === "assistant" ? "#d8ecff" : "#fff8e1",
+                  color: "var(--text-primary)",
                   fontSize: "0.85rem", lineHeight: 1.65, wordBreak: "break-word",
                   position: "relative",
                 }}>
@@ -552,8 +552,8 @@ export default function AIAssistant() {
                       aria-label={T.copy}
                       style={{
                         position: "absolute", bottom: -10, [ar ? "left" : "right"]: 6,
-                        background: "rgba(13,27,42,0.95)", border: "1px solid var(--border-strong)",
-                        color: copiedIdx === i ? "#22c55e" : "#9fd4ff",
+                        background: "var(--bg-surface-solid)", border: "1px solid var(--border-strong)",
+                        color: copiedIdx === i ? "#22c55e" : "var(--text-secondary)",
                         borderRadius: 999, padding: "2px 8px",
                         fontSize: "0.65rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
                       } as React.CSSProperties}
@@ -619,7 +619,7 @@ export default function AIAssistant() {
                 <div style={{
                   background: "rgba(0,170,255,0.10)", border: "1px solid rgba(0,170,255,0.25)",
                   borderRadius: "4px 14px 14px 14px", padding: "0.6rem 0.85rem",
-                  color: "#8db5d6", fontSize: "0.78rem",
+                  color: "var(--text-secondary)", fontSize: "0.78rem",
                 }}>
                   <span className="drtai-typing-dot" /><span className="drtai-typing-dot" /><span className="drtai-typing-dot" />
                 </div>
@@ -651,7 +651,7 @@ export default function AIAssistant() {
                     className="drtai-chip"
                     style={{
                       background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.3)",
-                      color: "#9fd4ff", padding: "0.4rem 0.7rem", borderRadius: 999,
+                      color: "var(--text-primary)", padding: "0.4rem 0.7rem", borderRadius: 999,
                       fontSize: "0.74rem", cursor: "pointer", fontFamily: "inherit",
                     }}
                   >{s}</button>
@@ -666,7 +666,7 @@ export default function AIAssistant() {
           <form onSubmit={handleSubmit} style={{
             padding: "0.7rem 0.8rem",
             borderTop: "1px solid var(--bg-surface-2)",
-            background: "rgba(0,0,0,0.25)",
+            background: "var(--bg-surface)",
             display: "flex", gap: "0.5rem", alignItems: "center",
           }}>
             <input
@@ -679,7 +679,7 @@ export default function AIAssistant() {
               style={{
                 flex: 1, background: "var(--bg-surface)",
                 border: "1px solid var(--border-strong)", borderRadius: 999,
-                padding: "0.55rem 0.95rem", color: "white", fontSize: "0.85rem",
+                padding: "0.55rem 0.95rem", color: "var(--text-primary)", fontSize: "0.85rem",
                 outline: "none", fontFamily: "inherit",
               }}
               onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.5)"; }}
