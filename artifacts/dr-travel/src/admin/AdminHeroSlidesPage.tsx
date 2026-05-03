@@ -30,7 +30,7 @@ const TRANSITIONS = [
 ];
 
 const card: React.CSSProperties = {
-  background: "var(--bg-surface-solid)", borderRadius: "14px", border: "1.5px solid #d0dce8",
+  background: "var(--bg-surface-solid)", borderRadius: "14px", border: "1.5px solid var(--border)",
   padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem",
 };
 
@@ -256,7 +256,7 @@ export default function AdminHeroSlidesPage() {
     fontSize: "0.8rem", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontWeight: 600,
   };
   const inputStyle: React.CSSProperties = {
-    padding: "0.55rem 0.85rem", borderRadius: "8px", border: "1.5px solid #d0dce8",
+    padding: "0.55rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border)",
     outline: "none", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif",
     color: "var(--text-primary)", background: "var(--bg-surface-solid)", width: "80px",
   };
@@ -398,7 +398,7 @@ export default function AdminHeroSlidesPage() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ width: 90, height: 60, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4f8", position: "relative" }}>
+                    <div style={{ width: 90, height: 60, borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "var(--bg-surface-2)", position: "relative" }}>
                       <img src={toImgUrl(slide.url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       <div style={{ position: "absolute", top: 3, right: 3, background: "#00AAFF", color: "white", fontSize: "0.62rem", fontWeight: 700, borderRadius: "4px", padding: "1px 5px" }}>
                         صورة
@@ -506,7 +506,7 @@ export default function AdminHeroSlidesPage() {
                       {hasSavedTrim && (
                         <button
                           onClick={() => clearTrim(slide)}
-                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "var(--bg-surface-solid)", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid var(--border)", background: "var(--bg-surface-solid)", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
                         >🔄 إزالة القص (فيديو كامل)</button>
                       )}
                     </div>

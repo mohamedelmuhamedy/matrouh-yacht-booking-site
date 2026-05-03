@@ -15,7 +15,7 @@ const inputSt: React.CSSProperties = {
   width: "100%",
   padding: "0.65rem 0.9rem",
   borderRadius: "8px",
-  border: "1.5px solid #d0dce8",
+  border: "1.5px solid var(--border)",
   outline: "none",
   fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif",
@@ -227,7 +227,7 @@ export default function AdminCategoriesPage() {
                       </button>
                       <button
                         onClick={() => setEditId(null)}
-                        style={{ background: "#f0f4f8", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                        style={{ background: "var(--bg-surface-2)", color: "var(--section-subtitle)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                         إلغاء
                       </button>
                     </div>
@@ -245,7 +245,7 @@ export default function AdminCategoriesPage() {
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      style={{ background: "#f0f4f8", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "var(--bg-surface-2)", color: "var(--section-subtitle)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -260,7 +260,7 @@ export default function AdminCategoriesPage() {
                     </div>
                     <button
                       onClick={() => { setEditId(cat.id); setEditForm({ nameAr: cat.nameAr, nameEn: cat.nameEn }); }}
-                      style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                       تعديل
                     </button>
                     <button

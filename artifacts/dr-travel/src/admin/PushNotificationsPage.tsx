@@ -178,7 +178,7 @@ export default function PushNotificationsPage() {
           onClick={send}
           disabled={loading || !title.trim() || !body.trim() || !vapidOk}
           style={{
-            width: "100%", background: loading ? "#93c5fd" : "#0D1B2A",
+            width: "100%", background: loading ? "#93c5fd" : "linear-gradient(135deg,#00AAFF,#0066cc)",
             color: "var(--bg-surface-solid)", border: "none", borderRadius: 8,
             padding: "0.75rem", fontSize: "0.95rem", fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",

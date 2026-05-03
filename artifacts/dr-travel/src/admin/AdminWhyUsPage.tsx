@@ -99,7 +99,7 @@ export default function AdminWhyUsPage() {
                       تأكيد الحذف
                     </button>
                     <button onClick={() => setConfirmDelete(null)}
-                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -127,7 +127,7 @@ export default function AdminWhyUsPage() {
                         {c.isActive ? "إخفاء" : "إظهار"}
                       </button>
                       <button onClick={() => navigate(`/admin/why-us/${c.id}/edit`)}
-                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         تعديل
                       </button>
                       <button onClick={() => setConfirmDelete(c.id)}

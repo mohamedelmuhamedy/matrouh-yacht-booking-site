@@ -212,7 +212,7 @@ export default function PackagesPage() {
                       </select>
                       {pkg.status !== "archived" && (
                         <button onClick={() => toggleActive(pkg)}
-                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "var(--bg-surface-sunk)" : "#25D36610", color: pkg.active ? "var(--section-subtitle)" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
+                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "var(--border)" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "var(--bg-surface-sunk)" : "#25D36610", color: pkg.active ? "var(--section-subtitle)" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
                           {pkg.active ? "🙈 إخفاء" : "👁️ إظهار"}
                         </button>
                       )}

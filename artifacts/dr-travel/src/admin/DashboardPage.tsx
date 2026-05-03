@@ -606,7 +606,7 @@ export default function DashboardPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: 560 }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid #f0f4f8" }}>
+                <tr style={{ borderBottom: "2px solid var(--bg-surface-2)" }}>
                   {["الاسم", "الهاتف", "الباقة", "التاريخ", "العدد", "السعر", "الحالة"].map(h => (
                     <th key={h} style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)", fontWeight: 700, textAlign: "right" }}>{h}</th>
                   ))}
@@ -616,7 +616,7 @@ export default function DashboardPage() {
                 {recentBookings.map(b => {
                   const group = groupSizeOf(b);
                   return (
-                    <tr key={b.id} style={{ borderBottom: "1px solid #f0f4f8", cursor: "pointer" }}
+                    <tr key={b.id} style={{ borderBottom: "1px solid var(--bg-surface-2)", cursor: "pointer" }}
                       onClick={() => navigate("/admin/bookings")}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-sunk)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}>

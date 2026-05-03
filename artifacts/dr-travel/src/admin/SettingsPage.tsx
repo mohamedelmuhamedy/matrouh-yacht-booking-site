@@ -236,7 +236,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
 
 const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.75rem 1rem", borderRadius: "10px",
-  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.92rem",
+  border: "1.5px solid var(--border)", outline: "none", fontSize: "0.92rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
   color: "var(--text-primary)", background: "var(--bg-surface-solid)",
   transition: "border-color 0.2s, box-shadow 0.2s",
@@ -250,7 +250,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       style={{
         position: "relative", display: "inline-flex", alignItems: "center",
         width: 52, height: 28, borderRadius: 14, border: "none", cursor: "pointer",
-        background: checked ? "#00AAFF" : "#d0dce8",
+        background: checked ? "#00AAFF" : "var(--border)",
         transition: "background 0.25s", flexShrink: 0, padding: 0,
       }}
       aria-checked={checked}
@@ -563,7 +563,7 @@ export default function SettingsPage() {
                   textAlign: dir === "rtl" ? "right" : "left",
                   padding: "0.7rem 0.75rem",
                   borderRadius: "10px",
-                  border: `1.5px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
+                  border: `1.5px solid ${active ? "#00AAFF" : "var(--border)"}`,
                   background: active ? "rgba(0,170,255,0.08)" : "var(--bg-surface-sunk)",
                   color: active ? "#0066cc" : "var(--text-muted)",
                   cursor: "pointer",
@@ -622,7 +622,7 @@ export default function SettingsPage() {
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           <button
             onClick={() => confirmAndRestore("all", "جميع الإعدادات")}
-            style={{ background: "#f0f4f8", border: "1px solid #d0dce8", borderRadius: "10px", padding: "0.6rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "var(--section-subtitle)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.6rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "var(--section-subtitle)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
             🔄 استعادة الكل
           </button>
           <button
@@ -662,7 +662,7 @@ export default function SettingsPage() {
             <img
               src={resolveApiAssetUrl(settings.logo_url) || logoFallback}
               alt="Logo"
-              style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover", border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
+              style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover", border: "3px solid var(--border)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
               onError={e => { (e.target as HTMLImageElement).src = logoFallback; }}
             />
             {settings.logo_url && (
@@ -709,7 +709,7 @@ export default function SettingsPage() {
           <div style={{ position: "relative", flexShrink: 0 }}>
             <div style={{
               width: 140, height: 80, borderRadius: "10px", overflow: "hidden",
-              border: "3px solid #e0e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+              border: "3px solid var(--border)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
               background: settings.hero_bg_url
                 ? `url('${resolveApiAssetUrl(settings.hero_bg_url)}') center/cover`
                 : "linear-gradient(135deg,#0D1B2A,#00AAFF40)",
@@ -769,7 +769,7 @@ export default function SettingsPage() {
                     onClick={() => confirmAndRestore(group.section, group.title)}
                     style={{ background: "none", border: "1px solid var(--border)", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e0e8f0"; (e.currentTarget as HTMLElement).style.color = "#99aabb"; }}>
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "#99aabb"; }}>
                     🔄 استعادة الأصل
                   </button>
                 )}
@@ -786,7 +786,7 @@ export default function SettingsPage() {
                     const isOn = settings[key] === "true";
                     return (
                       <div key={key}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${isOn ? "#10B98130" : "var(--border)"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
                         onClick={() => updateBool(key, !isOn)}>
                         <div>
                           <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
@@ -840,7 +840,7 @@ export default function SettingsPage() {
                                 const active = (val || DEFAULTS[key]) === opt.value;
                                 return (
                                   <button key={opt.value} onClick={() => update(key, opt.value)}
-                                    style={{ padding: "0.45rem 1rem", borderRadius: 8, fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 600, fontSize: "0.82rem", cursor: "pointer", border: `1.5px solid ${active ? "#00AAFF" : "#d0dce8"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: active ? "#00AAFF" : "#556677", transition: "all 0.18s" }}>
+                                    style={{ padding: "0.45rem 1rem", borderRadius: 8, fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 600, fontSize: "0.82rem", cursor: "pointer", border: `1.5px solid ${active ? "#00AAFF" : "var(--border)"}`, background: active ? "rgba(0,170,255,0.08)" : "var(--bg-surface-solid)", color: active ? "#00AAFF" : "var(--section-subtitle)", transition: "all 0.18s" }}>
                                     {opt.label}
                                   </button>
                                 );
@@ -851,7 +851,7 @@ export default function SettingsPage() {
                           <textarea
                             style={{
                               ...inputBase,
-                              borderColor: hasValue ? "#00AAFF40" : "#d0dce8",
+                              borderColor: hasValue ? "#00AAFF40" : "var(--border)",
                               minHeight: 110,
                               resize: "vertical",
                               fontFamily: "Cairo, sans-serif",
@@ -865,7 +865,7 @@ export default function SettingsPage() {
                               e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)";
                             }}
                             onBlur={e => {
-                              e.target.style.borderColor = settings[key]?.trim() ? "#00AAFF40" : "#d0dce8";
+                              e.target.style.borderColor = settings[key]?.trim() ? "#00AAFF40" : "var(--border)";
                               e.target.style.boxShadow = "none";
                             }}
                           />
@@ -877,7 +877,7 @@ export default function SettingsPage() {
                           step={fieldType === "number" ? step : undefined}
                           style={{
                             ...inputBase,
-                            borderColor: hasValue ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8",
+                            borderColor: hasValue ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "var(--border)",
                           }}
                           value={val}
                           placeholder={placeholder}
@@ -887,7 +887,7 @@ export default function SettingsPage() {
                             e.target.style.boxShadow = isAccent ? "0 0 0 3px rgba(201,168,76,0.12)" : "0 0 0 3px rgba(0,170,255,0.12)";
                           }}
                           onBlur={e => {
-                            e.target.style.borderColor = settings[key]?.trim() ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8";
+                            e.target.style.borderColor = settings[key]?.trim() ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "var(--border)";
                             e.target.style.boxShadow = "none";
                           }}
                         />
@@ -960,7 +960,7 @@ export default function SettingsPage() {
                 placeholder="••••••••"
                 style={{ ...inputBase }}
                 onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
-                onBlur={e => { e.target.style.borderColor = "#d0dce8"; e.target.style.boxShadow = "none"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
               />
             </div>
             <div>
@@ -975,7 +975,7 @@ export default function SettingsPage() {
                 placeholder="6 أحرف على الأقل"
                 style={{ ...inputBase }}
                 onFocus={e => { e.target.style.borderColor = "#00AAFF"; e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
-                onBlur={e => { e.target.style.borderColor = "#d0dce8"; e.target.style.boxShadow = "none"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
               />
             </div>
             <div>
@@ -990,7 +990,7 @@ export default function SettingsPage() {
                 placeholder="أعد كتابة كلمة المرور الجديدة"
                 style={{
                   ...inputBase,
-                  borderColor: pwConfirm && pwNew && pwConfirm !== pwNew ? "#EF4444" : pwConfirm && pwNew && pwConfirm === pwNew ? "#10B981" : "#d0dce8",
+                  borderColor: pwConfirm && pwNew && pwConfirm !== pwNew ? "#EF4444" : pwConfirm && pwNew && pwConfirm === pwNew ? "#10B981" : "var(--border)",
                 }}
                 onFocus={e => { e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)"; }}
                 onBlur={e => { e.target.style.boxShadow = "none"; }}

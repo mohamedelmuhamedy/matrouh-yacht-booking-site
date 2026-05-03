@@ -633,7 +633,7 @@ export default function BookingsPage() {
               placeholder="أضف ملاحظة داخلية للأدمن..."
               style={{ width: "100%", padding: "0.75rem", borderRadius: "10px", border: "1.5px solid var(--border)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical", boxSizing: "border-box", direction: "rtl" }} />
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-              <button onClick={() => setNoteBooking(null)} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600 }}>إلغاء</button>
+              <button onClick={() => setNoteBooking(null)} style={{ background: "var(--bg-surface-2)", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600 }}>إلغاء</button>
               <button onClick={saveNote} style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>💾 حفظ</button>
             </div>
           </div>
@@ -653,7 +653,7 @@ export default function BookingsPage() {
                 <div style={{ display: "inline-flex", background: "var(--border)", borderRadius: 8, padding: 2 }}>
                   {(["ar", "en"] as const).map(lng => (
                     <button key={lng} onClick={() => setTicketLang(lng)}
-                      style={{ background: ticketLang === lng ? "#0D1B2A" : "transparent", color: ticketLang === lng ? "white" : "var(--text-secondary)", border: "none", borderRadius: 6, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
+                      style={{ background: ticketLang === lng ? "var(--text-primary)" : "transparent", color: ticketLang === lng ? "var(--bg-surface-solid)" : "var(--text-secondary)", border: "none", borderRadius: 6, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
                       {lng === "ar" ? "AR" : "EN"}
                     </button>
                   ))}
@@ -679,7 +679,7 @@ export default function BookingsPage() {
                 onChange={v => { setTicketFields(p => ({ ...p, supervisorPhone: v })); setTicketFieldsDirty(true); }} />
               <div style={{ display: "flex", alignItems: "flex-end" }}>
                 <button onClick={saveTicketFields} disabled={!ticketFieldsDirty}
-                  style={{ background: ticketFieldsDirty ? "#0D1B2A" : "var(--text-secondary)", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>
+                  style={{ background: ticketFieldsDirty ? "linear-gradient(135deg,#00AAFF,#0066cc)" : "var(--text-secondary)", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>
                   💾 حفظ بيانات الرحلة
                 </button>
               </div>

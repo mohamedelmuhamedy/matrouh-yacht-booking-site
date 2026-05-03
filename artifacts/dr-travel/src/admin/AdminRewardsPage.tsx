@@ -227,7 +227,7 @@ export default function AdminRewardsPage() {
             { key: "rewards", label: "🏆 المكافآت" },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key as any)}
-              style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", background: tab === t.key ? "white" : "transparent", color: tab === t.key ? "#0D1B2A" : "var(--section-subtitle)", boxShadow: tab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}>
+              style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", background: tab === t.key ? "var(--bg-surface-solid)" : "transparent", color: tab === t.key ? "var(--text-primary)" : "var(--section-subtitle)", boxShadow: tab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}>
               {t.label}
             </button>
           ))}
@@ -244,7 +244,7 @@ export default function AdminRewardsPage() {
               <div style={S.card}>
                 <h3 style={S.h3}>⚙️ إعدادات نظام المكافآت</h3>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", background: settings.rewards_enabled === "true" ? "#D1FAE5" : "var(--bg-surface-2)", borderRadius: "12px", marginBottom: "1.5rem", border: `2px solid ${settings.rewards_enabled === "true" ? "#10B981" : "#e0e8f0"}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", background: settings.rewards_enabled === "true" ? "#D1FAE5" : "var(--bg-surface-2)", borderRadius: "12px", marginBottom: "1.5rem", border: `2px solid ${settings.rewards_enabled === "true" ? "#10B981" : "var(--border)"}` }}>
                   <input type="checkbox" id="rewards-enabled" checked={settings.rewards_enabled === "true"}
                     onChange={e => setSettings(s => ({ ...s, rewards_enabled: e.target.checked ? "true" : "false" }))}
                     style={{ width: 20, height: 20, accentColor: "#10B981", cursor: "pointer" }} />
@@ -452,7 +452,7 @@ export default function AdminRewardsPage() {
               { key: "rejected", label: "❌ مرفوض" },
             ].map(f => (
               <button key={f.key} onClick={() => setFilterStatus(f.key)}
-                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === f.key ? "#00AAFF" : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === f.key ? "#EFF6FF" : "white", color: filterStatus === f.key ? "#2563EB" : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}>
+                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === f.key ? "#00AAFF" : "var(--border)"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === f.key ? "rgba(37,99,235,0.1)" : "var(--bg-surface-solid)", color: filterStatus === f.key ? "#2563EB" : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}>
                 {f.label} {f.key !== "all" && rewards.filter(r => f.key === "all" || r.status === f.key).length > 0 && (
                   <span style={{ background: "#00AAFF", color: "white", borderRadius: "50px", padding: "0.1rem 0.4rem", fontSize: "0.68rem", marginRight: "0.3rem" }}>
                     {rewards.filter(r => r.status === f.key).length}

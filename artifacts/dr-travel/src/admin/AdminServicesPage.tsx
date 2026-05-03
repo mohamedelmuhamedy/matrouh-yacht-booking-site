@@ -141,7 +141,7 @@ export default function AdminServicesPage() {
             position: "relative", display: "inline-flex", alignItems: "center",
             width: 56, height: 30, borderRadius: 15, border: "none",
             cursor: togglingFeature ? "not-allowed" : "pointer",
-            background: detailPagesEnabled ? "#00AAFF" : "#d0dce8",
+            background: detailPagesEnabled ? "#00AAFF" : "var(--border)",
             transition: "background 0.2s", flexShrink: 0,
             opacity: togglingFeature ? 0.6 : 1,
           }}>
@@ -175,7 +175,7 @@ export default function AdminServicesPage() {
                       تأكيد الحذف
                     </button>
                     <button onClick={() => setConfirmDelete(null)}
-                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -200,7 +200,7 @@ export default function AdminServicesPage() {
                         {svc.isActive ? "إخفاء" : "إظهار"}
                       </button>
                       <button onClick={() => navigate(`/admin/services/${svc.id}/edit`)}
-                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         تعديل
                       </button>
                       <button onClick={() => setConfirmDelete(svc.id)}

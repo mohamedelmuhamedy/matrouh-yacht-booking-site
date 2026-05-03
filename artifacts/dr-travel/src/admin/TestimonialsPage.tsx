@@ -255,13 +255,13 @@ export default function TestimonialsPage() {
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
           {(["pending", "approved", "rejected", "all"] as const).map(s => {
             const labels: Record<string, string> = { all: "الكل", pending: "قيد الانتظار", approved: "مقبول", rejected: "مرفوض" };
-            const colors: Record<string, string> = { all: "#0D1B2A", pending: "#F59E0B", approved: "#10B981", rejected: "#EF4444" };
+            const colors: Record<string, string> = { all: "#00AAFF", pending: "#F59E0B", approved: "#10B981", rejected: "#EF4444" };
             const c = counts[s as keyof typeof counts];
             return (
               <button key={s} onClick={() => setFilterStatus(s)}
-                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === s ? colors[s] : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === s ? `${colors[s]}12` : "transparent", color: filterStatus === s ? colors[s] : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === s ? colors[s] : "var(--border)"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === s ? `${colors[s]}12` : "transparent", color: filterStatus === s ? colors[s] : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 {labels[s]}
-                <span style={{ background: filterStatus === s ? colors[s] : "#e0e8f0", color: filterStatus === s ? "white" : "var(--section-subtitle)", borderRadius: "50px", padding: "1px 7px", fontSize: "0.7rem", fontWeight: 800, minWidth: 18, textAlign: "center" }}>{c}</span>
+                <span style={{ background: filterStatus === s ? colors[s] : "var(--border)", color: filterStatus === s ? "white" : "var(--section-subtitle)", borderRadius: "50px", padding: "1px 7px", fontSize: "0.7rem", fontWeight: 800, minWidth: 18, textAlign: "center" }}>{c}</span>
               </button>
             );
           })}
@@ -435,7 +435,7 @@ export default function TestimonialsPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem", alignItems: "flex-start", gap: "0.5rem" }}>
                   <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flex: 1, minWidth: 0 }}>
                     {item.avatar ? (
-                      <img src={item.avatar} alt={item.nameAr} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid #e0e8f0", flexShrink: 0 }}
+                      <img src={item.avatar} alt={item.nameAr} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--border)", flexShrink: 0 }}
                         onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#00AAFF20,#00AAFF40)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", fontWeight: 700, color: "#00AAFF", flexShrink: 0 }}>
@@ -494,7 +494,7 @@ export default function TestimonialsPage() {
                     </button>
                   ) : (
                     <button onClick={() => toggleVisible(item)}
-                      style={{ flex: 1, padding: "0.4rem", border: `1px solid ${item.isVisible ? "#e0e8f0" : "#10B981"}`, borderRadius: "8px", cursor: "pointer", background: item.isVisible ? "var(--bg-surface-sunk)" : "#10B98110", fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", color: item.isVisible ? "#6B7280" : "#10B981", fontWeight: 600 }}>
+                      style={{ flex: 1, padding: "0.4rem", border: `1px solid ${item.isVisible ? "var(--border)" : "#10B981"}`, borderRadius: "8px", cursor: "pointer", background: item.isVisible ? "var(--bg-surface-sunk)" : "#10B98110", fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", color: item.isVisible ? "#6B7280" : "#10B981", fontWeight: 600 }}>
                       {item.isVisible ? "🙈 إخفاء" : "👁️ إظهار"}
                     </button>
                   )}

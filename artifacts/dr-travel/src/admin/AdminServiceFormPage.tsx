@@ -53,7 +53,7 @@ const inputSt: React.CSSProperties = {
   width: "100%",
   padding: "0.6rem 0.85rem",
   borderRadius: 8,
-  border: "1.5px solid #d0dce8",
+  border: "1.5px solid var(--border)",
   outline: "none",
   fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif",
@@ -79,7 +79,7 @@ const sectionSt: React.CSSProperties = {
 const ghostBtnSt: React.CSSProperties = {
   background: "var(--bg-surface-solid)",
   color: "var(--text-secondary)",
-  border: "1px solid #d0dce8",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: "0.4rem 0.75rem",
   cursor: "pointer",
@@ -169,7 +169,7 @@ function ImageUploadField({
       />
       <div style={{
         display: "flex", gap: "0.6rem", alignItems: "center",
-        padding: "0.6rem", border: "1.5px dashed #d0dce8", borderRadius: 10,
+        padding: "0.6rem", border: "1.5px dashed var(--border)", borderRadius: 10,
         background: "#fafbfc",
       }}>
         {preview ? (
@@ -242,7 +242,7 @@ function FeatureEditorCard({
         <div style={{
           width: "100%", height: 90, borderRadius: 10, overflow: "hidden",
           background: preview ? `url(${preview}) center/cover` : `linear-gradient(135deg, ${feat.tint}33, ${feat.tint}aa)`,
-          border: "1px solid #d0dce8",
+          border: "1px solid var(--border)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: preview ? 0 : "1.8rem", color: "white",
           marginBottom: "0.35rem",
@@ -517,7 +517,7 @@ export default function AdminServiceFormPage() {
         </div>
         <button
           onClick={() => navigate("/admin/services")}
-          style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+          style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
           ← رجوع
         </button>
       </div>
@@ -724,7 +724,7 @@ export default function AdminServiceFormPage() {
 
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end", marginTop: "1rem" }}>
           <button type="button" onClick={() => navigate("/admin/services")}
-            style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
+            style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
             إلغاء
           </button>
           <button type="submit" disabled={saving}

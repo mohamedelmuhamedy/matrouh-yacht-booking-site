@@ -45,7 +45,7 @@ const EMPTY: FormState = {
 
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.6rem 0.85rem", borderRadius: 8,
-  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
+  border: "1.5px solid var(--border)", outline: "none", fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
 const labelSt: React.CSSProperties = {
@@ -56,7 +56,7 @@ const sectionSt: React.CSSProperties = {
   border: "1.5px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
 const ghostBtnSt: React.CSSProperties = {
-  background: "var(--bg-surface-solid)", color: "var(--text-secondary)", border: "1px solid #d0dce8", borderRadius: 8,
+  background: "var(--bg-surface-solid)", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 8,
   padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
   fontSize: "0.76rem", fontWeight: 700,
 };
@@ -98,7 +98,7 @@ function ImageField({ label, value, onChange }: { label: string; value: string; 
     <div>
       <label style={labelSt}>{label}</label>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "stretch", flexWrap: "wrap" }}>
-        {value && <img src={value} alt="" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1.5px solid #d0dce8" }} />}
+        {value && <img src={value} alt="" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1.5px solid var(--border)" }} />}
         <input value={value} onChange={e => onChange(e.target.value)} placeholder="رابط الصورة (URL)" style={{ ...inputSt, flex: 1, minWidth: 200 }} dir="ltr" />
         <label style={{ ...ghostBtnSt, opacity: busy ? 0.6 : 1, display: "inline-flex", alignItems: "center" }}>
           {busy ? "..." : "📷 رفع"}
@@ -211,7 +211,7 @@ export default function AdminWhyUsFormPage() {
           <div>
             <label style={labelSt}>اللون الأساسي</label>
             <div style={{ display: "flex", gap: "0.4rem" }}>
-              <input type="color" value={form.color} onChange={e => set("color", e.target.value)} style={{ width: 50, height: 38, border: "1.5px solid #d0dce8", borderRadius: 8, cursor: "pointer", padding: 0 }} />
+              <input type="color" value={form.color} onChange={e => set("color", e.target.value)} style={{ width: 50, height: 38, border: "1.5px solid var(--border)", borderRadius: 8, cursor: "pointer", padding: 0 }} />
               <input dir="ltr" value={form.color} onChange={e => set("color", e.target.value)} style={inputSt} />
             </div>
           </div>

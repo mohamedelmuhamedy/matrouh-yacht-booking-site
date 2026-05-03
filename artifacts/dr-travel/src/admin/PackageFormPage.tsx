@@ -99,7 +99,7 @@ function mapApiToForm(data: Record<string, any>): FormData {
 
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px",
-  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
+  border: "1.5px solid var(--border)", outline: "none", fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
   color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
@@ -308,8 +308,8 @@ export default function PackageFormPage() {
   if (loading) return (
     <div style={{ maxWidth: 860 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <div style={{ height: 28, width: 220, background: "#e0e8f0", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
-        <div style={{ height: 36, width: 80, background: "#e0e8f0", borderRadius: 8 }} />
+        <div style={{ height: 28, width: 220, background: "var(--border)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
+        <div style={{ height: 36, width: 80, background: "var(--border)", borderRadius: 8 }} />
       </div>
       <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ textAlign: "center", padding: "3rem 2rem", color: "var(--section-subtitle)" }}>
@@ -333,7 +333,7 @@ export default function PackageFormPage() {
             🔄 إعادة المحاولة
           </button>
           <button onClick={() => navigate("/admin/packages")}
-            style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
+            style={{ background: "var(--bg-surface-2)", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
             ← العودة
           </button>
         </div>
@@ -359,7 +359,7 @@ export default function PackageFormPage() {
           if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة بدون حفظ؟")) return;
           navigate("/admin/packages");
         }}
-          style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", color: "var(--section-subtitle)", fontWeight: 600 }}>
+          style={{ background: "var(--bg-surface-2)", border: "none", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", color: "var(--section-subtitle)", fontWeight: 600 }}>
           ← رجوع
         </button>
       </div>
@@ -482,7 +482,7 @@ export default function PackageFormPage() {
             </div>
             {/* Cancellation policy toggle */}
             <div
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "var(--border)"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
               onClick={() => set("hasCancellationPolicy", !form.hasCancellationPolicy)}>
               <div>
                 <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
@@ -494,7 +494,7 @@ export default function PackageFormPage() {
                 </span>
                 <button type="button"
                   onClick={e => { e.stopPropagation(); set("hasCancellationPolicy", !form.hasCancellationPolicy); }}
-                  style={{ position: "relative", display: "inline-flex", alignItems: "center", width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer", background: form.hasCancellationPolicy ? "#00AAFF" : "#d0dce8", transition: "background 0.25s", flexShrink: 0, padding: 0 }}
+                  style={{ position: "relative", display: "inline-flex", alignItems: "center", width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer", background: form.hasCancellationPolicy ? "#00AAFF" : "var(--border)", transition: "background 0.25s", flexShrink: 0, padding: 0 }}
                   aria-checked={form.hasCancellationPolicy} role="switch">
                   <span style={{ position: "absolute", top: 3, left: form.hasCancellationPolicy ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "var(--bg-surface-solid)", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s" }} />
                 </button>
@@ -518,7 +518,7 @@ export default function PackageFormPage() {
                   const labels = { draft: "مسودة 📝", published: "منشور ✅", archived: "مؤرشف 🗃️" };
                   const colors = { draft: "#F59E0B", published: "#10B981", archived: "#6B7280" };
                   return (
-                    <label key={s} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: `2px solid ${form.status === s ? colors[s] : "#e0e8f0"}`, background: form.status === s ? `${colors[s]}12` : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
+                    <label key={s} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: `2px solid ${form.status === s ? colors[s] : "var(--border)"}`, background: form.status === s ? `${colors[s]}12` : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
                       <input type="radio" name="status" value={s} checked={form.status === s} onChange={() => set("status", s)} style={{ accentColor: colors[s] }} />
                       <span style={{ fontWeight: 700, fontSize: "0.82rem", color: form.status === s ? colors[s] : "var(--section-subtitle)" }}>{labels[s]}</span>
                     </label>
@@ -552,7 +552,7 @@ export default function PackageFormPage() {
             {form.images.length > 0 && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))", gap: "0.75rem", marginTop: "0.75rem" }}>
                 {form.images.map((url, i) => (
-                  <div key={i} style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "#f0f4f8" }}>
+                  <div key={i} style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "var(--bg-surface-2)" }}>
                     <img src={resolveApiAssetUrl(url)} alt={`img-${i}`}
                       style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -746,7 +746,7 @@ export default function PackageFormPage() {
                 { key: "includesAccommodation" as keyof FormData, label: "تشمل إقامة 🏨" },
                 { key: "active" as keyof FormData, label: "ظاهرة للزوار 👁️" },
               ].map(({ key, label }) => (
-                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: form[key] ? "#00AAFF08" : "var(--bg-surface-sunk)", border: `1.5px solid ${form[key] ? "#00AAFF30" : "#e0e8f0"}`, borderRadius: 10, padding: "0.75rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>
+                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: form[key] ? "#00AAFF08" : "var(--bg-surface-sunk)", border: `1.5px solid ${form[key] ? "#00AAFF30" : "var(--border)"}`, borderRadius: 10, padding: "0.75rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>
                   <input type="checkbox" checked={form[key] as boolean} onChange={() => toggle(key)} style={{ accentColor: "#00AAFF", width: 16, height: 16 }} />
                   <span style={{ color: form[key] ? "#00AAFF" : "var(--section-subtitle)", fontWeight: 700, fontSize: "0.85rem" }}>{label}</span>
                 </label>
@@ -786,7 +786,7 @@ export default function PackageFormPage() {
           if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة؟")) return;
           navigate("/admin/packages");
         }} disabled={saving}
-          style={{ padding: "0.85rem 1.5rem", background: "#f0f4f8", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
+          style={{ padding: "0.85rem 1.5rem", background: "var(--bg-surface-2)", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
           إلغاء
         </button>
       </div>

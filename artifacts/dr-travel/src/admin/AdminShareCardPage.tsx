@@ -16,7 +16,7 @@ const QR_SOURCE_PRESETS = [
 
 const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.7rem 0.9rem", borderRadius: "10px",
-  border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.9rem",
+  border: "1.5px solid var(--border)", outline: "none", fontSize: "0.9rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
   color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
@@ -38,7 +38,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       style={{
         position: "relative", display: "inline-flex", alignItems: "center",
         width: 46, height: 26, borderRadius: 13, border: "none", cursor: "pointer",
-        background: checked ? "#00AAFF" : "#d0dce8",
+        background: checked ? "#00AAFF" : "var(--border)",
         transition: "background 0.25s", flexShrink: 0, padding: 0,
       }}
       role="switch" aria-checked={checked}
@@ -299,7 +299,7 @@ export default function AdminShareCardPage() {
                     style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: accent === c ? "3px solid #0D1B2A" : "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
                 ))}
                 <input type="color" value={accent} onChange={e => update("card_accent_color", e.target.value)}
-                  style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
+                  style={{ width: 50, height: 36, border: "1.5px solid var(--border)", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
                 <input type="text" value={accent} onChange={e => update("card_accent_color", e.target.value)} style={{ ...inputBase, width: 110, padding: "0.45rem 0.65rem", fontSize: "0.82rem", direction: "ltr" }} />
               </div>
             </div>
@@ -341,10 +341,10 @@ export default function AdminShareCardPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                   {SOLID_COLOR_PRESETS.map(c => (
                     <button key={c} type="button" onClick={() => update("card_bg_color", c)} title={c}
-                      style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: (settings.card_bg_color || "#0D1B2A") === c ? "3px solid #00AAFF" : "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
+                      style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: (settings.card_bg_color || "#0D1B2A") === c ? "3px solid #00AAFF" : "2px solid var(--border-strong)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
                   ))}
                   <input type="color" value={settings.card_bg_color || "#0D1B2A"} onChange={e => update("card_bg_color", e.target.value)}
-                    style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
+                    style={{ width: 50, height: 36, border: "1.5px solid var(--border)", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
                   <input type="text" value={settings.card_bg_color || "#0D1B2A"} onChange={e => update("card_bg_color", e.target.value)} style={{ ...inputBase, width: 110, padding: "0.45rem 0.65rem", fontSize: "0.82rem", direction: "ltr" }} />
                 </div>
               )}
@@ -398,7 +398,7 @@ export default function AdminShareCardPage() {
           <ShareCardScanStats sourcePresets={QR_SOURCE_PRESETS} />
 
           {/* Save */}
-          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-start", position: "sticky", bottom: 0, background: "#f0f4f8", padding: "0.5rem 0" }}>
+          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-start", position: "sticky", bottom: 0, background: "var(--bg-surface-2)", padding: "0.5rem 0" }}>
             <button type="button" onClick={() => save()} disabled={saving}
               style={{ padding: "0.85rem 2rem", borderRadius: 12, border: "none", background: saving ? "#a0b4c8" : "#16a34a", color: "white", fontWeight: 900, fontFamily: "Cairo, sans-serif", cursor: saving ? "wait" : "pointer", fontSize: "0.95rem", boxShadow: "0 6px 16px rgba(22,163,74,0.3)" }}>
               {saving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
