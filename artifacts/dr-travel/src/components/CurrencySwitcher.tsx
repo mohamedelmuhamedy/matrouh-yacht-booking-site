@@ -24,9 +24,9 @@ export default function CurrencySwitcher() {
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button onClick={() => setOpen(!open)}
-        style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "var(--bg-surface)", border: "1px solid var(--border-strong)", borderRadius: "8px", padding: "0.35rem 0.65rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.78rem", fontWeight: 700, fontFamily: "Montserrat, sans-serif", transition: "all 0.2s", flexShrink: 0 }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; }}>
+        style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "transparent", border: "1px solid var(--border-strong)", borderRadius: "8px", padding: "0.35rem 0.65rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.78rem", fontWeight: 700, fontFamily: "Montserrat, sans-serif", transition: "all 0.2s", flexShrink: 0 }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
         {showSymbol && <span>{symbol}</span>}
         <span>{currency}</span>
         <span style={{ fontSize: "0.6rem", opacity: 0.6 }}>▼</span>
