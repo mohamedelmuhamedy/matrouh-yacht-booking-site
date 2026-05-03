@@ -448,11 +448,11 @@ function Navbar() {
       {showIOSGuide && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
           onClick={() => setShowIOSGuide(false)}>
-          <div style={{ background: "linear-gradient(180deg,#0d1b2a,#0a1520)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "20px 20px 0 0", padding: "2rem 1.5rem 3rem", maxWidth: 420, width: "100%", direction: ar ? "rtl" : "ltr", fontFamily: "Cairo,sans-serif" }}
+          <div style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "20px 20px 0 0", padding: "2rem 1.5rem 3rem", maxWidth: 420, width: "100%", direction: ar ? "rtl" : "ltr", fontFamily: "Cairo,sans-serif" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📲</div>
-              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
+              <h3 style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
                 {ar ? `تثبيت تطبيق ${settings.brand_short_name || "DR Travel"}` : `Install ${settings.brand_short_name || "DR Travel"} App`}
               </h3>
               <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
@@ -499,7 +499,7 @@ function Navbar() {
               </div>
             )}
             <button onClick={() => setShowIOSGuide(false)}
-              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
+              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
               {ar ? "إغلاق" : "Close"}
             </button>
           </div>

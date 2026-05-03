@@ -87,7 +87,7 @@ export default function TripsPage() {
     <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr" }}>
 
       {/* Header */}
-      <div style={{ background: "linear-gradient(180deg, #0a1520 0%, #0D1B2A 100%)", borderBottom: "1px solid rgba(0,170,255,0.1)", paddingTop: isMobile ? "4.5rem" : "5.5rem", paddingBottom: "2rem", paddingInline: isMobile ? "1rem" : "2rem" }}>
+      <div style={{ background: "linear-gradient(180deg, var(--bg-page) 0%, var(--bg-page-2) 100%)", borderBottom: "1px solid var(--border)", paddingTop: isMobile ? "4.5rem" : "5.5rem", paddingBottom: "2rem", paddingInline: isMobile ? "1rem" : "2rem" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <button onClick={() => navigate("/")}
             style={{ background: "rgba(0,170,255,0.1)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.45rem 1rem", borderRadius: "50px", cursor: "pointer", fontWeight: 600, fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", marginBottom: "1.5rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>

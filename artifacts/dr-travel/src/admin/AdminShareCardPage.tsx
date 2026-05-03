@@ -202,7 +202,7 @@ export default function AdminShareCardPage() {
                   {copied ? "✓ تم النسخ" : "نسخ الرابط"}
                 </button>
                 <a href={shareUrl} target="_blank" rel="noreferrer"
-                  style={{ background: "var(--border)", color: "white", border: "1px solid var(--border-strong)", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 700, textDecoration: "none", fontSize: "0.85rem" }}>
+                  style={{ background: "var(--bg-surface-2)", color: "var(--text-primary)", border: "1px solid var(--border-strong)", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 700, textDecoration: "none", fontSize: "0.85rem" }}>
                   🌐 افتح
                 </a>
               </div>
