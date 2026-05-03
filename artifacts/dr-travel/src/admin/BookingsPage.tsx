@@ -88,7 +88,7 @@ const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
   { value: "contacted", label: "تم التواصل", color: "#F59E0B" },
   { value: "confirmed", label: "مؤكد", color: "#10B981" },
-  { value: "completed", label: "مكتمل", color: "#6B7280" },
+  { value: "completed", label: "مكتمل", color: "var(--text-secondary)" },
   { value: "cancelled", label: "ملغي", color: "#EF4444" },
 ];
 
@@ -209,7 +209,7 @@ export default function BookingsPage() {
       const s = ticketData.settings || {};
       const url = ticketPublicUrl(ticketData.ticketToken);
       const fg = s.card_qr_fg || "#0D1B2A";
-      const bg = s.card_qr_bg || "#FFFFFF";
+      const bg = s.card_qr_bg || "var(--bg-surface-solid)";
       const logoSrc = resolveApiAssetUrl(s.logo_url) || logoFallback;
       const baseName = (s.brand_short_name || s.brand_name || "dr-travel")
         .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
@@ -302,7 +302,7 @@ export default function BookingsPage() {
       if (fonts?.ready) await fonts.ready;
     } catch { /* ignore */ }
     await new Promise(r => setTimeout(r, 280));
-    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false });
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "var(--bg-surface-solid)", useCORS: true, allowTaint: false });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
     const pageW = pdf.internal.pageSize.getWidth();
@@ -423,7 +423,7 @@ export default function BookingsPage() {
               {allOpen ? "🔼 طي الكل" : "🔽 توسيع الكل"}
             </button>
           )}
-          <button onClick={() => load()} style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#475569", fontSize: "0.85rem" }}>
+          <button onClick={() => load()} style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-secondary)", fontSize: "0.85rem" }}>
             🔄 تحديث
           </button>
           <button onClick={exportCSV} disabled={exporting}
@@ -443,7 +443,7 @@ export default function BookingsPage() {
           />
         </div>
         <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
-          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#64748b" onClick={v => setFilter(v)} />
+          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="var(--text-secondary)" onClick={v => setFilter(v)} />
           {STATUS_OPTIONS.map(s => (
             <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
           ))}
@@ -463,9 +463,9 @@ export default function BookingsPage() {
           ))}
         </div>
       ) : bookings.length === 0 ? (
-        <div style={{ background: "var(--bg-surface-solid)", borderRadius: "18px", padding: "3.5rem 1.5rem", textAlign: "center", color: "#94a3b8", border: "1px dashed #e2e8f0" }}>
+        <div style={{ background: "var(--bg-surface-solid)", borderRadius: "18px", padding: "3.5rem 1.5rem", textAlign: "center", color: "var(--text-muted)", border: "1px dashed #e2e8f0" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.85rem" }}>📭</div>
-          <p style={{ fontWeight: 700, color: "#475569", margin: 0 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
+          <p style={{ fontWeight: 700, color: "var(--text-secondary)", margin: 0 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
           {search && (
             <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)" }}>
               ✕ مسح البحث
@@ -512,7 +512,7 @@ export default function BookingsPage() {
                       {b.priceAtBooking != null && (
                         <span className="bk-chip is-price">💰 {b.priceAtBooking.toLocaleString("ar-EG")} {b.currency}</span>
                       )}
-                      <span className="bk-sub-item" style={{ color: "#94a3b8" }} title={created.toLocaleString("ar-EG")}>
+                      <span className="bk-sub-item" style={{ color: "var(--text-muted)" }} title={created.toLocaleString("ar-EG")}>
                         🕒 {timeAgo(created)}
                       </span>
                     </div>
@@ -650,10 +650,10 @@ export default function BookingsPage() {
                 🎫 تذكرة #{ticketBooking.id} — {ticketBooking.name}
               </h3>
               <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-                <div style={{ display: "inline-flex", background: "#e2e8f0", borderRadius: 8, padding: 2 }}>
+                <div style={{ display: "inline-flex", background: "var(--border)", borderRadius: 8, padding: 2 }}>
                   {(["ar", "en"] as const).map(lng => (
                     <button key={lng} onClick={() => setTicketLang(lng)}
-                      style={{ background: ticketLang === lng ? "#0D1B2A" : "transparent", color: ticketLang === lng ? "white" : "#475569", border: "none", borderRadius: 6, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
+                      style={{ background: ticketLang === lng ? "#0D1B2A" : "transparent", color: ticketLang === lng ? "white" : "var(--text-secondary)", border: "none", borderRadius: 6, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
                       {lng === "ar" ? "AR" : "EN"}
                     </button>
                   ))}
@@ -679,7 +679,7 @@ export default function BookingsPage() {
                 onChange={v => { setTicketFields(p => ({ ...p, supervisorPhone: v })); setTicketFieldsDirty(true); }} />
               <div style={{ display: "flex", alignItems: "flex-end" }}>
                 <button onClick={saveTicketFields} disabled={!ticketFieldsDirty}
-                  style={{ background: ticketFieldsDirty ? "#0D1B2A" : "#cbd5e1", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>
+                  style={{ background: ticketFieldsDirty ? "#0D1B2A" : "var(--text-secondary)", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>
                   💾 حفظ بيانات الرحلة
                 </button>
               </div>
@@ -724,9 +724,9 @@ export default function BookingsPage() {
             </div>
 
             {/* Preview */}
-            <div ref={ticketRef} style={{ background: "#e2e8f0", borderRadius: 14, padding: "1rem", display: "flex", justifyContent: "center", overflow: "auto" }}>
+            <div ref={ticketRef} style={{ background: "var(--border)", borderRadius: 14, padding: "1rem", display: "flex", justifyContent: "center", overflow: "auto" }}>
               {ticketLoading || !ticketData ? (
-                <div style={{ padding: "3rem", color: "#475569", fontFamily: "Cairo, sans-serif" }}>⏳ جاري تجهيز التذكرة...</div>
+                <div style={{ padding: "3rem", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif" }}>⏳ جاري تجهيز التذكرة...</div>
               ) : (
                 <div style={{ transform: "scale(0.78)", transformOrigin: "top center", width: 800 }}>
                   <Ticket
@@ -768,7 +768,7 @@ function FilterTab({ value, current, count, label, color, onClick }: { value: st
 function FieldInput({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (v: string) => void }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <span style={{ fontSize: "0.7rem", color: "#475569", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>{label}</span>
+      <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>{label}</span>
       <input
         type="text" value={value} placeholder={placeholder}
         onChange={e => onChange(e.target.value)}

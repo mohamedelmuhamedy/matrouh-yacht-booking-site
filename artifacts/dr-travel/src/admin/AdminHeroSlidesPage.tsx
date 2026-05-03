@@ -253,7 +253,7 @@ export default function AdminHeroSlidesPage() {
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: "0.8rem", color: "#64748b", fontFamily: "Cairo, sans-serif", fontWeight: 600,
+    fontSize: "0.8rem", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontWeight: 600,
   };
   const inputStyle: React.CSSProperties = {
     padding: "0.55rem 0.85rem", borderRadius: "8px", border: "1.5px solid #d0dce8",
@@ -266,7 +266,7 @@ export default function AdminHeroSlidesPage() {
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>🎬 خلفية الهيرو — الشرائح</h1>
-          <p style={{ color: "#64748b", fontSize: "0.9rem", marginTop: "0.35rem" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.35rem" }}>
             ارفع صور أو فيديوهات تظهر كخلفية متحركة في قسم الهيرو
           </p>
         </div>
@@ -306,7 +306,7 @@ export default function AdminHeroSlidesPage() {
               <span style={{ fontSize: "1.4rem" }}>{t.icon}</span>
               <div>
                 <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.9rem" }}>{t.label}</div>
-                <div style={{ color: "#64748b", fontSize: "0.78rem" }}>{t.desc}</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: "0.78rem" }}>{t.desc}</div>
               </div>
               {transition === t.value && (
                 <span style={{ marginRight: "auto", color: "#00AAFF", fontSize: "1.1rem" }}>✓</span>
@@ -314,7 +314,7 @@ export default function AdminHeroSlidesPage() {
             </button>
           ))}
         </div>
-        {savingTransition && <div style={{ color: "#64748b", fontSize: "0.82rem" }}>⏳ يتم الحفظ...</div>}
+        {savingTransition && <div style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>⏳ يتم الحفظ...</div>}
       </div>
 
       {/* Upload area */}
@@ -348,7 +348,7 @@ export default function AdminHeroSlidesPage() {
                 width: `${uploadPct}%`, transition: "width 0.3s ease",
               }} />
             </div>
-            <div style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "0.5rem" }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginTop: "0.5rem" }}>
               لا تغلق الصفحة أثناء الرفع
             </div>
           </div>
@@ -356,16 +356,16 @@ export default function AdminHeroSlidesPage() {
           <>
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📁</div>
             <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1rem" }}>اسحب وأفلت أو اضغط لرفع صور/فيديوهات</div>
-            <div style={{ color: "#64748b", fontSize: "0.82rem", marginTop: "0.35rem" }}>JPG, PNG, WebP — حتى 15MB · MP4, WebM, MOV — حتى 300MB</div>
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.82rem", marginTop: "0.35rem" }}>JPG, PNG, WebP — حتى 15MB · MP4, WebM, MOV — حتى 300MB</div>
           </>
         )}
       </div>
 
       {/* Slides list */}
       {loading ? (
-        <div style={{ textAlign: "center", color: "#64748b", padding: "2rem" }}>⏳ جاري التحميل...</div>
+        <div style={{ textAlign: "center", color: "var(--text-secondary)", padding: "2rem" }}>⏳ جاري التحميل...</div>
       ) : slides.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "2rem", color: "#94a3b8", fontSize: "0.95rem" }}>
+        <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)", fontSize: "0.95rem" }}>
           لا توجد شرائح بعد. ارفع أول صورة أو فيديو ☝️
         </div>
       ) : (
@@ -450,7 +450,7 @@ export default function AdminHeroSlidesPage() {
                   <div style={{ borderTop: "1px solid #e8f0f8", paddingTop: "0.85rem" }}>
                     <div style={{ fontWeight: 700, color: "#4c1d95", fontSize: "0.85rem", marginBottom: "0.65rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       ✂️ قص الفيديو
-                      <span style={{ fontWeight: 400, color: "#94a3b8", fontSize: "0.75rem" }}>— اختر جزءاً محدداً يتكرر في الهيرو</span>
+                      <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: "0.75rem" }}>— اختر جزءاً محدداً يتكرر في الهيرو</span>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem", alignItems: "flex-end" }}>
                       {/* Start */}
@@ -501,16 +501,16 @@ export default function AdminHeroSlidesPage() {
                       <button
                         onClick={() => saveTrim(slide)}
                         disabled={trim.saving}
-                        style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "none", background: trim.saving ? "#e5e7eb" : "linear-gradient(135deg, #7c3aed, #4f46e5)", color: trim.saving ? "#9ca3af" : "white", cursor: trim.saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                        style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "none", background: trim.saving ? "var(--border)" : "linear-gradient(135deg, #7c3aed, #4f46e5)", color: trim.saving ? "var(--text-muted)" : "white", cursor: trim.saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
                       >{trim.saving ? "⏳ جاري الحفظ..." : "💾 حفظ القص"}</button>
                       {hasSavedTrim && (
                         <button
                           onClick={() => clearTrim(slide)}
-                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "var(--bg-surface-solid)", color: "#64748b", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "var(--bg-surface-solid)", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
                         >🔄 إزالة القص (فيديو كامل)</button>
                       )}
                     </div>
-                    <div style={{ color: "#94a3b8", fontSize: "0.73rem", marginTop: "0.4rem" }}>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.73rem", marginTop: "0.4rem" }}>
                       شغّل الفيديو أعلاه ← اضغط "الوقت الحالي" عند اللحظة المطلوبة ← احفظ
                     </div>
                   </div>

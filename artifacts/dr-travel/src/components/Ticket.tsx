@@ -65,8 +65,8 @@ function formatPhoneIntl(raw: string): string {
 
 function StatField({ label, value, accent }: { label: string; value: React.ReactNode; accent?: string }) {
   return (
-    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 12, padding: "14px 16px", border: `1px solid ${accent ? accent + "33" : "#e5e7eb"}`, position: "relative" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 12, padding: "14px 16px", border: `1px solid ${accent ? accent + "33" : "var(--border)"}`, position: "relative" }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 16, fontWeight: 800, color: BRAND.navy, lineHeight: 1.3 }}>{value}</div>
     </div>
   );
@@ -342,8 +342,8 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
               boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
               border: "2px solid white",
             }}>✦</div>
-            {qrUrl ? <img src={qrUrl} alt="QR" style={{ width: 170, height: 170 }} /> : <div style={{ width: 170, height: 170, background: "#f3f4f6", borderRadius: 8 }} />}
-            <div style={{ fontSize: 10, color: "#6b7280", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>{T.verify}</div>
+            {qrUrl ? <img src={qrUrl} alt="QR" style={{ width: 170, height: 170 }} /> : <div style={{ width: 170, height: 170, background: "var(--bg-surface-2)", borderRadius: 8 }} />}
+            <div style={{ fontSize: 10, color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>{T.verify}</div>
           </div>
         </div>
 
@@ -370,7 +370,7 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
         alignItems: "center", fontSize: 11, color: "#4b5563", flexWrap: "wrap", gap: 8,
       }}>
         <div>{T.contact}: <strong style={{ color: BRAND.navy, direction: "ltr", display: "inline-block", fontFamily: "Montserrat, sans-serif" }}>{phone}</strong></div>
-        <div style={{ color: "#6b7280" }}>📍 {addr}</div>
+        <div style={{ color: "var(--text-secondary)" }}>📍 {addr}</div>
       </div>
       <div style={{
         background: BRAND.navy, color: BRAND.gold, fontSize: 10, padding: "6px 36px",

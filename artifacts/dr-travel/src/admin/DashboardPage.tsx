@@ -236,7 +236,7 @@ export default function DashboardPage() {
   const recentBookings = useMemo(() => bookings.slice(0, 6), [bookings]);
 
   const statusColors: Record<string, string> = {
-    new: "#3B82F6", contacted: "#F59E0B", confirmed: "#10B981", completed: "#6B7280", cancelled: "#EF4444"
+    new: "#3B82F6", contacted: "#F59E0B", confirmed: "#10B981", completed: "var(--text-secondary)", cancelled: "#EF4444"
   };
   const statusLabels: Record<string, string> = {
     new: "جديد", contacted: "تم التواصل", confirmed: "مؤكد", completed: "مكتمل", cancelled: "ملغي"
@@ -244,7 +244,7 @@ export default function DashboardPage() {
   const pkgStatusBadge: Record<string, { label: string; color: string }> = {
     published: { label: "منشور", color: "#10B981" },
     draft: { label: "مسودة", color: "#F59E0B" },
-    archived: { label: "أرشيف", color: "#6B7280" },
+    archived: { label: "أرشيف", color: "var(--text-secondary)" },
   };
 
   if (loading) return (
@@ -374,7 +374,7 @@ export default function DashboardPage() {
         <div style={cardStyle}>
           <div style={cardHeaderStyle}>
             <h3 style={cardTitleStyle}>📊 الحجوزات خلال آخر 14 يوم</h3>
-            <span style={{ color: "#94a3b8", fontSize: "0.75rem", fontWeight: 600 }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: 600 }}>
               المجموع: {stats.trend.reduce((s, d) => s + d.count, 0)}
             </span>
           </div>
@@ -389,7 +389,7 @@ export default function DashboardPage() {
                     <div style={{
                       width: "100%",
                       height: `${Math.max(h, d.count > 0 ? 8 : 2)}%`,
-                      background: d.count === 0 ? "#e5e7eb" : isToday
+                      background: d.count === 0 ? "var(--border)" : isToday
                         ? `linear-gradient(180deg, ${GOLD} 0%, #b08d3a 100%)`
                         : `linear-gradient(180deg, ${OCEAN} 0%, #0077b6 100%)`,
                       borderRadius: "6px 6px 2px 2px",
@@ -401,7 +401,7 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <span style={{ fontSize: "0.6rem", color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", transform: "rotate(-30deg)", transformOrigin: "center", marginTop: 4 }}>
+                  <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap", transform: "rotate(-30deg)", transformOrigin: "center", marginTop: 4 }}>
                     {d.label}
                   </span>
                 </div>
@@ -430,8 +430,8 @@ export default function DashboardPage() {
                   return (
                     <div key={s.key}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", marginBottom: 4 }}>
-                        <span style={{ color: "#475569", fontWeight: 700 }}>{s.label}</span>
-                        <span style={{ color: s.color, fontWeight: 800 }}>{s.count} <span style={{ color: "#94a3b8", fontWeight: 600 }}>({pct}%)</span></span>
+                        <span style={{ color: "var(--text-secondary)", fontWeight: 700 }}>{s.label}</span>
+                        <span style={{ color: s.color, fontWeight: 800 }}>{s.count} <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>({pct}%)</span></span>
                       </div>
                       <div style={{ height: 8, background: "var(--bg-surface-2)", borderRadius: 4, overflow: "hidden" }}>
                         <div style={{ width: `${pct}%`, height: "100%", background: s.color, borderRadius: 4, transition: "width 0.5s" }} />
@@ -441,7 +441,7 @@ export default function DashboardPage() {
                 })}
                 {stats.counts.cancelled > 0 && (
                   <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                    <span style={{ color: "#94a3b8", fontWeight: 600 }}>ملغاة</span>
+                    <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>ملغاة</span>
                     <span style={{ color: statusColors.cancelled, fontWeight: 700 }}>{stats.counts.cancelled}</span>
                   </div>
                 )}
@@ -473,12 +473,12 @@ export default function DashboardPage() {
                     onClick={() => navigate("/admin/bookings")}
                     style={{
                       display: "flex", alignItems: "center", gap: 10, padding: "0.55rem 0.7rem",
-                      borderRadius: 10, cursor: "pointer", border: `1px solid ${used ? "#10B98130" : "#e2e8f0"}`,
+                      borderRadius: 10, cursor: "pointer", border: `1px solid ${used ? "#10B98130" : "var(--border)"}`,
                       background: used ? "#f0fdf4" : "white",
                     }}>
                     <div style={{
                       width: 34, height: 34, borderRadius: "50%",
-                      background: used ? "#10B981" : issued ? "#F59E0B" : "#94a3b8",
+                      background: used ? "#10B981" : issued ? "#F59E0B" : "var(--text-muted)",
                       color: "white", display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "0.95rem", fontWeight: 800, flexShrink: 0,
                     }}>
@@ -488,13 +488,13 @@ export default function DashboardPage() {
                       <div style={{ color: NAVY, fontWeight: 700, fontSize: "0.88rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {b.name}
                       </div>
-                      <div style={{ color: "#64748b", fontSize: "0.72rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <div style={{ color: "var(--text-secondary)", fontSize: "0.72rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {b.packageNameAr || b.packageName} · 👥 {group}
                       </div>
                     </div>
                     <span style={{
                       background: used ? "#10B98115" : issued ? "#F59E0B15" : "#94a3b815",
-                      color: used ? "#10B981" : issued ? "#F59E0B" : "#64748b",
+                      color: used ? "#10B981" : issued ? "#F59E0B" : "var(--text-secondary)",
                       padding: "0.2rem 0.6rem", borderRadius: 50, fontSize: "0.7rem", fontWeight: 800, flexShrink: 0,
                     }}>
                       {used ? "دخل" : issued ? "تذكرة جاهزة" : "بدون تذكرة"}
@@ -503,7 +503,7 @@ export default function DashboardPage() {
                 );
               })}
               {stats.todaysTrips.length > 6 && (
-                <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.75rem", padding: "0.4rem" }}>
+                <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.75rem", padding: "0.4rem" }}>
                   + {stats.todaysTrips.length - 6} حجز آخر اليوم
                 </div>
               )}
@@ -538,7 +538,7 @@ export default function DashboardPage() {
                     <div style={{ height: 6, background: "var(--bg-surface-2)", borderRadius: 3, overflow: "hidden", marginRight: 24 }}>
                       <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${OCEAN}, ${GOLD})`, borderRadius: 3 }} />
                     </div>
-                    <div style={{ marginRight: 24, fontSize: "0.7rem", color: "#94a3b8", marginTop: 3 }}>
+                    <div style={{ marginRight: 24, fontSize: "0.7rem", color: "var(--text-muted)", marginTop: 3 }}>
                       💰 {fmtMoney(p.revenue)} · 👥 {p.guests}
                     </div>
                   </div>
@@ -558,7 +558,7 @@ export default function DashboardPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
             <MiniStat icon="✅" label="باقات منشورة" value={packages.filter(p => p.status === "published" && p.active).length} color="#10B981" />
             <MiniStat icon="📝" label="مسودات" value={packages.filter(p => p.status === "draft").length} color="#F59E0B" />
-            <MiniStat icon="📦" label="أرشيف" value={packages.filter(p => p.status === "archived").length} color="#6B7280" />
+            <MiniStat icon="📦" label="أرشيف" value={packages.filter(p => p.status === "archived").length} color="var(--text-secondary)" />
             <MiniStat icon="⭐" label="تقييمات قيد المراجعة" value={pendingTestimonials} color="#A855F7" />
           </div>
         </div>
@@ -694,9 +694,9 @@ function KpiCard({ icon, label, sublabel, value, color, delta, deltaLabel, onCli
       </div>
       <div style={{ fontSize: "1.85rem", fontWeight: 900, color, fontFamily: "Montserrat, sans-serif", lineHeight: 1.1, marginTop: 2 }}>{value}</div>
       <div style={{ color: NAVY, fontSize: "0.82rem", fontWeight: 700 }}>{label}</div>
-      {sublabel && <div style={{ color: "#94a3b8", fontSize: "0.7rem", fontWeight: 600 }}>{sublabel}</div>}
+      {sublabel && <div style={{ color: "var(--text-muted)", fontSize: "0.7rem", fontWeight: 600 }}>{sublabel}</div>}
       {deltaLabel && typeof delta === "number" && (
-        <div style={{ color: "#94a3b8", fontSize: "0.68rem", marginTop: 1 }}>{deltaLabel}</div>
+        <div style={{ color: "var(--text-muted)", fontSize: "0.68rem", marginTop: 1 }}>{deltaLabel}</div>
       )}
     </button>
   );
@@ -711,7 +711,7 @@ function MiniStat({ icon, label, value, color }: { icon: string; label: string; 
       <span style={{ fontSize: "1.2rem" }}>{icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: "1.25rem", fontWeight: 900, color, fontFamily: "Montserrat, sans-serif", lineHeight: 1 }}>{value}</div>
-        <div style={{ color: "#64748b", fontSize: "0.7rem", fontWeight: 600, marginTop: 2 }}>{label}</div>
+        <div style={{ color: "var(--text-secondary)", fontSize: "0.7rem", fontWeight: 600, marginTop: 2 }}>{label}</div>
       </div>
     </div>
   );

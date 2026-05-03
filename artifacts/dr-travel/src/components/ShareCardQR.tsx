@@ -431,7 +431,7 @@ export function AdminQRSection({
 
       {sourcePresets.length > 0 && (
         <div style={{
-          background: "#f8fafc", border: "1.5px solid #e0e8f0", borderRadius: 12,
+          background: "var(--bg-surface)", border: "1.5px solid #e0e8f0", borderRadius: 12,
           padding: "0.75rem 0.85rem", display: "flex", flexDirection: "column", gap: "0.5rem",
         }}>
           <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem" }}>
@@ -513,7 +513,7 @@ export function AdminQRSection({
           </div>
           <div>
             <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.background}</div>
-            {swatch(bg, c => onChange({ bg: c }), ["#FFFFFF", "#F5F5F5", "#FFF7E6", "#E0F2FE", "#0D1B2A"])}
+            {swatch(bg, c => onChange({ bg: c }), ["var(--bg-surface-solid)", "#F5F5F5", "#FFF7E6", "#E0F2FE", "#0D1B2A"])}
           </div>
 
           {lowContrast && (
@@ -578,7 +578,7 @@ export function AdminQRSection({
           <label style={{
             display: "flex", alignItems: "center", gap: "0.6rem",
             padding: "0.6rem 0.7rem", borderRadius: 10,
-            background: "#f8fafc", border: "1.5px solid #e0e8f0", cursor: "pointer",
+            background: "var(--bg-surface)", border: "1.5px solid #e0e8f0", cursor: "pointer",
           }}>
             <input type="checkbox" checked={embedOnCard}
               onChange={e => onChange({ embedOnCard: e.target.checked })}

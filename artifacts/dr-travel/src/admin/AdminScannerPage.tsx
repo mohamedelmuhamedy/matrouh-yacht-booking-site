@@ -200,7 +200,7 @@ export default function AdminScannerPage() {
       case "used": return { color: "#F59E0B", icon: "🟡", label: T.used, desc: T.descUsed };
       case "cancelled": return { color: "#EF4444", icon: "🚫", label: T.cancelled, desc: T.descCancelled };
       case "invalid": return { color: "#EF4444", icon: "❌", label: T.invalid, desc: T.descInvalid };
-      case "loading": return { color: "#94A3B8", icon: "⏳", label: T.loading, desc: "" };
+      case "loading": return { color: "var(--text-muted)", icon: "⏳", label: T.loading, desc: "" };
       default: return null;
     }
   })();
@@ -226,7 +226,7 @@ export default function AdminScannerPage() {
       <div style={{ textAlign: "center", paddingTop: 4 }}>
         <div style={{ fontSize: 11, color: GOLD, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>DR TRAVEL</div>
         <div style={{ fontSize: 22, fontWeight: 900, marginTop: 2 }}>{T.scannerTitle}</div>
-        <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>{T.scannerSubtitle}</div>
+        <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>{T.scannerSubtitle}</div>
       </div>
 
       {/* Camera viewport */}
@@ -283,7 +283,7 @@ export default function AdminScannerPage() {
             padding: "5px 18px", borderRadius: 50, fontSize: 13, fontWeight: 800, letterSpacing: 1,
             textTransform: "uppercase",
           }}>{meta.label}</div>
-          <div style={{ marginTop: 8, color: "#475569", fontSize: 13.5, lineHeight: 1.6, fontWeight: 600 }}>
+          <div style={{ marginTop: 8, color: "var(--text-secondary)", fontSize: 13.5, lineHeight: 1.6, fontWeight: 600 }}>
             {meta.desc}
           </div>
 
@@ -353,7 +353,7 @@ export default function AdminScannerPage() {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
-      <span style={{ color: "#64748b", fontWeight: 700 }}>{label}</span>
+      <span style={{ color: "var(--text-secondary)", fontWeight: 700 }}>{label}</span>
       <span style={{ color: NAVY, fontWeight: 700, textAlign: "end", maxWidth: "60%", wordBreak: "break-word" }}>{value}</span>
     </div>
   );

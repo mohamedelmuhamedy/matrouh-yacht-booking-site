@@ -233,7 +233,7 @@ export default function AdminGalleryPage() {
             style={{ display: "none" }}
             onChange={e => { const f = e.target.files?.[0]; if (f) { uploadItemFile(f); e.target.value = ""; } }} />
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ background: uploading ? "#334155" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: 8, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", transition: "background 0.2s" }}>
+            style={{ background: uploading ? "var(--text-primary)" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: 8, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", transition: "background 0.2s" }}>
             {uploading ? "جاري الرفع..." : "📁 رفع صورة / فيديو"}
           </button>
         </div>
@@ -369,7 +369,7 @@ export default function AdminGalleryPage() {
       {albums.length === 0 ? (
         <div style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-surface-solid)", borderRadius: 12, border: "2px dashed #e2e8f0" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🖼️</div>
-          <div style={{ color: "#64748b", fontSize: "1.05rem", marginBottom: "1.5rem" }}>لا توجد ألبومات بعد. أنشئ ألبومك الأول!</div>
+          <div style={{ color: "var(--text-secondary)", fontSize: "1.05rem", marginBottom: "1.5rem" }}>لا توجد ألبومات بعد. أنشئ ألبومك الأول!</div>
           <button onClick={openNew} style={{ background: "#00AAFF", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
             + إنشاء ألبوم
           </button>
@@ -384,7 +384,7 @@ export default function AdminGalleryPage() {
                   <img src={resolveApiAssetUrl(album.coverImage)} alt={album.titleAr} style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={e => { (e.target as HTMLImageElement).src = ""; }} />
                 ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#cbd5e1", fontSize: "3rem" }}>🏔️</div>
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", fontSize: "3rem" }}>🏔️</div>
                 )}
                 {!album.isVisible && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -394,7 +394,7 @@ export default function AdminGalleryPage() {
               </div>
               <div style={{ padding: "0.9rem 1rem" }}>
                 <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--text-primary)", marginBottom: "0.2rem" }}>{album.titleAr}</div>
-                <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.75rem" }}>{album.titleEn}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.75rem" }}>{album.titleEn}</div>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   <button onClick={() => openAlbumItems(album)}
                     style={{ flex: 1, background: "#00AAFF", color: "white", border: "none", padding: "0.5rem", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
@@ -405,7 +405,7 @@ export default function AdminGalleryPage() {
                     ✏️
                   </button>
                   <button onClick={() => toggleVisible(album)}
-                    style={{ background: album.isVisible ? "#dcfce7" : "var(--bg-surface-2)", color: album.isVisible ? "#166534" : "#64748b", border: `1px solid ${album.isVisible ? "#86efac" : "#e2e8f0"}`, padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                    style={{ background: album.isVisible ? "#dcfce7" : "var(--bg-surface-2)", color: album.isVisible ? "#166534" : "var(--text-secondary)", border: `1px solid ${album.isVisible ? "#86efac" : "var(--border)"}`, padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                     {album.isVisible ? "👁️" : "🙈"}
                   </button>
                   <button onClick={() => setConfirmDelAlbum(album)}
@@ -476,7 +476,7 @@ export default function AdminGalleryPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingTop: "1.5rem" }}>
                   <label style={{ color: dark.label, fontSize: "0.85rem", fontWeight: 700 }}>ظاهر للزوار</label>
                   <button type="button" onClick={() => setAlbumForm(f => ({ ...f, isVisible: !f.isVisible }))}
-                    style={{ width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: albumForm.isVisible ? "#22c55e" : "#64748b", position: "relative", transition: "background 0.2s" }}>
+                    style={{ width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: albumForm.isVisible ? "#22c55e" : "var(--text-secondary)", position: "relative", transition: "background 0.2s" }}>
                     <span style={{ position: "absolute", top: 3, width: 18, height: 18, background: "var(--bg-surface-solid)", borderRadius: "50%", transition: "right 0.2s, left 0.2s", right: albumForm.isVisible ? 3 : "auto", left: albumForm.isVisible ? "auto" : 3 }} />
                   </button>
                 </div>

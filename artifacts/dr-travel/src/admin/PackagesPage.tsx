@@ -10,7 +10,7 @@ import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_
 const STATUS_BADGES: Record<string, { label: string; color: string; bg: string }> = {
   published: { label: "منشور", color: "#10B981", bg: "#10B98115" },
   draft: { label: "مسودة", color: "#F59E0B", bg: "#F59E0B15" },
-  archived: { label: "أرشيف", color: "#6B7280", bg: "#6B728015" },
+  archived: { label: "أرشيف", color: "var(--text-secondary)", bg: "#6B728015" },
 };
 
 interface Package {
@@ -64,7 +64,7 @@ export default function PackagesPage() {
     try {
       const url = `${window.location.origin}/packages/${pkg.slug}`;
       const fg = settings.card_qr_fg || "#0D1B2A";
-      const bg = settings.card_qr_bg || "#FFFFFF";
+      const bg = settings.card_qr_bg || "var(--bg-surface-solid)";
       const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoFallback;
       const baseName = (settings.brand_short_name || settings.brand_name || "dr-travel")
         .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
@@ -188,7 +188,7 @@ export default function PackagesPage() {
                         {statusBadge.label}
                       </span>
                       {!pkg.active && pkg.status === "published" && (
-                        <span style={{ background: "var(--bg-surface-sunk)", color: "#9ca3af", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مخفية</span>
+                        <span style={{ background: "var(--bg-surface-sunk)", color: "var(--text-muted)", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مخفية</span>
                       )}
                       {pkg.featured && <span style={{ background: "#FEF3C7", color: "#D97706", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مميزة</span>}
                       {pkg.popular && <span style={{ background: "#EFF6FF", color: "#3B82F6", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>الأكثر طلباً</span>}

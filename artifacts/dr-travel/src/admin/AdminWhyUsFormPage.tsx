@@ -56,7 +56,7 @@ const sectionSt: React.CSSProperties = {
   border: "1.5px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
 const ghostBtnSt: React.CSSProperties = {
-  background: "var(--bg-surface-solid)", color: "#475569", border: "1px solid #d0dce8", borderRadius: 8,
+  background: "var(--bg-surface-solid)", color: "var(--text-secondary)", border: "1px solid #d0dce8", borderRadius: 8,
   padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
   fontSize: "0.76rem", fontWeight: 700,
 };
@@ -296,7 +296,7 @@ export default function AdminWhyUsFormPage() {
           {form.bullets.map((b, i) => (
             <div key={i} style={{ background: "var(--bg-surface-sunk)", borderRadius: 10, padding: "0.85rem", border: "1px solid var(--border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <span style={{ color: "#475569", fontSize: "0.78rem", fontWeight: 700 }}>نقطة #{i + 1}</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "0.78rem", fontWeight: 700 }}>نقطة #{i + 1}</span>
                 <div style={{ display: "flex", gap: "0.3rem" }}>
                   {i > 0 && <button type="button" onClick={() => { const a = [...form.bullets]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; set("bullets", a); }} style={ghostBtnSt}>↑</button>}
                   {i < form.bullets.length - 1 && <button type="button" onClick={() => { const a = [...form.bullets]; [a[i + 1], a[i]] = [a[i], a[i + 1]]; set("bullets", a); }} style={ghostBtnSt}>↓</button>}
@@ -351,7 +351,7 @@ export default function AdminWhyUsFormPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {form.galleryImages.map((img, i) => (
             <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-              <span style={{ color: "#475569", fontSize: "0.78rem", width: 24 }}>{i + 1}</span>
+              <span style={{ color: "var(--text-secondary)", fontSize: "0.78rem", width: 24 }}>{i + 1}</span>
               <ImageField label="" value={img} onChange={v => { const a = [...form.galleryImages]; a[i] = v; set("galleryImages", a); }} />
               <button type="button" onClick={() => set("galleryImages", form.galleryImages.filter((_, j) => j !== i))} style={{ ...ghostBtnSt, color: "#dc2626", height: "fit-content" }}>×</button>
             </div>

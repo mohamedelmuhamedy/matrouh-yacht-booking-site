@@ -145,7 +145,7 @@ export default function PushPrompt() {
                   onClick={dismiss}
                   style={{
                     flex: 1,
-                    background: "var(--border)",
+                    background: "rgba(255,255,255,0.12)",
                     color: "rgba(255,255,255,0.85)",
                     border: "1px solid var(--border-strong)",
                     borderRadius: 8, padding: "0.55rem 1rem",

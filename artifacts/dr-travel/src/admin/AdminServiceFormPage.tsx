@@ -78,7 +78,7 @@ const sectionSt: React.CSSProperties = {
 };
 const ghostBtnSt: React.CSSProperties = {
   background: "var(--bg-surface-solid)",
-  color: "#475569",
+  color: "var(--text-secondary)",
   border: "1px solid #d0dce8",
   borderRadius: 8,
   padding: "0.4rem 0.75rem",
@@ -151,7 +151,7 @@ function ImageUploadField({
         {onReset && (
           <button type="button" onClick={onReset}
             title="استعادة الافتراضي (إزالة الصورة)"
-            style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.72rem", fontWeight: 700, padding: 0 }}>
+            style={{ background: "transparent", color: "var(--text-muted)", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.72rem", fontWeight: 700, padding: 0 }}>
             ↺ افتراضي
           </button>
         )}
@@ -180,7 +180,7 @@ function ImageUploadField({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
             <button type="button" onClick={handlePick} disabled={uploading}
-              style={{ background: uploading ? "#94a3b8" : "#00AAFF", color: "white", border: "none", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
+              style={{ background: uploading ? "var(--text-muted)" : "#00AAFF", color: "white", border: "none", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
               {uploading ? "جاري الرفع..." : (preview ? "تغيير" : "📁 رفع صورة")}
             </button>
             {preview && (
@@ -190,7 +190,7 @@ function ImageUploadField({
               </button>
             )}
           </div>
-          {hint && <div style={{ color: "#94a3b8", fontSize: "0.7rem", marginTop: "0.3rem" }}>{hint}</div>}
+          {hint && <div style={{ color: "var(--text-muted)", fontSize: "0.7rem", marginTop: "0.3rem" }}>{hint}</div>}
         </div>
       </div>
     </div>
@@ -262,7 +262,7 @@ function FeatureEditorCard({
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
           <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ ...ghostBtnSt, background: uploading ? "#cbd5e1" : "#00AAFF", color: "white", border: "none", justifyContent: "center" }}>
+            style={{ ...ghostBtnSt, background: uploading ? "var(--text-secondary)" : "#00AAFF", color: "white", border: "none", justifyContent: "center" }}>
             {uploading ? "..." : (preview ? "📁 تغيير" : "📁 رفع صورة")}
           </button>
           {preview && (
@@ -572,7 +572,7 @@ export default function AdminServiceFormPage() {
           <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             🖼️ صور غلاف صفحة التفاصيل
           </h2>
-          <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.78rem", margin: "0 0 1rem" }}>
             كل صورة بتظهر كخلفية احترافية للسيكشن المخصص لها. اضغط <b>"↺ افتراضي"</b> لإزالة الصورة وعرض تدرج لوني بسيط بدلاً منها.
           </p>
 
@@ -647,7 +647,7 @@ export default function AdminServiceFormPage() {
               )}
             </div>
           </div>
-          <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.78rem", margin: "0 0 1rem" }}>
             كل ميزة لها عنوان عربي/إنجليزي + أيقونة + لون + صورة خلفية. أضف الصورة بنفسك أو اضغط <b>💡 اقتراح</b> لاختيار صورة وأيقونة ولون تلقائيًا حسب العنوان.
           </p>
 
@@ -665,7 +665,7 @@ export default function AdminServiceFormPage() {
               />
             ))}
             {form.features.length === 0 && (
-              <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", padding: "1.25rem", background: "var(--bg-surface-sunk)", border: "1.5px dashed #cbd5e1", borderRadius: 10 }}>
+              <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem", padding: "1.25rem", background: "var(--bg-surface-sunk)", border: "1.5px dashed #cbd5e1", borderRadius: 10 }}>
                 لا توجد مميزات بعد. اضغط "+ إضافة ميزة" لإضافة أول ميزة.
               </div>
             )}

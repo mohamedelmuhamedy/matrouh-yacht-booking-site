@@ -120,14 +120,14 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
           {tx.bySource}
         </div>
         {(!stats || stats.bySource.length === 0) ? (
-          <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", padding: "0.65rem 0.7rem", background: "#f8fafc", borderRadius: 10, border: "1.5px dashed #d0dce8" }}>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", padding: "0.65rem 0.7rem", background: "var(--bg-surface)", borderRadius: 10, border: "1.5px dashed #d0dce8" }}>
             {tx.empty}
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
               <thead>
-                <tr style={{ background: "#f8fafc", color: "var(--text-muted)" }}>
+                <tr style={{ background: "var(--bg-surface)", color: "var(--text-muted)" }}>
                   <th style={thStyle(ar)}>{tx.sourceColumn}</th>
                   <th style={thStyleNum}>{tx.totalColumn}</th>
                   <th style={thStyleNum}>{tx.last7Column}</th>

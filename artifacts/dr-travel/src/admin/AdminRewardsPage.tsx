@@ -244,14 +244,14 @@ export default function AdminRewardsPage() {
               <div style={S.card}>
                 <h3 style={S.h3}>⚙️ إعدادات نظام المكافآت</h3>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", background: settings.rewards_enabled === "true" ? "#D1FAE5" : "#F1F5F9", borderRadius: "12px", marginBottom: "1.5rem", border: `2px solid ${settings.rewards_enabled === "true" ? "#10B981" : "#e0e8f0"}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", background: settings.rewards_enabled === "true" ? "#D1FAE5" : "var(--bg-surface-2)", borderRadius: "12px", marginBottom: "1.5rem", border: `2px solid ${settings.rewards_enabled === "true" ? "#10B981" : "#e0e8f0"}` }}>
                   <input type="checkbox" id="rewards-enabled" checked={settings.rewards_enabled === "true"}
                     onChange={e => setSettings(s => ({ ...s, rewards_enabled: e.target.checked ? "true" : "false" }))}
                     style={{ width: 20, height: 20, accentColor: "#10B981", cursor: "pointer" }} />
                   <label htmlFor="rewards-enabled" style={{ color: settings.rewards_enabled === "true" ? "#065F46" : "var(--text-secondary)", fontWeight: 800, cursor: "pointer", fontSize: "1rem" }}>
                     {settings.rewards_enabled === "true" ? "✅ نظام المكافآت مُفعَّل" : "⭕ نظام المكافآت معطَّل"}
                   </label>
-                  <span style={{ marginRight: "auto", color: settings.rewards_enabled === "true" ? "#10B981" : "#9CA3AF", fontSize: "0.82rem" }}>
+                  <span style={{ marginRight: "auto", color: settings.rewards_enabled === "true" ? "#10B981" : "var(--text-muted)", fontSize: "0.82rem" }}>
                     {settings.rewards_enabled === "true" ? "يتلقى المحيلون مكافأة عند كل حجز ناجح" : "لا تُمنح مكافآت حالياً"}
                   </span>
                 </div>
@@ -427,7 +427,7 @@ export default function AdminRewardsPage() {
                     <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>استُخدم {c.usedCount}×</span>
                     <span style={{ background: "#D1FAE5", color: "#065F46", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>✅ {c.approvedCount} موافق</span>
                     <button onClick={() => toggleCodeActive(c)}
-                      style={S.btn(c.isActive ? "#6B7280" : "#10B981", c.isActive ? "#F3F4F6" : "#D1FAE5")}>
+                      style={S.btn(c.isActive ? "var(--text-secondary)" : "#10B981", c.isActive ? "var(--bg-surface-2)" : "#D1FAE5")}>
                       {c.isActive ? "⏸ تعطيل" : "▶ تفعيل"}
                     </button>
                     <button onClick={() => openEditCode(c)} style={S.btn("#2563EB", "#EFF6FF")}>✏️ تعديل</button>

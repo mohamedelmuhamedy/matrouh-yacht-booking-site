@@ -76,8 +76,8 @@ const AssistantIcon = ({ size = 28 }: { size?: number }) => (
       </linearGradient>
     </defs>
     <path d="M16 3.2 19 11l8 3-8 3-3 8-3-8-8-3 8-3 3-7.8Z" fill="url(#ai-grad)" />
-    <circle cx="25.5" cy="6.5" r="1.8" fill="#FFFFFF" opacity="0.9" />
-    <circle cx="6.5" cy="24.5" r="1.2" fill="#FFFFFF" opacity="0.7" />
+    <circle cx="25.5" cy="6.5" r="1.8" fill="var(--bg-surface-solid)" opacity="0.9" />
+    <circle cx="6.5" cy="24.5" r="1.2" fill="var(--bg-surface-solid)" opacity="0.7" />
   </svg>
 );
 
@@ -513,7 +513,7 @@ export default function AIAssistant() {
               aria-label={T.clear}
               style={{
                 background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)",
-                color: "#cbd5e1", borderRadius: 999, padding: "0.3rem 0.65rem",
+                color: "var(--text-secondary)", borderRadius: 999, padding: "0.3rem 0.65rem",
                 fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
               }}
             >{T.clear}</button>

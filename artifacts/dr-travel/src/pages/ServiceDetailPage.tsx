@@ -267,7 +267,7 @@ export default function ServiceDetailPage() {
           </h1>
 
           <p style={{
-            fontSize: "1.1rem", lineHeight: 1.85, color: "#cbd5e1",
+            fontSize: "1.1rem", lineHeight: 1.85, color: "var(--text-secondary)",
             maxWidth: 640, margin: "0 auto 2rem",
             textShadow: heroImage ? "0 2px 8px rgba(0,0,0,0.6)" : "none",
           }}>
@@ -454,7 +454,7 @@ export default function ServiceDetailPage() {
             <h3 style={{ color: "white", fontSize: "1.6rem", fontWeight: 900, margin: "0 0 0.5rem", textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
               {ar ? "جاهز تبدأ تجربتك؟" : "Ready to start your experience?"}
             </h3>
-            <p style={{ color: "#cbd5e1", fontSize: "1rem", margin: "0 0 1.75rem", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
+            <p style={{ color: "var(--text-secondary)", fontSize: "1rem", margin: "0 0 1.75rem", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
               {ar ? "احجز الآن أو تواصل معنا للاستفسار" : "Book now or contact us with any questions"}
             </p>
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>

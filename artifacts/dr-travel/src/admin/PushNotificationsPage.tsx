@@ -91,7 +91,7 @@ export default function PushNotificationsPage() {
             <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
               {stats === null ? "..." : stats.count.toLocaleString("ar")}
             </div>
-            <div style={{ color: "#6B7280", fontSize: "0.82rem", marginTop: 2 }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.82rem", marginTop: 2 }}>
               مشترك في الإشعارات
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function PushNotificationsPage() {
                 : `⚠️ أُرسل إلى ${result.sent} · فشل ${result.failed} (من ${result.total})`}
             </div>
             {result.details && result.details.length > 0 && (
-              <div style={{ fontSize: "0.75rem", color: "#6B7280", borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 {result.details.map((d, i) => (
                   <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.2rem" }}>
                     <span>{d.ok ? "✅" : "❌"}</span>
@@ -179,7 +179,7 @@ export default function PushNotificationsPage() {
           disabled={loading || !title.trim() || !body.trim() || !vapidOk}
           style={{
             width: "100%", background: loading ? "#93c5fd" : "#0D1B2A",
-            color: "#fff", border: "none", borderRadius: 8,
+            color: "var(--bg-surface-solid)", border: "none", borderRadius: 8,
             padding: "0.75rem", fontSize: "0.95rem", fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",
             fontFamily: "Cairo, sans-serif",
@@ -190,7 +190,7 @@ export default function PushNotificationsPage() {
         </button>
       </div>
 
-      <p style={{ color: "#9CA3AF", fontSize: "0.75rem", textAlign: "center" }}>
+      <p style={{ color: "var(--text-muted)", fontSize: "0.75rem", textAlign: "center" }}>
         الإشعارات تصل فورياً للمستخدمين الذين سمحوا بها في متصفحاتهم.
         تأكد من أن المستخدم فعّل الإشعارات بعد تحديث الموقع لضمان تشغيل الـ service worker الجديد.
       </p>
