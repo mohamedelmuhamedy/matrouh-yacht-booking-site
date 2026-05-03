@@ -1,0 +1,71 @@
+/* Mobile-friendly overrides for the admin panel.
+   Targets inline-style grids/flex used across admin pages so we don't
+   have to refactor every component. Scoped to .admin-wrap so it never
+   affects the public site. */
+
+@media (max-width: 767px) {
+  /* Collapse fixed multi-column grids to a single column.
+     Auto-fill / auto-fit grids are already responsive and skipped.
+     Add the .no-mobile-stack class to opt out on a specific element. */
+  .admin-wrap [style*="grid-template-columns: 1fr 1fr"]:not(.no-mobile-stack),
+  .admin-wrap [style*="grid-template-columns:1fr 1fr"],
+  .admin-wrap [style*="grid-template-columns: repeat(2"],
+  .admin-wrap [style*="grid-template-columns:repeat(2"],
+  .admin-wrap [style*="grid-template-columns: repeat(3"],
+  .admin-wrap [style*="grid-template-columns:repeat(3"],
+  .admin-wrap [style*="grid-template-columns: repeat(4"],
+  .admin-wrap [style*="grid-template-columns:repeat(4"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Card action columns: opt-in via data-mobile-actions on the column
+     wrapper (used by Bookings/Packages cards). On phones the column
+     stretches full-width below the content. */
+  .admin-wrap [data-mobile-actions="true"] {
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+  .admin-wrap [data-mobile-actions="true"] > div[style*="justify-content: flex-end"] {
+    justify-content: flex-start !important;
+  }
+
+  /* Touch targets: native form controls and buttons in the admin area
+     should be at least 40px tall for comfortable tapping. */
+  .admin-wrap button,
+  .admin-wrap select,
+  .admin-wrap input[type="text"],
+  .admin-wrap input[type="search"],
+  .admin-wrap input[type="email"],
+  .admin-wrap input[type="tel"],
+  .admin-wrap input[type="number"],
+  .admin-wrap input[type="url"],
+  .admin-wrap input[type="password"],
+  .admin-wrap input[type="date"],
+  .admin-wrap input[type="time"],
+  .admin-wrap input[type="datetime-local"] {
+    min-height: 40px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+  .admin-wrap textarea {
+    font-size: 16px;
+  }
+
+  /* Modal-style overlays: tighten padding on small screens */
+  .admin-wrap [style*="padding: 2rem"][style*="border-radius"] {
+    padding: 1rem !important;
+  }
+
+  /* Tables inside admin scroll horizontally instead of overflowing */
+  .admin-wrap table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Long PHP/EN ids and slugs shouldn't break layout */
+  .admin-wrap span[style*="font-family: monospace"],
+  .admin-wrap span[style*="fontFamily: monospace"] {
+    word-break: break-all;
+  }
+}

@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAdmin, adminFetch } from "./AdminContext";
 import { apiUrl } from "../lib/api";
+import "./admin-mobile.css";
 
 function useAdminBrandName() {
   const [brand, setBrand] = useState<string>("DR TRAVEL");

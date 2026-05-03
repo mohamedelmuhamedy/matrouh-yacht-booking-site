@@ -183,7 +183,7 @@ export default function PackagesPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0, alignItems: "flex-end" }}>
+                  <div data-mobile-actions="true" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0, alignItems: "flex-end" }}>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
                       <select value={pkg.status} onChange={e => setStatus(pkg, e.target.value)}
                         style={{ padding: "0.4rem 0.5rem", border: `1.5px solid ${statusBadge.color}`, borderRadius: "8px", color: statusBadge.color, fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 700, background: statusBadge.bg, cursor: "pointer", outline: "none" }}>

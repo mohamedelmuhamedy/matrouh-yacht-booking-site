@@ -451,7 +451,7 @@ export default function BookingsPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
+                  <div data-mobile-actions="true" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
                     <select value={b.status} disabled={updating === b.id}
                       onChange={e => updateStatus(b.id, e.target.value)}
                       style={{ padding: "0.4rem 0.75rem", borderRadius: "8px", border: `1.5px solid ${sObj.color}`, color: sObj.color, fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, background: `${sObj.color}08`, cursor: "pointer", outline: "none" }}>
