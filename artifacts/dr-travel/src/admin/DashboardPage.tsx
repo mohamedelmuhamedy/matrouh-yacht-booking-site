@@ -19,8 +19,11 @@ function timeAgo(dateStr: string): string {
 
 function fmtMoney(n: number): string {
   if (!isFinite(n)) return "0";
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}م`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}ك`;
+  return Math.round(n).toLocaleString("ar-EG");
+}
+
+function fmtCount(n: number): string {
+  if (!isFinite(n)) return "0";
   return Math.round(n).toLocaleString("ar-EG");
 }
 
@@ -137,10 +140,11 @@ export default function DashboardPage() {
       const d = parseBookingDate(b.date);
       return d && isoDay(d) === today;
     });
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const upcoming7 = bookings.filter(b => {
       const d = parseBookingDate(b.date);
       if (!d) return false;
-      const ms = d.getTime() - now.setHours(0, 0, 0, 0);
+      const ms = d.getTime() - todayMidnight;
       return ms >= 0 && ms <= 7 * 24 * 3600 * 1000 && b.status !== "cancelled";
     });
     const checkedInToday = bookings.filter(b => {
@@ -254,7 +258,7 @@ export default function DashboardPage() {
 
   const trendMax = Math.max(1, ...stats.trend.map(d => d.count));
   const totalActionItems = stats.staleNew.length + stats.confirmedNoTicket.length + stats.tripsTomorrowUnconfirmed.length;
-  const pendingTestimonials = testimonials.filter(t => (t as any).status === "pending").length;
+  const pendingTestimonials = testimonials.filter(t => t.status === "pending").length;
 
   return (
     <div className="dr-dashboard">
@@ -342,8 +346,8 @@ export default function DashboardPage() {
           onClick={() => navigate("/admin/bookings")}
         />
         <KpiCard
-          icon="👥" label="ضيوف الشهر" sublabel={`${stats.totalGuestsThisMonth} ضيف`}
-          value={`${stats.totalGuestsThisMonth}`} color={OCEAN}
+          icon="👥" label="ضيوف الشهر" sublabel="من الحجوزات المؤكدة"
+          value={fmtCount(stats.totalGuestsThisMonth)} color={OCEAN}
           onClick={() => navigate("/admin/bookings")}
         />
         <KpiCard

@@ -393,8 +393,8 @@ export default function BookingsPage() {
         />
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+      {/* Filter tabs (horizontal scroll on mobile) */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
         <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={v => setFilter(v)} />
         {STATUS_OPTIONS.map(s => (
           <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
@@ -630,7 +630,7 @@ function FilterTab({ value, current, count, label, color, onClick }: { value: st
   const active = value === current;
   return (
     <button onClick={() => onClick(value)}
-      style={{ background: active ? color : "white", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s" }}>
+      style={{ background: active ? color : "white", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0 }}>
       {label} {count > 0 && <span style={{ background: active ? "rgba(255,255,255,0.3)" : `${color}20`, borderRadius: "50px", padding: "0.1rem 0.4rem", marginRight: "0.25rem" }}>{count}</span>}
     </button>
   );

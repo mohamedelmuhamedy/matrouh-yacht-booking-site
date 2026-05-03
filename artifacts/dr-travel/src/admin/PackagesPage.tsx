@@ -13,12 +13,31 @@ const STATUS_BADGES: Record<string, { label: string; color: string; bg: string }
   archived: { label: "أرشيف", color: "#6B7280", bg: "#6B728015" },
 };
 
+interface Package {
+  id: number;
+  slug: string;
+  titleAr: string;
+  titleEn: string;
+  status: string;
+  active: boolean;
+  featured?: boolean;
+  popular?: boolean;
+  color?: string;
+  icon?: string;
+  images?: string[];
+  priceEGP?: number;
+  maxPriceEGP?: number;
+  durationAr?: string;
+  rating?: number;
+  reviewCount?: number;
+}
+
 export default function PackagesPage() {
-  const [packages, setPackages] = useState<any[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [, navigate] = useLocation();
-  const [confirmArchive, setConfirmArchive] = useState<any | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [confirmArchive, setConfirmArchive] = useState<Package | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Package | null>(null);
   const [duplicating, setDuplicating] = useState<number | null>(null);
   const [qrBusy, setQrBusy] = useState<number | null>(null);
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -39,7 +58,7 @@ export default function PackagesPage() {
     }).catch(() => { /* non-blocking */ });
   }, []);
 
-  const downloadPackageQr = async (pkg: any) => {
+  const downloadPackageQr = async (pkg: Package) => {
     if (!pkg.slug) { toastError("لا يمكن إنشاء QR بدون رابط الباقة"); return; }
     setQrBusy(pkg.id);
     try {
@@ -62,7 +81,7 @@ export default function PackagesPage() {
     }
   };
 
-  const archivePackage = async (pkg: any) => {
+  const archivePackage = async (pkg: Package) => {
     try {
       const r = await adminFetch(`/admin/packages/${pkg.id}`, { method: "DELETE" });
       if (!r.ok) throw new Error();
@@ -72,7 +91,7 @@ export default function PackagesPage() {
     setConfirmArchive(null);
   };
 
-  const deletePackage = async (pkg: any) => {
+  const deletePackage = async (pkg: Package) => {
     try {
       const r = await adminFetch(`/admin/packages/${pkg.id}?force=true`, { method: "DELETE" });
       if (!r.ok) throw new Error();
@@ -93,7 +112,7 @@ export default function PackagesPage() {
     setDuplicating(null);
   };
 
-  const toggleActive = async (pkg: any) => {
+  const toggleActive = async (pkg: Package) => {
     try {
       const r = await adminFetch(`/admin/packages/${pkg.id}`, {
         method: "PUT",
@@ -105,7 +124,7 @@ export default function PackagesPage() {
     } catch { toastError("فشل تحديث الباقة"); }
   };
 
-  const setStatus = async (pkg: any, status: string) => {
+  const setStatus = async (pkg: Package, status: string) => {
     try {
       const r = await adminFetch(`/admin/packages/${pkg.id}`, {
         method: "PUT",
@@ -198,7 +217,7 @@ export default function PackagesPage() {
                         </button>
                       )}
                     </div>
-                    <div style={{ display: "flex", gap: "0.4rem" }}>
+                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
                       <button onClick={() => duplicate(pkg.id, pkg.titleAr)} disabled={duplicating === pkg.id}
                         style={{ padding: "0.4rem 0.75rem", border: "1px solid #A855F730", borderRadius: "8px", cursor: "pointer", background: "#A855F708", color: "#A855F7", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: duplicating === pkg.id ? 0.6 : 1 }}>
                         📋 نسخ
