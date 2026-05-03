@@ -244,6 +244,12 @@ export default function TripsPage() {
                         </span>
                       )}
                     </div>
+
+                    {/* CTA */}
+                    <div className="trip-card-cta">
+                      <span>{ar ? "عرض التفاصيل" : "View Details"}</span>
+                      <span className="trip-card-cta-arrow">{ar ? "←" : "→"}</span>
+                    </div>
                   </div>
                 </div>
               );
