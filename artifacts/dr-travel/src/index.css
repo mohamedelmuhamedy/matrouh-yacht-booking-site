@@ -662,6 +662,58 @@ html[dir="ltr"] {
   }
 }
 
+/* ===== DEVELOPER STRIP ===== */
+.dev-strip {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.22);
+  padding: 0.85rem 1.5rem;
+}
+.dev-strip-label {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.73rem;
+  font-weight: 500;
+}
+.dev-strip-btn {
+  color: #25D366;
+  text-decoration: none;
+  font-size: 0.73rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(37,211,102,0.25);
+  border-radius: 20px;
+  padding: 0.2rem 0.75rem;
+  background: rgba(37,211,102,0.08);
+  transition: transform 0.2s, background 0.2s;
+}
+.dev-strip-btn:hover {
+  background: rgba(37,211,102,0.16);
+}
+
+/* Light mode overrides */
+:root[data-theme="light"] .dev-strip {
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.9rem 1.5rem;
+}
+:root[data-theme="light"] .dev-strip-label {
+  color: #475569;
+  font-weight: 600;
+}
+:root[data-theme="light"] .dev-strip-btn {
+  color: #ffffff;
+  background: linear-gradient(135deg, #064E3B, #065F46);
+  border: none;
+  box-shadow: 0 2px 8px rgba(6,78,59,0.35);
+  font-weight: 800;
+  padding: 0.3rem 0.9rem;
+}
+:root[data-theme="light"] .dev-strip-btn:hover {
+  background: linear-gradient(135deg, #065F46, #047857);
+  box-shadow: 0 4px 14px rgba(6,78,59,0.45);
+}
+
 /* ===== WABUTTON ===== */
 .wa-float {
   position: fixed;
