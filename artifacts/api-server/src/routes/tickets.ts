@@ -359,6 +359,54 @@ router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
   }
 });
 
+function escapeXml(s: string): string {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+router.get("/admin/tickets/:token/image.svg", authMiddleware, async (req, res) => {
+  try {
+    const token = String(req.params.token || "").trim();
+    if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
+    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+    if (!b) return res.status(404).json({ error: "Not found" });
+    const ticketNumber = b.ticketNumber || "";
+    const verifyUrl = `${(req.headers["x-forwarded-proto"] as string)?.split(",")[0] || req.protocol}://${(req.headers["x-forwarded-host"] as string) || req.headers.host || ""}/verify/${token}`;
+    const date = b.date ? String(b.date).slice(0, 10) : "";
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#1b263b"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="900" fill="url(#bg)"/>
+  <rect x="40" y="40" width="520" height="820" rx="24" fill="rgba(255,255,255,0.04)" stroke="#00AAFF" stroke-width="2"/>
+  <text x="300" y="120" text-anchor="middle" fill="#00AAFF" font-family="Arial, sans-serif" font-size="28" font-weight="bold">DR TRAVEL</text>
+  <text x="300" y="160" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="18">BOARDING TICKET</text>
+  <line x1="80" y1="200" x2="520" y2="200" stroke="#00AAFF" stroke-opacity="0.5"/>
+  <text x="80" y="260" fill="#8b9bab" font-family="Arial, sans-serif" font-size="14">TICKET NUMBER</text>
+  <text x="80" y="295" fill="#ffffff" font-family="monospace" font-size="26" font-weight="bold">${escapeXml(ticketNumber)}</text>
+  <text x="80" y="360" fill="#8b9bab" font-family="Arial, sans-serif" font-size="14">PASSENGER</text>
+  <text x="80" y="395" fill="#ffffff" font-family="Arial, sans-serif" font-size="22">${escapeXml((b.name || "").split(" ")[0])}</text>
+  <text x="80" y="460" fill="#8b9bab" font-family="Arial, sans-serif" font-size="14">PACKAGE</text>
+  <text x="80" y="495" fill="#ffffff" font-family="Arial, sans-serif" font-size="20">${escapeXml(String(b.packageName || "").slice(0, 40))}</text>
+  <text x="80" y="560" fill="#8b9bab" font-family="Arial, sans-serif" font-size="14">DEPARTURE</text>
+  <text x="80" y="595" fill="#ffffff" font-family="Arial, sans-serif" font-size="20">${escapeXml(date)}</text>
+  <text x="80" y="660" fill="#8b9bab" font-family="Arial, sans-serif" font-size="14">PASSENGERS</text>
+  <text x="80" y="695" fill="#ffffff" font-family="Arial, sans-serif" font-size="20">${(b.adults || 0) + (b.children || 0) + (b.infants || 0)} pax</text>
+  <text x="300" y="800" text-anchor="middle" fill="#8b9bab" font-family="monospace" font-size="11">${escapeXml(verifyUrl)}</text>
+  <text x="300" y="830" text-anchor="middle" fill="#00AAFF" font-family="Arial, sans-serif" font-size="13">Scan or visit URL above to verify</text>
+</svg>`;
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader("Cache-Control", "private, no-store");
+    return res.send(svg);
+  } catch (err) {
+    console.error("[ticket-image] error:", err);
+    return res.status(500).json({ error: "Failed to render ticket image" });
+  }
+});
+
 router.post(
   "/admin/bookings/:id/ticket-pdf",
   authMiddleware,

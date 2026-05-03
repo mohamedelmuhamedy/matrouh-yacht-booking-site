@@ -11,12 +11,40 @@ import {
   heroSlides,
   referralCodes,
   referralRewards,
+  aiVisitorQuota,
   type Package,
   type Service,
   type Testimonial,
   type WhyUsCard,
 } from "@workspace/db";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, sql } from "drizzle-orm";
+import crypto from "crypto";
+
+const AI_VISITOR_DAILY_LIMIT = 100;
+
+function dayKeyUTC(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function visitorKeyFor(req: Request, visitorToken: string): string {
+  const base = visitorToken
+    ? `vt:${visitorToken}`
+    : `ip:${(req.ip ?? "").slice(0, 64)}`;
+  return crypto.createHash("sha256").update(base).digest("hex").slice(0, 32);
+}
+
+async function consumeVisitorQuota(key: string, day: string): Promise<{ ok: boolean; count: number }> {
+  const [row] = await db
+    .insert(aiVisitorQuota)
+    .values({ visitorKey: key, day, count: 1, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: [aiVisitorQuota.visitorKey, aiVisitorQuota.day],
+      set: { count: sql`${aiVisitorQuota.count} + 1`, updatedAt: new Date() },
+    })
+    .returning({ count: aiVisitorQuota.count });
+  const count = row?.count ?? 0;
+  return { ok: count <= AI_VISITOR_DAILY_LIMIT, count };
+}
 import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
 
@@ -393,6 +421,24 @@ router.post("/ai/chat", async (req, res) => {
           ? "عذراً، لا يمكنني تنفيذ هذا الطلب."
           : "Sorry, I can't process that request.",
       });
+    }
+
+    const earlyVisitorToken = (() => {
+      const b = req.body as { visitor?: { token?: unknown } };
+      const t = b?.visitor && typeof b.visitor === "object" ? b.visitor.token : undefined;
+      return typeof t === "string" ? t : "";
+    })();
+    try {
+      const quota = await consumeVisitorQuota(visitorKeyFor(req, earlyVisitorToken), dayKeyUTC());
+      if (!quota.ok) {
+        return res.status(429).json({
+          error: lang === "ar"
+            ? "تجاوزت الحد اليومي للمحادثات. حاول غداً."
+            : "Daily chat limit reached. Try again tomorrow.",
+        });
+      }
+    } catch (err) {
+      console.error("[ai-chat] quota check failed:", err);
     }
 
     const ctx = await buildContext();

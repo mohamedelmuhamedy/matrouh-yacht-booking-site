@@ -15,3 +15,4 @@ export * from "./app_secrets";
 export * from "./why_us_cards";
 export * from "./qr_scans";
 export * from "./admin_audit_log";
+export * from "./ai_quota";

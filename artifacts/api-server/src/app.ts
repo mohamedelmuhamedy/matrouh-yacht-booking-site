@@ -4,6 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import router from "./routes";
+import sitemapRouter from "./routes/sitemap";
 
 const app: Express = express();
 const isProduction = process.env["NODE_ENV"] === "production";
@@ -117,6 +118,7 @@ app.use("/api/push/link-booking", writeLimiter);
 app.use("/api/ai/chat", aiLimiter);
 app.use("/api/share/scan", scanLimiter);
 
+app.use(sitemapRouter);
 app.use("/api", router);
 
 const FRONTEND_TARGET = process.env["FRONTEND_PROXY_TARGET"] ?? "http://localhost:5000";
