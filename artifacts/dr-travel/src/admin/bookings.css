@@ -1,20 +1,20 @@
 /* DR Travel — Bookings page polish */
 .bk-card {
-  background: white;
+  background: var(--bg-surface-solid);
   border-radius: 18px;
   box-shadow: 0 1px 3px rgba(13, 27, 42, 0.04), 0 8px 24px -12px rgba(13, 27, 42, 0.08);
-  border: 1px solid #eef2f7;
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   position: relative;
 }
 .bk-card:hover {
   box-shadow: 0 2px 6px rgba(13, 27, 42, 0.06), 0 16px 40px -16px rgba(13, 27, 42, 0.18);
-  border-color: #dbe5ef;
+  border-color: var(--border-strong);
 }
 .bk-card.is-open {
   box-shadow: 0 4px 12px rgba(13, 27, 42, 0.08), 0 24px 60px -20px rgba(0, 170, 255, 0.22);
-  border-color: #cfe9ff;
+  border-color: rgba(0,170,255,0.4);
 }
 .bk-card::before {
   content: "";
@@ -36,7 +36,7 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-.bk-head:hover { background: #fafcfe; }
+.bk-head:hover { background: var(--bg-surface-sunk); }
 
 .bk-avatar {
   width: 44px;
@@ -55,7 +55,7 @@
   letter-spacing: 0.5px;
 }
 .bk-confirmed-ring {
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #C9A84C, 0 6px 16px -8px var(--bk-color, #00AAFF);
+  box-shadow: 0 0 0 2px var(--bg-surface-solid), 0 0 0 4px #C9A84C, 0 6px 16px -8px var(--bk-color, #00AAFF);
 }
 
 .bk-meta { min-width: 0; }
@@ -68,7 +68,7 @@
 .bk-name {
   font-family: Cairo, sans-serif;
   font-weight: 800;
-  color: #0D1B2A;
+  color: var(--text-primary);
   font-size: 1rem;
   white-space: nowrap;
   overflow: hidden;
@@ -106,7 +106,7 @@
   flex-wrap: wrap;
   gap: 0.45rem 0.85rem;
   margin-top: 0.35rem;
-  color: #57606a;
+  color: var(--text-muted);
   font-family: Cairo, sans-serif;
   font-size: 0.82rem;
 }
@@ -116,7 +116,7 @@
   gap: 0.3rem;
   white-space: nowrap;
 }
-.bk-sub-item.is-strong { color: #0D1B2A; font-weight: 700; }
+.bk-sub-item.is-strong { color: var(--text-primary); font-weight: 700; }
 
 .bk-chip {
   display: inline-flex;
@@ -127,8 +127,8 @@
   font-size: 0.74rem;
   font-weight: 700;
   font-family: Cairo, sans-serif;
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 .bk-chip.is-price { background: #fffaf0; color: #92400e; border: 1px solid #fde6b1; }
@@ -145,8 +145,8 @@
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-solid);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -155,18 +155,18 @@
   transition: all 0.2s;
   flex-shrink: 0;
   text-decoration: none;
-  color: #0D1B2A;
+  color: var(--text-primary);
 }
 .bk-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -6px rgba(13,27,42,0.18); }
 .bk-icon-btn.is-wa { background: #25D366; border-color: #25D366; color: white; }
-.bk-icon-btn.is-chevron { background: #f8fafc; }
+.bk-icon-btn.is-chevron { background: var(--bg-surface); }
 .bk-icon-btn.is-chevron .bk-chev { transition: transform 0.3s ease; display: inline-block; }
 .bk-card.is-open .bk-chev { transform: rotate(-180deg); }
 
 .bk-body {
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px dashed var(--border);
   padding: 1rem 1.15rem 1.15rem 1.5rem;
-  background: linear-gradient(180deg, #fafcfe 0%, #ffffff 100%);
+  background: var(--bg-surface-sunk);
   display: grid;
   gap: 0.85rem;
   animation: bk-slide-down 0.28s ease;
@@ -182,14 +182,14 @@
   gap: 0.6rem;
 }
 .bk-info {
-  background: white;
-  border: 1px solid #eef2f7;
+  background: var(--bg-surface-solid);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.6rem 0.8rem;
 }
 .bk-info-label {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: Cairo, sans-serif;
   font-weight: 700;
   margin-bottom: 0.2rem;
@@ -198,7 +198,7 @@
 .bk-info-val {
   font-family: Cairo, sans-serif;
   font-weight: 700;
-  color: #0D1B2A;
+  color: var(--text-primary);
   font-size: 0.9rem;
   word-break: break-word;
 }
@@ -214,7 +214,7 @@
   gap: 0.5rem;
   align-items: flex-start;
 }
-.bk-note.is-customer { background: #f1f5f9; color: #334155; }
+.bk-note.is-customer { background: var(--bg-surface-2); color: var(--text-secondary); }
 .bk-note.is-admin { background: #fffbeb; color: #92400e; border-inline-end: 3px solid #F59E0B; }
 .bk-note .bk-note-icon { flex-shrink: 0; }
 
@@ -236,9 +236,9 @@
   font-size: 0.85rem;
   font-weight: 700;
   transition: all 0.2s;
-  background: white;
-  color: #0D1B2A;
-  border-color: #e2e8f0;
+  background: var(--bg-surface-solid);
+  color: var(--text-primary);
+  border-color: var(--border);
   text-decoration: none;
   min-height: 40px;
 }
@@ -265,20 +265,20 @@
 
 .bk-audit {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: Cairo, sans-serif;
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
-  border-top: 1px dashed #eef2f7;
+  border-top: 1px dashed var(--border);
   padding-top: 0.55rem;
 }
 .bk-audit code {
-  background: #f1f5f9;
+  background: var(--bg-surface-2);
   padding: 0.05rem 0.4rem;
   border-radius: 6px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 640px) {
@@ -303,4 +303,4 @@
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s ease;
 }
-.bk-toolbar.is-stuck { border-bottom-color: #e2e8f0; }
+.bk-toolbar.is-stuck { border-bottom-color: var(--border-strong); }

@@ -443,7 +443,7 @@ export default function BookingsPage() {
           />
         </div>
         <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
-          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="var(--section-subtitle)" onClick={v => setFilter(v)} />
+          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#64748b" onClick={v => setFilter(v)} />
           {STATUS_OPTIONS.map(s => (
             <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
           ))}

@@ -758,7 +758,7 @@ function Services() {
                   aria-label={clickable ? service.name : undefined}
                 >
                   <div className="service-icon-wrap">{service.icon}</div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.6rem" }}>{service.name}</h3>
                   <p style={{ color: "var(--section-subtitle)", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
                 </div>
               </FadeInSection>
@@ -991,7 +991,7 @@ function PackagesAndBooking() {
                   )}
                   <div style={{ paddingTop: pkg.badge ? "1.75rem" : "0.25rem", textAlign: "center", marginBottom: "1.25rem" }}>
                     <div style={{ fontSize: "2.75rem", marginBottom: "0.75rem" }}>{pkg.icon}</div>
-                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", marginBottom: "0.4rem" }}>{pkg.name}</h3>
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.4rem" }}>{pkg.name}</h3>
                     <p style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", lineHeight: 1.6 }}>{pkg.desc}</p>
                   </div>
                   <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -1209,9 +1209,9 @@ function PackagesAndBooking() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>{bk.modal.emoji}</div>
-            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "white", marginBottom: "0.75rem" }}>{bk.modal.title}</h3>
+            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.75rem" }}>{bk.modal.title}</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "2rem", lineHeight: 1.8 }}>
-              {bk.modal.thankYou} <strong style={{ color: "white" }}>{form.name}</strong>!<br />
+              {bk.modal.thankYou} <strong style={{ color: "var(--text-primary)" }}>{form.name}</strong>!<br />
               {bk.modal.msg} <strong style={{ color: "#00AAFF" }}>{form.phone}</strong> {bk.modal.within}
             </p>
             <div style={{ display: "flex", gap: "0.75rem", flexDirection: "column" }}>
@@ -1296,7 +1296,7 @@ function WhyUs() {
                   <div style={{ width: 56, height: 56, borderRadius: "14px", background: `${f.color}10`, border: `1px solid ${f.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", marginBottom: "1rem", position: "relative" }}>
                     {f.icon}
                   </div>
-                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{f.title}</h3>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.6rem" }}>{f.title}</h3>
                   <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{f.desc}</p>
                   {clickable && (
                     <div style={{ marginTop: "1rem", color: f.color, fontSize: "0.82rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem", ...(uniformCards ? { alignSelf: "flex-start" } : {}) }}>
