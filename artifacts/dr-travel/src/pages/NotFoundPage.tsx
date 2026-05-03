@@ -19,7 +19,7 @@ export default function NotFoundPage() {
         <div style={{ fontSize: "6rem", fontWeight: 900, color: "#00AAFF", fontFamily: "Montserrat, sans-serif", lineHeight: 1, marginBottom: "0.5rem" }}>
           404
         </div>
-        <h1 style={{ color: "white", fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.75rem" }}>
+        <h1 style={{ color: "var(--text-primary)", fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.75rem" }}>
           {ar ? "الصفحة غير موجودة" : "Page Not Found"}
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "1rem", lineHeight: 1.8, marginBottom: "2rem" }}>
@@ -33,7 +33,7 @@ export default function NotFoundPage() {
             {ar ? "🏠 الرئيسية" : "🏠 Home"}
           </button>
           <button onClick={() => navigate("/#packages")}
-            style={{ background: "var(--border)", color: "white", border: "1px solid var(--border-strong)", padding: "0.85rem 2rem", borderRadius: "12px", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+            style={{ background: "var(--bg-surface-2)", color: "var(--text-primary)", border: "1px solid var(--border-strong)", padding: "0.85rem 2rem", borderRadius: "12px", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
             {ar ? "🏖️ الباقات" : "🏖️ Packages"}
           </button>
         </div>

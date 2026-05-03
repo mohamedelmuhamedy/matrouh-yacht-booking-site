@@ -147,7 +147,7 @@ export default function WhyUsDetailPage() {
 
   if (notFound || !card) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", padding: "2rem" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", padding: "2rem" }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>
           <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
           <h1 style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>{isAr ? "الصفحة غير موجودة" : "Page Not Found"}</h1>
@@ -179,7 +179,7 @@ export default function WhyUsDetailPage() {
   };
 
   return (
-    <div style={{ background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
       <style>{`
         @keyframes float-up { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
         @keyframes pulse-ring { 0%{transform:scale(.95);opacity:.7} 70%{transform:scale(1.4);opacity:0} 100%{transform:scale(1.4);opacity:0} }
@@ -271,7 +271,7 @@ export default function WhyUsDetailPage() {
                 {ctaText} ←
               </button>
               <a href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{
-                background: "var(--bg-surface-2)", color: "white", border: "1px solid var(--border-strong)",
+                background: "var(--bg-surface-2)", color: "var(--text-primary)", border: "1px solid var(--border-strong)",
                 borderRadius: 12, padding: "0.95rem 1.6rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                 fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem",
               }}>
@@ -361,17 +361,17 @@ export default function WhyUsDetailPage() {
 
       {/* === BULLETS / KEY POINTS === */}
       {card.bullets.length > 0 && (
-        <section style={{ padding: "5rem 1.5rem", background: "linear-gradient(180deg, #0a1623, #0D1B2A)" }}>
+        <section style={{ padding: "5rem 1.5rem", background: "var(--bg-page-2)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
                 <div style={{ display: "inline-block", padding: "0.35rem 0.85rem", borderRadius: 999, background: accentSoft, color: accent, fontSize: "0.74rem", fontWeight: 700, marginBottom: "0.85rem" }}>
                   ✦ {isAr ? "النقاط المحورية" : "Key Points"}
                 </div>
-                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, color: "white", margin: "0 0 0.5rem" }}>
+                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, color: "var(--text-primary)", margin: "0 0 0.5rem" }}>
                   {isAr ? "كل اللي بيميّزنا" : "Everything that sets us apart"}
                 </h2>
-                <p style={{ color: "#8b9bab", fontSize: "0.95rem", margin: 0 }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", margin: 0 }}>
                   {isAr ? "تفاصيل بنهتم بيها علشانك" : "Details we care about, for you"}
                 </p>
               </div>
@@ -403,10 +403,10 @@ export default function WhyUsDetailPage() {
                       <div style={{ width: 56, height: 56, borderRadius: 14, background: `linear-gradient(135deg, ${accent}, ${hexToRgba(accent, 0.6)})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.7rem", marginBottom: "1rem", boxShadow: `0 8px 22px ${accentMid}` }}>
                         {b.icon}
                       </div>
-                      <h3 style={{ color: "white", fontSize: "1.05rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
+                      <h3 style={{ color: "var(--text-primary)", fontSize: "1.05rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
                         {isAr ? b.titleAr : (b.titleEn || b.titleAr)}
                       </h3>
-                      <p style={{ color: "#a8b6c4", fontSize: "0.88rem", lineHeight: 1.75, margin: 0 }}>
+                      <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.75, margin: 0 }}>
                         {isAr ? b.descAr : (b.descEn || b.descAr)}
                       </p>
                     </div>
@@ -427,7 +427,7 @@ export default function WhyUsDetailPage() {
                 <div style={{ display: "inline-block", padding: "0.35rem 0.85rem", borderRadius: 999, background: accentSoft, color: accent, fontSize: "0.74rem", fontWeight: 700, marginBottom: "0.85rem" }}>
                   ✦ {isAr ? "لقطات من تجربتنا" : "Glimpses"}
                 </div>
-                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, color: "white", margin: 0 }}>
+                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, color: "var(--text-primary)", margin: 0 }}>
                   {isAr ? "صور تحكي القصة" : "Pictures that tell the story"}
                 </h2>
               </div>
@@ -473,7 +473,7 @@ export default function WhyUsDetailPage() {
                 {ctaText} ✦
               </button>
               <a href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{
-                background: "var(--border)", color: "white", border: "1px solid var(--border-strong)",
+                background: "var(--bg-surface-2)", color: "var(--text-primary)", border: "1px solid var(--border-strong)",
                 borderRadius: 12, padding: "1rem 1.8rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                 fontWeight: 700, fontSize: "1rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem",
               }}>
@@ -486,14 +486,14 @@ export default function WhyUsDetailPage() {
 
       {/* === SIBLING CARDS === */}
       {siblings.length > 0 && (
-        <section style={{ padding: "4rem 1.5rem", background: "#0a1623", borderTop: "1px solid var(--bg-surface)" }}>
+        <section style={{ padding: "4rem 1.5rem", background: "var(--bg-page-2)", borderTop: "1px solid var(--border)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <Reveal>
               <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-                <h3 style={{ color: "white", fontSize: "1.4rem", fontWeight: 900, margin: "0 0 0.4rem" }}>
+                <h3 style={{ color: "var(--text-primary)", fontSize: "1.4rem", fontWeight: 900, margin: "0 0 0.4rem" }}>
                   {isAr ? "اكتشف أكتر" : "Discover More"}
                 </h3>
-                <p style={{ color: "#8b9bab", fontSize: "0.9rem", margin: 0 }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>
                   {isAr ? "أسباب تانية تخلّيك تختار DR Travel" : "More reasons to choose DR Travel"}
                 </p>
               </div>
@@ -516,8 +516,8 @@ export default function WhyUsDetailPage() {
                         <div style={{ width: 44, height: 44, borderRadius: 11, background: hexToRgba(s.color, 0.18), border: `1px solid ${hexToRgba(s.color, 0.3)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", marginBottom: "0.75rem" }}>
                           {s.icon}
                         </div>
-                        <div style={{ color: "white", fontWeight: 700, fontSize: "0.94rem", marginBottom: "0.35rem" }}>{sTitle}</div>
-                        <div style={{ color: "#8b9bab", fontSize: "0.78rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{sDesc}</div>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.94rem", marginBottom: "0.35rem" }}>{sTitle}</div>
+                        <div style={{ color: "var(--text-secondary)", fontSize: "0.78rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{sDesc}</div>
                         <div style={{ marginTop: "0.85rem", color: s.color, fontSize: "0.78rem", fontWeight: 700 }}>
                           {isAr ? "اعرف أكتر ←" : "Learn more →"}
                         </div>

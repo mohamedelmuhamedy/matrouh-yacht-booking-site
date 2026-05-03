@@ -100,7 +100,7 @@ export default function ServiceDetailPage() {
       <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", padding: "2rem", textAlign: "center", background: "var(--bg-page)" }}>
         <div>
           <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
-          <h1 style={{ color: "white", fontSize: "1.5rem", marginBottom: "0.5rem" }}>{ar ? "الخدمة غير موجودة" : "Service not found"}</h1>
+          <h1 style={{ color: "var(--text-primary)", fontSize: "1.5rem", marginBottom: "0.5rem" }}>{ar ? "الخدمة غير موجودة" : "Service not found"}</h1>
           <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>{ar ? "ربما تم حذف هذه الخدمة أو تغيير رابطها." : "This service may have been removed or its link changed."}</p>
           <button
             onClick={() => navigate("/")}
@@ -182,7 +182,7 @@ export default function ServiceDetailPage() {
   );
 
   return (
-    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "white" }}>
+    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "var(--text-primary)" }}>
 
       {/* Floating back-to-home button — always visible while scrolling */}
       <button
@@ -295,8 +295,8 @@ export default function ServiceDetailPage() {
               <button
                 onClick={handleWhatsApp}
                 style={{
-                  background: "var(--border)", color: "white",
-                  border: "1.5px solid var(--border-strong)", borderRadius: 14,
+                  background: "rgba(13,27,42,0.7)", color: "white",
+                  border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: 14,
                   padding: "0.95rem 1.65rem", cursor: "pointer",
                   fontWeight: 700, fontFamily: "inherit", fontSize: "0.95rem",
                   display: "inline-flex", alignItems: "center", gap: "0.55rem",
@@ -304,7 +304,7 @@ export default function ServiceDetailPage() {
                   transition: "all 0.2s",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(37,211,102,0.85)"; e.currentTarget.style.borderColor = "#25D366"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "var(--border)"; e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(13,27,42,0.7)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
               >
                 💬 {ar ? "استفسر الآن" : "Ask now"}
               </button>

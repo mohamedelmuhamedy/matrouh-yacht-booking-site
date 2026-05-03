@@ -256,7 +256,7 @@ export default function PackageDetail() {
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem", padding: "1.5rem" }}>
         <div style={{ fontSize: "4rem" }}>🔍</div>
-        <div style={{ color: "white", fontWeight: 700, fontSize: "1.2rem", textAlign: "center" }}>{ar ? "الباقة غير موجودة" : "Package not found"}</div>
+        <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.2rem", textAlign: "center" }}>{ar ? "الباقة غير موجودة" : "Package not found"}</div>
         <button onClick={() => navigate("/")} style={{ background: "#00AAFF", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: "12px", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
           {ar ? "العودة للرئيسية" : "Back to Home"}
         </button>
@@ -458,17 +458,17 @@ export default function PackageDetail() {
 
             {desc && (
               <div>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.75rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
+                <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginBottom: "0.75rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
                 <p style={{ color: "var(--text-muted)", lineHeight: 1.85, fontSize: "0.88rem", margin: 0 }}>{desc}</p>
               </div>
             )}
 
             {whyTrip.length > 0 && (
               <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "14px", padding: "1.1rem" }}>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
+                <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.9rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                   {whyTrip.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem", color: "#c7d2e8", fontSize: "0.85rem" }}>
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
                       <span style={{ lineHeight: 1.5 }}>{(item as any).text}</span>
                     </div>
                   ))}
@@ -503,7 +503,7 @@ export default function PackageDetail() {
 
             {itinerary.length > 0 && (
               <div>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
+                <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {itinerary.map((step, i) => (
                     <div key={i} style={{ display: "flex", gap: "0.85rem", paddingBottom: "1rem", position: "relative" }}>
@@ -523,7 +523,7 @@ export default function PackageDetail() {
 
             {whatToBring.length > 0 && (
               <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                 <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
                   {whatToBring.map((item, i) => (
                     <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.3rem 0.75rem", borderRadius: "50px", fontSize: "0.75rem" }}>{item}</span>
@@ -534,18 +534,18 @@ export default function PackageDetail() {
 
             {showCancellation && cancellation && (
               <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "14px", padding: "1.1rem" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
               </div>
             )}
 
             {faq.length > 0 && (
               <div>
-                <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.85rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
+                <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginBottom: "0.85rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
                 {faq.map((f: any, i: number) => (
                   <div key={i} style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "12px", marginBottom: "0.5rem", overflow: "hidden" }}>
                     <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      style={{ width: "100%", background: "transparent", border: "none", padding: "0.9rem 1rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.84rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "inherit", gap: "0.5rem" }}>
+                      style={{ width: "100%", background: "transparent", border: "none", padding: "0.9rem 1rem", cursor: "pointer", color: "var(--text-primary)", fontWeight: 600, fontSize: "0.84rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "inherit", gap: "0.5rem" }}>
                       <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                       <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0, fontSize: "0.75rem" }}>▼</span>
                     </button>
@@ -579,17 +579,17 @@ export default function PackageDetail() {
 
               {desc && (
                 <div>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.85rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
+                  <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.85rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
                   <p style={{ color: "var(--text-muted)", lineHeight: 2, fontSize: "0.92rem" }}>{desc}</p>
                 </div>
               )}
 
               {whyTrip.length > 0 && (
                 <div style={{ background: `${pkg.color}08`, border: `1px solid ${pkg.color}25`, borderRadius: "16px", padding: "1.5rem" }}>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
+                  <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>{ar ? "لماذا هذه الرحلة؟" : "Why This Trip?"}</h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
                     {whyTrip.map((item, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "#c7d2e8", fontSize: "0.88rem" }}>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--text-secondary)", fontSize: "0.88rem" }}>
                         <span>{(item as any).text}</span>
                       </div>
                     ))}
@@ -599,7 +599,7 @@ export default function PackageDetail() {
 
               {itinerary.length > 0 && (
                 <div>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.25rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
+                  <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.25rem" }}>{ar ? "برنامج الرحلة" : "Trip Itinerary"}</h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative" }}>
                     {itinerary.map((step, i) => (
                       <div key={i} style={{ display: "flex", gap: "1rem", paddingBottom: "1.25rem", position: "relative" }}>
@@ -644,7 +644,7 @@ export default function PackageDetail() {
 
               {whatToBring.length > 0 && (
                 <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "16px", padding: "1.25rem" }}>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
+                  <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     {whatToBring.map((item, i) => (
                       <span key={i} style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.35rem 0.85rem", borderRadius: "50px", fontSize: "0.78rem" }}>{item}</span>
@@ -655,18 +655,18 @@ export default function PackageDetail() {
 
               {showCancellation && cancellation && (
                 <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "16px", padding: "1.25rem" }}>
-                  <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
+                  <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
                   <p style={{ color: "var(--text-muted)", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>
                 </div>
               )}
 
               {faq.length > 0 && (
                 <div>
-                  <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
+                  <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
                   {faq.map((f: any, i: number) => (
                     <div key={i} style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "12px", marginBottom: "0.6rem", overflow: "hidden" }}>
                       <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                        style={{ width: "100%", background: "transparent", border: "none", padding: "1rem 1.25rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.87rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
+                        style={{ width: "100%", background: "transparent", border: "none", padding: "1rem 1.25rem", cursor: "pointer", color: "var(--text-primary)", fontWeight: 600, fontSize: "0.87rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
                         <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                         <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0 }}>▼</span>
                       </button>
@@ -694,7 +694,7 @@ export default function PackageDetail() {
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ color: "white", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
                         <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang, settings)}</div>
                       </div>
                     </div>
@@ -714,7 +714,7 @@ export default function PackageDetail() {
           {/* Header */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
             <div>
-              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.25rem" }}>
+              <h3 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.25rem" }}>
                 {ar ? "احجز رحلتك الآن" : "Book Your Trip"}
               </h3>
               <p style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
@@ -730,7 +730,7 @@ export default function PackageDetail() {
           {/* Package preview chip */}
           <div style={{ background: `${pkg.color}12`, border: `1px solid ${pkg.color}28`, borderRadius: "14px", padding: "0.9rem 1.1rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+              <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
               <div style={{ color: pkg.color, fontWeight: 800, fontSize: "0.85rem", fontFamily: "Montserrat, sans-serif" }}>
                 {hasMaxPrice
                   ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
@@ -823,7 +823,7 @@ export default function PackageDetail() {
             /* Success state */
             <div style={{ textAlign: "center", padding: "0.5rem 0 0.25rem" }}>
               <div className="book-success-badge">✅</div>
-              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.6rem" }}>
+              <h3 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.6rem" }}>
                 {ar ? "تم استلام طلب الحجز!" : "Booking Request Received!"}
               </h3>
               <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.75, margin: "0 0 1.5rem" }}>
@@ -857,12 +857,12 @@ export default function PackageDetail() {
         {/* Close button */}
         <button
           onClick={e => { e.stopPropagation(); closeLightbox(); }}
-          style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", width: 48, height: 48, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 300, zIndex: 10, lineHeight: 1, fontFamily: "monospace" }}
+          style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", width: 48, height: 48, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 300, zIndex: 10, lineHeight: 1, fontFamily: "monospace" }}
         >✕</button>
 
         {/* Counter */}
         {imgCount > 1 && (
-          <div style={{ position: "absolute", top: "1.1rem", left: "50%", transform: "translateX(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", fontSize: "0.8rem", fontWeight: 700, padding: "0.3rem 0.9rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif", zIndex: 10 }}>
+          <div style={{ position: "absolute", top: "1.1rem", left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", fontSize: "0.8rem", fontWeight: 700, padding: "0.3rem 0.9rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif", zIndex: 10 }}>
             {lightboxIdx + 1} / {imgCount}
           </div>
         )}
@@ -889,7 +889,7 @@ export default function PackageDetail() {
         {imgCount > 1 && (
           <button
             onClick={e => { e.stopPropagation(); lbPrev(); }}
-            style={{ position: "absolute", top: "50%", insetInlineStart: "0.75rem", transform: "translateY(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+            style={{ position: "absolute", top: "50%", insetInlineStart: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
           >‹</button>
         )}
 
@@ -897,7 +897,7 @@ export default function PackageDetail() {
         {imgCount > 1 && (
           <button
             onClick={e => { e.stopPropagation(); lbNext(); }}
-            style={{ position: "absolute", top: "50%", insetInlineEnd: "0.75rem", transform: "translateY(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+            style={{ position: "absolute", top: "50%", insetInlineEnd: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
           >›</button>
         )}
 
