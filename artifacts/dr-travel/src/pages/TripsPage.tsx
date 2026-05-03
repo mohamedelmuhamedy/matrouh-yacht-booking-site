@@ -84,7 +84,7 @@ export default function TripsPage() {
   const curr = currency as CurrencyCode;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0D1B2A", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr" }}>
 
       {/* Header */}
       <div style={{ background: "linear-gradient(180deg, #0a1520 0%, #0D1B2A 100%)", borderBottom: "1px solid rgba(0,170,255,0.1)", paddingTop: isMobile ? "4.5rem" : "5.5rem", paddingBottom: "2rem", paddingInline: isMobile ? "1rem" : "2rem" }}>
@@ -96,7 +96,7 @@ export default function TripsPage() {
           <h1 style={{ color: "white", fontWeight: 900, fontSize: isMobile ? "1.75rem" : "2.5rem", margin: "0 0 0.5rem", lineHeight: 1.2 }}>
             {ar ? "تفاصيل الرحلات" : "Trip Details"}
           </h1>
-          <p style={{ color: "#667788", fontSize: isMobile ? "0.9rem" : "1rem", margin: 0 }}>
+          <p style={{ color: "var(--section-subtitle)", fontSize: isMobile ? "0.9rem" : "1rem", margin: 0 }}>
             {ar ? "استكشف جميع باقاتنا السياحية في مرسى مطروح" : "Explore all our tourism packages in Marsa Matruh"}
           </p>
         </div>
@@ -107,19 +107,19 @@ export default function TripsPage() {
         {/* Search + Sort */}
         <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "220px", position: "relative" }}>
-            <span style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", insetInlineStart: "0.85rem", color: "#445566", fontSize: "1rem", pointerEvents: "none" }}>🔍</span>
+            <span style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", insetInlineStart: "0.85rem", color: "var(--text-muted)", fontSize: "1rem", pointerEvents: "none" }}>🔍</span>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={ar ? "ابحث عن رحلة..." : "Search trips..."}
-              style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", padding: "0.75rem 1rem 0.75rem 2.5rem", color: "white", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", outline: "none" }}
+              style={{ width: "100%", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem 0.75rem 2.5rem", color: "white", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", outline: "none" }}
             />
           </div>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as any)}
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", padding: "0.75rem 1rem", color: "white", fontSize: "0.85rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", outline: "none" }}>
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem", color: "white", fontSize: "0.85rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", outline: "none" }}>
             <option value="default">{ar ? "الترتيب الافتراضي" : "Default"}</option>
             <option value="price-asc">{ar ? "السعر: الأقل" : "Price: Low"}</option>
             <option value="price-desc">{ar ? "السعر: الأعلى" : "Price: High"}</option>
@@ -134,9 +134,9 @@ export default function TripsPage() {
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               style={{
-                background: activeCategory === cat.id ? "rgba(0,170,255,0.2)" : "rgba(255,255,255,0.04)",
-                border: `1px solid ${activeCategory === cat.id ? "rgba(0,170,255,0.5)" : "rgba(255,255,255,0.1)"}`,
-                color: activeCategory === cat.id ? "#00AAFF" : "#8899aa",
+                background: activeCategory === cat.id ? "rgba(0,170,255,0.2)" : "var(--bg-surface)",
+                border: `1px solid ${activeCategory === cat.id ? "rgba(0,170,255,0.5)" : "var(--border)"}`,
+                color: activeCategory === cat.id ? "#00AAFF" : "var(--text-muted)",
                 padding: "0.5rem 1.1rem",
                 borderRadius: "50px",
                 cursor: "pointer",
@@ -179,7 +179,7 @@ export default function TripsPage() {
                   onClick={() => navigate(`/packages/${pkg.slug}`)}>
 
                   {/* Image */}
-                  <div className="trip-card-img-wrap" style={{ background: imgSrc ? "#0a1520" : pkg.color || "#00AAFF" }}>
+                  <div className="trip-card-img-wrap" style={{ background: imgSrc ? "var(--bg-page-2)" : pkg.color || "#00AAFF" }}>
                     {imgSrc ? (
                       <img src={imgSrc} alt={title} />
                     ) : (
@@ -197,15 +197,15 @@ export default function TripsPage() {
                   {/* Content */}
                   <div style={{ padding: "1.15rem 1.15rem 1.25rem" }}>
                     <h3 style={{ color: "white", fontWeight: 700, fontSize: "1.02rem", margin: "0 0 0.4rem", lineHeight: 1.3 }}>{title}</h3>
-                    <p style={{ color: "#8899aa", fontSize: "0.82rem", margin: "0 0 0.95rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{desc}</p>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "0 0 0.95rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{desc}</p>
 
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", paddingTop: "0.75rem", borderTop: "1px solid var(--bg-surface-2)" }}>
                       <div>
                         <span style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1.1rem", fontFamily: "Montserrat, sans-serif" }}>
                           {formatPrice(pkg.priceEGP, curr, lang, settings)}
                         </span>
                         {pkg.maxPriceEGP && (
-                          <span style={{ color: "#667788", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang, settings)}</span>
+                          <span style={{ color: "var(--section-subtitle)", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang, settings)}</span>
                         )}
                         <span style={{ color: "#556677", fontSize: "0.75rem", marginInlineStart: "0.3rem" }}>
                           {ar ? "/ شخص" : "/ person"}

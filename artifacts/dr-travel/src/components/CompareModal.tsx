@@ -92,17 +92,17 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
   const rowStyle: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: `140px repeat(${packages.length}, 1fr)`,
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid var(--bg-surface)",
   };
   const cellStyle: React.CSSProperties = {
     padding: "0.75rem 1rem",
     fontSize: "0.82rem",
-    color: "#aabbcc",
+    color: "var(--text-secondary)",
     textAlign: "center",
   };
   const headerCellStyle: React.CSSProperties = {
     ...cellStyle,
-    color: "#667788",
+    color: "var(--section-subtitle)",
     fontWeight: 600,
     textAlign: lang === "ar" ? "right" : "left",
     fontSize: "0.75rem",
@@ -126,13 +126,13 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
       onClick={onClose}>
-      <div style={{ background: "#0d1b2a", border: "1px solid rgba(0,170,255,0.2)", borderRadius: "24px", maxWidth: "900px", width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
+      <div style={{ background: "var(--bg-surface-solid)", border: "1px solid rgba(0,170,255,0.2)", borderRadius: "24px", maxWidth: "900px", width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ padding: "1.5rem 1.75rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "#0d1b2a", zIndex: 1 }}>
+        <div style={{ padding: "1.5rem 1.75rem", borderBottom: "1px solid var(--bg-surface-2)", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--bg-surface-solid)", zIndex: 1 }}>
           <div style={{ color: "white", fontWeight: 800, fontSize: "1.1rem" }}>{ct.title}</div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#667788", width: 34, height: 34, borderRadius: "8px", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button onClick={onClose} style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border)", color: "var(--section-subtitle)", width: 34, height: 34, borderRadius: "8px", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
 
         {/* Package headers */}
@@ -159,7 +159,7 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
                   {items.map((item, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginBottom: "0.35rem", justifyContent: lang === "ar" ? "flex-end" : "flex-start" }}>
                       <span style={{ color: pkg.color, flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>
-                      <span style={{ fontSize: "0.78rem", color: "#8899aa" }}>{item}</span>
+                      <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -169,7 +169,7 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
 
           {/* Comparison rows */}
           {rows.map((row, idx) => (
-            <div key={idx} style={{ ...rowStyle, background: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+            <div key={idx} style={{ ...rowStyle, background: idx % 2 === 0 ? "transparent" : "var(--bg-surface-sunk)" }}>
               <div style={headerCellStyle}>{row.label}</div>
               {packages.map(pkg => (
                 <div key={pkg.id} style={cellStyle}>{row.render(pkg)}</div>

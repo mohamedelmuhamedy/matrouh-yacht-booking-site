@@ -22,7 +22,7 @@ const inputBase: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  display: "block", color: "#445566", fontWeight: 800, fontSize: "0.82rem", marginBottom: "0.4rem",
+  display: "block", color: "var(--text-muted)", fontWeight: 800, fontSize: "0.82rem", marginBottom: "0.4rem",
 };
 
 const cardStyle: React.CSSProperties = {
@@ -63,7 +63,7 @@ const LINK_FIELDS: { key: string; toggleKey: string; valueKey: string; labelAr: 
   { key: "maps",      toggleKey: "card_show_maps",      valueKey: "maps_url",        labelAr: "موقع جوجل ماب",               labelEn: "Google Maps",     placeholder: "https://maps.google.com/?q=...", type: "url" },
 ];
 
-const SOLID_COLOR_PRESETS = ["#0D1B2A", "#0a1520", "#1a3a5c", "#0e3a1f", "#3a2a10", "#2d0e2e", "#000000"];
+const SOLID_COLOR_PRESETS = ["#0D1B2A", "var(--bg-page-2)", "#1a3a5c", "#0e3a1f", "#3a2a10", "#2d0e2e", "#000000"];
 const ACCENT_COLOR_PRESETS = ["#00AAFF", "#C9A84C", "#25D366", "#A855F7", "#EC4899", "#F97316", "#16a34a", "#06B6D4"];
 
 export default function AdminShareCardPage() {
@@ -163,7 +163,7 @@ export default function AdminShareCardPage() {
   };
 
   if (loading) {
-    return <div style={{ padding: "2rem", textAlign: "center", color: "#667788", fontFamily: "Cairo, sans-serif" }}>جاري التحميل...</div>;
+    return <div style={{ padding: "2rem", textAlign: "center", color: "var(--section-subtitle)", fontFamily: "Cairo, sans-serif" }}>جاري التحميل...</div>;
   }
 
   const bgType = settings.card_bg_type || "gradient";
@@ -174,7 +174,7 @@ export default function AdminShareCardPage() {
     <div style={{ fontFamily: "Cairo, sans-serif", direction: "rtl", maxWidth: 1320, margin: "0 auto" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.5rem" }}>
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>🪪 بطاقة المشاركة / Share Card</h2>
-        <p style={{ color: "#667788", fontSize: "0.88rem", margin: 0 }}>
+        <p style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", margin: 0 }}>
           صفحة بسيطة (Linktree-style) تجمع كل وسائل التواصل في مكان واحد. شارك الرابط مع عملائك على الواتساب أو في البايو.
         </p>
       </div>
@@ -198,11 +198,11 @@ export default function AdminShareCardPage() {
                   {shareUrl}
                 </code>
                 <button type="button" onClick={copyShareUrl}
-                  style={{ background: copied ? "#16a34a" : "#00AAFF", color: copied ? "white" : "#0a1520", border: "none", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 800, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+                  style={{ background: copied ? "#16a34a" : "#00AAFF", color: copied ? "white" : "var(--bg-page-2)", border: "none", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 800, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
                   {copied ? "✓ تم النسخ" : "نسخ الرابط"}
                 </button>
                 <a href={shareUrl} target="_blank" rel="noreferrer"
-                  style={{ background: "rgba(255,255,255,0.1)", color: "white", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 700, textDecoration: "none", fontSize: "0.85rem" }}>
+                  style={{ background: "var(--border)", color: "white", border: "1px solid var(--border-strong)", borderRadius: "10px", padding: "0.6rem 1rem", fontWeight: 700, textDecoration: "none", fontSize: "0.85rem" }}>
                   🌐 افتح
                 </a>
               </div>
@@ -243,7 +243,7 @@ export default function AdminShareCardPage() {
           {/* Links */}
           <div style={cardStyle}>
             <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>🔗 الروابط ووسائل التواصل</h3>
-            <p style={{ margin: 0, color: "#667788", fontSize: "0.78rem" }}>
+            <p style={{ margin: 0, color: "var(--section-subtitle)", fontSize: "0.78rem" }}>
               فعّل الزر اللي عايزه يظهر في البطاقة، وامسح القيمة عشان يختفي. كل الروابط مشتركة مع باقي إعدادات الموقع.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -283,7 +283,7 @@ export default function AdminShareCardPage() {
                         display: "flex", flexDirection: "column", gap: "0.2rem",
                       }}>
                       <span style={{ fontWeight: 800, fontSize: "0.92rem" }}>{t.labelAr} · {t.labelEn}</span>
-                      <span style={{ fontSize: "0.72rem", color: "#667788", lineHeight: 1.5 }}>{t.descAr}</span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--section-subtitle)", lineHeight: 1.5 }}>{t.descAr}</span>
                     </button>
                   );
                 })}
@@ -366,7 +366,7 @@ export default function AdminShareCardPage() {
                   </div>
                   {bgError && <div style={{ color: "#ef4444", fontSize: "0.8rem" }}>{bgError}</div>}
                   {settings.card_bg_image_url && (
-                    <div style={{ fontSize: "0.78rem", color: "#667788", direction: "ltr", textAlign: "left", wordBreak: "break-all" }}>
+                    <div style={{ fontSize: "0.78rem", color: "var(--section-subtitle)", direction: "ltr", textAlign: "left", wordBreak: "break-all" }}>
                       {settings.card_bg_image_url}
                     </div>
                   )}
@@ -410,9 +410,9 @@ export default function AdminShareCardPage() {
         <div style={{ position: "sticky", top: "1rem" }}>
           <div style={{ marginBottom: "0.6rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "0.95rem" }}>👁️ معاينة مباشرة</div>
-            <div style={{ color: "#667788", fontSize: "0.75rem" }}>التغييرات تظهر هنا قبل الحفظ</div>
+            <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem" }}>التغييرات تظهر هنا قبل الحفظ</div>
           </div>
-          <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #e0e8f0", boxShadow: "0 14px 30px rgba(0,0,0,0.12)", maxHeight: "calc(100vh - 8rem)", overflowY: "auto", background: "#0a1520" }}>
+          <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #e0e8f0", boxShadow: "0 14px 30px rgba(0,0,0,0.12)", maxHeight: "calc(100vh - 8rem)", overflowY: "auto", background: "var(--bg-page-2)" }}>
             <ShareCard settings={settings} />
           </div>
         </div>

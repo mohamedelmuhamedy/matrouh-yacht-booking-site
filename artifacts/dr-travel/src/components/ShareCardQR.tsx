@@ -404,7 +404,7 @@ export function AdminQRSection({
         padding: "0.65rem 1rem", borderRadius: 10,
         border: primary ? "none" : "1.5px solid #d0dce8",
         background: primary ? brandAccent : "white",
-        color: primary ? "#0a1520" : "#0D1B2A",
+        color: primary ? "var(--bg-page-2)" : "#0D1B2A",
         fontWeight: 800, fontFamily: "Cairo, sans-serif",
         cursor: disabled ? "not-allowed" : (busy ? "wait" : "pointer"),
         opacity: disabled ? 0.5 : 1, fontSize: "0.85rem",
@@ -423,21 +423,21 @@ export function AdminQRSection({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
         <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>📱 {tx.sectionTitle}</h3>
         <a href={taggedUrl} target="_blank" rel="noreferrer"
-          style={{ color: "#667788", fontSize: "0.78rem", direction: "ltr", textDecoration: "none", wordBreak: "break-all", textAlign: "right" }}>
+          style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", direction: "ltr", textDecoration: "none", wordBreak: "break-all", textAlign: "right" }}>
           {taggedUrl}
         </a>
       </div>
-      <p style={{ margin: 0, color: "#667788", fontSize: "0.78rem" }}>{tx.description}</p>
+      <p style={{ margin: 0, color: "var(--section-subtitle)", fontSize: "0.78rem" }}>{tx.description}</p>
 
       {sourcePresets.length > 0 && (
         <div style={{
           background: "#f8fafc", border: "1.5px solid #e0e8f0", borderRadius: 12,
           padding: "0.75rem 0.85rem", display: "flex", flexDirection: "column", gap: "0.5rem",
         }}>
-          <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem" }}>
+          <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem" }}>
             {tx.sourceLabel}
           </div>
-          <div style={{ color: "#667788", fontSize: "0.74rem", lineHeight: 1.6 }}>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.74rem", lineHeight: 1.6 }}>
             {tx.sourceHelp}
           </div>
           <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
@@ -463,7 +463,7 @@ export function AdminQRSection({
                     fontFamily: "Cairo, sans-serif", cursor: "pointer",
                   }}>
                   {ar ? p.labelAr : p.labelEn}
-                  <span style={{ color: "#667788", fontWeight: 500, marginInlineStart: "0.35rem", direction: "ltr" }}>
+                  <span style={{ color: "var(--section-subtitle)", fontWeight: 500, marginInlineStart: "0.35rem", direction: "ltr" }}>
                     · {p.value}
                   </span>
                 </button>
@@ -508,11 +508,11 @@ export function AdminQRSection({
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           <div>
-            <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.foreground}</div>
+            <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.foreground}</div>
             {swatch(fg, c => onChange({ fg: c }), ["#0D1B2A", "#000000", "#1a3a5c", brandAccent, "#16a34a", "#7c3aed"])}
           </div>
           <div>
-            <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.background}</div>
+            <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.background}</div>
             {swatch(bg, c => onChange({ bg: c }), ["#FFFFFF", "#F5F5F5", "#FFF7E6", "#E0F2FE", "#0D1B2A"])}
           </div>
 
@@ -527,7 +527,7 @@ export function AdminQRSection({
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.85rem", alignItems: "center" }}>
             <div>
-              <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.size}</div>
+              <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.size}</div>
               <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
                 {SIZE_OPTIONS.map(s => {
                   const active = size === s.key;
@@ -547,7 +547,7 @@ export function AdminQRSection({
               </div>
             </div>
             <div>
-              <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.format}</div>
+              <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.78rem", marginBottom: "0.35rem" }}>{tx.format}</div>
               <div style={{ display: "flex", gap: "0.35rem" }}>
                 {(["png", "svg"] as const).map(f => {
                   const active = format === f;

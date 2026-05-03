@@ -158,7 +158,7 @@ export default function PackagesPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>
+        <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
           جاري التحميل...
         </div>
@@ -193,7 +193,7 @@ export default function PackagesPage() {
                       {pkg.featured && <span style={{ background: "#FEF3C7", color: "#D97706", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مميزة</span>}
                       {pkg.popular && <span style={{ background: "#EFF6FF", color: "#3B82F6", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>الأكثر طلباً</span>}
                     </div>
-                    <div style={{ color: "#667788", fontSize: "0.82rem" }}>{pkg.titleEn}</div>
+                    <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem" }}>{pkg.titleEn}</div>
                     <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.4rem", flexWrap: "wrap", fontSize: "0.82rem", color: "#99aabb" }}>
                       <span>💰 {pkg.priceEGP?.toLocaleString()} {pkg.maxPriceEGP ? `– ${pkg.maxPriceEGP?.toLocaleString()}` : ""} جنيه</span>
                       {pkg.durationAr && <span>⏱️ {pkg.durationAr}</span>}
@@ -212,7 +212,7 @@ export default function PackagesPage() {
                       </select>
                       {pkg.status !== "archived" && (
                         <button onClick={() => toggleActive(pkg)}
-                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "#f9fafb" : "#25D36610", color: pkg.active ? "#667788" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
+                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "#f9fafb" : "#25D36610", color: pkg.active ? "var(--section-subtitle)" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
                           {pkg.active ? "🙈 إخفاء" : "👁️ إظهار"}
                         </button>
                       )}

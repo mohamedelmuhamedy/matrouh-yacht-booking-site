@@ -159,7 +159,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const Toast = toastMsg ? (
     <div style={{
       position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
-      zIndex: 9999, background: "linear-gradient(135deg,#0D1B2A,#1a3a5c)",
+      zIndex: 9999, background: "linear-gradient(135deg, var(--bg-surface-solid), #1a3a5c)",
       color: "#fff", padding: "0.85rem 1.5rem", borderRadius: 14,
       boxShadow: "0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,170,255,0.3)",
       fontFamily: "Cairo, sans-serif", fontSize: "0.95rem", fontWeight: 700,
@@ -175,11 +175,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (isMobile) {
     return (
-      <div className="admin-wrap" style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+      <div className="admin-wrap" style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "var(--bg-page)" }}>
         {Toast}
 
         {/* Mobile top bar */}
-        <header style={{ background: "linear-gradient(135deg,#0D1B2A,#0a1420)", padding: "0 1rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
+        <header style={{ background: "linear-gradient(135deg, var(--bg-surface-solid), var(--bg-page-2))", padding: "0 1rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
           <button
             onClick={() => setDrawerOpen(true)}
             style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: 8, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.1rem", color: "#00AAFF", position: "relative" }}>
@@ -209,15 +209,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} />
             <div
               onClick={e => e.stopPropagation()}
-              style={{ position: "relative", width: 260, maxWidth: "80vw", background: "linear-gradient(180deg,#0D1B2A,#0a1420)", height: "100dvh", maxHeight: "100dvh", display: "flex", flexDirection: "column", boxShadow: "4px 0 30px rgba(0,0,0,0.5)", marginRight: 0, overflow: "hidden" }}>
+              style={{ position: "relative", width: 260, maxWidth: "80vw", background: "linear-gradient(180deg, var(--bg-surface-solid), var(--bg-page-2))", height: "100dvh", maxHeight: "100dvh", display: "flex", flexDirection: "column", boxShadow: "4px 0 30px rgba(0,0,0,0.5)", marginRight: 0, overflow: "hidden" }}>
               {/* Drawer header */}
-              <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid var(--bg-surface-2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "0.95rem", fontFamily: "Montserrat, sans-serif", letterSpacing: "1px" }}>{brandName}</div>
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.65rem", marginTop: 2 }}>Admin Panel</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.65rem", marginTop: 2 }}>Admin Panel</div>
                 </div>
                 <button onClick={() => setDrawerOpen(false)}
-                  style={{ background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: "1rem" }}>
+                  style={{ background: "var(--bg-surface-2)", border: "none", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-muted)", fontSize: "1rem" }}>
                   ✕
                 </button>
               </div>
@@ -230,7 +230,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   const showBadge = count > 0;
                   return (
                     <button key={item.path} onClick={() => navTo(item.path)}
-                      style={{ display: "flex", alignItems: "center", gap: "0.85rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "transparent", border: "none", borderRadius: 10, borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.65)", padding: "0.85rem 1rem", cursor: "pointer", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, textAlign: "right", transition: "all 0.2s" }}>
+                      style={{ display: "flex", alignItems: "center", gap: "0.85rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "transparent", border: "none", borderRadius: 10, borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "var(--text-secondary)", padding: "0.85rem 1rem", cursor: "pointer", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, textAlign: "right", transition: "all 0.2s" }}>
                       <span style={{ fontSize: "1.15rem", position: "relative", flexShrink: 0 }}>
                         {item.icon}
                         <Badge count={showBadge ? count : 0} />
@@ -247,8 +247,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               </nav>
 
               {/* User + logout */}
-              <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem", marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <div style={{ padding: "1rem", borderTop: "1px solid var(--bg-surface-2)" }}>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.72rem", marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                   👤 {user?.displayName || user?.username}
                 </div>
                 <button onClick={logout}
@@ -266,7 +266,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* Bottom nav bar (horizontally scrollable when many items) */}
-        <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+        <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg, var(--bg-surface-solid), var(--bg-page-2))", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
           {BOTTOM_NAV.map(item => {
             const active = location.startsWith(item.path);
             const count = badgeFor(item.badge);
@@ -285,7 +285,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     </span>
                   )}
                 </span>
-                <span style={{ fontSize: "0.6rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 400, color: active ? "#00AAFF" : "rgba(255,255,255,0.45)", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>
+                <span style={{ fontSize: "0.6rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 400, color: active ? "#00AAFF" : "var(--text-muted)", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>
                   {item.label}
                 </span>
               </button>
@@ -297,19 +297,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="admin-wrap" style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
+    <div className="admin-wrap" style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "var(--bg-page)" }}>
       {Toast}
       {/* Desktop sidebar */}
-      <aside style={{ width: drawerOpen ? 220 : 64, height: "100vh", maxHeight: "100dvh", background: "linear-gradient(180deg,#0D1B2A 0%,#0a1420 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
+      <aside style={{ width: drawerOpen ? 220 : 64, height: "100vh", maxHeight: "100dvh", background: "linear-gradient(180deg, var(--bg-surface-solid) 0%, var(--bg-page-2) 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
         <button onClick={() => setDrawerOpen(!drawerOpen)}
-          style={{ background: "none", border: "none", color: "#00AAFF", fontSize: "1.4rem", cursor: "pointer", padding: "1.2rem", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+          style={{ background: "none", border: "none", color: "#00AAFF", fontSize: "1.4rem", cursor: "pointer", padding: "1.2rem", textAlign: "center", borderBottom: "1px solid var(--bg-surface-2)", flexShrink: 0 }}>
           {drawerOpen ? "✕" : "☰"}
         </button>
 
         {drawerOpen && (
-          <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+          <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid var(--bg-surface-2)", flexShrink: 0 }}>
             <div style={{ color: "#00AAFF", fontWeight: 900, fontSize: "1rem", letterSpacing: "1px" }}>{brandName}</div>
-            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.7rem" }}>Admin Panel</div>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>Admin Panel</div>
           </div>
         )}
 
@@ -320,7 +320,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             const showBadge = count > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
-                style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "none", border: "none", borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.6)", padding: "0.8rem 1rem", cursor: "pointer", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, transition: "all 0.2s", textAlign: "right", whiteSpace: "nowrap" }}>
+                style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "none", border: "none", borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "var(--text-secondary)", padding: "0.8rem 1rem", cursor: "pointer", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, transition: "all 0.2s", textAlign: "right", whiteSpace: "nowrap" }}>
                 <span style={{ fontSize: "1.2rem", flexShrink: 0, position: "relative" }}>
                   {item.icon}
                   <Badge count={showBadge ? count : 0} />
@@ -340,9 +340,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+        <div style={{ padding: "1rem", borderTop: "1px solid var(--bg-surface-2)", flexShrink: 0 }}>
           {drawerOpen && (
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem", marginBottom: "0.5rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.7rem", marginBottom: "0.5rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               👤 {user?.displayName || user?.username}
             </div>
           )}
@@ -354,8 +354,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <main style={{ flex: 1, marginRight: drawerOpen ? 220 : 64, transition: "margin-right 0.3s ease", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-        <header style={{ background: "white", padding: "1rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 99 }}>
-          <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <header style={{ background: "var(--bg-surface-solid)", padding: "1rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 99 }}>
+          <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             {NAV.find(n => location.startsWith(n.path))?.label || "Admin"}
             {location.startsWith("/admin/bookings") && newCount > 0 && (
               <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 8px", fontFamily: "Cairo, sans-serif" }}>
@@ -364,7 +364,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ color: "#667788", fontSize: "0.8rem" }}>
+            <span style={{ color: "var(--section-subtitle)", fontSize: "0.8rem" }}>
               {new Date().toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </span>
             <ThemeSwitch size="sm" />

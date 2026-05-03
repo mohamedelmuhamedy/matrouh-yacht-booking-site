@@ -373,7 +373,7 @@ function Navbar() {
           </div>
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
-            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.5px" }}>{settings.dev_name || "Yousef Mostafa"}</div>
+            <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", letterSpacing: "0.5px" }}>{settings.dev_name || "Yousef Mostafa"}</div>
           </div>
         </div>
 
@@ -427,7 +427,7 @@ function Navbar() {
           <div style={{ padding: "0.75rem 1.5rem 1.25rem", borderTop: "1px solid rgba(0,170,255,0.15)" }}>
             {navLinks.map(link => (
               <button key={link.href} onClick={() => scrollTo(link.href)}
-                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "rgba(255,255,255,0.8)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid rgba(255,255,255,0.06)", transition: "color 0.2s" }}>
+                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "var(--text-primary)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid var(--bg-surface-2)", transition: "color 0.2s" }}>
                 {link.label}
               </button>
             ))}
@@ -455,7 +455,7 @@ function Navbar() {
               <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: 0 }}>
                 {ar ? `تثبيت تطبيق ${settings.brand_short_name || "DR Travel"}` : `Install ${settings.brand_short_name || "DR Travel"} App`}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "0.4rem 0 0", fontWeight: 400 }}>
                 {isIOS
                   ? (ar ? "لا يدعم Safari التثبيت المباشر — اتبع الخطوات:" : "Safari doesn't support direct install — follow these steps:")
                   : (ar ? "لو لم تظهر نافذة التثبيت تلقائيًا، يمكنك التثبيت يدويًا من قائمة المتصفح." : "If the install prompt doesn't appear automatically, you can install the app from your browser menu.")}
@@ -463,43 +463,43 @@ function Navbar() {
             </div>
             {isIOS ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
                   <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⬆️</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.5 }}>
                     {ar ? 'اضغط على زر المشاركة في شريط Safari السفلي' : 'Tap the Share button at the bottom of Safari'}
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
                   <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>🏠</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.5 }}>
                     {ar ? 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية"' : 'Scroll down, tap "Add to Home Screen"'}
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
                   <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>✅</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.5 }}>
                     {ar ? 'اضغط "إضافة" في الزاوية العلوية اليمنى' : 'Tap "Add" in the top-right corner'}
                   </span>
                 </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
                   <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⋮</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.5 }}>
                     {ar ? "افتح قائمة المتصفح من زر ⋮ أو ⋯" : "Open your browser menu using ⋮ or ⋯"}
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.9rem 1rem" }}>
                   <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⬇️</span>
-                  <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.5 }}>
                     {ar ? 'اختر "Install app" أو "Add to Home Screen"' : 'Choose "Install app" or "Add to Home Screen"'}
                   </span>
                 </div>
               </div>
             )}
             <button onClick={() => setShowIOSGuide(false)}
-              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
+              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
               {ar ? "إغلاق" : "Close"}
             </button>
           </div>
@@ -597,7 +597,7 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={300}>
-          <p style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", color: "rgba(255,255,255,0.6)", marginBottom: isMobile ? "1.5rem" : "2.5rem", lineHeight: 1.8 }}>
+          <p style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", color: "var(--text-secondary)", marginBottom: isMobile ? "1.5rem" : "2.5rem", lineHeight: 1.8 }}>
             {subtitle}
           </p>
         </FadeInSection>
@@ -611,9 +611,9 @@ function Hero() {
               {t.hero.cta1}
             </a>
             <button onClick={() => navigate("/trips")}
-              style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              style={{ background: "var(--bg-surface-2)", backdropFilter: "blur(10px)", border: "1px solid var(--border-strong)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               🗺️ {ar ? "تفاصيل الرحلات" : "Trip Details"}
             </button>
             <button onClick={() => navigate("/gallery")}
@@ -641,7 +641,7 @@ function Hero() {
                     onClick={() => heroGoToRef.current?.(i)}
                     style={{
                       width: i === heroActive ? 24 : 8, height: 8, borderRadius: 4, border: "none",
-                      background: i === heroActive ? "#00AAFF" : "rgba(255,255,255,0.4)",
+                      background: i === heroActive ? "#00AAFF" : "var(--text-muted)",
                       cursor: "pointer", padding: 0,
                       transition: "all 0.4s ease",
                     }}
@@ -653,7 +653,7 @@ function Hero() {
             {/* Scroll indicator */}
             {settings.show_scroll_indicator !== "false" && (
               <div style={{ opacity: 0.5 }}>
-                <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid rgba(255,255,255,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
+                <div style={{ width: 28, height: 44, borderRadius: "14px", border: "2px solid var(--text-muted)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "6px" }}>
                   <div style={{ width: 4, height: 10, borderRadius: "2px", background: "white", animation: "scrollDot 1.8s ease-in-out infinite" }} />
                 </div>
               </div>
@@ -731,7 +731,7 @@ function Services() {
   };
 
   return (
-    <section id="services" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
+    <section id="services" style={{ padding: "6rem 1.5rem", background: "var(--bg-page)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
@@ -759,7 +759,7 @@ function Services() {
                 >
                   <div className="service-icon-wrap">{service.icon}</div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{service.name}</h3>
-                  <p style={{ color: "#667788", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
+                  <p style={{ color: "var(--section-subtitle)", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
                 </div>
               </FadeInSection>
             );
@@ -777,7 +777,7 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
   return (
     <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "rgba(8,16,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,170,255,0.25)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, flexWrap: "wrap" }}>
-        <span style={{ color: "#667788", fontSize: "0.82rem", flexShrink: 0 }}>
+        <span style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", flexShrink: 0 }}>
           {ar ? `${packages.length} باقات للمقارنة` : `${packages.length} packages to compare`}
         </span>
         {packages.map(p => (
@@ -788,7 +788,7 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
         <button onClick={onClear}
-          style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#667788", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+          style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--section-subtitle)", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
           {ar ? "مسح" : "Clear"}
         </button>
         <button onClick={onOpen}
@@ -942,10 +942,10 @@ function PackagesAndBooking() {
   );
 
   const inp = (field: string) => ({ className: `form-input${errors[field] ? " error" : ""}` });
-  const labelStyle = { display: "block" as const, color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" };
+  const labelStyle = { display: "block" as const, color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" };
 
   return (
-    <section id="packages" style={{ padding: `6rem 1.5rem ${showPackages ? "6rem" : "2.5rem"}`, background: "linear-gradient(180deg,#0a1520 0%,#0D1B2A 100%)" }}>
+    <section id="packages" style={{ padding: `6rem 1.5rem ${showPackages ? "6rem" : "2.5rem"}`, background: "linear-gradient(180deg, var(--bg-page-2) 0%, var(--bg-page) 100%)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: showPackages ? "3.5rem" : "1.5rem" }}>
@@ -962,7 +962,7 @@ function PackagesAndBooking() {
                 }
               </button>
               {!showPackages && (
-                <p style={{ color: "#445566", fontSize: "0.82rem", marginTop: "0.85rem" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", marginTop: "0.85rem" }}>
                   {lang === "ar" ? `${PACKAGES.length} باقات متاحة — اضغط لاستعراضها` : `${PACKAGES.length} packages available — click to explore`}
                 </p>
               )}
@@ -992,11 +992,11 @@ function PackagesAndBooking() {
                   <div style={{ paddingTop: pkg.badge ? "1.75rem" : "0.25rem", textAlign: "center", marginBottom: "1.25rem" }}>
                     <div style={{ fontSize: "2.75rem", marginBottom: "0.75rem" }}>{pkg.icon}</div>
                     <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "white", marginBottom: "0.4rem" }}>{pkg.name}</h3>
-                    <p style={{ color: "#667788", fontSize: "0.82rem", lineHeight: 1.6 }}>{pkg.desc}</p>
+                    <p style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", lineHeight: 1.6 }}>{pkg.desc}</p>
                   </div>
                   <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     {pkg.includes.map((item, j) => (
-                      <li key={j} style={{ color: "#99aabb", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <li key={j} style={{ color: "var(--text-muted)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         <span style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", flexShrink: 0, display: "flex" }}><CheckIcon /></span>
                         {item}
                       </li>
@@ -1005,27 +1005,27 @@ function PackagesAndBooking() {
 
                   {/* Why this trip — mini */}
                   {whyTrip.length > 0 && (
-                    <div style={{ background: "rgba(255,255,255,0.02)", borderRadius: "10px", padding: "0.65rem 0.85rem", marginBottom: "1rem" }}>
+                    <div style={{ background: "var(--bg-surface-sunk)", borderRadius: "10px", padding: "0.65rem 0.85rem", marginBottom: "1rem" }}>
                       <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.4rem" }}>
                         {lang === "ar" ? "لماذا هذه الرحلة؟" : "Why this trip?"}
                       </div>
                       {whyTrip.slice(0, 2).map((w, wi) => (
-                        <div key={wi} style={{ color: "#667788", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.2rem" }}>
+                        <div key={wi} style={{ color: "var(--section-subtitle)", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.2rem" }}>
                           <span style={{ fontSize: "0.8rem" }}>{w.icon}</span> {w.text}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="pkg-card__footer" style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem" }}>
+                  <div className="pkg-card__footer" style={{ borderTop: "1px solid var(--bg-surface-2)", paddingTop: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
                       <div>
-                        <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
+                        <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem", marginBottom: "0.2rem" }}>⏱ {pkg.duration}</div>
                         <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>
                           {formatPrice(pkg.priceNum, currency as CurrencyCode, lang, settings)}
                         </div>
                       </div>
-                      <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "rgba(255,255,255,0.06)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "#667788", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "rgba(255,255,255,0.1)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+                      <button onClick={e => { e.stopPropagation(); selectPkg(pkg); }} style={{ background: selectedPkg?.id === pkg.id ? (pkg.featured ? "#C9A84C" : "#00AAFF") : "var(--bg-surface-2)", color: selectedPkg?.id === pkg.id ? (pkg.featured ? "#0D1B2A" : "white") : "var(--section-subtitle)", border: `1px solid ${selectedPkg?.id === pkg.id ? "transparent" : "var(--border)"}`, borderRadius: "10px", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: 700, transition: "all 0.3s", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
                         {selectedPkg?.id === pkg.id ? t.packages.selectedBtn : t.packages.selectBtn}
                       </button>
                     </div>
@@ -1033,14 +1033,14 @@ function PackagesAndBooking() {
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       {pkg.slug && (
                         <button onClick={e => viewDetails(pkg.slug, e)}
-                          style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#aabbcc"; }}>
+                          style={{ flex: 1, background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}>
                           🔍 {lang === "ar" ? "التفاصيل" : "Details"}
                         </button>
                       )}
                       <button onClick={e => toggleCompare(pkg.id, e)}
-                        style={{ flex: 1, background: inCompare ? `${pkg.color}20` : "rgba(255,255,255,0.04)", border: `1px solid ${inCompare ? `${pkg.color}50` : "rgba(255,255,255,0.1)"}`, color: inCompare ? pkg.color : "#aabbcc", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}>
+                        style={{ flex: 1, background: inCompare ? `${pkg.color}20` : "var(--bg-surface)", border: `1px solid ${inCompare ? `${pkg.color}50` : "var(--border)"}`, color: inCompare ? pkg.color : "var(--text-secondary)", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}>
                         {inCompare ? "✓" : "⇆"} {lang === "ar" ? "قارن" : "Compare"}
                       </button>
                     </div>
@@ -1058,19 +1058,19 @@ function PackagesAndBooking() {
             {selectedPkg && (
               <>
                 {/* Panel header */}
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid var(--bg-surface-2)" }}>
                   <div style={{ width: 52, height: 52, borderRadius: "14px", background: `${selectedPkg.color}15`, border: `1px solid ${selectedPkg.color}33`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>
                     {selectedPkg.icon}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "0.2rem" }}>{bk.selectedPackage}</div>
-                    <div style={{ color: "white", fontWeight: 800, fontSize: "1.1rem" }}>{selectedPkg.name}</div>
+                    <div style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", marginBottom: "0.2rem" }}>{bk.selectedPackage}</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "1.1rem" }}>{selectedPkg.name}</div>
                     <div style={{ color: selectedPkg.color, fontSize: "0.85rem", fontWeight: 700 }}>{selectedPkg.price}</div>
                   </div>
                   <button onClick={() => setSelectedPkg(null)}
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#667788", width: 36, height: 36, borderRadius: "10px", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
+                    style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border)", color: "var(--section-subtitle)", width: 36, height: 36, borderRadius: "10px", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,100,100,0.15)"; (e.currentTarget as HTMLElement).style.color = "#ff6b6b"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "#667788"; }}>
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; (e.currentTarget as HTMLElement).style.color = "var(--section-subtitle)"; }}>
                     ✕
                   </button>
                 </div>
@@ -1107,7 +1107,7 @@ function PackagesAndBooking() {
                         { label: bk.infants, key: "infants", min: "0" },
                       ].map(f => (
                         <div key={f.key}>
-                          <label style={{ display: "block", color: "#8899aa", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.4rem" }}>{f.label}</label>
+                          <label style={{ display: "block", color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.4rem" }}>{f.label}</label>
                           <input type="number" min={f.min} {...inp(f.key)} value={(form as any)[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} />
                           {errors[f.key] && <p style={{ color: "#ff6b6b", fontSize: "0.72rem", marginTop: "0.25rem" }}>{errors[f.key]}</p>}
                         </div>
@@ -1134,7 +1134,7 @@ function PackagesAndBooking() {
                           value={form.referralCode}
                           onChange={e => setForm({ ...form, referralCode: e.target.value.toUpperCase() })} />
                         {referralStatus === "checking" && (
-                          <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#667788", fontSize: "0.75rem" }}>⏳</span>
+                          <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--section-subtitle)", fontSize: "0.75rem" }}>⏳</span>
                         )}
                         {referralStatus === "valid" && (
                           <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#10B981", fontSize: "1rem" }}>✓</span>
@@ -1165,25 +1165,25 @@ function PackagesAndBooking() {
                   </form>
 
                   {/* Summary sidebar */}
-                  <div style={{ width: isMobile ? "100%" : "210px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "16px", padding: "1.25rem" }}>
-                    <div style={{ color: "#8899aa", fontSize: "0.75rem", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" as const, letterSpacing: "1px" }}>{bk.summaryTitle}</div>
+                  <div style={{ width: isMobile ? "100%" : "210px", background: "var(--bg-surface)", border: "1px solid var(--bg-surface-2)", borderRadius: "16px", padding: "1.25rem" }}>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" as const, letterSpacing: "1px" }}>{bk.summaryTitle}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                       {selectedPkg.includes.map((item, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#aabbcc", fontSize: "0.82rem" }}>
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-secondary)", fontSize: "0.82rem" }}>
                           <span style={{ color: selectedPkg.color, flexShrink: 0, display: "flex" }}><CheckIcon /></span>
                           {item}
                         </div>
                       ))}
                     </div>
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", marginTop: "1.25rem", paddingTop: "1.25rem" }}>
-                      <div style={{ color: "#667788", fontSize: "0.75rem", marginBottom: "0.4rem" }}>⏱ {selectedPkg.duration}</div>
+                    <div style={{ borderTop: "1px solid var(--bg-surface-2)", marginTop: "1.25rem", paddingTop: "1.25rem" }}>
+                      <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem", marginBottom: "0.4rem" }}>⏱ {selectedPkg.duration}</div>
                       {estimatedPrice > 0 && (
                         <div style={{ marginTop: "0.75rem" }}>
-                          <div style={{ color: "#667788", fontSize: "0.72rem", marginBottom: "0.25rem" }}>{bk.estimatedPrice}</div>
+                          <div style={{ color: "var(--section-subtitle)", fontSize: "0.72rem", marginBottom: "0.25rem" }}>{bk.estimatedPrice}</div>
                           <div style={{ color: selectedPkg.color, fontSize: "1.3rem", fontWeight: 900, fontFamily: "Montserrat, sans-serif" }}>
                             {formatPrice(estimatedPrice, currency as CurrencyCode, lang, settings)}
                           </div>
-                          <div style={{ color: "#445566", fontSize: "0.7rem", marginTop: "0.2rem" }}>{bk.priceNote}</div>
+                          <div style={{ color: "var(--text-muted)", fontSize: "0.7rem", marginTop: "0.2rem" }}>{bk.priceNote}</div>
                         </div>
                       )}
                     </div>
@@ -1210,7 +1210,7 @@ function PackagesAndBooking() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>{bk.modal.emoji}</div>
             <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "white", marginBottom: "0.75rem" }}>{bk.modal.title}</h3>
-            <p style={{ color: "#8899aa", fontSize: "0.95rem", marginBottom: "2rem", lineHeight: 1.8 }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "2rem", lineHeight: 1.8 }}>
               {bk.modal.thankYou} <strong style={{ color: "white" }}>{form.name}</strong>!<br />
               {bk.modal.msg} <strong style={{ color: "#00AAFF" }}>{form.phone}</strong> {bk.modal.within}
             </p>
@@ -1220,9 +1220,9 @@ function PackagesAndBooking() {
                 <WhatsAppIcon /> {bk.modal.confirmBtn}
               </a>
               <button onClick={() => setShowModal(false)}
-                style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "#667788", padding: "0.8rem", borderRadius: "12px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", transition: "all 0.2s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.25)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLElement).style.color = "#667788"; }}>
+                style={{ background: "transparent", border: "1px solid var(--border-strong)", color: "var(--section-subtitle)", padding: "0.8rem", borderRadius: "12px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", transition: "all 0.2s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.color = "var(--section-subtitle)"; }}>
                 {bk.modal.closeBtn}
               </button>
             </div>
@@ -1254,7 +1254,7 @@ function WhyUs() {
   if (items.length === 0) return null;
 
   return (
-    <section id="whyus" style={{ padding: "6rem 1.5rem", background: "#0D1B2A" }}>
+    <section id="whyus" style={{ padding: "6rem 1.5rem", background: "var(--bg-page)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
@@ -1297,7 +1297,7 @@ function WhyUs() {
                     {f.icon}
                   </div>
                   <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{f.title}</h3>
-                  <p style={{ color: "#667788", fontSize: "0.85rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{f.desc}</p>
+                  <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{f.desc}</p>
                   {clickable && (
                     <div style={{ marginTop: "1rem", color: f.color, fontSize: "0.82rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.35rem", ...(uniformCards ? { alignSelf: "flex-start" } : {}) }}>
                       {isAr ? "اعرف أكتر" : "Learn more"} {isAr ? "←" : "→"}
@@ -1319,13 +1319,13 @@ function ReviewCard({ review, colorIndex }: { review: { name: string; initials: 
   const imgSrc = review.image ? resolveApiAssetUrl(review.image) || review.image : "";
   const avatarSrc = review.avatarUrl ? resolveApiAssetUrl(review.avatarUrl) || review.avatarUrl : "";
   return (
-    <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "18px", padding: "1.35rem 1.5rem", minWidth: "280px", maxWidth: "340px", flexShrink: 0, transition: "all 0.3s", display: "flex", flexDirection: "column", gap: "0.85rem" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.3)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.14)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}>
+    <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "18px", padding: "1.35rem 1.5rem", minWidth: "280px", maxWidth: "340px", flexShrink: 0, transition: "all 0.3s", display: "flex", flexDirection: "column", gap: "0.85rem" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.3)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.14)"; (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
         {avatarSrc ? (
           <img src={avatarSrc} alt={review.name}
-            style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)", border: "2px solid rgba(255,255,255,0.15)" }}
+            style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)", border: "2px solid var(--border-strong)" }}
             onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
         ) : (
           <div style={{ width: 46, height: 46, borderRadius: "50%", background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 800, color: "white", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
@@ -1333,7 +1333,7 @@ function ReviewCard({ review, colorIndex }: { review: { name: string; initials: 
           </div>
         )}
         <div>
-          <div style={{ color: "#e8f0f8", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.2rem" }}>{review.name}</div>
+          <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.2rem" }}>{review.name}</div>
           <div style={{ display: "flex", gap: "1px" }}>
             {Array.from({ length: 5 }).map((_, i) => (
               <span key={i} style={{ color: i < stars ? "#C9A84C" : "#2a3a4a", fontSize: "0.85rem" }}>★</span>
@@ -1341,10 +1341,10 @@ function ReviewCard({ review, colorIndex }: { review: { name: string; initials: 
           </div>
         </div>
       </div>
-      <p style={{ color: "#b8c8d8", fontSize: "0.875rem", lineHeight: 1.9, margin: 0, fontStyle: "italic" }}>"{review.review}"</p>
+      <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.9, margin: 0, fontStyle: "italic" }}>"{review.review}"</p>
       {imgSrc && (
         <img src={imgSrc} alt=""
-          style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 12, border: "1px solid var(--border)" }}
           onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
       )}
     </div>
@@ -1462,7 +1462,7 @@ function ReviewSubmitForm() {
         <div onClick={closeModal}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", direction: ar ? "rtl" : "ltr" }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: "linear-gradient(180deg,#1a2535,#0f1a28)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 22, padding: "1.75rem", width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 60px rgba(0,0,0,0.6)", fontFamily: "Cairo, sans-serif" }}>
+            style={{ background: "linear-gradient(180deg,#1a2535,#0f1a28)", border: "1px solid var(--border-strong)", borderRadius: 22, padding: "1.75rem", width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 60px rgba(0,0,0,0.6)", fontFamily: "Cairo, sans-serif" }}>
 
             {done ? (
               <div style={{ textAlign: "center", padding: "1.5rem 0.5rem" }}>
@@ -1470,7 +1470,7 @@ function ReviewSubmitForm() {
                 <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.2rem", marginBottom: "0.6rem" }}>
                   {ar ? "شكراً لك!" : "Thank you!"}
                 </h3>
-                <p style={{ color: "#b8c8d8", fontSize: "0.9rem", lineHeight: 1.8, marginBottom: "1.5rem" }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.8, marginBottom: "1.5rem" }}>
                   {ar ? "تم استلام تقييمك وسيظهر بعد الموافقة عليه من إدارة الموقع." : "Your review has been received and will appear once approved by our team."}
                 </p>
                 <button onClick={closeModal}
@@ -1485,14 +1485,14 @@ function ReviewSubmitForm() {
                     ✍️ {ar ? "شاركنا تجربتك" : "Share your experience"}
                   </h3>
                   <button onClick={closeModal}
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+                    style={{ background: "var(--border)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)", borderRadius: 8, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
                     ✕
                   </button>
                 </div>
 
                 {/* Stars */}
                 <div style={{ marginBottom: "1.1rem" }}>
-                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
+                  <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
                     {ar ? "كم نجمة تستاهل تجربتك؟" : "How many stars?"}
                   </label>
                   <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", padding: "0.5rem" }}>
@@ -1509,28 +1509,28 @@ function ReviewSubmitForm() {
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
-                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                  <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                     {ar ? "اسمك" : "Your name"} *
                   </label>
                   <input value={name} onChange={e => setName(e.target.value)} maxLength={80}
                     placeholder={ar ? "اكتب اسمك..." : "Your name..."}
-                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.12)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box" }} />
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--border-strong)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box" }} />
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
-                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                  <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                     {ar ? "رأيك في الرحلة" : "Your review"} *
                   </label>
                   <textarea value={text} onChange={e => setText(e.target.value)} maxLength={1500} rows={5}
                     placeholder={ar ? "احكي لنا عن تجربتك..." : "Tell us about your experience..."}
-                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.12)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box", resize: "vertical", lineHeight: 1.8 }} />
-                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem", marginTop: "0.25rem", textAlign: ar ? "left" : "right" }}>
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--border-strong)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box", resize: "vertical", lineHeight: 1.8 }} />
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.72rem", marginTop: "0.25rem", textAlign: ar ? "left" : "right" }}>
                     {text.length} / 1500
                   </div>
                 </div>
 
                 <div style={{ marginBottom: "1.1rem" }}>
-                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                  <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                     {ar ? "صورة من الرحلة (اختياري)" : "Photo from your trip (optional)"}
                   </label>
                   <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
@@ -1538,7 +1538,7 @@ function ReviewSubmitForm() {
                   {imagePreview ? (
                     <div style={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
                       <img src={imagePreview} alt="preview"
-                        style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)" }} />
+                        style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 12, border: "1px solid var(--border-strong)" }} />
                       <button type="button"
                         onClick={clearPreview}
                         style={{ position: "absolute", top: 8, [ar ? "left" : "right"]: 8, background: "rgba(0,0,0,0.7)", color: "white", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontWeight: 900 }}>
@@ -1552,7 +1552,7 @@ function ReviewSubmitForm() {
                     </div>
                   ) : (
                     <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                      style={{ width: "100%", padding: "1rem", borderRadius: 12, border: "1.5px dashed rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.65)", cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.9rem" }}>
+                      style={{ width: "100%", padding: "1rem", borderRadius: 12, border: "1.5px dashed var(--border-strong)", background: "var(--bg-surface)", color: "var(--text-secondary)", cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.9rem" }}>
                       {uploading ? `⏳ ${ar ? "جاري الرفع..." : "Uploading..."}` : `📸 ${ar ? "اضغط لاختيار صورة" : "Tap to choose a photo"}`}
                     </button>
                   )}
@@ -1565,10 +1565,10 @@ function ReviewSubmitForm() {
                 )}
 
                 <button onClick={submit} disabled={submitting || uploading}
-                  style={{ width: "100%", background: submitting ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#C9A84C,#a8842c)", color: submitting ? "rgba(255,255,255,0.5)" : "#0D1B2A", border: "none", borderRadius: 12, padding: "0.95rem", cursor: submitting ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 900, fontSize: "1rem", boxShadow: submitting ? "none" : "0 8px 24px rgba(201,168,76,0.3)" }}>
+                  style={{ width: "100%", background: submitting ? "var(--border)" : "linear-gradient(135deg,#C9A84C,#a8842c)", color: submitting ? "var(--text-muted)" : "#0D1B2A", border: "none", borderRadius: 12, padding: "0.95rem", cursor: submitting ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 900, fontSize: "1rem", boxShadow: submitting ? "none" : "0 8px 24px rgba(201,168,76,0.3)" }}>
                   {submitting ? `⏳ ${ar ? "جاري الإرسال..." : "Submitting..."}` : `🚀 ${ar ? "إرسال التقييم" : "Submit review"}`}
                 </button>
-                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.74rem", textAlign: "center", marginTop: "0.85rem", lineHeight: 1.6 }}>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.74rem", textAlign: "center", marginTop: "0.85rem", lineHeight: 1.6 }}>
                   {ar ? "سيتم مراجعة تقييمك من الإدارة قبل نشره." : "Your review will be reviewed by our team before being published."}
                 </div>
               </>
@@ -1595,7 +1595,7 @@ function Reviews() {
   const row2 = reviews.slice(half);
 
   return (
-    <section id="reviews" style={{ padding: "6rem 0", background: "linear-gradient(180deg,#0D1B2A,#0a1520)", overflow: "hidden" }}>
+    <section id="reviews" style={{ padding: "6rem 0", background: "linear-gradient(180deg, var(--bg-page), var(--bg-page-2))", overflow: "hidden" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto", paddingInline: "1.5rem" }}>
         <FadeInSection>
           <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
@@ -1665,14 +1665,14 @@ function Footer() {
   const socialLinks = [
     { label: "Facebook", href: settings.facebook_url || "https://facebook.com/Drtrave", icon: <FacebookIcon />, color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
     { label: "Instagram", href: settings.instagram_url || "https://instagram.com/drtravel_marsamatrouh", icon: <InstagramIcon />, color: "#E1306C", bg: "rgba(225,48,108,0.12)" },
-    { label: "TikTok", href: settings.tiktok_url || "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff", bg: "rgba(255,255,255,0.08)" },
+    { label: "TikTok", href: settings.tiktok_url || "https://tiktok.com/@drtravel.marsa.matrouh", icon: <TikTokIcon />, color: "#ffffff", bg: "var(--border)" },
     { label: "WhatsApp", href: `https://wa.me/${waNum}`, icon: <WhatsAppIcon />, color: "#25D366", bg: "rgba(37,211,102,0.12)" },
   ];
 
   const arrowChar = lang === "ar" ? "▶" : "▷";
 
   return (
-    <footer id="footer" style={{ background: "linear-gradient(180deg,#0a1520 0%,#060d16 100%)", borderTop: "1px solid rgba(0,170,255,0.1)" }}>
+    <footer id="footer" style={{ background: "linear-gradient(180deg, var(--bg-page-2) 0%, var(--bg-page) 100%)", borderTop: "1px solid rgba(0,170,255,0.1)" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "4rem 1.5rem 2.5rem" }}>
         <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
 
@@ -1682,10 +1682,10 @@ function Footer() {
               <img src={logoSrc} alt="DR Travel" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.4)", boxShadow: "0 0 20px rgba(0,170,255,0.2)" }} />
               <div>
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, color: "#00AAFF", fontSize: "1.05rem", letterSpacing: "1.5px" }}>{settings.brand_name || "DR TRAVEL"}</div>
-                <div style={{ color: "#445566", fontSize: "0.65rem" }}>{lang === "ar" ? (settings.brand_tagline_ar || "يخت سياحة وسفاري · مرسى مطروح") : (settings.brand_tagline_en || "Yacht Tourism & Safari")}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.65rem" }}>{lang === "ar" ? (settings.brand_tagline_ar || "يخت سياحة وسفاري · مرسى مطروح") : (settings.brand_tagline_en || "Yacht Tourism & Safari")}</div>
               </div>
             </div>
-            <p style={{ color: "#445566", fontSize: "0.875rem", lineHeight: 2, marginBottom: "1.5rem" }}>{brandify(f.brandDesc)}</p>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", lineHeight: 2, marginBottom: "1.5rem" }}>{brandify(f.brandDesc)}</p>
             <div style={{ display: "flex", gap: "0.55rem", flexWrap: "wrap" }}>
               {socialLinks.map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
@@ -1700,16 +1700,16 @@ function Footer() {
 
           {/* Quick links */}
           <div>
-            <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <h4 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <span style={{ width: 3, height: 16, background: "#00AAFF", borderRadius: 2, display: "inline-block" }} /> {f.quickLinksTitle}
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
               {f.quickLinks.map(link => (
                 <a key={link.href} href={link.href}
                   onClick={e => { e.preventDefault(); document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" }); }}
-                  style={{ color: "#445566", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.25s", cursor: "pointer" }}
+                  style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.25s", cursor: "pointer" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#445566"; }}>
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}>
                   <span style={{ color: "#00AAFF", fontSize: "0.45rem" }}>{arrowChar}</span> {link.label}
                 </a>
               ))}
@@ -1718,7 +1718,7 @@ function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <h4 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <span style={{ width: 3, height: 16, background: "#00AAFF", borderRadius: 2, display: "inline-block" }} /> {f.contactTitle}
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -1727,23 +1727,23 @@ function Footer() {
                 { href: `https://wa.me/${waNum}`, icon: <WhatsAppIcon />, text: lang === "ar" ? `واتساب: ${phone}` : `WhatsApp: ${phone}`, hoverColor: "#25D366", bg: "rgba(37,211,102,0.08)", borderColor: "rgba(37,211,102,0.2)", iconColor: "#25D366" },
               ].map((item, i) => (
                 <a key={i} href={item.href} target={i === 1 ? "_blank" : undefined} rel="noreferrer"
-                  style={{ color: "#445566", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "color 0.3s" }}
+                  style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "color 0.3s" }}
                   onMouseEnter={e => (e.currentTarget.style.color = item.hoverColor)}
-                  onMouseLeave={e => (e.currentTarget.style.color = "#445566")}>
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
                   <span style={{ width: 34, height: 34, borderRadius: "8px", background: item.bg, border: `1px solid ${item.borderColor}`, display: "flex", alignItems: "center", justifyContent: "center", color: item.iconColor, flexShrink: 0 }}>{item.icon}</span>
                   {item.text}
                 </a>
               ))}
               <a href={mapsUrl} target="_blank" rel="noreferrer"
-                style={{ color: "#445566", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", transition: "color 0.3s" }}
+                style={{ color: "var(--text-muted)", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", transition: "color 0.3s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#C9A84C")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#445566")}>
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
                 <span style={{ width: 34, height: 34, borderRadius: "8px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9A84C", flexShrink: 0 }}><LocationIcon /></span>
                 {lang === "ar" ? (settings.location_ar || f.locationLabel) : (settings.location_en || f.locationLabel)}
               </a>
               <div style={{ background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.1)", borderRadius: "10px", padding: "0.85rem" }}>
                 <div style={{ color: "#00AAFF", fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.35rem" }}>{f.workingHours}</div>
-                <div style={{ color: "#445566", fontSize: "0.78rem", lineHeight: 1.9, whiteSpace: "pre-line" }}>{f.workingHoursDetails}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", lineHeight: 1.9, whiteSpace: "pre-line" }}>{f.workingHoursDetails}</div>
               </div>
             </div>
           </div>
@@ -1751,7 +1751,7 @@ function Footer() {
           {/* Map (optional) */}
           {showMap && (
             <div>
-              <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <h4 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <span style={{ width: 3, height: 16, background: "#C9A84C", borderRadius: 2, display: "inline-block" }} />
                 {lang === "ar" ? "موقعنا على الخريطة" : "Find us on the map"}
               </h4>
@@ -1789,7 +1789,7 @@ function Footer() {
                 <span style={{
                   position: "absolute", insetInlineStart: 12, bottom: 12,
                   display: "inline-flex", alignItems: "center", gap: "0.4rem",
-                  background: "rgba(201,168,76,0.95)", color: "#0a1520",
+                  background: "rgba(201,168,76,0.95)", color: "var(--bg-page-2)",
                   fontSize: "0.72rem", fontWeight: 800,
                   padding: "0.35rem 0.7rem", borderRadius: "999px",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
@@ -1816,7 +1816,7 @@ function Footer() {
       </div>
 
       {/* Developer strip */}
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", background: "rgba(0,0,0,0.2)", padding: "0.85rem 1.5rem" }}>
+      <div style={{ borderTop: "1px solid var(--bg-surface)", background: "rgba(0,0,0,0.2)", padding: "0.85rem 1.5rem" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           <span style={{ color: "#1e2d3d", fontSize: "0.73rem" }}>{f.devLabel}{settings.dev_name ? ` — ${settings.dev_name}` : ""}</span>
           <a href={devContactHref} target="_blank" rel="noreferrer"

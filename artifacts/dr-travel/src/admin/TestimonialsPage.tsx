@@ -25,12 +25,12 @@ interface Testimonial extends TestimonialForm {
 }
 
 const dark = {
-  card: "#1a2535",
+  card: "var(--bg-surface-solid)",
   input: "#0d1824",
-  border: "rgba(255,255,255,0.12)",
-  label: "rgba(255,255,255,0.75)",
+  border: "var(--border-strong)",
+  label: "var(--text-secondary)",
   text: "#ffffff",
-  sub: "rgba(255,255,255,0.45)",
+  sub: "var(--text-muted)",
 };
 
 const STATUS_META: Record<Status, { label: string; color: string; bg: string }> = {
@@ -232,7 +232,7 @@ export default function TestimonialsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
           <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>التقييمات والآراء</h2>
-          <div style={{ display: "flex", gap: "1rem", fontSize: "0.82rem", color: "#667788", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "1rem", fontSize: "0.82rem", color: "var(--section-subtitle)", flexWrap: "wrap" }}>
             <span>المجموع: <strong style={{ color: "#0D1B2A" }}>{counts.all}</strong></span>
             <span>قيد الانتظار: <strong style={{ color: "#F59E0B" }}>{counts.pending}</strong></span>
             <span>مقبول: <strong style={{ color: "#10B981" }}>{counts.approved}</strong></span>
@@ -259,16 +259,16 @@ export default function TestimonialsPage() {
             const c = counts[s as keyof typeof counts];
             return (
               <button key={s} onClick={() => setFilterStatus(s)}
-                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === s ? colors[s] : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === s ? `${colors[s]}12` : "transparent", color: filterStatus === s ? colors[s] : "#667788", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === s ? colors[s] : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === s ? `${colors[s]}12` : "transparent", color: filterStatus === s ? colors[s] : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 {labels[s]}
-                <span style={{ background: filterStatus === s ? colors[s] : "#e0e8f0", color: filterStatus === s ? "white" : "#667788", borderRadius: "50px", padding: "1px 7px", fontSize: "0.7rem", fontWeight: 800, minWidth: 18, textAlign: "center" }}>{c}</span>
+                <span style={{ background: filterStatus === s ? colors[s] : "#e0e8f0", color: filterStatus === s ? "white" : "var(--section-subtitle)", borderRadius: "50px", padding: "1px 7px", fontSize: "0.7rem", fontWeight: 800, minWidth: 18, textAlign: "center" }}>{c}</span>
               </button>
             );
           })}
         </div>
         {(search || filterStatus !== "pending") && (
           <button onClick={() => { setSearch(""); setFilterStatus("pending"); }}
-            style={{ padding: "0.45rem 0.75rem", border: "1px solid #e0e8f0", borderRadius: "8px", cursor: "pointer", background: "#f9fafb", color: "#667788", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+            style={{ padding: "0.45rem 0.75rem", border: "1px solid #e0e8f0", borderRadius: "8px", cursor: "pointer", background: "#f9fafb", color: "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
             مسح
           </button>
         )}
@@ -286,7 +286,7 @@ export default function TestimonialsPage() {
                 {editing ? "✏️ تعديل تقييم" : "➕ تقييم جديد"}
               </h3>
               <button onClick={() => setShowForm(false)}
-                style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${dark.border}`, color: dark.sub, borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
+                style={{ background: "var(--border)", border: `1px solid ${dark.border}`, color: dark.sub, borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
                 ✕ إغلاق
               </button>
             </div>
@@ -349,7 +349,7 @@ export default function TestimonialsPage() {
                   <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(f); }} />
                   <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                    style={{ padding: "0.65rem 1rem", borderRadius: 10, border: `1.5px dashed ${dark.border}`, background: "rgba(255,255,255,0.04)", color: dark.label, cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", width: "100%" }}>
+                    style={{ padding: "0.65rem 1rem", borderRadius: 10, border: `1.5px dashed ${dark.border}`, background: "var(--bg-surface)", color: dark.label, cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", width: "100%" }}>
                     {uploading ? "⏳ جاري الرفع..." : (form.imageUrl ? "📁 تغيير الصورة" : "📁 رفع صورة")}
                   </button>
                   <input style={{ ...inputStyle, marginTop: "0.5rem", direction: "ltr", fontSize: "0.8rem" }}
@@ -369,7 +369,7 @@ export default function TestimonialsPage() {
                   <option value="rejected">مرفوض</option>
                 </select>
               </F>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1rem", background: "rgba(255,255,255,0.04)", borderRadius: "10px", border: `1px solid ${dark.border}`, marginTop: "1.6rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1rem", background: "var(--bg-surface)", borderRadius: "10px", border: `1px solid ${dark.border}`, marginTop: "1.6rem" }}>
                 <input type="checkbox" id="vis-modal" checked={form.isVisible}
                   onChange={e => setForm(f => ({ ...f, isVisible: e.target.checked }))}
                   style={{ width: 18, height: 18, accentColor: "#10B981", cursor: "pointer" }} />
@@ -387,11 +387,11 @@ export default function TestimonialsPage() {
 
             <div style={{ display: "flex", gap: "0.75rem" }}>
               <button onClick={save} disabled={saving}
-                style={{ flex: 1, background: saving ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "10px", padding: "0.85rem", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.95rem", transition: "all 0.2s" }}>
+                style={{ flex: 1, background: saving ? "var(--border)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "10px", padding: "0.85rem", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.95rem", transition: "all 0.2s" }}>
                 {saving ? "⏳ جاري الحفظ..." : "💾 حفظ التقييم"}
               </button>
               <button onClick={() => setShowForm(false)}
-                style={{ padding: "0.85rem 1.5rem", background: "rgba(255,255,255,0.06)", border: `1px solid ${dark.border}`, borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: dark.sub }}>
+                style={{ padding: "0.85rem 1.5rem", background: "var(--bg-surface-2)", border: `1px solid ${dark.border}`, borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: dark.sub }}>
                 إلغاء
               </button>
             </div>
@@ -401,7 +401,7 @@ export default function TestimonialsPage() {
 
       {/* Cards */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>
+        <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
           <div>جاري تحميل التقييمات...</div>
         </div>
@@ -409,7 +409,7 @@ export default function TestimonialsPage() {
         <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚠️</div>
           <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.75rem" }}>فشل تحميل التقييمات</div>
-          <div style={{ color: "#667788", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
           <button onClick={load}
             style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
             إعادة المحاولة
@@ -421,7 +421,7 @@ export default function TestimonialsPage() {
           <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>
             {items.length === 0 ? "لا توجد تقييمات بعد" : "لا توجد نتائج"}
           </div>
-          <div style={{ color: "#667788", fontSize: "0.88rem" }}>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>
             {items.length === 0 ? "ابدأ بإضافة تقييم جديد" : "جرب تغيير كلمات البحث أو التصنيف"}
           </div>
         </div>

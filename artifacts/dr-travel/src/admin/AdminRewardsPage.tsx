@@ -218,7 +218,7 @@ export default function AdminRewardsPage() {
           <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>
             🎁 المكافآت والإحالة
           </h2>
-          <p style={{ color: "#667788", fontSize: "0.85rem", margin: 0 }}>إدارة نظام الإحالة وأكواد المكافآت</p>
+          <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>إدارة نظام الإحالة وأكواد المكافآت</p>
         </div>
         <div style={{ display: "flex", gap: "0.4rem", background: "#f1f5f9", borderRadius: "12px", padding: "0.3rem" }}>
           {[
@@ -227,7 +227,7 @@ export default function AdminRewardsPage() {
             { key: "rewards", label: "🏆 المكافآت" },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key as any)}
-              style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", background: tab === t.key ? "white" : "transparent", color: tab === t.key ? "#0D1B2A" : "#667788", boxShadow: tab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}>
+              style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.85rem", background: tab === t.key ? "white" : "transparent", color: tab === t.key ? "#0D1B2A" : "var(--section-subtitle)", boxShadow: tab === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}>
               {t.label}
             </button>
           ))}
@@ -238,7 +238,7 @@ export default function AdminRewardsPage() {
       {tab === "settings" && (
         <div>
           {loadingSettings ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>⏳ جاري التحميل...</div>
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>⏳ جاري التحميل...</div>
           ) : (
             <>
               <div style={S.card}>
@@ -282,7 +282,7 @@ export default function AdminRewardsPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     <input type="number" min={1} max={20} style={{ ...S.input, width: 120 }} value={settings.reward_after_x}
                       onChange={e => setSettings(s => ({ ...s, reward_after_x: e.target.value }))} />
-                    <span style={{ color: "#667788", fontSize: "0.88rem" }}>
+                    <span style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>
                       {settings.reward_after_x === "1" ? "مكافأة فورية عند أول حجز" : `مكافأة بعد ${settings.reward_after_x} حجوزات`}
                     </span>
                   </div>
@@ -325,7 +325,7 @@ export default function AdminRewardsPage() {
       {tab === "codes" && (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-            <div style={{ color: "#667788", fontSize: "0.88rem" }}>
+            <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>
               {codes.length} كود إحالة | {codes.filter(c => c.isActive).length} نشط
             </div>
             <button onClick={openNewCode}
@@ -337,11 +337,11 @@ export default function AdminRewardsPage() {
           {showCodeForm && (
             <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
               onClick={() => setShowCodeForm(false)}>
-              <div style={{ background: "#1a2535", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "20px", padding: "2rem", width: "100%", maxWidth: "520px", direction: "rtl", boxShadow: "0 24px 48px rgba(0,0,0,0.5)" }}
+              <div style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "20px", padding: "2rem", width: "100%", maxWidth: "520px", direction: "rtl", boxShadow: "0 24px 48px rgba(0,0,0,0.5)" }}
                 onClick={e => e.stopPropagation()}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                   <h3 style={{ color: "white", fontWeight: 900, margin: 0 }}>{editingCode ? "✏️ تعديل الكود" : "➕ كود إحالة جديد"}</h3>
-                  <button onClick={() => setShowCodeForm(false)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>✕</button>
+                  <button onClick={() => setShowCodeForm(false)} style={{ background: "var(--border)", border: "1px solid var(--border)", color: "var(--text-muted)", borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>✕</button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   {[
@@ -351,9 +351,9 @@ export default function AdminRewardsPage() {
                     { key: "email", label: "البريد الإلكتروني", placeholder: "email@example.com", ltr: true },
                   ].map(f => (
                     <div key={f.key}>
-                      <label style={{ display: "block", color: "rgba(255,255,255,0.65)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>{f.label}</label>
+                      <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>{f.label}</label>
                       <input
-                        style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.12)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box", direction: f.ltr ? "ltr" : "rtl" }}
+                        style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box", direction: f.ltr ? "ltr" : "rtl" }}
                         placeholder={f.placeholder}
                         value={(codeForm as any)[f.key]}
                         onChange={e => setCodeForm(p => ({ ...p, [f.key]: e.target.value }))}
@@ -361,9 +361,9 @@ export default function AdminRewardsPage() {
                     </div>
                   ))}
                   <div style={{ gridColumn: "span 2" }}>
-                    <label style={{ display: "block", color: "rgba(255,255,255,0.65)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>الكود (اتركه فارغاً للتوليد التلقائي)</label>
+                    <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>الكود (اتركه فارغاً للتوليد التلقائي)</label>
                     <input
-                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.12)", background: "#0d1824", color: "#00AAFF", fontFamily: "monospace", fontSize: "1rem", fontWeight: 700, outline: "none", boxSizing: "border-box", letterSpacing: "2px", direction: "ltr" }}
+                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "#00AAFF", fontFamily: "monospace", fontSize: "1rem", fontWeight: 700, outline: "none", boxSizing: "border-box", letterSpacing: "2px", direction: "ltr" }}
                       placeholder="DRT-XXXXXX"
                       value={codeForm.code}
                       onChange={e => setCodeForm(p => ({ ...p, code: e.target.value.toUpperCase() }))}
@@ -371,9 +371,9 @@ export default function AdminRewardsPage() {
                     />
                   </div>
                   <div style={{ gridColumn: "span 2" }}>
-                    <label style={{ display: "block", color: "rgba(255,255,255,0.65)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>ملاحظات داخلية</label>
+                    <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>ملاحظات داخلية</label>
                     <input
-                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid rgba(255,255,255,0.12)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box" }}
                       placeholder="ملاحظة للأدمن"
                       value={codeForm.notes}
                       onChange={e => setCodeForm(p => ({ ...p, notes: e.target.value }))}
@@ -387,11 +387,11 @@ export default function AdminRewardsPage() {
                 )}
                 <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
                   <button onClick={saveCode} disabled={savingCode}
-                    style={{ flex: 1, background: savingCode ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "10px", padding: "0.8rem", cursor: savingCode ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+                    style={{ flex: 1, background: savingCode ? "var(--border)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "10px", padding: "0.8rem", cursor: savingCode ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
                     {savingCode ? "⏳..." : editingCode ? "💾 حفظ التعديلات" : "✅ إنشاء الكود"}
                   </button>
                   <button onClick={() => setShowCodeForm(false)}
-                    style={{ padding: "0.8rem 1.25rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+                    style={{ padding: "0.8rem 1.25rem", background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: "10px", cursor: "pointer", color: "var(--text-muted)", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
                     إلغاء
                   </button>
                 </div>
@@ -400,12 +400,12 @@ export default function AdminRewardsPage() {
           )}
 
           {loadingCodes ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>⏳ جاري التحميل...</div>
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>⏳ جاري التحميل...</div>
           ) : codes.length === 0 ? (
             <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔑</div>
               <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد أكواد إحالة</div>
-              <div style={{ color: "#667788", fontSize: "0.88rem" }}>أنشئ أول كود إحالة لبدء نظام المكافآت</div>
+              <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>أنشئ أول كود إحالة لبدء نظام المكافآت</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -416,8 +416,8 @@ export default function AdminRewardsPage() {
                     {c.code}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "0.92rem" }}>{c.nameAr} {c.nameEn && <span style={{ color: "#667788", fontWeight: 400 }}>· {c.nameEn}</span>}</div>
-                    <div style={{ color: "#99aabb", fontSize: "0.78rem", marginTop: "0.15rem" }}>
+                    <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "0.92rem" }}>{c.nameAr} {c.nameEn && <span style={{ color: "var(--section-subtitle)", fontWeight: 400 }}>· {c.nameEn}</span>}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "0.15rem" }}>
                       {c.phone && <span>📞 {c.phone} </span>}
                       {c.email && <span>✉️ {c.email} </span>}
                       {c.notes && <span>· {c.notes}</span>}
@@ -452,7 +452,7 @@ export default function AdminRewardsPage() {
               { key: "rejected", label: "❌ مرفوض" },
             ].map(f => (
               <button key={f.key} onClick={() => setFilterStatus(f.key)}
-                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === f.key ? "#00AAFF" : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === f.key ? "#EFF6FF" : "white", color: filterStatus === f.key ? "#2563EB" : "#667788", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}>
+                style={{ padding: "0.45rem 0.9rem", border: `1.5px solid ${filterStatus === f.key ? "#00AAFF" : "#e0e8f0"}`, borderRadius: "8px", cursor: "pointer", background: filterStatus === f.key ? "#EFF6FF" : "white", color: filterStatus === f.key ? "#2563EB" : "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}>
                 {f.label} {f.key !== "all" && rewards.filter(r => f.key === "all" || r.status === f.key).length > 0 && (
                   <span style={{ background: "#00AAFF", color: "white", borderRadius: "50px", padding: "0.1rem 0.4rem", fontSize: "0.68rem", marginRight: "0.3rem" }}>
                     {rewards.filter(r => r.status === f.key).length}
@@ -463,12 +463,12 @@ export default function AdminRewardsPage() {
           </div>
 
           {loadingRewards ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>⏳ جاري التحميل...</div>
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>⏳ جاري التحميل...</div>
           ) : filteredRewards.length === 0 ? (
             <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🏆</div>
               <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد مكافآت {filterStatus !== "all" ? "بهذه الحالة" : "بعد"}</div>
-              <div style={{ color: "#667788", fontSize: "0.88rem" }}>ستظهر هنا المكافآت عند حجز العملاء بأكواد الإحالة</div>
+              <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>ستظهر هنا المكافآت عند حجز العملاء بأكواد الإحالة</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -485,8 +485,8 @@ export default function AdminRewardsPage() {
                           <span style={{ background: st.bg, color: st.color, padding: "0.2rem 0.65rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>{st.label}</span>
                         </div>
                         <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.92rem" }}>👤 {r.bookingName}</div>
-                        {r.bookingPackage && <div style={{ color: "#667788", fontSize: "0.82rem" }}>📦 {r.bookingPackage}</div>}
-                        <div style={{ color: "#667788", fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                        {r.bookingPackage && <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem" }}>📦 {r.bookingPackage}</div>}
+                        <div style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", marginTop: "0.25rem" }}>
                           📅 {new Date(r.createdAt).toLocaleDateString("ar-EG")}
                           {r.bookingId && <span> · حجز #{r.bookingId}</span>}
                         </div>
@@ -513,7 +513,7 @@ export default function AdminRewardsPage() {
                     )}
 
                     {r.adminNotes && (
-                      <div style={{ marginTop: "0.5rem", color: "#667788", fontSize: "0.8rem", background: "#F9FAFB", borderRadius: "6px", padding: "0.4rem 0.75rem" }}>
+                      <div style={{ marginTop: "0.5rem", color: "var(--section-subtitle)", fontSize: "0.8rem", background: "#F9FAFB", borderRadius: "6px", padding: "0.4rem 0.75rem" }}>
                         💬 {r.adminNotes}
                       </div>
                     )}

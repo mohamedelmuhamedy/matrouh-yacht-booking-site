@@ -12,7 +12,7 @@ function LanguagePill() {
       position: "absolute", top: "1rem",
       insetInlineEnd: "1rem",
       display: "inline-flex", padding: 4,
-      background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.18)",
+      background: "rgba(0,0,0,0.35)", border: "1px solid var(--border-strong)",
       borderRadius: 999, gap: 2, backdropFilter: "blur(10px)",
       WebkitBackdropFilter: "blur(10px)", zIndex: 5,
     }}>
@@ -23,7 +23,7 @@ function LanguagePill() {
             style={{
               padding: "0.3rem 0.85rem", borderRadius: 999,
               background: active ? "rgba(255,255,255,0.95)" : "transparent",
-              color: active ? "#0D1B2A" : "rgba(255,255,255,0.85)",
+              color: active ? "#0D1B2A" : "var(--text-primary)",
               border: "none", cursor: "pointer",
               fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.78rem",
               transition: "background 0.2s",
@@ -163,13 +163,13 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
 
   const cardBgStyle: React.CSSProperties = (() => {
     if (theme === "minimal") return { background: "transparent", border: "none", boxShadow: "none", backdropFilter: "none" };
-    if (theme === "solid")   return { background: "rgba(13,27,42,0.92)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 30px 60px rgba(0,0,0,0.5)" };
-    return { background: "rgba(13,27,42,0.55)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 30px 60px rgba(0,0,0,0.45)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" } as React.CSSProperties;
+    if (theme === "solid")   return { background: "rgba(13,27,42,0.92)", border: "1px solid var(--border)", boxShadow: "0 30px 60px rgba(0,0,0,0.5)" };
+    return { background: "rgba(13,27,42,0.55)", border: "1px solid var(--border-strong)", boxShadow: "0 30px 60px rgba(0,0,0,0.45)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" } as React.CSSProperties;
   })();
 
   const buttonBaseStyle = (color: string): React.CSSProperties => ({
     display: "flex", alignItems: "center", gap: "0.85rem",
-    background: theme === "minimal" ? "rgba(13,27,42,0.55)" : "rgba(255,255,255,0.06)",
+    background: theme === "minimal" ? "rgba(13,27,42,0.55)" : "var(--bg-surface-2)",
     border: `1px solid ${color}40`,
     color: "#fff", textDecoration: "none",
     padding: "0.95rem 1.1rem", borderRadius: "14px",
@@ -230,7 +230,7 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
               objectFit: "cover",
               border: `3px solid ${accent}`,
               boxShadow: `0 0 36px ${accent}55`,
-              background: "#0a1520",
+              background: "var(--bg-page-2)",
             }}
           />
           <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "0.35rem", padding: "0 0.5rem" }}>
@@ -241,13 +241,13 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
               <div style={{ color: accent, fontSize: "0.92rem", fontWeight: 700 }}>{tagline}</div>
             )}
             {bio && (
-              <p style={{ margin: "0.4rem 0 0", color: "rgba(255,255,255,0.78)", fontSize: "0.9rem", lineHeight: 1.7, whiteSpace: "pre-line" }}>{bio}</p>
+              <p style={{ margin: "0.4rem 0 0", color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.7, whiteSpace: "pre-line" }}>{bio}</p>
             )}
           </div>
 
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
             {links.length === 0 && (
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", textAlign: "center", padding: "1rem" }}>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "1rem" }}>
                 {ar ? "لم يتم تفعيل أي روابط بعد" : "No links enabled yet"}
               </div>
             )}
@@ -266,7 +266,7 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
                 }}
                 onMouseLeave={e => {
                   (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                  (e.currentTarget as HTMLElement).style.background = theme === "minimal" ? "rgba(13,27,42,0.55)" : "rgba(255,255,255,0.06)";
+                  (e.currentTarget as HTMLElement).style.background = theme === "minimal" ? "rgba(13,27,42,0.55)" : "var(--bg-surface-2)";
                   (e.currentTarget as HTMLElement).style.borderColor = `${link.color}40`;
                   (e.currentTarget as HTMLElement).style.boxShadow = "none";
                 }}
@@ -300,7 +300,7 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
             onClick={onShare}
             style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              background: accent, color: "#0a1520",
+              background: accent, color: "var(--bg-page-2)",
               border: "none", borderRadius: "14px",
               padding: "0.95rem 1rem",
               fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.92rem",
@@ -317,19 +317,19 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
             href={visitHref}
             style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              background: "rgba(255,255,255,0.08)", color: "#fff",
-              border: "1px solid rgba(255,255,255,0.18)", borderRadius: "14px",
+              background: "var(--border)", color: "#fff",
+              border: "1px solid var(--border-strong)", borderRadius: "14px",
               padding: "0.95rem 1rem", textDecoration: "none",
               fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.92rem",
               transition: "background 0.2s, transform 0.2s",
               backdropFilter: "blur(8px)",
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.15)";
+              (e.currentTarget as HTMLElement).style.background = "var(--border-strong)";
               (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)";
+              (e.currentTarget as HTMLElement).style.background = "var(--border)";
               (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
             }}
           >
@@ -338,7 +338,7 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
           </a>
         </div>
 
-        <div style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", marginTop: "0.25rem" }}>
+        <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.72rem", marginTop: "0.25rem" }}>
           © {new Date().getFullYear()} {settings.brand_short_name || settings.brand_name || "DR Travel"}
         </div>
       </div>

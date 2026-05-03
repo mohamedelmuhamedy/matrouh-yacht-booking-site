@@ -57,9 +57,9 @@ function Lightbox({ items, startIdx, ar, onClose }: { items: GalleryItem[]; star
     >
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1.25rem", background: "linear-gradient(to bottom,rgba(0,0,0,0.8),transparent)", flexShrink: 0 }}>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", fontFamily: "Cairo,sans-serif" }}>{idx + 1} / {items.length}</div>
+        <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", fontFamily: "Cairo,sans-serif" }}>{idx + 1} / {items.length}</div>
         {item.caption && (
-          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.88rem", fontFamily: "Cairo,sans-serif", maxWidth: "55%", textAlign: "center" }}>{item.caption}</div>
+          <div style={{ color: "var(--text-primary)", fontSize: "0.88rem", fontFamily: "Cairo,sans-serif", maxWidth: "55%", textAlign: "center" }}>{item.caption}</div>
         )}
         <button onClick={onClose}
           style={{ background: "rgba(220,38,38,0.25)", border: "1px solid rgba(220,38,38,0.4)", color: "white", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1rem" }}>
@@ -85,11 +85,11 @@ function Lightbox({ items, startIdx, ar, onClose }: { items: GalleryItem[]; star
         {items.length > 1 && (
           <>
             <button onClick={ar ? next : prev}
-              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "right" : "left"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
+              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "right" : "left"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid var(--border-strong)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
               {ar ? "›" : "‹"}
             </button>
             <button onClick={ar ? prev : next}
-              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "left" : "right"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
+              style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", [ar ? "left" : "right"]: "0.75rem", zIndex: 10, background: "rgba(0,0,0,0.55)", border: "1px solid var(--border-strong)", color: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.25rem" }}>
               {ar ? "‹" : "›"}
             </button>
           </>
@@ -128,7 +128,7 @@ function getItemStyle(size: string, hovered: boolean): React.CSSProperties {
   const base: React.CSSProperties = {
     position: "relative", overflow: "hidden", borderRadius: 12, cursor: "pointer",
     background: "#0d1824", marginBottom: "0.75rem",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--bg-surface-2)",
     boxShadow: hovered ? "0 10px 40px rgba(0,0,0,0.55)" : "0 2px 12px rgba(0,0,0,0.35)",
     transform: hovered ? "scale(1.012)" : "scale(1)",
     transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
@@ -175,7 +175,7 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
           )}
           {/* Play button overlay */}
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", border: "2px solid rgba(255,255,255,0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", transform: hovered ? "scale(1.12)" : "scale(1)", transition: "transform 0.2s" }}>▶</div>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", border: "2px solid var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", transform: hovered ? "scale(1.12)" : "scale(1)", transition: "transform 0.2s" }}>▶</div>
           </div>
           <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "white", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: 20, fontFamily: "Cairo,sans-serif" }}>فيديو</div>
         </div>
@@ -189,7 +189,7 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
             onLoad={() => setLoaded(true)}
             onError={() => { setErrored(true); setLoaded(true); }} />
           {errored && (
-            <div style={{ width: "100%", aspectRatio: "4/3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.25)", fontSize: "2rem", gap: "0.5rem" }}>
+            <div style={{ width: "100%", aspectRatio: "4/3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--border-strong)", fontSize: "2rem", gap: "0.5rem" }}>
               <span>🖼️</span>
               <span style={{ fontSize: "0.7rem", fontFamily: "Cairo,sans-serif" }}>تعذّر التحميل</span>
             </div>
@@ -204,7 +204,7 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
 
       {/* Caption */}
       {item.caption && (
-        <div style={{ position: "absolute", bottom: 0, right: 0, left: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.82))", padding: "1.25rem 0.75rem 0.6rem", color: "rgba(255,255,255,0.9)", fontSize: "0.75rem", fontFamily: "Cairo,sans-serif", lineHeight: 1.4, opacity: hovered ? 1 : 0, transition: "opacity 0.25s" }}>
+        <div style={{ position: "absolute", bottom: 0, right: 0, left: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.82))", padding: "1.25rem 0.75rem 0.6rem", color: "var(--text-primary)", fontSize: "0.75rem", fontFamily: "Cairo,sans-serif", lineHeight: 1.4, opacity: hovered ? 1 : 0, transition: "opacity 0.25s" }}>
           {item.caption}
         </div>
       )}
@@ -244,7 +244,7 @@ export default function GalleryDetailPage() {
   }, [slug]);
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo,sans-serif", direction: ar ? "rtl" : "ltr" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo,sans-serif", direction: ar ? "rtl" : "ltr" }}>
       <div style={{ textAlign: "center", color: "#00AAFF" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
         <div>{ar ? "جاري التحميل..." : "Loading..."}</div>
@@ -253,7 +253,7 @@ export default function GalleryDetailPage() {
   );
 
   if (err || !album) return (
-    <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo,sans-serif", direction: ar ? "rtl" : "ltr" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Cairo,sans-serif", direction: ar ? "rtl" : "ltr" }}>
       <div style={{ textAlign: "center", color: "#ff6b6b" }}>
         <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📷</div>
         <div style={{ marginBottom: "1.5rem" }}>{ar ? "الألبوم غير موجود" : "Album not found"}</div>
@@ -291,7 +291,7 @@ export default function GalleryDetailPage() {
             <button onClick={() => navigate("/gallery")}
               style={{
                 background: "rgba(0,0,0,0.5)", backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.2)", color: "white",
+                border: "1px solid var(--border-strong)", color: "white",
                 borderRadius: "50px", padding: "0.45rem 1.1rem", cursor: "pointer",
                 fontFamily: "Cairo,sans-serif", fontSize: "0.82rem",
                 display: "flex", alignItems: "center", gap: "0.4rem",
@@ -317,7 +317,7 @@ export default function GalleryDetailPage() {
           </h1>
 
           {(ar ? album.descriptionAr : album.descriptionEn) && (
-            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: 520, margin: "0 auto", fontSize: "0.92rem", lineHeight: 1.7, textShadow: "0 1px 8px rgba(0,0,0,0.7)" }}>
+            <p style={{ color: "var(--text-secondary)", maxWidth: 520, margin: "0 auto", fontSize: "0.92rem", lineHeight: 1.7, textShadow: "0 1px 8px rgba(0,0,0,0.7)" }}>
               {ar ? album.descriptionAr : album.descriptionEn}
             </p>
           )}
@@ -330,7 +330,7 @@ export default function GalleryDetailPage() {
         {items.length === 0 ? (
           <div style={{ textAlign: "center", padding: "5rem 2rem" }}>
             <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>📷</div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "1.05rem" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "1.05rem" }}>
               {ar ? "لا توجد وسائط بعد" : "No media yet"}
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function GalleryDetailPage() {
                 <GridItem key={item.id} item={item} idx={i} onClick={() => setLightboxIdx(i)} />
               ))}
             </div>
-            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.18)", fontSize: "0.72rem", marginTop: "1.5rem", fontFamily: "Cairo,sans-serif" }}>
+            <p style={{ textAlign: "center", color: "var(--border-strong)", fontSize: "0.72rem", marginTop: "1.5rem", fontFamily: "Cairo,sans-serif" }}>
               {ar ? "انقر على أي صورة لعرضها بملء الشاشة" : "Click any photo to view fullscreen"}
             </p>
           </>

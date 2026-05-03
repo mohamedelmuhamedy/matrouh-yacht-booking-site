@@ -6,13 +6,16 @@ interface ThemeSwitchProps {
   labelEn?: string;
 }
 
-export default function ThemeSwitch({ size = "md", labelAr = "تبديل المظهر", labelEn = "Toggle theme" }: ThemeSwitchProps) {
+export default function ThemeSwitch({
+  size = "md",
+  labelAr = "تبديل المظهر",
+  labelEn = "Toggle theme",
+}: ThemeSwitchProps) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
-  const dims = size === "sm"
-    ? { w: 56, h: 28, knob: 22, pad: 3, icon: 12 }
-    : { w: 64, h: 34, knob: 26, pad: 4, icon: 14 };
+  const dim = size === "sm" ? 34 : 38;
+  const iconSize = size === "sm" ? 16 : 18;
 
   return (
     <button
@@ -25,68 +28,51 @@ export default function ThemeSwitch({ size = "md", labelAr = "تبديل الم�
       className="theme-switch"
       data-theme-switch
       style={{
-        position: "relative",
-        width: dims.w,
-        height: dims.h,
-        minHeight: 40,
-        minWidth: 40,
-        borderRadius: 999,
-        border: "1px solid var(--theme-switch-border, rgba(0,170,255,0.35))",
-        background: isDark
-          ? "linear-gradient(135deg, #0a1420 0%, #1c2c45 100%)"
-          : "linear-gradient(135deg, #C9A84C 0%, #00AAFF 100%)",
-        cursor: "pointer",
-        padding: dims.pad,
-        boxSizing: "content-box",
-        flexShrink: 0,
-        transition: "background 0.4s ease, border-color 0.3s ease",
-        boxShadow: isDark
-          ? "inset 0 1px 4px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,170,255,0.15)"
-          : "inset 0 1px 4px rgba(13,27,42,0.18), 0 2px 8px rgba(201,168,76,0.25)",
-        outline: "none",
-      }}
-      onFocus={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 3px rgba(0,170,255,0.35)"; }}
-      onBlur={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = isDark
-          ? "inset 0 1px 4px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,170,255,0.15)"
-          : "inset 0 1px 4px rgba(13,27,42,0.18), 0 2px 8px rgba(201,168,76,0.25)";
-      }}
-    >
-      {/* Stars (visible in dark) */}
-      <span aria-hidden style={{
-        position: "absolute", top: "50%", insetInlineStart: 8, transform: "translateY(-50%)",
-        fontSize: dims.icon, color: "rgba(255,255,255,0.7)",
-        opacity: isDark ? 1 : 0,
-        transition: "opacity 0.3s ease",
-      }}>✦</span>
-      {/* Sun/cloud (visible in light) */}
-      <span aria-hidden style={{
-        position: "absolute", top: "50%", insetInlineEnd: 8, transform: "translateY(-50%)",
-        fontSize: dims.icon, color: "#fff",
-        opacity: isDark ? 0 : 1,
-        transition: "opacity 0.3s ease",
-      }}>☀</span>
-
-      {/* Knob */}
-      <span style={{
-        position: "absolute",
-        top: dims.pad,
-        insetInlineStart: isDark ? dims.pad : `calc(100% - ${dims.knob + dims.pad}px)`,
-        width: dims.knob,
-        height: dims.knob,
+        width: dim,
+        height: dim,
         borderRadius: "50%",
-        background: isDark
-          ? "radial-gradient(circle at 30% 30%, #f4f4f5 0%, #d4d4d8 70%, #a1a1aa 100%)"
-          : "radial-gradient(circle at 30% 30%, #fff8dc 0%, #f5d76e 60%, #C9A84C 100%)",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.6)",
-        transition: "inset-inline-start 0.35s cubic-bezier(0.4,0,0.2,1), background 0.35s ease",
-        display: "flex",
+        border: "1px solid var(--border-strong)",
+        background: "var(--bg-surface-2)",
+        color: "var(--text-secondary)",
+        cursor: "pointer",
+        display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: dims.icon,
-      }}>
-        {isDark ? "🌙" : "☀️"}
-      </span>
+        flexShrink: 0,
+        transition: "background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease",
+        outline: "none",
+        padding: 0,
+        boxSizing: "border-box",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.color = "#00AAFF";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.45)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
+      }}
+      onFocus={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 3px rgba(0,170,255,0.30)";
+      }}
+      onBlur={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+      }}
+    >
+      {isDark ? (
+        // Moon — currently dark, click to go light
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      ) : (
+        // Sun — currently light, click to go dark
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      )}
     </button>
   );
 }

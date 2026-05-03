@@ -49,7 +49,7 @@ const inputSt: React.CSSProperties = {
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "#0D1B2A", background: "white",
 };
 const labelSt: React.CSSProperties = {
-  display: "block", color: "#667788", fontWeight: 700, fontSize: "0.78rem", marginBottom: "0.3rem",
+  display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.78rem", marginBottom: "0.3rem",
 };
 const sectionSt: React.CSSProperties = {
   background: "white", borderRadius: 14, padding: "1.25rem", marginBottom: "1rem",
@@ -171,7 +171,7 @@ export default function AdminWhyUsFormPage() {
   }
 
   if (loading) {
-    return <div style={{ padding: "3rem", textAlign: "center", color: "#99aabb", fontFamily: "Cairo, sans-serif" }}>جاري التحميل...</div>;
+    return <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)", fontFamily: "Cairo, sans-serif" }}>جاري التحميل...</div>;
   }
 
   return (
@@ -181,7 +181,7 @@ export default function AdminWhyUsFormPage() {
           <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: 0 }}>
             {isEdit ? "تعديل بطاقة" : "بطاقة جديدة"}
           </h1>
-          <p style={{ color: "#667788", fontSize: "0.85rem", margin: "0.25rem 0 0" }}>
+          <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: "0.25rem 0 0" }}>
             تحكم في كل جزء من البطاقة وصفحة تفاصيلها.
           </p>
         </div>
@@ -291,7 +291,7 @@ export default function AdminWhyUsFormPage() {
             + إضافة نقطة
           </button>
         </div>
-        {form.bullets.length === 0 && <div style={{ color: "#99aabb", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد نقاط بعد</div>}
+        {form.bullets.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد نقاط بعد</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {form.bullets.map((b, i) => (
             <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.85rem", border: "1px solid #e0e8f0" }}>
@@ -325,7 +325,7 @@ export default function AdminWhyUsFormPage() {
             + إضافة إحصائية
           </button>
         </div>
-        {form.stats.length === 0 && <div style={{ color: "#99aabb", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد إحصائيات بعد</div>}
+        {form.stats.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد إحصائيات بعد</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {form.stats.map((s, i) => (
             <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.6rem", border: "1px solid #e0e8f0", display: "grid", gridTemplateColumns: "50px 90px 1fr 1fr 70px", gap: "0.4rem", alignItems: "center" }}>
@@ -347,7 +347,7 @@ export default function AdminWhyUsFormPage() {
             + إضافة صورة
           </button>
         </div>
-        {form.galleryImages.length === 0 && <div style={{ color: "#99aabb", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد صور في المعرض</div>}
+        {form.galleryImages.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد صور في المعرض</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {form.galleryImages.map((img, i) => (
             <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>

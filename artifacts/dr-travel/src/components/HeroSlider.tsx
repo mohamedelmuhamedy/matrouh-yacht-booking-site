@@ -404,7 +404,7 @@ export default function HeroSlider({
               onClick={() => { setPrev(active); setActive(i); }}
               style={{
                 width: i === active ? 24 : 8, height: 8, borderRadius: 4, border: "none",
-                background: i === active ? "#00AAFF" : "rgba(255,255,255,0.4)",
+                background: i === active ? "#00AAFF" : "var(--text-muted)",
                 cursor: "pointer", padding: 0, transition: "all 0.4s ease",
               }}
             />
@@ -435,7 +435,7 @@ function BufferingIndicator() {
         ))}
       </span>
       <span style={{
-        color: "rgba(255,255,255,0.75)", fontSize: "0.72rem",
+        color: "var(--text-secondary)", fontSize: "0.72rem",
         fontFamily: "Cairo, sans-serif", fontWeight: 600, whiteSpace: "nowrap",
       }}>
         جاري تحميل الفيديو...

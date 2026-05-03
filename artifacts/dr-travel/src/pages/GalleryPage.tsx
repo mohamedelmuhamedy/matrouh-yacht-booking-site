@@ -38,7 +38,7 @@ export default function GalleryPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg,#0a1520 0%,#0D1B2A 100%)", fontFamily: "Cairo, Montserrat, sans-serif", direction: ar ? "rtl" : "ltr" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, var(--bg-page-2) 0%, var(--bg-page) 100%)", fontFamily: "Cairo, Montserrat, sans-serif", direction: ar ? "rtl" : "ltr" }}>
       {/* Header */}
       <div style={{ padding: "5rem 1.5rem 3rem", textAlign: "center", background: "linear-gradient(180deg,rgba(0,170,255,0.08) 0%,transparent 100%)" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: "1.5rem" }}>
@@ -49,12 +49,12 @@ export default function GalleryPage() {
         <h1 style={{ fontSize: "2.5rem", fontWeight: 900, color: "white", margin: "0 0 1rem", lineHeight: 1.2 }}>
           {ar ? "معرض DR Travel" : "DR Travel Gallery"}
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "1rem", maxWidth: 520, margin: "0 auto" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "1rem", maxWidth: 520, margin: "0 auto" }}>
           {ar ? "لحظات لا تُنسى من رحلاتنا في مرسى مطروح — يخت، سفاري، وذكريات للأبد"
                : "Unforgettable moments from our trips in Marsa Matruh — yacht, safari and memories forever"}
         </p>
         <button onClick={() => navigate("/")}
-          style={{ marginTop: "1.5rem", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.65)", borderRadius: "50px", padding: "0.45rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem", transition: "all 0.2s" }}>
+          style={{ marginTop: "1.5rem", background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)", borderRadius: "50px", padding: "0.45rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem", transition: "all 0.2s" }}>
           {ar ? "← الرئيسية" : "← Home"}
         </button>
       </div>
@@ -79,7 +79,7 @@ export default function GalleryPage() {
         ) : albums.length === 0 ? (
           <div style={{ textAlign: "center", padding: "5rem 2rem" }}>
             <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>📷</div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "1.1rem" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "1.1rem" }}>
               {ar ? "لا توجد ألبومات بعد" : "No albums yet"}
             </div>
           </div>
@@ -101,7 +101,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
 
   return (
     <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "all 0.3s", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 12px 40px rgba(0,170,255,0.15)" : "0 2px 12px rgba(0,0,0,0.3)" }}>
+      style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "all 0.3s", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 12px 40px rgba(0,170,255,0.15)" : "0 2px 12px rgba(0,0,0,0.3)" }}>
 
       <div style={{ position: "relative", height: 200, background: "#0d1824", overflow: "hidden" }}>
         {album.coverImage ? (
@@ -117,7 +117,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
             ))}
           </div>
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: "3.5rem" }}>🏔️</div>
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--border-strong)", fontSize: "3.5rem" }}>🏔️</div>
         )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(transparent 40%,rgba(8,16,26,0.75))" }} />
         <div style={{ position: "absolute", bottom: "0.75rem", [ar ? "right" : "left"]: "0.85rem" }}>
@@ -137,7 +137,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
           {ar ? album.titleAr : album.titleEn}
         </h3>
         {(ar ? album.descriptionAr : album.descriptionEn) && (
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
             {ar ? album.descriptionAr : album.descriptionEn}
           </p>
         )}

@@ -443,7 +443,7 @@ export default function BookingsPage() {
           />
         </div>
         <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
-          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={v => setFilter(v)} />
+          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="var(--section-subtitle)" onClick={v => setFilter(v)} />
           {STATUS_OPTIONS.map(s => (
             <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
           ))}
@@ -760,7 +760,7 @@ function FilterTab({ value, current, count, label, color, onClick }: { value: st
   return (
     <button onClick={() => onClick(value)}
       style={{ background: active ? color : "white", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0 }}>
-      {label} {count > 0 && <span style={{ background: active ? "rgba(255,255,255,0.3)" : `${color}20`, borderRadius: "50px", padding: "0.1rem 0.4rem", marginRight: "0.25rem" }}>{count}</span>}
+      {label} {count > 0 && <span style={{ background: active ? "var(--text-muted)" : `${color}20`, borderRadius: "50px", padding: "0.1rem 0.4rem", marginRight: "0.25rem" }}>{count}</span>}
     </button>
   );
 }

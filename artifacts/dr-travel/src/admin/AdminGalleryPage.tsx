@@ -21,8 +21,8 @@ const SIZES = [
 interface GalleryAlbum { id: number; slug: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; coverImage: string; isVisible: boolean; sortOrder: number; items?: GalleryItem[]; }
 
 const dark = {
-  card: "#1a2535", input: "#0d1824", border: "rgba(255,255,255,0.12)",
-  label: "rgba(255,255,255,0.75)", text: "#ffffff", sub: "rgba(255,255,255,0.45)",
+  card: "var(--bg-surface-solid)", input: "#0d1824", border: "var(--border-strong)",
+  label: "var(--text-secondary)", text: "#ffffff", sub: "var(--text-muted)",
 };
 
 const EMPTY_ALBUM = { slug: "", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "", coverImage: "", isVisible: true, sortOrder: 0 };
@@ -205,7 +205,7 @@ export default function AdminGalleryPage() {
     <div style={{ maxWidth: 900, margin: "0 auto", direction: "rtl", fontFamily: "Cairo, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
         <button onClick={() => { setOpenAlbum(null); setItems([]); }}
-          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+          style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
           ← رجوع
         </button>
         <h2 style={{ margin: 0, color: "#00AAFF", fontSize: "1.2rem" }}>{openAlbum.titleAr}</h2>
@@ -220,7 +220,7 @@ export default function AdminGalleryPage() {
           <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
             {SIZES.map(s => (
               <button key={s.value} onClick={() => setPendingSize(s.value)}
-                style={{ padding: "0.35rem 0.9rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", transition: "all 0.15s", border: pendingSize === s.value ? "none" : `1px solid ${dark.border}`, background: pendingSize === s.value ? "#00AAFF" : "rgba(255,255,255,0.04)", color: pendingSize === s.value ? "white" : dark.sub }}>
+                style={{ padding: "0.35rem 0.9rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", transition: "all 0.15s", border: pendingSize === s.value ? "none" : `1px solid ${dark.border}`, background: pendingSize === s.value ? "#00AAFF" : "var(--bg-surface)", color: pendingSize === s.value ? "white" : dark.sub }}>
                 {s.label}
               </button>
             ))}
@@ -316,7 +316,7 @@ export default function AdminGalleryPage() {
                   {SIZES.map(s => (
                     <button key={s.value} onClick={() => changeSize(s.value)} disabled={isUpdating}
                       title={`تغيير الحجم إلى ${s.label}`}
-                      style={{ padding: "0.18rem 0.5rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.68rem", fontWeight: 700, cursor: isUpdating ? "wait" : "pointer", transition: "all 0.15s", border: currentSize === s.value ? "none" : `1px solid rgba(255,255,255,0.15)`, background: currentSize === s.value ? "#00AAFF" : "rgba(255,255,255,0.04)", color: currentSize === s.value ? "white" : "rgba(255,255,255,0.4)", opacity: isUpdating ? 0.5 : 1 }}>
+                      style={{ padding: "0.18rem 0.5rem", borderRadius: 20, fontFamily: "Cairo, sans-serif", fontSize: "0.68rem", fontWeight: 700, cursor: isUpdating ? "wait" : "pointer", transition: "all 0.15s", border: currentSize === s.value ? "none" : `1px solid var(--border-strong)`, background: currentSize === s.value ? "#00AAFF" : "var(--bg-surface)", color: currentSize === s.value ? "white" : "var(--text-muted)", opacity: isUpdating ? 0.5 : 1 }}>
                       {s.label}
                     </button>
                   ))}
@@ -388,7 +388,7 @@ export default function AdminGalleryPage() {
                 )}
                 {!album.isVisible && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ background: "#0D1B2A", color: "rgba(255,255,255,0.7)", padding: "0.3rem 0.75rem", borderRadius: 6, fontSize: "0.8rem", fontWeight: 700 }}>مخفي</span>
+                    <span style={{ background: "var(--bg-page)", color: "var(--text-secondary)", padding: "0.3rem 0.75rem", borderRadius: 6, fontSize: "0.8rem", fontWeight: 700 }}>مخفي</span>
                   </div>
                 )}
               </div>

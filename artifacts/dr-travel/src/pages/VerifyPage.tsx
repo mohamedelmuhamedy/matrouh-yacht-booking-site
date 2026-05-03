@@ -168,7 +168,7 @@ export default function VerifyPage() {
           )}
         </div>
 
-        <div style={{ textAlign: "center", color: "rgba(255,255,255,0.55)", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
+        <div style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
           🔒 {T.poweredBy}
         </div>
       </div>

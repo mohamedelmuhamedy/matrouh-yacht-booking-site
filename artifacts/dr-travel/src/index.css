@@ -920,3 +920,174 @@ main a:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 14px 30px rgba(37,211,102,0.42);
 }
+
+/* ===== BOOKINGS CSS DARK MODE OVERRIDES ===== */
+:root[data-theme="dark"] .bk-card,
+:root:not([data-theme="light"]) .bk-card {
+  background: var(--bg-surface-2);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+}
+:root:not([data-theme="light"]) .bk-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 16px 40px -16px rgba(0,170,255,0.18);
+  border-color: rgba(0,170,255,0.25);
+}
+:root:not([data-theme="light"]) .bk-card.is-open {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 24px 60px -20px rgba(0,170,255,0.30);
+  border-color: rgba(0,170,255,0.4);
+}
+:root:not([data-theme="light"]) .bk-head:hover { background: rgba(255,255,255,0.03); }
+:root:not([data-theme="light"]) .bk-name { color: var(--text-primary); }
+:root:not([data-theme="light"]) .bk-sub { color: var(--text-secondary); }
+:root:not([data-theme="light"]) .bk-sub-item.is-strong { color: var(--text-primary); }
+:root:not([data-theme="light"]) .bk-chip { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+:root:not([data-theme="light"]) .bk-chip.is-price { background: rgba(201,168,76,0.15); color: #f5d76e; border-color: rgba(201,168,76,0.35); }
+:root:not([data-theme="light"]) .bk-chip.is-pkg { background: rgba(0,170,255,0.15); color: #4dc4ff; }
+:root:not([data-theme="light"]) .bk-chip.is-flag { background: rgba(220,38,38,0.18); color: #fca5a5; border-color: rgba(220,38,38,0.45); }
+:root:not([data-theme="light"]) .bk-icon-btn { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-primary); }
+:root:not([data-theme="light"]) .bk-icon-btn.is-chevron { background: rgba(255,255,255,0.04); }
+:root:not([data-theme="light"]) .bk-confirmed-ring { box-shadow: 0 0 0 2px var(--bg-surface-solid), 0 0 0 4px #C9A84C, 0 6px 16px -8px var(--bk-color, #00AAFF); }
+:root:not([data-theme="light"]) .bk-body { background: rgba(255,255,255,0.02); border-top-color: rgba(255,255,255,0.06); }
+:root:not([data-theme="light"]) .bk-info { background: rgba(255,255,255,0.04); border-color: var(--border); }
+:root:not([data-theme="light"]) .bk-info-label { color: var(--text-muted); }
+:root:not([data-theme="light"]) .bk-info-val { color: var(--text-primary); }
+:root:not([data-theme="light"]) .bk-note.is-customer { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+:root:not([data-theme="light"]) .bk-note.is-admin { background: rgba(245,158,11,0.12); color: #fbbf24; }
+:root:not([data-theme="light"]) .bk-btn { background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: var(--border); }
+:root:not([data-theme="light"]) .bk-btn.is-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.4); }
+:root:not([data-theme="light"]) .bk-btn.is-danger { background: rgba(220,38,38,0.15); color: #fca5a5; border-color: rgba(220,38,38,0.4); }
+:root:not([data-theme="light"]) .bk-audit { color: var(--text-muted); border-top-color: rgba(255,255,255,0.06); }
+:root:not([data-theme="light"]) .bk-audit code { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+:root:not([data-theme="light"]) .bk-toolbar { background: linear-gradient(180deg, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.75) 100%); }
+:root:not([data-theme="light"]) .bk-toolbar.is-stuck { border-bottom-color: rgba(255,255,255,0.08); }
+
+/* ===== ADMIN FORM FIELDS — LIGHT MODE PARITY ===== */
+/* Override the hardcoded admin form colors that were dark-mode only */
+:root[data-theme="light"] .admin-wrap input:not([type="color"]),
+:root[data-theme="light"] .admin-wrap textarea,
+:root[data-theme="light"] .admin-wrap select,
+:root[data-theme="light"] .admin-login input {
+  color: var(--input-text);
+  background: var(--input-bg);
+  border-color: var(--input-border);
+}
+:root[data-theme="light"] .admin-wrap input::placeholder,
+:root[data-theme="light"] .admin-wrap textarea::placeholder,
+:root[data-theme="light"] .admin-login input::placeholder {
+  color: var(--input-placeholder);
+}
+
+/* ===== UNIVERSAL SCROLL-DOT ANIMATION ===== */
+@keyframes scrollDot {
+  0% { transform: translateY(0); opacity: 1; }
+  60% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+/* ===== THEME SWITCH FOCUS POLISH ===== */
+.theme-switch:focus-visible { box-shadow: 0 0 0 3px rgba(0,170,255,0.30) !important; }
+
+/* ===== LIGHT MODE — INLINE STYLE OVERRIDES =====
+   Inline styles that hardcode color:white inside card containers must be
+   forced to dark text in light mode. !important + class selector overrides
+   inline style without !important. ===== */
+:root[data-theme="light"] .service-card h3,
+:root[data-theme="light"] .pkg-card h3,
+:root[data-theme="light"] .why-card h3,
+:root[data-theme="light"] .pkg-card div[style*="color: white"],
+:root[data-theme="light"] .pkg-card div[style*='color:"white"'],
+:root[data-theme="light"] main h3[style*='color: "white"'],
+:root[data-theme="light"] main h3[style*='color:"white"'] {
+  color: var(--text-primary) !important;
+}
+
+/* Section default text in light mode — service cards descriptions etc */
+:root[data-theme="light"] .service-card p,
+:root[data-theme="light"] .pkg-card p,
+:root[data-theme="light"] .why-card p {
+  color: var(--text-secondary) !important;
+}
+
+/* Cards baseline in light: white surface with subtle shadow */
+:root[data-theme="light"] .service-card,
+:root[data-theme="light"] .pkg-card,
+:root[data-theme="light"] .why-card {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-card);
+}
+:root[data-theme="light"] .service-card:hover,
+:root[data-theme="light"] .pkg-card:hover,
+:root[data-theme="light"] .why-card:hover {
+  background: var(--bg-surface) !important;
+  border-color: rgba(0,170,255,0.35) !important;
+}
+:root[data-theme="light"] .pkg-card.selected {
+  border-color: rgba(0,170,255,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(0,170,255,0.15), 0 8px 24px -8px rgba(0,170,255,0.25) !important;
+}
+
+/* Footer + reviews track in light: invert surface */
+:root[data-theme="light"] #footer,
+:root[data-theme="light"] footer {
+  background: var(--bg-surface-sunk) !important;
+  border-top: 1px solid var(--border) !important;
+}
+:root[data-theme="light"] #footer * {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] #footer h3,
+:root[data-theme="light"] #footer h4,
+:root[data-theme="light"] #footer strong {
+  color: var(--text-primary);
+}
+
+/* Hero — keep dark overlay for legibility of white text on photo */
+:root[data-theme="light"] .hero-bg {
+  /* slightly lighter overlay so the photo shows through more */
+}
+.hero-bg .hero-title,
+.hero-bg p,
+.hero-bg h1,
+.hero-bg h2 {
+  /* hero text always white — photo is dark */
+}
+
+/* Reviews/testimonials cards in light mode */
+:root[data-theme="light"] .review-card,
+:root[data-theme="light"] .testimonial-card {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary);
+}
+
+/* Wave SVGs use #0D1B2A fill — invisible in dark, but in light they look like a navy stripe.
+   Hide them in light mode (sections handle their own bg via tokens). */
+:root[data-theme="light"] .wave-container svg path[fill="#0D1B2A"] {
+  fill: var(--bg-page) !important;
+}
+
+/* Generic card h3 in light mode — covers cases like AdminRewardsPage/etc with inline color:white */
+:root[data-theme="light"] .admin-wrap h1[style*='color: "white"'],
+:root[data-theme="light"] .admin-wrap h2[style*='color: "white"'],
+:root[data-theme="light"] .admin-wrap h3[style*='color: "white"'] {
+  color: var(--text-primary) !important;
+}
+
+/* Show-pkg-btn hide variant — uses hardcoded muted grey */
+:root[data-theme="light"] .show-pkg-btn.hide {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+/* Nav-link active in light: stay ocean blue but darker for contrast */
+:root[data-theme="light"] .nav-link.active { color: #0086C9; }
+:root[data-theme="light"] .nav-link.active::after {
+  background: linear-gradient(90deg, #0086C9, #b08930);
+}
+
+/* Section labels in light */
+:root[data-theme="light"] .section-label {
+  color: #0086C9;
+}

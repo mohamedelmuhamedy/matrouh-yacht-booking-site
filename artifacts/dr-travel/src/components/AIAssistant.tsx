@@ -46,7 +46,7 @@ function renderMarkdown(text: string): React.ReactNode {
       const k = `${key}-${i++}`;
       if (tok.startsWith("**")) parts.push(<strong key={k}>{tok.slice(2, -2)}</strong>);
       else if (tok.startsWith("*")) parts.push(<em key={k}>{tok.slice(1, -1)}</em>);
-      else if (tok.startsWith("`")) parts.push(<code key={k} style={{ background: "rgba(255,255,255,0.08)", padding: "0 4px", borderRadius: 4 }}>{tok.slice(1, -1)}</code>);
+      else if (tok.startsWith("`")) parts.push(<code key={k} style={{ background: "var(--border)", padding: "0 4px", borderRadius: 4 }}>{tok.slice(1, -1)}</code>);
       else parts.push(<a key={k} href={tok} target="_blank" rel="noreferrer" style={{ color: "#9fd4ff", textDecoration: "underline" }}>{tok}</a>);
       last = m.index + tok.length;
     }
@@ -397,7 +397,7 @@ export default function AIAssistant() {
           className="drtai-bubble"
           style={{
             position: "fixed", bottom: "6.5rem", right: "1.5rem", zIndex: 999,
-            background: "white", color: "#0D1B2A",
+            background: "var(--bg-surface-solid)", color: "var(--text-primary)",
             padding: "0.8rem 0.95rem 0.85rem 0.95rem", borderRadius: "16px 16px 4px 16px",
             boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
             maxWidth: "280px", fontSize: "0.85rem", fontWeight: 600,
@@ -450,7 +450,7 @@ export default function AIAssistant() {
           position: "fixed", bottom: "2rem", right: "1.5rem", zIndex: 998,
           width: 60, height: 60, borderRadius: "50%",
           background: open ? "#0D1B2A" : "linear-gradient(135deg,#0D1B2A 0%,#0a3550 60%,#00AAFF 130%)",
-          border: "1px solid rgba(255,255,255,0.12)", cursor: "pointer",
+          border: "1px solid var(--border-strong)", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "transform 0.25s",
         }}
@@ -478,7 +478,7 @@ export default function AIAssistant() {
           style={{
             position: "fixed", bottom: "5.5rem", right: "1.5rem", zIndex: 997,
             width: "min(380px, calc(100vw - 2rem))", maxHeight: "min(620px, calc(100vh - 7rem))",
-            background: "#0a1520",
+            background: "var(--bg-page-2)",
             border: "1px solid rgba(0,170,255,0.25)", borderRadius: "20px",
             boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
             display: "flex", flexDirection: "column",
@@ -489,14 +489,14 @@ export default function AIAssistant() {
           <div style={{
             padding: "0.9rem 1.1rem",
             background: "linear-gradient(135deg, rgba(0,170,255,0.18), rgba(201,168,76,0.12))",
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            borderBottom: "1px solid var(--bg-surface-2)",
             display: "flex", alignItems: "center", gap: "0.7rem",
           }}>
             <div style={{
               width: 38, height: 38, borderRadius: "50%",
               background: "linear-gradient(135deg,#0D1B2A,#00AAFF)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              border: "1px solid rgba(255,255,255,0.15)",
+              border: "1px solid var(--border-strong)",
             }}>
               <AssistantIcon size={22} />
             </div>
@@ -512,7 +512,7 @@ export default function AIAssistant() {
               title={T.clear}
               aria-label={T.clear}
               style={{
-                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)",
                 color: "#cbd5e1", borderRadius: 999, padding: "0.3rem 0.65rem",
                 fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
               }}
@@ -552,7 +552,7 @@ export default function AIAssistant() {
                       aria-label={T.copy}
                       style={{
                         position: "absolute", bottom: -10, [ar ? "left" : "right"]: 6,
-                        background: "rgba(13,27,42,0.95)", border: "1px solid rgba(255,255,255,0.18)",
+                        background: "rgba(13,27,42,0.95)", border: "1px solid var(--border-strong)",
                         color: copiedIdx === i ? "#22c55e" : "#9fd4ff",
                         borderRadius: 999, padding: "2px 8px",
                         fontSize: "0.65rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
@@ -665,7 +665,7 @@ export default function AIAssistant() {
           {/* Input */}
           <form onSubmit={handleSubmit} style={{
             padding: "0.7rem 0.8rem",
-            borderTop: "1px solid rgba(255,255,255,0.07)",
+            borderTop: "1px solid var(--bg-surface-2)",
             background: "rgba(0,0,0,0.25)",
             display: "flex", gap: "0.5rem", alignItems: "center",
           }}>
@@ -677,13 +677,13 @@ export default function AIAssistant() {
               disabled={sending}
               dir={ar ? "rtl" : "ltr"}
               style={{
-                flex: 1, background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999,
+                flex: 1, background: "var(--bg-surface)",
+                border: "1px solid var(--border-strong)", borderRadius: 999,
                 padding: "0.55rem 0.95rem", color: "white", fontSize: "0.85rem",
                 outline: "none", fontFamily: "inherit",
               }}
               onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.5)"; }}
-              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; }}
             />
             <button
               type="submit"
@@ -691,7 +691,7 @@ export default function AIAssistant() {
               aria-label={T.send}
               style={{
                 width: 38, height: 38, borderRadius: "50%",
-                background: input.trim() && !sending ? "linear-gradient(135deg,#00AAFF,#C9A84C)" : "rgba(255,255,255,0.08)",
+                background: input.trim() && !sending ? "linear-gradient(135deg,#00AAFF,#C9A84C)" : "var(--border)",
                 border: "none",
                 color: "white", cursor: input.trim() && !sending ? "pointer" : "not-allowed",
                 display: "flex", alignItems: "center", justifyContent: "center",

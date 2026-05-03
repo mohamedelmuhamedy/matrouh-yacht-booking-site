@@ -100,7 +100,7 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
           {loading ? tx.loading : tx.refresh}
         </button>
       </div>
-      <p style={{ margin: 0, color: "#667788", fontSize: "0.78rem" }}>{tx.description}</p>
+      <p style={{ margin: 0, color: "var(--section-subtitle)", fontSize: "0.78rem" }}>{tx.description}</p>
 
       {error && (
         <div style={{
@@ -116,18 +116,18 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
       </div>
 
       <div>
-        <div style={{ color: "#445566", fontWeight: 800, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
+        <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
           {tx.bySource}
         </div>
         {(!stats || stats.bySource.length === 0) ? (
-          <div style={{ color: "#667788", fontSize: "0.82rem", padding: "0.65rem 0.7rem", background: "#f8fafc", borderRadius: 10, border: "1.5px dashed #d0dce8" }}>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", padding: "0.65rem 0.7rem", background: "#f8fafc", borderRadius: 10, border: "1.5px dashed #d0dce8" }}>
             {tx.empty}
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
               <thead>
-                <tr style={{ background: "#f8fafc", color: "#445566" }}>
+                <tr style={{ background: "#f8fafc", color: "var(--text-muted)" }}>
                   <th style={thStyle(ar)}>{tx.sourceColumn}</th>
                   <th style={thStyleNum}>{tx.totalColumn}</th>
                   <th style={thStyleNum}>{tx.last7Column}</th>
@@ -142,7 +142,7 @@ export default function ShareCardScanStats({ sourcePresets = [] }: Props) {
                       <td style={tdStyle(ar)}>
                         <span style={{ color: "#0D1B2A", fontWeight: 700 }}>{label}</span>
                         {row.source && (
-                          <span style={{ color: "#667788", marginInlineStart: "0.5rem", direction: "ltr", fontSize: "0.78rem" }}>
+                          <span style={{ color: "var(--section-subtitle)", marginInlineStart: "0.5rem", direction: "ltr", fontSize: "0.78rem" }}>
                             ?s={row.source}
                           </span>
                         )}

@@ -106,7 +106,7 @@ export default function AdminServicesPage() {
           <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
             إدارة الخدمات
           </h1>
-          <p style={{ color: "#667788", fontSize: "0.85rem", margin: 0 }}>
+          <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>
             هذه هي بطاقات الخدمات اللي بتظهر في الصفحة الرئيسية. كل خدمة لها صفحة تفاصيل خاصة بيها.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function AdminServicesPage() {
           <div style={{ color: "#0D1B2A", fontWeight: 800, fontSize: "0.92rem" }}>
             صفحات تفاصيل الخدمات
           </div>
-          <div style={{ color: "#445566", fontSize: "0.78rem", marginTop: "0.15rem", lineHeight: 1.6 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "0.15rem", lineHeight: 1.6 }}>
             {detailPagesEnabled
               ? "مفعّلة — الضغط على أي بطاقة خدمة بيفتح صفحة التفاصيل الخاصة بيها."
               : "موقوفة — البطاقات في الصفحة الرئيسية مش هتفتح صفحة تفاصيل."}
@@ -156,9 +156,9 @@ export default function AdminServicesPage() {
       {/* List */}
       <div style={{ background: "white", borderRadius: 16, padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #e0e8f0" }}>
         {loading ? (
-          <div style={{ textAlign: "center", color: "#99aabb", padding: "2.5rem 0", fontSize: "0.9rem" }}>جاري التحميل...</div>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem" }}>جاري التحميل...</div>
         ) : services.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#99aabb", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: 10 }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: 10 }}>
             لا توجد خدمات بعد — أضف خدمة من زر "خدمة جديدة"
           </div>
         ) : (
@@ -175,7 +175,7 @@ export default function AdminServicesPage() {
                       تأكيد الحذف
                     </button>
                     <button onClick={() => setConfirmDelete(null)}
-                      style={{ background: "white", color: "#667788", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "white", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -190,7 +190,7 @@ export default function AdminServicesPage() {
                           <span style={{ background: "#fef3c7", color: "#92400e", borderRadius: 6, padding: "0.15rem 0.55rem", fontSize: "0.72rem", fontWeight: 700 }}>مخفي</span>
                         )}
                       </div>
-                      <div style={{ color: "#667788", fontSize: "0.8rem", marginTop: "0.2rem", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+                      <div style={{ color: "var(--section-subtitle)", fontSize: "0.8rem", marginTop: "0.2rem", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
                         {svc.descriptionAr}
                       </div>
                     </div>
@@ -200,7 +200,7 @@ export default function AdminServicesPage() {
                         {svc.isActive ? "إخفاء" : "إظهار"}
                       </button>
                       <button onClick={() => navigate(`/admin/services/${svc.id}/edit`)}
-                        style={{ background: "white", color: "#445566", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         تعديل
                       </button>
                       <button onClick={() => setConfirmDelete(svc.id)}

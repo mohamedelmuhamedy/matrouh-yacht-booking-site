@@ -244,7 +244,7 @@ export default function PackageDetail() {
 
   if (packagesLoading && !staticPkg) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#00AAFF", fontSize: "1.1rem", fontFamily: "Cairo, sans-serif" }}>
           {ar ? "جاري التحميل..." : "Loading..."}
         </div>
@@ -254,7 +254,7 @@ export default function PackageDetail() {
 
   if (!pkg) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem", padding: "1.5rem" }}>
+      <div style={{ minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem", padding: "1.5rem" }}>
         <div style={{ fontSize: "4rem" }}>🔍</div>
         <div style={{ color: "white", fontWeight: 700, fontSize: "1.2rem", textAlign: "center" }}>{ar ? "الباقة غير موجودة" : "Package not found"}</div>
         <button onClick={() => navigate("/")} style={{ background: "#00AAFF", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: "12px", cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
@@ -308,7 +308,7 @@ export default function PackageDetail() {
       width: "100%",
       boxSizing: "border-box",
     }}>
-      <div style={{ color: "#8899aa", fontSize: "0.75rem", marginBottom: "0.3rem" }}>
+      <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginBottom: "0.3rem" }}>
         {hasMaxPrice ? (ar ? "السعر / فرد" : "Price / Person") : (ar ? "السعر / فرد يبدأ من" : "Price / Person starts from")}
       </div>
       <div style={{ color: pkg.color, fontSize: isMobile ? "1.7rem" : "2rem", fontWeight: 900, fontFamily: "Montserrat, sans-serif", marginBottom: "0.25rem" }}>
@@ -316,7 +316,7 @@ export default function PackageDetail() {
           ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
           : formatPkgPrice(pkg.priceEGP)}
       </div>
-      <div style={{ color: "#667788", fontSize: "0.78rem", marginBottom: "1.25rem" }}>{duration}</div>
+      <div style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", marginBottom: "1.25rem" }}>{duration}</div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <button
@@ -330,13 +330,13 @@ export default function PackageDetail() {
         </a>
       </div>
 
-      <div style={{ marginTop: "1.25rem", paddingTop: "1.1rem", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: isMobile ? "row" : "column", flexWrap: isMobile ? "wrap" : "nowrap", gap: isMobile ? "0.5rem 1rem" : "0.6rem" }}>
+      <div style={{ marginTop: "1.25rem", paddingTop: "1.1rem", borderTop: "1px solid var(--bg-surface-2)", display: "flex", flexDirection: isMobile ? "row" : "column", flexWrap: isMobile ? "wrap" : "nowrap", gap: isMobile ? "0.5rem 1rem" : "0.6rem" }}>
         {[
           { label: ar ? `${pkg.minGroupSize}–${pkg.maxGroupSize} أشخاص` : `${pkg.minGroupSize}–${pkg.maxGroupSize} persons` },
           { label: ar ? (pkg.familyFriendly ? "مناسبة للعائلات ✓" : "غير مخصصة للعائلات") : (pkg.familyFriendly ? "Family Friendly ✓" : "Not family-focused") },
           { label: ar ? (pkg.foreignerFriendly ? "مناسبة للأجانب ✓" : "للمصريين بشكل رئيسي") : (pkg.foreignerFriendly ? "Foreigner Friendly ✓" : "Primarily for Egyptians") },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#8899aa", fontSize: "0.78rem" }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)", fontSize: "0.78rem" }}>
             <span>{item.label}</span>
           </div>
         ))}
@@ -345,12 +345,12 @@ export default function PackageDetail() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0D1B2A", fontFamily: "Cairo, sans-serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", overflowX: "hidden" }}>
 
       {/* Back button */}
       <div style={{ position: "fixed", top: isMobile ? "70px" : "80px", insetInlineStart: isMobile ? "0.75rem" : "1rem", zIndex: 100 }}>
         <button onClick={() => navigate("/trips")}
-          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", padding: isMobile ? "0.45rem 0.85rem" : "0.5rem 1rem", borderRadius: "50px", cursor: "pointer", fontWeight: 600, fontSize: isMobile ? "0.76rem" : "0.82rem", fontFamily: "Cairo, sans-serif", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}>
+          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)", border: "1px solid var(--border-strong)", color: "white", padding: isMobile ? "0.45rem 0.85rem" : "0.5rem 1rem", borderRadius: "50px", cursor: "pointer", fontWeight: 600, fontSize: isMobile ? "0.76rem" : "0.82rem", fontFamily: "Cairo, sans-serif", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}>
           {ar ? "← الباقات" : "← Packages"}
         </button>
       </div>
@@ -387,7 +387,7 @@ export default function PackageDetail() {
 
           {/* Zoom-in icon — indicates the image is clickable */}
           {imgCount > 0 && !brokenImgs.has(safeImg) && (
-            <div style={{ position: "absolute", top: "0.75rem", insetInlineStart: "0.75rem", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "50%", width: isMobile ? 34 : 40, height: isMobile ? 34 : 40, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 10 }}>
+            <div style={{ position: "absolute", top: "0.75rem", insetInlineStart: "0.75rem", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid var(--border-strong)", borderRadius: "50%", width: isMobile ? 34 : 40, height: isMobile ? 34 : 40, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 10 }}>
               <svg width={isMobile ? 15 : 18} height={isMobile ? 15 : 18} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
@@ -398,11 +398,11 @@ export default function PackageDetail() {
           {/* Prev / Next arrows — only shown when there are multiple valid images */}
           {imgCount > 1 && (<>
             <button onClick={e => { e.stopPropagation(); prevImg(); }}
-              style={{ position: "absolute", top: "50%", insetInlineStart: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
+              style={{ position: "absolute", top: "50%", insetInlineStart: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
               ‹
             </button>
             <button onClick={e => { e.stopPropagation(); nextImg(); }}
-              style={{ position: "absolute", top: "50%", insetInlineEnd: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
+              style={{ position: "absolute", top: "50%", insetInlineEnd: "0.85rem", transform: "translateY(-50%)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1rem" : "1.2rem", zIndex: 10, transition: "all 0.2s" }}>
               ›
             </button>
 
@@ -419,7 +419,7 @@ export default function PackageDetail() {
 
         {/* Thumbnail strip */}
         {imgCount > 1 && (
-          <div style={{ background: "#0a1520", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 1rem", display: "flex", gap: "0.5rem", overflowX: "auto" }}>
+          <div style={{ background: "var(--bg-page-2)", borderBottom: "1px solid var(--bg-surface-2)", padding: "0.65rem 1rem", display: "flex", gap: "0.5rem", overflowX: "auto" }}>
             {imgs.map((img, i) => (
               <button key={i} onClick={() => { setActiveImg(i); openLightbox(i); }}
                 style={{ flexShrink: 0, width: isMobile ? 56 : 72, height: isMobile ? 42 : 54, borderRadius: 8, overflow: "hidden", border: `2px solid ${i === safeImg ? pkg.color : "transparent"}`, cursor: "zoom-in", padding: 0, transition: "border-color 0.2s", opacity: i === safeImg ? 1 : 0.55 }}>
@@ -449,9 +449,9 @@ export default function PackageDetail() {
               )}
               {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
               {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
-              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
-              <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{duration}</span>
-              {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
+              <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
+              <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{duration}</span>
+              {expLabels[pkg.experienceLevel] && <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
             </div>
 
             <CTACard />
@@ -459,7 +459,7 @@ export default function PackageDetail() {
             {desc && (
               <div>
                 <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.75rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
-                <p style={{ color: "#8899aa", lineHeight: 1.85, fontSize: "0.88rem", margin: 0 }}>{desc}</p>
+                <p style={{ color: "var(--text-muted)", lineHeight: 1.85, fontSize: "0.88rem", margin: 0 }}>{desc}</p>
               </div>
             )}
 
@@ -482,7 +482,7 @@ export default function PackageDetail() {
                   <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
                     <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "يشمل" : "Includes"}</div>
                     {includes.map((item, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "var(--text-muted)", fontSize: "0.8rem" }}>
                         <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
                       </div>
                     ))}
@@ -492,7 +492,7 @@ export default function PackageDetail() {
                   <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "14px", padding: "1.1rem" }}>
                     <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{ar ? "لا يشمل" : "Not Included"}</div>
                     {excludes.map((item, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "#8899aa", fontSize: "0.8rem" }}>
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", marginBottom: "0.45rem", color: "var(--text-muted)", fontSize: "0.8rem" }}>
                         <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
                       </div>
                     ))}
@@ -513,7 +513,7 @@ export default function PackageDetail() {
                       </div>
                       <div style={{ paddingBottom: "0.4rem" }}>
                         <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.25rem" }}>{(step as any).title}</div>
-                        <div style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.65 }}>{(step as any).desc}</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", lineHeight: 1.65 }}>{(step as any).desc}</div>
                       </div>
                     </div>
                   ))}
@@ -522,7 +522,7 @@ export default function PackageDetail() {
             )}
 
             {whatToBring.length > 0 && (
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
+              <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "14px", padding: "1.1rem" }}>
                 <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                 <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
                   {whatToBring.map((item, i) => (
@@ -533,9 +533,9 @@ export default function PackageDetail() {
             )}
 
             {showCancellation && cancellation && (
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "1.1rem" }}>
+              <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "14px", padding: "1.1rem" }}>
                 <div style={{ color: "white", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
-                <p style={{ color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", lineHeight: 1.8, margin: 0 }}>{cancellation}</p>
               </div>
             )}
 
@@ -543,14 +543,14 @@ export default function PackageDetail() {
               <div>
                 <h2 style={{ color: "white", fontWeight: 700, fontSize: "1rem", marginBottom: "0.85rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
                 {faq.map((f: any, i: number) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", marginBottom: "0.5rem", overflow: "hidden" }}>
+                  <div key={i} style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "12px", marginBottom: "0.5rem", overflow: "hidden" }}>
                     <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                       style={{ width: "100%", background: "transparent", border: "none", padding: "0.9rem 1rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.84rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "inherit", gap: "0.5rem" }}>
                       <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                       <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0, fontSize: "0.75rem" }}>▼</span>
                     </button>
                     {openFaq === i && (
-                      <div style={{ padding: "0 1rem 0.9rem", color: "#8899aa", fontSize: "0.8rem", lineHeight: 1.8 }}>
+                      <div style={{ padding: "0 1rem 0.9rem", color: "var(--text-muted)", fontSize: "0.8rem", lineHeight: 1.8 }}>
                         {ar ? f.answerAr : f.answerEn}
                       </div>
                     )}
@@ -572,15 +572,15 @@ export default function PackageDetail() {
                 )}
                 {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
                 {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
-                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
-                <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{duration}</span>
-                {expLabels[pkg.experienceLevel] && <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aabbcc", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
+                <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
+                <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{duration}</span>
+                {expLabels[pkg.experienceLevel] && <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
               </div>
 
               {desc && (
                 <div>
                   <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.85rem" }}>{ar ? "عن هذه الرحلة" : "About This Trip"}</h2>
-                  <p style={{ color: "#8899aa", lineHeight: 2, fontSize: "0.92rem" }}>{desc}</p>
+                  <p style={{ color: "var(--text-muted)", lineHeight: 2, fontSize: "0.92rem" }}>{desc}</p>
                 </div>
               )}
 
@@ -609,7 +609,7 @@ export default function PackageDetail() {
                         </div>
                         <div style={{ paddingBottom: "0.5rem" }}>
                           <div style={{ color: pkg.color, fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.3rem" }}>{(step as any).title}</div>
-                          <div style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.7 }}>{(step as any).desc}</div>
+                          <div style={{ color: "var(--text-muted)", fontSize: "0.83rem", lineHeight: 1.7 }}>{(step as any).desc}</div>
                         </div>
                       </div>
                     ))}
@@ -623,7 +623,7 @@ export default function PackageDetail() {
                     <div style={{ background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
                       <div style={{ color: "#25D366", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "يشمل" : "Includes"}</div>
                       {includes.map((item, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "var(--text-muted)", fontSize: "0.83rem" }}>
                           <span style={{ flexShrink: 0, marginTop: "2px" }}><CheckIcon /></span>{item}
                         </div>
                       ))}
@@ -633,7 +633,7 @@ export default function PackageDetail() {
                     <div style={{ background: "rgba(255,107,107,0.05)", border: "1px solid rgba(255,107,107,0.15)", borderRadius: "16px", padding: "1.25rem" }}>
                       <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.85rem" }}>{ar ? "لا يشمل" : "Not Included"}</div>
                       {excludes.map((item, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "#8899aa", fontSize: "0.83rem" }}>
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem", color: "var(--text-muted)", fontSize: "0.83rem" }}>
                           <span style={{ flexShrink: 0, marginTop: "2px" }}><XIcon2 /></span>{item}
                         </div>
                       ))}
@@ -643,7 +643,7 @@ export default function PackageDetail() {
               )}
 
               {whatToBring.length > 0 && (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
+                <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "16px", padding: "1.25rem" }}>
                   <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.85rem" }}>{ar ? "ماذا تحضر معك؟" : "What to Bring?"}</div>
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     {whatToBring.map((item, i) => (
@@ -654,9 +654,9 @@ export default function PackageDetail() {
               )}
 
               {showCancellation && cancellation && (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "1.25rem" }}>
+                <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "16px", padding: "1.25rem" }}>
                   <div style={{ color: "white", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.6rem" }}>{ar ? "سياسة الإلغاء" : "Cancellation Policy"}</div>
-                  <p style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.83rem", lineHeight: 1.85, margin: 0 }}>{cancellation}</p>
                 </div>
               )}
 
@@ -664,14 +664,14 @@ export default function PackageDetail() {
                 <div>
                   <h2 style={{ color: "white", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1rem" }}>{ar ? "أسئلة شائعة" : "Frequently Asked Questions"}</h2>
                   {faq.map((f: any, i: number) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", marginBottom: "0.6rem", overflow: "hidden" }}>
+                    <div key={i} style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "12px", marginBottom: "0.6rem", overflow: "hidden" }}>
                       <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                         style={{ width: "100%", background: "transparent", border: "none", padding: "1rem 1.25rem", cursor: "pointer", color: "white", fontWeight: 600, fontSize: "0.87rem", fontFamily: "Cairo, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
                         <span style={{ flex: 1, textAlign: "start" }}>{ar ? f.questionAr : f.questionEn}</span>
                         <span style={{ color: "#00AAFF", transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none", flexShrink: 0 }}>▼</span>
                       </button>
                       {openFaq === i && (
-                        <div style={{ padding: "0 1.25rem 1rem", color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.85 }}>
+                        <div style={{ padding: "0 1.25rem 1rem", color: "var(--text-muted)", fontSize: "0.83rem", lineHeight: 1.85 }}>
                           {ar ? f.answerAr : f.answerEn}
                         </div>
                       )}
@@ -687,12 +687,12 @@ export default function PackageDetail() {
 
               {similar.length > 0 && (
                 <div style={{ marginTop: "1.5rem" }}>
-                  <div style={{ color: "#8899aa", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.75rem" }}>{ar ? "باقات مشابهة" : "Similar Packages"}</div>
+                  <div style={{ color: "var(--text-muted)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.75rem" }}>{ar ? "باقات مشابهة" : "Similar Packages"}</div>
                   {similar.map(s => (
                     <div key={s.slug} onClick={() => navigate(`/packages/${s.slug}`)}
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "0.85rem", marginBottom: "0.6rem", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: "0.75rem" }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}>
+                      style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.85rem", marginBottom: "0.6rem", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: "0.75rem" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ color: "white", fontWeight: 600, fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ar ? s.titleAr : s.titleEn}</div>
                         <div style={{ color: s.color, fontWeight: 700, fontSize: "0.78rem", fontFamily: "Montserrat, sans-serif" }}>{formatPrice(s.priceEGP, currency, lang, settings)}</div>
@@ -717,12 +717,12 @@ export default function PackageDetail() {
               <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.25rem" }}>
                 {ar ? "احجز رحلتك الآن" : "Book Your Trip"}
               </h3>
-              <p style={{ color: "#667788", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
                 {ar ? "أكمل البيانات وسنتواصل معك فوراً" : "Fill in your details and we'll contact you right away"}
               </p>
             </div>
             <button onClick={closeBookModal}
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1rem", flexShrink: 0, fontFamily: "monospace" }}>
+              style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1rem", flexShrink: 0, fontFamily: "monospace" }}>
               ✕
             </button>
           </div>
@@ -735,7 +735,7 @@ export default function PackageDetail() {
                 {hasMaxPrice
                   ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
                   : formatPkgPrice(pkg.priceEGP)}
-                <span style={{ color: "#8899aa", fontWeight: 400, fontFamily: "Cairo, sans-serif", fontSize: "0.75rem" }}> / {ar ? "فرد" : "person"}</span>
+                <span style={{ color: "var(--text-muted)", fontWeight: 400, fontFamily: "Cairo, sans-serif", fontSize: "0.75rem" }}> / {ar ? "فرد" : "person"}</span>
               </div>
             </div>
           </div>
@@ -803,7 +803,7 @@ export default function PackageDetail() {
                 {/* Estimated price */}
                 {bookForm.people && parseInt(bookForm.people) > 0 && (
                   <div style={{ background: `${pkg.color}0d`, border: `1px solid ${pkg.color}22`, borderRadius: "10px", padding: "0.7rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#8899aa", fontSize: "0.8rem" }}>{ar ? "السعر التقديري" : "Estimated Price"}</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>{ar ? "السعر التقديري" : "Estimated Price"}</span>
                     <span style={{ color: pkg.color, fontWeight: 800, fontFamily: "Montserrat, sans-serif", fontSize: "0.95rem" }}>
                       {formatPkgPrice(pkg.priceEGP * (parseInt(bookForm.people) || 1))}
                     </span>
@@ -812,7 +812,7 @@ export default function PackageDetail() {
 
                 {/* Submit */}
                 <button type="submit" disabled={bookSubmitting}
-                  style={{ background: bookSubmitting ? "rgba(255,255,255,0.08)" : `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", cursor: bookSubmitting ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  style={{ background: bookSubmitting ? "var(--border)" : `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", cursor: bookSubmitting ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                   {bookSubmitting ? (ar ? "⏳ جاري الإرسال..." : "⏳ Sending...") : (ar ? "📩 أرسل طلب الحجز" : "📩 Send Booking Request")}
                 </button>
 
@@ -826,7 +826,7 @@ export default function PackageDetail() {
               <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.6rem" }}>
                 {ar ? "تم استلام طلب الحجز!" : "Booking Request Received!"}
               </h3>
-              <p style={{ color: "#8899aa", fontSize: "0.85rem", lineHeight: 1.75, margin: "0 0 1.5rem" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.75, margin: "0 0 1.5rem" }}>
                 {ar
                   ? "سيتواصل معك فريق DR Travel خلال ساعة لتأكيد الحجز. يمكنك التأكيد الفوري عبر واتساب."
                   : "DR Travel team will contact you within an hour to confirm. You can also confirm instantly via WhatsApp."}
@@ -837,7 +837,7 @@ export default function PackageDetail() {
                   <WhatsAppIcon /> {ar ? "تأكيد عبر واتساب" : "Confirm on WhatsApp"}
                 </a>
                 <button onClick={closeBookModal}
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", padding: "0.85rem", borderRadius: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem" }}>
+                  style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)", padding: "0.85rem", borderRadius: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem" }}>
                   {ar ? "إغلاق" : "Close"}
                 </button>
               </div>
@@ -857,12 +857,12 @@ export default function PackageDetail() {
         {/* Close button */}
         <button
           onClick={e => { e.stopPropagation(); closeLightbox(); }}
-          style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", width: 48, height: 48, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 300, zIndex: 10, lineHeight: 1, fontFamily: "monospace" }}
+          style={{ position: "absolute", top: "1rem", insetInlineEnd: "1rem", background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", width: 48, height: 48, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 300, zIndex: 10, lineHeight: 1, fontFamily: "monospace" }}
         >✕</button>
 
         {/* Counter */}
         {imgCount > 1 && (
-          <div style={{ position: "absolute", top: "1.1rem", left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: "0.8rem", fontWeight: 700, padding: "0.3rem 0.9rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif", zIndex: 10 }}>
+          <div style={{ position: "absolute", top: "1.1rem", left: "50%", transform: "translateX(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", fontSize: "0.8rem", fontWeight: 700, padding: "0.3rem 0.9rem", borderRadius: "50px", fontFamily: "Montserrat, sans-serif", zIndex: 10 }}>
             {lightboxIdx + 1} / {imgCount}
           </div>
         )}
@@ -889,7 +889,7 @@ export default function PackageDetail() {
         {imgCount > 1 && (
           <button
             onClick={e => { e.stopPropagation(); lbPrev(); }}
-            style={{ position: "absolute", top: "50%", insetInlineStart: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+            style={{ position: "absolute", top: "50%", insetInlineStart: "0.75rem", transform: "translateY(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
           >‹</button>
         )}
 
@@ -897,7 +897,7 @@ export default function PackageDetail() {
         {imgCount > 1 && (
           <button
             onClick={e => { e.stopPropagation(); lbNext(); }}
-            style={{ position: "absolute", top: "50%", insetInlineEnd: "0.75rem", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
+            style={{ position: "absolute", top: "50%", insetInlineEnd: "0.75rem", transform: "translateY(-50%)", background: "var(--border-strong)", border: "1px solid var(--border-strong)", color: "white", width: isMobile ? 48 : 58, height: isMobile ? 48 : 58, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? "1.5rem" : "1.8rem", fontWeight: 300, zIndex: 10, transition: "background 0.15s", lineHeight: 1 }}
           >›</button>
         )}
 
@@ -912,7 +912,7 @@ export default function PackageDetail() {
                 <button
                   key={i}
                   onClick={e => { e.stopPropagation(); setLightboxIdx(i); }}
-                  style={{ flexShrink: 0, width: isMobile ? 46 : 60, height: isMobile ? 34 : 44, borderRadius: 6, overflow: "hidden", border: `2px solid ${i === lightboxIdx ? pkg.color : "rgba(255,255,255,0.2)"}`, cursor: "pointer", padding: 0, opacity: i === lightboxIdx ? 1 : 0.5, transition: "all 0.2s" }}
+                  style={{ flexShrink: 0, width: isMobile ? 46 : 60, height: isMobile ? 34 : 44, borderRadius: 6, overflow: "hidden", border: `2px solid ${i === lightboxIdx ? pkg.color : "var(--border-strong)"}`, cursor: "pointer", padding: 0, opacity: i === lightboxIdx ? 1 : 0.5, transition: "all 0.2s" }}
                 >
                   <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} draggable={false} />
                 </button>
@@ -923,7 +923,7 @@ export default function PackageDetail() {
 
         {/* Swipe hint — mobile only, shown briefly */}
         {isMobile && imgCount > 1 && (
-          <div style={{ position: "absolute", bottom: isMobile ? "5.5rem" : "6rem", left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.35)", fontSize: "0.72rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", pointerEvents: "none" }}>
+          <div style={{ position: "absolute", bottom: isMobile ? "5.5rem" : "6rem", left: "50%", transform: "translateX(-50%)", color: "var(--text-muted)", fontSize: "0.72rem", fontFamily: "Cairo, sans-serif", whiteSpace: "nowrap", pointerEvents: "none" }}>
             {ar ? "← اسحب للتنقل →" : "← Swipe to navigate →"}
           </div>
         )}

@@ -86,7 +86,7 @@ export default function ServiceDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", color: "#667788", background: "#0D1B2A" }}>
+      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", color: "var(--section-subtitle)", background: "var(--bg-page)" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
           <div>{ar ? "جاري التحميل..." : "Loading..."}</div>
@@ -97,11 +97,11 @@ export default function ServiceDetailPage() {
 
   if (notFound || !service) {
     return (
-      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", padding: "2rem", textAlign: "center", background: "#0D1B2A" }}>
+      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--app-font-sans, Cairo, sans-serif)", padding: "2rem", textAlign: "center", background: "var(--bg-page)" }}>
         <div>
           <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
           <h1 style={{ color: "white", fontSize: "1.5rem", marginBottom: "0.5rem" }}>{ar ? "الخدمة غير موجودة" : "Service not found"}</h1>
-          <p style={{ color: "#99aabb", marginBottom: "1.5rem" }}>{ar ? "ربما تم حذف هذه الخدمة أو تغيير رابطها." : "This service may have been removed or its link changed."}</p>
+          <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>{ar ? "ربما تم حذف هذه الخدمة أو تغيير رابطها." : "This service may have been removed or its link changed."}</p>
           <button
             onClick={() => navigate("/")}
             style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem 1.75rem", cursor: "pointer", fontWeight: 800, fontFamily: "inherit", fontSize: "0.95rem", boxShadow: "0 4px 16px rgba(0,170,255,0.35)" }}>
@@ -182,7 +182,7 @@ export default function ServiceDetailPage() {
   );
 
   return (
-    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "#0D1B2A", minHeight: "100vh", color: "white" }}>
+    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "white" }}>
 
       {/* Floating back-to-home button — always visible while scrolling */}
       <button
@@ -295,8 +295,8 @@ export default function ServiceDetailPage() {
               <button
                 onClick={handleWhatsApp}
                 style={{
-                  background: "rgba(255,255,255,0.08)", color: "white",
-                  border: "1.5px solid rgba(255,255,255,0.2)", borderRadius: 14,
+                  background: "var(--border)", color: "white",
+                  border: "1.5px solid var(--border-strong)", borderRadius: 14,
                   padding: "0.95rem 1.65rem", cursor: "pointer",
                   fontWeight: 700, fontFamily: "inherit", fontSize: "0.95rem",
                   display: "inline-flex", alignItems: "center", gap: "0.55rem",
@@ -304,7 +304,7 @@ export default function ServiceDetailPage() {
                   transition: "all 0.2s",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(37,211,102,0.85)"; e.currentTarget.style.borderColor = "#25D366"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "var(--border)"; e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               >
                 💬 {ar ? "استفسر الآن" : "Ask now"}
               </button>
@@ -324,8 +324,8 @@ export default function ServiceDetailPage() {
               title={ar ? "اعرف أكتر عن تجربتنا" : "Learn more about us"}
             />
             <div style={{
-              background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
               borderRadius: 16,
               padding: "1.75rem 2rem",
             }}>
@@ -363,7 +363,7 @@ export default function ServiceDetailPage() {
                       borderRadius: 16,
                       overflow: "hidden",
                       height: 165,
-                      border: `1px solid rgba(255,255,255,0.10)`,
+                      border: `1px solid var(--border)`,
                       background: `#0D1B2A`,
                       boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
                       transition: "transform 0.35s cubic-bezier(.2,.7,.2,1), box-shadow 0.35s, border-color 0.35s",
@@ -380,7 +380,7 @@ export default function ServiceDetailPage() {
                     onMouseLeave={e => {
                       e.currentTarget.style.transform = "translateY(0)";
                       e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.4)";
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+                      e.currentTarget.style.borderColor = "var(--border)";
                       const img = e.currentTarget.querySelector(".dr-feat-img") as HTMLDivElement | null;
                       if (img) img.style.transform = "scale(1)";
                     }}
@@ -412,7 +412,7 @@ export default function ServiceDetailPage() {
                         background: `linear-gradient(135deg, ${v.tint}, ${v.tint}cc)`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: "1.2rem",
-                        boxShadow: `0 6px 18px ${v.tint}88, inset 0 0 0 1px rgba(255,255,255,0.2)`,
+                        boxShadow: `0 6px 18px ${v.tint}88, inset 0 0 0 1px var(--border-strong)`,
                       }}>
                         {v.icon}
                       </div>
@@ -501,7 +501,7 @@ export default function ServiceDetailPage() {
             style={{
               background: "transparent",
               color: "#cbd5e1",
-              border: "1.5px solid rgba(255,255,255,0.18)",
+              border: "1.5px solid var(--border-strong)",
               borderRadius: 14,
               padding: "0.95rem 2rem",
               cursor: "pointer",
@@ -520,7 +520,7 @@ export default function ServiceDetailPage() {
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+              e.currentTarget.style.borderColor = "var(--border-strong)";
               e.currentTarget.style.color = "#cbd5e1";
             }}
           >

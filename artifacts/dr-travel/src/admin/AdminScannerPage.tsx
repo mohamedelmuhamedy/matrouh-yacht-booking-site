@@ -240,7 +240,7 @@ export default function AdminScannerPage() {
         {!scanning && !meta && (
           <div style={{
             position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 600, background: "rgba(0,0,0,0.4)",
+            color: "var(--text-secondary)", fontSize: 14, fontWeight: 600, background: "rgba(0,0,0,0.4)",
           }}>
             {cameraError ? `⚠️ ${cameraError}` : T.scanPrompt}
           </div>

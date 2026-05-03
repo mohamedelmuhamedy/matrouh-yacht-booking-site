@@ -26,7 +26,7 @@ const inputSt: React.CSSProperties = {
 
 const labelSt: React.CSSProperties = {
   display: "block",
-  color: "#667788",
+  color: "var(--section-subtitle)",
   fontWeight: 700,
   fontSize: "0.8rem",
   marginBottom: "0.3rem",
@@ -134,7 +134,7 @@ export default function AdminCategoriesPage() {
         <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
           إدارة الفئات
         </h1>
-        <p style={{ color: "#667788", fontSize: "0.85rem", margin: 0 }}>
+        <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>
           الفئات تظهر في فلاتر صفحة الرحلات ونموذج إضافة الباقة. الباقات المرتبطة لا تتأثر عند الحذف.
         </p>
       </div>
@@ -192,11 +192,11 @@ export default function AdminCategoriesPage() {
         </h2>
 
         {loading ? (
-          <div style={{ textAlign: "center", color: "#99aabb", padding: "2rem 0", fontSize: "0.9rem" }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem 0", fontSize: "0.9rem" }}>
             جاري التحميل...
           </div>
         ) : categories.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#99aabb", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: "10px" }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: "10px" }}>
             لا توجد فئات بعد — أضف فئة من الأعلى
           </div>
         ) : (
@@ -227,7 +227,7 @@ export default function AdminCategoriesPage() {
                       </button>
                       <button
                         onClick={() => setEditId(null)}
-                        style={{ background: "#f0f4f8", color: "#667788", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                        style={{ background: "#f0f4f8", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                         إلغاء
                       </button>
                     </div>
@@ -245,7 +245,7 @@ export default function AdminCategoriesPage() {
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      style={{ background: "#f0f4f8", color: "#667788", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "#f0f4f8", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -256,11 +256,11 @@ export default function AdminCategoriesPage() {
                     </span>
                     <div style={{ flex: 1 }}>
                       <span style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.92rem" }}>{cat.nameAr}</span>
-                      <span style={{ color: "#667788", fontSize: "0.83rem", marginInlineStart: "0.5rem" }}>/ {cat.nameEn}</span>
+                      <span style={{ color: "var(--section-subtitle)", fontSize: "0.83rem", marginInlineStart: "0.5rem" }}>/ {cat.nameEn}</span>
                     </div>
                     <button
                       onClick={() => { setEditId(cat.id); setEditForm({ nameAr: cat.nameAr, nameEn: cat.nameEn }); }}
-                      style={{ background: "white", color: "#445566", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                      style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                       تعديل
                     </button>
                     <button

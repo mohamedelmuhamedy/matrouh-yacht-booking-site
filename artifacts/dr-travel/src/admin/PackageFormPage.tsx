@@ -104,7 +104,7 @@ const inputSt: React.CSSProperties = {
   color: "#0D1B2A", background: "white",
 };
 const labelSt: React.CSSProperties = {
-  display: "block", color: "#667788", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem",
+  display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem",
 };
 const cardSt: React.CSSProperties = {
   background: "#f9fafb", border: "1.5px solid #e0e8f0", borderRadius: "10px",
@@ -129,7 +129,7 @@ const F = ({ label, children }: { label: string; children: React.ReactNode }) =>
 
 const ArrField = ({ label, items, onAdd, onRemove, inputVal, setInputVal, placeholder }: any) => (
   <div style={{ marginBottom: "0.9rem" }}>
-    <label style={labelSt}>{label} <span style={{ color: "#99aabb", fontWeight: 400 }}>({items.length})</span></label>
+    <label style={labelSt}>{label} <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({items.length})</span></label>
     <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
       <input style={{ ...inputSt, flex: 1 }} value={inputVal} placeholder={placeholder}
         onChange={e => setInputVal(e.target.value)}
@@ -312,10 +312,10 @@ export default function PackageFormPage() {
         <div style={{ height: 36, width: 80, background: "#e0e8f0", borderRadius: 8 }} />
       </div>
       <div style={{ background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-        <div style={{ textAlign: "center", padding: "3rem 2rem", color: "#667788" }}>
+        <div style={{ textAlign: "center", padding: "3rem 2rem", color: "var(--section-subtitle)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>⏳</div>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem" }}>جاري تحميل بيانات الباقة...</div>
-          <div style={{ fontSize: "0.85rem", color: "#99aabb" }}>يرجى الانتظار</div>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>يرجى الانتظار</div>
         </div>
       </div>
     </div>
@@ -326,14 +326,14 @@ export default function PackageFormPage() {
       <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚠️</div>
         <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.75rem", fontSize: "1rem" }}>فشل تحميل بيانات الباقة</div>
-        <div style={{ color: "#667788", fontSize: "0.9rem", marginBottom: "1.5rem" }}>{loadError}</div>
+        <div style={{ color: "var(--section-subtitle)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>{loadError}</div>
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
           <button onClick={() => pkgId && loadPackage(pkgId)}
             style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
             🔄 إعادة المحاولة
           </button>
           <button onClick={() => navigate("/admin/packages")}
-            style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#667788" }}>
+            style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.65rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
             ← العودة
           </button>
         </div>
@@ -359,7 +359,7 @@ export default function PackageFormPage() {
           if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة بدون حفظ؟")) return;
           navigate("/admin/packages");
         }}
-          style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", color: "#667788", fontWeight: 600 }}>
+          style={{ background: "#f0f4f8", border: "none", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", color: "var(--section-subtitle)", fontWeight: 600 }}>
           ← رجوع
         </button>
       </div>
@@ -367,7 +367,7 @@ export default function PackageFormPage() {
       <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "white", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ flexShrink: 0, padding: "0.55rem 0.85rem", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: tab === t.id ? "#00AAFF" : "transparent", color: tab === t.id ? "white" : "#667788", transition: "all 0.2s", whiteSpace: "nowrap" }}>
+            style={{ flexShrink: 0, padding: "0.55rem 0.85rem", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: tab === t.id ? "#00AAFF" : "transparent", color: tab === t.id ? "white" : "var(--section-subtitle)", transition: "all 0.2s", whiteSpace: "nowrap" }}>
             {t.label}
           </button>
         ))}
@@ -486,7 +486,7 @@ export default function PackageFormPage() {
               onClick={() => set("hasCancellationPolicy", !form.hasCancellationPolicy)}>
               <div>
                 <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
-                <div style={{ color: "#99aabb", fontSize: "0.75rem", marginTop: "0.15rem" }}>عند التفعيل، تظهر سياسة الإلغاء للعميل في صفحة الرحلة</div>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "0.15rem" }}>عند التفعيل، تظهر سياسة الإلغاء للعميل في صفحة الرحلة</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: form.hasCancellationPolicy ? "#10B981" : "#99aabb" }}>
@@ -520,7 +520,7 @@ export default function PackageFormPage() {
                   return (
                     <label key={s} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: `2px solid ${form.status === s ? colors[s] : "#e0e8f0"}`, background: form.status === s ? `${colors[s]}12` : "transparent", cursor: "pointer", transition: "all 0.2s" }}>
                       <input type="radio" name="status" value={s} checked={form.status === s} onChange={() => set("status", s)} style={{ accentColor: colors[s] }} />
-                      <span style={{ fontWeight: 700, fontSize: "0.82rem", color: form.status === s ? colors[s] : "#667788" }}>{labels[s]}</span>
+                      <span style={{ fontWeight: 700, fontSize: "0.82rem", color: form.status === s ? colors[s] : "var(--section-subtitle)" }}>{labels[s]}</span>
                     </label>
                   );
                 })}
@@ -541,7 +541,7 @@ export default function PackageFormPage() {
                 style={{ background: uploading ? "#aaa" : "#00AAFF", color: "white", border: "none", padding: "0.6rem 1.25rem", borderRadius: 8, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
                 {uploading ? "جاري الرفع..." : "اختر صورة"}
               </button>
-              <span style={{ color: "#8899aa", fontSize: "0.78rem", marginRight: "0.75rem" }}>JPG / PNG / WebP</span>
+              <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginRight: "0.75rem" }}>JPG / PNG / WebP</span>
               {uploadError && <div style={{ color: "#DC2626", fontSize: "0.8rem", marginTop: "0.5rem" }}>{uploadError}</div>}
             </div>
 
@@ -604,11 +604,11 @@ export default function PackageFormPage() {
             <div style={{ marginBottom: "1.75rem" }}>
               <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 🗓️ برنامج الرحلة (Itinerary)
-                <span style={{ color: "#99aabb", fontWeight: 400, fontSize: "0.85rem" }}>{form.itineraryAr.length} يوم</span>
+                <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem" }}>{form.itineraryAr.length} يوم</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div>
-                  <div style={{ color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>البرنامج (عربي)</div>
+                  <div style={{ color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>البرنامج (عربي)</div>
                   {form.itineraryAr.map((item, i) => (
                     <div key={i} style={cardSt}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
@@ -627,7 +627,7 @@ export default function PackageFormPage() {
                   </button>
                 </div>
                 <div>
-                  <div style={{ color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>Itinerary (English)</div>
+                  <div style={{ color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>Itinerary (English)</div>
                   {form.itineraryEn.map((item, i) => (
                     <div key={i} style={cardSt}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
@@ -656,7 +656,7 @@ export default function PackageFormPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div>
-                  <div style={{ color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>المميزات (عربي)</div>
+                  <div style={{ color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>المميزات (عربي)</div>
                   {form.whyThisTripAr.map((item, i) => (
                     <div key={i} style={{ ...cardSt, display: "flex", gap: "0.5rem", alignItems: "center" }}>
                       <input style={{ ...inputSt, width: 50 }} value={item.icon} placeholder="🌊"
@@ -672,7 +672,7 @@ export default function PackageFormPage() {
                   </button>
                 </div>
                 <div>
-                  <div style={{ color: "#667788", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>Features (English)</div>
+                  <div style={{ color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>Features (English)</div>
                   {form.whyThisTripEn.map((item, i) => (
                     <div key={i} style={{ ...cardSt, display: "flex", gap: "0.5rem", alignItems: "center" }}>
                       <input style={{ ...inputSt, width: 50 }} value={item.icon} placeholder="🌊"
@@ -695,7 +695,7 @@ export default function PackageFormPage() {
             <div>
               <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 ❓ الأسئلة الشائعة (FAQ)
-                <span style={{ color: "#99aabb", fontWeight: 400, fontSize: "0.85rem" }}>{form.faq.length} سؤال</span>
+                <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem" }}>{form.faq.length} سؤال</span>
               </div>
               {form.faq.map((item, i) => (
                 <div key={i} style={{ ...cardSt, borderColor: "#00AAFF20" }}>
@@ -748,7 +748,7 @@ export default function PackageFormPage() {
               ].map(({ key, label }) => (
                 <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: form[key] ? "#00AAFF08" : "#f9fafb", border: `1.5px solid ${form[key] ? "#00AAFF30" : "#e0e8f0"}`, borderRadius: 10, padding: "0.75rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>
                   <input type="checkbox" checked={form[key] as boolean} onChange={() => toggle(key)} style={{ accentColor: "#00AAFF", width: 16, height: 16 }} />
-                  <span style={{ color: form[key] ? "#00AAFF" : "#667788", fontWeight: 700, fontSize: "0.85rem" }}>{label}</span>
+                  <span style={{ color: form[key] ? "#00AAFF" : "var(--section-subtitle)", fontWeight: 700, fontSize: "0.85rem" }}>{label}</span>
                 </label>
               ))}
             </div>
@@ -786,7 +786,7 @@ export default function PackageFormPage() {
           if (isDirty && !window.confirm("لديك تغييرات غير محفوظة. هل تريد المغادرة؟")) return;
           navigate("/admin/packages");
         }} disabled={saving}
-          style={{ padding: "0.85rem 1.5rem", background: "#f0f4f8", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#667788" }}>
+          style={{ padding: "0.85rem 1.5rem", background: "#f0f4f8", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--section-subtitle)" }}>
           إلغاء
         </button>
       </div>

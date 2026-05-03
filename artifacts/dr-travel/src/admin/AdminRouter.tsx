@@ -33,7 +33,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", fontFamily: "Cairo, sans-serif" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
           <div style={{ color: "#00AAFF", fontSize: "1.1rem" }}>جاري التحميل...</div>

@@ -119,7 +119,7 @@ export default function ReferralSection() {
   };
 
   return (
-    <section id="referral" style={{ padding: "6rem 1.5rem", background: "linear-gradient(180deg,#0a1520,#0D1B2A)" }}>
+    <section id="referral" style={{ padding: "6rem 1.5rem", background: "linear-gradient(180deg, var(--bg-page-2), var(--bg-page))" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
 
         {/* Header */}
@@ -130,7 +130,7 @@ export default function ReferralSection() {
         </div>
 
         {phase === "loading" && (
-          <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>
+          <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>
             <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
             <div style={{ fontFamily: "Cairo, sans-serif" }}>{ar ? "جاري التحميل..." : "Loading..."}</div>
           </div>
@@ -146,7 +146,7 @@ export default function ReferralSection() {
                 <div style={{ width: 44, height: 44, borderRadius: "12px", background: "rgba(201,168,76,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>🎁</div>
                 <div>
                   <div style={{ color: "white", fontWeight: 700 }}>{T.yourCode}</div>
-                  <div style={{ color: "#667788", fontSize: "0.75rem" }}>{codeInfo.nameAr}</div>
+                  <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem" }}>{codeInfo.nameAr}</div>
                 </div>
               </div>
 
@@ -162,11 +162,11 @@ export default function ReferralSection() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1.25rem" }}>
                 <div style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "12px", padding: "0.85rem", textAlign: "center" }}>
                   <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "#00AAFF", fontFamily: "Montserrat, sans-serif" }}>{codeInfo.usedCount}</div>
-                  <div style={{ color: "#667788", fontSize: "0.72rem", marginTop: "0.15rem" }}>{T.usedCount}</div>
+                  <div style={{ color: "var(--section-subtitle)", fontSize: "0.72rem", marginTop: "0.15rem" }}>{T.usedCount}</div>
                 </div>
                 <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "12px", padding: "0.85rem", textAlign: "center" }}>
                   <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "#10B981", fontFamily: "Montserrat, sans-serif" }}>{codeInfo.approvedCount}</div>
-                  <div style={{ color: "#667788", fontSize: "0.72rem", marginTop: "0.15rem" }}>{T.approvedCount}</div>
+                  <div style={{ color: "var(--section-subtitle)", fontSize: "0.72rem", marginTop: "0.15rem" }}>{T.approvedCount}</div>
                 </div>
               </div>
 
@@ -179,12 +179,12 @@ export default function ReferralSection() {
 
             {/* How it works + perks */}
             <div>
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "1.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "20px", padding: "1.75rem", marginBottom: "1rem" }}>
                 <div style={{ color: "white", fontWeight: 700, marginBottom: "1.25rem" }}>⚙️ {T.howTitle}</div>
                 {T.steps.map((step, i) => (
                   <div key={i} style={{ display: "flex", gap: "0.85rem", marginBottom: "0.9rem", alignItems: "flex-start" }}>
                     <div style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(0,170,255,0.15)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.78rem", flexShrink: 0, fontFamily: "Montserrat, sans-serif" }}>{i + 1}</div>
-                    <div style={{ color: "#8899aa", fontSize: "0.84rem", lineHeight: 1.6, paddingTop: "0.2rem" }}>{step}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.84rem", lineHeight: 1.6, paddingTop: "0.2rem" }}>{step}</div>
                   </div>
                 ))}
               </div>
@@ -193,7 +193,7 @@ export default function ReferralSection() {
                 {T.perks.map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.6rem", alignItems: "flex-start" }}>
                     <span style={{ color: "#C9A84C", fontSize: "0.9rem", flexShrink: 0, marginTop: "0.05rem" }}>✦</span>
-                    <span style={{ color: "#8899aa", fontSize: "0.83rem", lineHeight: 1.5 }}>{p}</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: "0.83rem", lineHeight: 1.5 }}>{p}</span>
                   </div>
                 ))}
               </div>
@@ -207,21 +207,21 @@ export default function ReferralSection() {
             <div style={{ background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "24px", padding: "2.5rem", textAlign: "center" }}>
               <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎁</div>
               <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: "0 0 0.5rem" }}>{T.registerTitle}</h3>
-              <p style={{ color: "#667788", fontSize: "0.88rem", margin: "0 0 2rem", lineHeight: 1.7 }}>{T.registerSubtitle}</p>
+              <p style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", margin: "0 0 2rem", lineHeight: 1.7 }}>{T.registerSubtitle}</p>
 
               <div style={{ display: "grid", gap: "0.85rem", textAlign: "right" }}>
                 <div>
-                  <label style={{ display: "block", color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.nameArLabel}</label>
+                  <label style={{ display: "block", color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.nameArLabel}</label>
                   <input className="form-input" placeholder={ar ? "اسمك الكامل بالعربي" : "اسمك الكامل بالعربي"}
                     value={regForm.nameAr} onChange={e => setRegForm(p => ({ ...p, nameAr: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={{ display: "block", color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.nameEnLabel}</label>
+                  <label style={{ display: "block", color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.nameEnLabel}</label>
                   <input className="form-input" style={{ direction: "ltr" }} placeholder="Your full name in English"
                     value={regForm.nameEn} onChange={e => setRegForm(p => ({ ...p, nameEn: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={{ display: "block", color: "#8899aa", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.phoneLabel}</label>
+                  <label style={{ display: "block", color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" }}>{T.phoneLabel}</label>
                   <input className="form-input" type="tel" placeholder="01xxxxxxxxx"
                     value={regForm.phone} onChange={e => setRegForm(p => ({ ...p, phone: e.target.value }))} />
                 </div>
@@ -234,7 +234,7 @@ export default function ReferralSection() {
               )}
 
               <button onClick={selfRegister} disabled={regLoading}
-                style={{ width: "100%", marginTop: "1.5rem", background: regLoading ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "12px", padding: "1rem", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", cursor: regLoading ? "not-allowed" : "pointer", transition: "all 0.3s" }}>
+                style={{ width: "100%", marginTop: "1.5rem", background: regLoading ? "var(--bg-surface)" : "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: "12px", padding: "1rem", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "1rem", cursor: regLoading ? "not-allowed" : "pointer", transition: "all 0.3s" }}>
                 {regLoading ? (ar ? "⏳ جاري التسجيل..." : "⏳ Registering...") : T.registerBtn}
               </button>
 

@@ -37,14 +37,14 @@ function RewardsNavbar() {
           </div>
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
-            <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)" }}>{settings.dev_name || "Yousef Mostafa"}</div>
+            <div style={{ fontSize: "0.6rem", color: "var(--text-muted)" }}>{settings.dev_name || "Yousef Mostafa"}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <button onClick={() => navigate("/")}
             className="nav-link"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
             {ar ? "الرئيسية" : "Home"}
           </button>
 
@@ -59,7 +59,7 @@ function RewardsNavbar() {
 
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "8px", padding: "0.35rem 0.65rem", cursor: "pointer", color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
+            style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "8px", padding: "0.35rem 0.65rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.78rem", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
             <GlobeIcon />
             {t.langSwitcher.label}
           </button>
@@ -84,7 +84,7 @@ export default function RewardsPage() {
       <RewardsNavbar />
 
       {/* Page header */}
-      <div style={{ textAlign: "center", padding: "4rem 1.5rem 2rem", background: "linear-gradient(180deg,#0a1520,#0D1B2A)" }}>
+      <div style={{ textAlign: "center", padding: "4rem 1.5rem 2rem", background: "linear-gradient(180deg, var(--bg-page-2), var(--bg-page))" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.4rem 1.25rem", marginBottom: "1.5rem" }}>
           <span>🎁</span>
           <span style={{ color: "#C9A84C", fontSize: "0.8rem", fontWeight: 700, letterSpacing: "1px" }}>
@@ -93,7 +93,7 @@ export default function RewardsPage() {
         </div>
         <button
           onClick={() => navigate("/")}
-          style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", padding: "0.4rem 1rem", borderRadius: "8px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", margin: "0 auto 1rem" }}>
+          style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-muted)", padding: "0.4rem 1rem", borderRadius: "8px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", margin: "0 auto 1rem" }}>
           {t.lang === "ar" ? "→ العودة للرئيسية" : "← Back to Home"}
         </button>
       </div>
@@ -101,7 +101,7 @@ export default function RewardsPage() {
       <ReferralSection />
 
       {/* Simple footer */}
-      <div style={{ textAlign: "center", padding: "2rem 1.5rem", background: "#060d16", borderTop: "1px solid rgba(255,255,255,0.06)", color: "#2a3845", fontSize: "0.8rem" }}>
+      <div style={{ textAlign: "center", padding: "2rem 1.5rem", background: "#060d16", borderTop: "1px solid var(--bg-surface-2)", color: "#2a3845", fontSize: "0.8rem" }}>
         © 2024 DR Travel — Marsa Matruh, Egypt
       </div>
 

@@ -63,7 +63,7 @@ const inputSt: React.CSSProperties = {
 };
 const labelSt: React.CSSProperties = {
   display: "block",
-  color: "#667788",
+  color: "var(--section-subtitle)",
   fontWeight: 700,
   fontSize: "0.78rem",
   marginBottom: "0.3rem",
@@ -175,7 +175,7 @@ function ImageUploadField({
         {preview ? (
           <img src={preview} alt="" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flexShrink: 0, background: "#eef" }} />
         ) : (
-          <div style={{ width: 64, height: 48, borderRadius: 6, background: "#eef2f7", display: "flex", alignItems: "center", justifyContent: "center", color: "#aabbcc", flexShrink: 0, fontSize: "1.3rem" }}>🖼️</div>
+          <div style={{ width: 64, height: 48, borderRadius: 6, background: "#eef2f7", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", flexShrink: 0, fontSize: "1.3rem" }}>🖼️</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -497,7 +497,7 @@ export default function AdminServiceFormPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", color: "#667788", padding: "4rem 1rem", fontFamily: "Cairo, sans-serif" }}>
+      <div style={{ textAlign: "center", color: "var(--section-subtitle)", padding: "4rem 1rem", fontFamily: "Cairo, sans-serif" }}>
         جاري التحميل...
       </div>
     );
@@ -511,13 +511,13 @@ export default function AdminServiceFormPage() {
           <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.2rem" }}>
             {isEdit ? "تعديل خدمة" : "خدمة جديدة"}
           </h1>
-          <p style={{ color: "#667788", fontSize: "0.82rem", margin: 0 }}>
+          <p style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", margin: 0 }}>
             {isEdit ? "حدّث بيانات الخدمة وصفحة تفاصيلها" : "أضف خدمة جديدة تظهر في الصفحة الرئيسية"}
           </p>
         </div>
         <button
           onClick={() => navigate("/admin/services")}
-          style={{ background: "white", color: "#445566", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+          style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
           ← رجوع
         </button>
       </div>
@@ -724,7 +724,7 @@ export default function AdminServiceFormPage() {
 
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end", marginTop: "1rem" }}>
           <button type="button" onClick={() => navigate("/admin/services")}
-            style={{ background: "white", color: "#445566", border: "1px solid #d0dce8", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
+            style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
             إلغاء
           </button>
           <button type="submit" disabled={saving}

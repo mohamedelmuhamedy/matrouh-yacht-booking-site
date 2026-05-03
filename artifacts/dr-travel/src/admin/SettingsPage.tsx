@@ -506,7 +506,7 @@ export default function SettingsPage() {
 
     return (
       <div>
-        <label style={{ display: "block", color: "#445566", fontWeight: 800, fontSize: "0.86rem", marginBottom: "0.45rem" }}>
+        <label style={{ display: "block", color: "var(--text-muted)", fontWeight: 800, fontSize: "0.86rem", marginBottom: "0.45rem" }}>
           {label}
         </label>
         <select
@@ -565,7 +565,7 @@ export default function SettingsPage() {
                   borderRadius: "10px",
                   border: `1.5px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
                   background: active ? "rgba(0,170,255,0.08)" : "#f8fafc",
-                  color: active ? "#0066cc" : "#445566",
+                  color: active ? "#0066cc" : "var(--text-muted)",
                   cursor: "pointer",
                   fontFamily: stack,
                   transition: "all 0.18s",
@@ -587,7 +587,7 @@ export default function SettingsPage() {
   if (loading) return (
     <div>
       <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
-      <div style={{ textAlign: "center", padding: "3rem", color: "#667788", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
         <div style={{ fontWeight: 700 }}>جاري تحميل الإعدادات...</div>
       </div>
@@ -600,7 +600,7 @@ export default function SettingsPage() {
       <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
         <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>⚠️</div>
         <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.5rem" }}>فشل تحميل الإعدادات</div>
-        <div style={{ color: "#667788", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
+        <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", marginBottom: "1rem" }}>{loadError}</div>
         <button onClick={loadSettings}
           style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 8, padding: "0.6rem 1.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
           🔄 إعادة المحاولة
@@ -615,14 +615,14 @@ export default function SettingsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
           <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>إعدادات الموقع</h2>
-          <div style={{ color: "#667788", fontSize: "0.82rem" }}>
+          <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem" }}>
             مكتمل: <strong style={{ color: "#10B981" }}>{totalFilled}</strong> / {totalKeys} حقل
           </div>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           <button
             onClick={() => confirmAndRestore("all", "جميع الإعدادات")}
-            style={{ background: "#f0f4f8", border: "1px solid #d0dce8", borderRadius: "10px", padding: "0.6rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "#667788", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            style={{ background: "#f0f4f8", border: "1px solid #d0dce8", borderRadius: "10px", padding: "0.6rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "var(--section-subtitle)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
             🔄 استعادة الكل
           </button>
           <button
@@ -673,7 +673,7 @@ export default function SettingsPage() {
             <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
               {settings.logo_url ? "تم رفع شعار مخصص" : "لم يُرفع شعار بعد — يُستخدم الشعار الافتراضي"}
             </div>
-            <div style={{ color: "#99aabb", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
               ارفع صورة JPG / PNG / WebP (بحد أقصى 10MB)
             </div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -716,7 +716,7 @@ export default function SettingsPage() {
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {!settings.hero_bg_url && (
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.5rem" }}>🏖️</span>
+                <span style={{ color: "var(--text-muted)", fontSize: "1.5rem" }}>🏖️</span>
               )}
             </div>
             {settings.hero_bg_url && (
@@ -727,7 +727,7 @@ export default function SettingsPage() {
             <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
               {settings.hero_bg_url ? "تم رفع صورة خلفية مخصصة" : "لم تُرفع خلفية بعد — يُستخدم صورة البحر الافتراضية"}
             </div>
-            <div style={{ color: "#99aabb", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
               ارفع صورة JPG / PNG / WebP عالية الجودة (بحد أقصى 10MB) للظهور في خلفية الصفحة الرئيسية
             </div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -767,7 +767,7 @@ export default function SettingsPage() {
                 {groupHasDefaults && (
                   <button
                     onClick={() => confirmAndRestore(group.section, group.title)}
-                    style={{ background: "none", border: "1px solid #e0e8f0", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#99aabb", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
+                    style={{ background: "none", border: "1px solid #e0e8f0", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e0e8f0"; (e.currentTarget as HTMLElement).style.color = "#99aabb"; }}>
                     🔄 استعادة الأصل
@@ -790,7 +790,7 @@ export default function SettingsPage() {
                         onClick={() => updateBool(key, !isOn)}>
                         <div>
                           <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
-                          {hint && <div style={{ color: "#99aabb", fontSize: "0.75rem", marginTop: "0.15rem" }}>{hint}</div>}
+                          {hint && <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "0.15rem" }}>{hint}</div>}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                           <span style={{ fontSize: "0.78rem", fontWeight: 700, color: isOn ? "#10B981" : "#99aabb" }}>
@@ -811,7 +811,7 @@ export default function SettingsPage() {
                     const fullWidth = fieldType === "select" || fieldType === "textarea";
                     return (
                       <div key={key} style={fullWidth ? { gridColumn: "1 / -1" } : {}}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
                           {isAccent && (
                             <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "0.9rem" }}>✦</span>
                           )}
@@ -819,7 +819,7 @@ export default function SettingsPage() {
                           {hasValue && <span style={{ color: "#10B981", fontSize: "0.72rem", fontWeight: 800 }}>✓</span>}
                         </label>
                         {hint && (
-                          <div style={{ fontSize: "0.73rem", color: "#99aabb", marginBottom: "0.35rem" }}>
+                          <div style={{ fontSize: "0.73rem", color: "var(--text-muted)", marginBottom: "0.35rem" }}>
                             {hint}
                           </div>
                         )}
@@ -899,8 +899,8 @@ export default function SettingsPage() {
               )}
 
               {group.section === "hero" && (settings.hero_title_primary_ar || settings.hero_title_accent_ar) && (
-                <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "#0D1B2A", borderRadius: 10, display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem" }}>معاينة:</span>
+                <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "var(--bg-page)", borderRadius: 10, display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: "0.72rem" }}>معاينة:</span>
                   <span style={{ color: "white", fontWeight: 700, fontSize: "1rem" }}>{settings.hero_title_primary_ar}</span>
                   <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "1.1rem" }}>
                     {settings.hero_title_accent_ar}
@@ -949,7 +949,7 @@ export default function SettingsPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem" }}>
             <div>
-              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", color: "var(--text-muted)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                 كلمة المرور الحالية
               </label>
               <input
@@ -964,7 +964,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", color: "var(--text-muted)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                 كلمة المرور الجديدة
               </label>
               <input
@@ -979,7 +979,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label style={{ display: "block", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", color: "var(--text-muted)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
                 تأكيد كلمة المرور الجديدة
               </label>
               <input

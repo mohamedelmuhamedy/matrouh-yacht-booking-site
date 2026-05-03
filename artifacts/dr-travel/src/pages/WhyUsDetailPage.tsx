@@ -135,7 +135,7 @@ export default function WhyUsDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", color: "#00AAFF", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "#00AAFF", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "1rem", animation: "spin 1.2s linear infinite" }}>✨</div>
           <div>{isAr ? "جاري التحميل..." : "Loading..."}</div>
@@ -147,7 +147,7 @@ export default function WhyUsDetailPage() {
 
   if (notFound || !card) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0D1B2A", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", padding: "2rem" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", padding: "2rem" }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>
           <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
           <h1 style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>{isAr ? "الصفحة غير موجودة" : "Page Not Found"}</h1>
@@ -179,7 +179,7 @@ export default function WhyUsDetailPage() {
   };
 
   return (
-    <div style={{ background: "#0D1B2A", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
       <style>{`
         @keyframes float-up { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
         @keyframes pulse-ring { 0%{transform:scale(.95);opacity:.7} 70%{transform:scale(1.4);opacity:0} 100%{transform:scale(1.4);opacity:0} }
@@ -271,7 +271,7 @@ export default function WhyUsDetailPage() {
                 {ctaText} ←
               </button>
               <a href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{
-                background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.18)",
+                background: "var(--bg-surface-2)", color: "white", border: "1px solid var(--border-strong)",
                 borderRadius: 12, padding: "0.95rem 1.6rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                 fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem",
               }}>
@@ -311,7 +311,7 @@ export default function WhyUsDetailPage() {
 
       {/* === STORY (intro + body + accent image) === */}
       {(intro || body || accentImg) && (
-        <section style={{ padding: "5rem 1.5rem", background: "#0D1B2A" }}>
+        <section style={{ padding: "5rem 1.5rem", background: "var(--bg-page)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "3rem", alignItems: "center" }} className="wu-story-grid">
             <style>{`@media (max-width: 860px){.wu-story-grid{grid-template-columns:1fr !important; gap:2rem !important}}`}</style>
             <Reveal from="left">
@@ -382,8 +382,8 @@ export default function WhyUsDetailPage() {
                   <div className="wu-bullet"
                     style={{
                       position: "relative", padding: "1.6rem 1.4rem", borderRadius: 18, height: "100%",
-                      background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
-                      border: `1px solid rgba(255,255,255,0.08)`,
+                      background: "linear-gradient(180deg, var(--bg-surface), var(--bg-surface-sunk))",
+                      border: `1px solid var(--border)`,
                       transition: "all 0.35s ease", cursor: "default", overflow: "hidden",
                     }}
                     onMouseEnter={(e) => {
@@ -393,7 +393,7 @@ export default function WhyUsDetailPage() {
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                      e.currentTarget.style.borderColor = "var(--border)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -420,7 +420,7 @@ export default function WhyUsDetailPage() {
 
       {/* === GALLERY === */}
       {card.galleryImages.length > 0 && (
-        <section style={{ padding: "5rem 1.5rem", background: "#0D1B2A" }}>
+        <section style={{ padding: "5rem 1.5rem", background: "var(--bg-page)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
@@ -473,7 +473,7 @@ export default function WhyUsDetailPage() {
                 {ctaText} ✦
               </button>
               <a href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{
-                background: "rgba(255,255,255,0.08)", color: "white", border: "1px solid rgba(255,255,255,0.2)",
+                background: "var(--border)", color: "white", border: "1px solid var(--border-strong)",
                 borderRadius: 12, padding: "1rem 1.8rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                 fontWeight: 700, fontSize: "1rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem",
               }}>
@@ -486,7 +486,7 @@ export default function WhyUsDetailPage() {
 
       {/* === SIBLING CARDS === */}
       {siblings.length > 0 && (
-        <section style={{ padding: "4rem 1.5rem", background: "#0a1623", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ padding: "4rem 1.5rem", background: "#0a1623", borderTop: "1px solid var(--bg-surface)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <Reveal>
               <div style={{ marginBottom: "2rem", textAlign: "center" }}>
@@ -507,11 +507,11 @@ export default function WhyUsDetailPage() {
                     <Link href={`/why-us/${s.slug}`}>
                       <div style={{
                         cursor: "pointer", padding: "1.25rem", borderRadius: 14, height: "100%",
-                        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                        background: "var(--bg-surface)", border: "1px solid var(--border)",
                         transition: "all 0.3s ease", position: "relative", overflow: "hidden",
                       }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = hexToRgba(s.color, 0.45); e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = hexToRgba(s.color, 0.45); e.currentTarget.style.background = "var(--bg-surface)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-surface)"; }}
                       >
                         <div style={{ width: 44, height: 44, borderRadius: 11, background: hexToRgba(s.color, 0.18), border: `1px solid ${hexToRgba(s.color, 0.3)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", marginBottom: "0.75rem" }}>
                           {s.icon}

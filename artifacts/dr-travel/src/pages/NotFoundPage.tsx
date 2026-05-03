@@ -9,7 +9,7 @@ export default function NotFoundPage() {
 
   return (
     <div style={{
-      minHeight: "100vh", background: "#0D1B2A", display: "flex", alignItems: "center",
+      minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center",
       justifyContent: "center", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr",
       padding: "2rem",
     }}>
@@ -22,7 +22,7 @@ export default function NotFoundPage() {
         <h1 style={{ color: "white", fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.75rem" }}>
           {ar ? "الصفحة غير موجودة" : "Page Not Found"}
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "1rem", lineHeight: 1.8, marginBottom: "2rem" }}>
+        <p style={{ color: "var(--text-muted)", fontSize: "1rem", lineHeight: 1.8, marginBottom: "2rem" }}>
           {ar
             ? "عذراً، الصفحة التي تبحث عنها غير موجودة أو ربما تم نقلها."
             : "Sorry, the page you're looking for doesn't exist or may have been moved."}
@@ -33,7 +33,7 @@ export default function NotFoundPage() {
             {ar ? "🏠 الرئيسية" : "🏠 Home"}
           </button>
           <button onClick={() => navigate("/#packages")}
-            style={{ background: "rgba(255,255,255,0.08)", color: "white", border: "1px solid rgba(255,255,255,0.2)", padding: "0.85rem 2rem", borderRadius: "12px", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
+            style={{ background: "var(--border)", color: "white", border: "1px solid var(--border-strong)", padding: "0.85rem 2rem", borderRadius: "12px", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif" }}>
             {ar ? "🏖️ الباقات" : "🏖️ Packages"}
           </button>
         </div>

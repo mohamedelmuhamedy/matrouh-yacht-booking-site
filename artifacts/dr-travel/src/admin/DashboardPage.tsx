@@ -287,14 +287,14 @@ export default function DashboardPage() {
             <h2 style={{ color: "white", fontWeight: 900, fontSize: "1.6rem", margin: "0.4rem 0 0.4rem", lineHeight: 1.2 }}>
               مرحباً {user?.displayName || user?.username} 👋
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.7)", margin: 0, fontSize: "0.88rem" }}>
+            <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "0.88rem" }}>
               {new Date().toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-              {lastUpdated && <span style={{ marginInlineStart: 12, color: "rgba(255,255,255,0.45)", fontSize: "0.78rem" }}>· آخر تحديث {timeAgo(lastUpdated.toISOString())}</span>}
+              {lastUpdated && <span style={{ marginInlineStart: 12, color: "var(--text-muted)", fontSize: "0.78rem" }}>· آخر تحديث {timeAgo(lastUpdated.toISOString())}</span>}
             </p>
           </div>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
             <button onClick={() => setRefreshTick(t => t + 1)}
-              style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "white", borderRadius: 10, padding: "0.55rem 0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              style={{ background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", borderRadius: 10, padding: "0.55rem 0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
               🔄 تحديث
             </button>
             {stats.counts.new > 0 && (
@@ -573,7 +573,7 @@ export default function DashboardPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               {recentlyEdited.map(pkg => {
-                const badge = pkgStatusBadge[pkg.status] || { label: pkg.status, color: "#667788" };
+                const badge = pkgStatusBadge[pkg.status] || { label: pkg.status, color: "var(--section-subtitle)" };
                 return (
                   <div key={pkg.id}
                     onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}
@@ -583,7 +583,7 @@ export default function DashboardPage() {
                     <span style={{ fontSize: "1.2rem" }}>{pkg.icon || "🏖️"}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: NAVY, fontWeight: 600, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pkg.titleAr}</div>
-                      <div style={{ color: "#99aabb", fontSize: "0.72rem" }}>{timeAgo(pkg.updatedAt)}</div>
+                      <div style={{ color: "var(--text-muted)", fontSize: "0.72rem" }}>{timeAgo(pkg.updatedAt)}</div>
                     </div>
                     <span style={{ background: `${badge.color}15`, color: badge.color, padding: "0.15rem 0.5rem", borderRadius: "50px", fontSize: "0.7rem", fontWeight: 700, flexShrink: 0 }}>{badge.label}</span>
                   </div>
@@ -608,7 +608,7 @@ export default function DashboardPage() {
               <thead>
                 <tr style={{ borderBottom: "2px solid #f0f4f8" }}>
                   {["الاسم", "الهاتف", "الباقة", "التاريخ", "العدد", "السعر", "الحالة"].map(h => (
-                    <th key={h} style={{ padding: "0.7rem 0.6rem", color: "#667788", fontWeight: 700, textAlign: "right" }}>{h}</th>
+                    <th key={h} style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)", fontWeight: 700, textAlign: "right" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -621,9 +621,9 @@ export default function DashboardPage() {
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#f9fafb"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}>
                       <td style={{ padding: "0.7rem 0.6rem", fontWeight: 600, color: NAVY }}>{b.name}</td>
-                      <td style={{ padding: "0.7rem 0.6rem", color: "#667788", direction: "ltr" }}>{b.phone}</td>
-                      <td style={{ padding: "0.7rem 0.6rem", color: "#667788", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.packageNameAr || b.packageName || "—"}</td>
-                      <td style={{ padding: "0.7rem 0.6rem", color: "#667788" }}>{b.date}</td>
+                      <td style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)", direction: "ltr" }}>{b.phone}</td>
+                      <td style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.packageNameAr || b.packageName || "—"}</td>
+                      <td style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)" }}>{b.date}</td>
                       <td style={{ padding: "0.7rem 0.6rem", color: NAVY, fontWeight: 700 }}>👥 {group}</td>
                       <td style={{ padding: "0.7rem 0.6rem", color: GOLD, fontWeight: 800 }}>{b.priceAtBooking ? fmtMoney(b.priceAtBooking) : "—"}</td>
                       <td style={{ padding: "0.7rem 0.6rem" }}>
@@ -719,7 +719,7 @@ function MiniStat({ icon, label, value, color }: { icon: string; label: string; 
 
 function EmptyHint({ icon, text, sub }: { icon: string; text: string; sub?: string }) {
   return (
-    <div style={{ textAlign: "center", padding: "1.6rem 0.5rem", color: "#99aabb" }}>
+    <div style={{ textAlign: "center", padding: "1.6rem 0.5rem", color: "var(--text-muted)" }}>
       <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>{icon}</div>
       <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{text}</div>
       {sub && <div style={{ fontSize: "0.78rem", marginTop: "0.3rem" }}>{sub}</div>}

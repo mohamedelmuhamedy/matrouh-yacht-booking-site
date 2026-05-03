@@ -30,7 +30,7 @@ export default function LoginPage() {
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🔐</div>
           <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.3rem" }}>لوحة الإدارة</h1>
-          <p style={{ color: "#667788", fontSize: "0.85rem", margin: 0 }}>DR Travel Admin Panel</p>
+          <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>DR Travel Admin Panel</p>
         </div>
 
         <form onSubmit={handleSubmit}>
