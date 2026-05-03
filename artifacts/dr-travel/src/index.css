@@ -63,31 +63,78 @@
   --bg-page-2:         #eef2f7;
   --bg-surface:        #ffffff;
   --bg-surface-2:      #ffffff;
-  --bg-surface-sunk:   #f1f5f9;
+  --bg-surface-sunk:   #eef2f7;
   --bg-surface-solid:  #ffffff;
-  --text-primary:      #0D1B2A;
-  --text-secondary:    #475569;
-  --text-muted:        #5a6b80;
+  --text-primary:      #061320;
+  --text-secondary:    #1f2d3d;
+  --text-muted:        #334155;
   --text-on-light:     #0D1B2A;
-  --border:            #e2e8f0;
-  --border-strong:     #cbd5e1;
-  --divider:           #eef2f7;
+  --border:            #cbd5e1;
+  --border-strong:     #94a3b8;
+  --divider:           #e2e8f0;
   --input-bg:          #ffffff;
-  --input-border:      #cbd5e1;
-  --input-text:        #0D1B2A;
-  --input-placeholder: #94a3b8;
+  --input-border:      #94a3b8;
+  --input-text:        #061320;
+  --input-placeholder: #64748b;
   --input-focus-bg:    #f0f9ff;
-  --shadow-card:       0 1px 3px rgba(13,27,42,0.04), 0 8px 24px -12px rgba(13,27,42,0.10);
-  --shadow-modal:      0 30px 70px -20px rgba(13,27,42,0.25), 0 0 0 1px rgba(13,27,42,0.05);
+  --shadow-card:       0 2px 6px rgba(13,27,42,0.08), 0 12px 32px -16px rgba(13,27,42,0.18);
+  --shadow-modal:      0 30px 70px -20px rgba(13,27,42,0.30), 0 0 0 1px rgba(13,27,42,0.08);
   --modal-backdrop:    rgba(13,27,42,0.55);
   --scrollbar-track:   #e2e8f0;
-  --navbar-scrolled:   rgba(255,255,255,0.92);
+  --navbar-scrolled:   rgba(255,255,255,0.95);
   --hero-overlay-strong: rgba(13,27,42,0.72);
   --hero-overlay-mid:    rgba(13,27,42,0.32);
-  --navbar-mobile:     rgba(255,255,255,0.97);
+  --navbar-mobile:     rgba(255,255,255,0.98);
   --hero-overlay-1:    rgba(13,27,42,0.7);
   --hero-overlay-2:    rgba(13,27,42,0.3);
-  --section-subtitle:  #64748b;
+  --section-subtitle:  #334155;
+}
+
+/* ── Light mode: bolder, higher-contrast typography across the whole site ── */
+:root[data-theme="light"] body {
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:root[data-theme="light"] p,
+:root[data-theme="light"] span,
+:root[data-theme="light"] li,
+:root[data-theme="light"] a,
+:root[data-theme="light"] label,
+:root[data-theme="light"] div,
+:root[data-theme="light"] td,
+:root[data-theme="light"] th {
+  font-weight: 600;
+}
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3,
+:root[data-theme="light"] h4,
+:root[data-theme="light"] h5,
+:root[data-theme="light"] h6 {
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+:root[data-theme="light"] strong,
+:root[data-theme="light"] b {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+:root[data-theme="light"] button {
+  font-weight: 700;
+}
+:root[data-theme="light"] input,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select {
+  font-weight: 600;
+  color: var(--input-text);
+}
+:root[data-theme="light"] input::placeholder,
+:root[data-theme="light"] textarea::placeholder {
+  color: var(--input-placeholder);
+  font-weight: 500;
+  opacity: 1;
 }
 
 html[dir="rtl"] {
