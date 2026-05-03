@@ -3,6 +3,7 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import { apiUrl } from "../lib/api";
 import ShareCard, { GRADIENT_PRESETS, THEME_OPTIONS } from "../components/ShareCard";
+import { AdminQRSection } from "../components/ShareCardQR";
 import { type SiteSettings } from "../context/SiteDataContext";
 
 const inputBase: React.CSSProperties = {
@@ -364,6 +365,22 @@ export default function AdminShareCardPage() {
               )}
             </div>
           </div>
+
+          {/* QR Code */}
+          <AdminQRSection
+            url={shareUrl}
+            fg={settings.card_qr_fg || "#0D1B2A"}
+            bg={settings.card_qr_bg || "#FFFFFF"}
+            embedOnCard={(settings.card_qr_show_on_card ?? "false") === "true"}
+            logoUrl={settings.logo_url}
+            filenameBase={settings.brand_short_name || settings.brand_name || "dr-travel-share"}
+            brandAccent={accent}
+            onChange={patch => {
+              if (patch.fg !== undefined) update("card_qr_fg", patch.fg);
+              if (patch.bg !== undefined) update("card_qr_bg", patch.bg);
+              if (patch.embedOnCard !== undefined) updateBool("card_qr_show_on_card", patch.embedOnCard);
+            }}
+          />
 
           {/* Save */}
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-start", position: "sticky", bottom: 0, background: "#f0f4f8", padding: "0.5rem 0" }}>

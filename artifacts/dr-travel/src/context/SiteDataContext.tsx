@@ -205,6 +205,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
   card_bg_image_url: "",
   card_accent_color: "#00AAFF",
   card_theme: "glass",
+  card_qr_fg: "#0D1B2A",
+  card_qr_bg: "#FFFFFF",
+  card_qr_show_on_card: "false",
 };
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {

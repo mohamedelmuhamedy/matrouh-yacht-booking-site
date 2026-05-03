@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLanguage } from "../LanguageContext";
 import { type SiteSettings } from "../context/SiteDataContext";
 import { resolveApiAssetUrl } from "../lib/api";
+import { ShareCardQRBadge } from "./ShareCardQR";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 
 function LanguagePill() {
@@ -142,7 +143,7 @@ function buildLinks(settings: SiteSettings): LinkConfig[] {
 }
 
 export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSettings; mainSiteUrl?: string }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const ar = lang === "ar";
   const [copied, setCopied] = useState(false);
 
@@ -195,6 +196,11 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
 
   const visitHref = mainSiteUrl
     || (typeof window !== "undefined" ? `${window.location.origin}/` : "/");
+
+  const showQrBadge = (settings.card_qr_show_on_card ?? "false") === "true";
+  const qrFg = settings.card_qr_fg || "#0D1B2A";
+  const qrBg = settings.card_qr_bg || "#FFFFFF";
+  const qrUrl = typeof window !== "undefined" ? `${window.location.origin}/card` : "/card";
 
   return (
     <div
@@ -276,6 +282,17 @@ export default function ShareCard({ settings, mainSiteUrl }: { settings: SiteSet
             ))}
           </div>
         </div>
+
+        {showQrBadge && (
+          <ShareCardQRBadge
+            url={qrUrl}
+            fg={qrFg}
+            bg={qrBg}
+            accent={accent}
+            logoSrc={logoSrc}
+            label={t.shareCardQr.badgeLabel}
+          />
+        )}
 
         <div style={{ display: "flex", gap: "0.6rem" }}>
           <button

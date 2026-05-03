@@ -195,4 +195,26 @@ export const en: Translations = {
   },
 
   waFloat: "Chat with us on WhatsApp",
+
+  shareCardQr: {
+    sectionTitle: "QR Code",
+    description: "Anyone who points their phone camera at this QR opens the share card. Print it on flyers, put it on the boat, or share it digitally.",
+    foreground: "Code color",
+    background: "Background color",
+    size: "Size",
+    format: "Format",
+    sizes: { small: "Small", medium: "Medium", large: "Large", print: "Print" },
+    download: "⬇️ Download QR",
+    copy: "📋 Copy image",
+    share: "📤 Share",
+    embedToggle: "Show QR badge on the public share card (so people can scan it from another device)",
+    contrastWarning: "⚠️ The contrast between these two colors is too low — scanners may fail to read the code. Pick higher-contrast colors.",
+    feedbackDownload: "✓ Downloaded",
+    feedbackDownloadFail: "⚠️ Download failed",
+    feedbackCopy: "✓ Image copied",
+    feedbackCopyFail: "⚠️ Copy failed",
+    feedbackCopyUnsupported: "⚠️ Copy isn't supported in this browser",
+    feedbackShare: "✓ Shared",
+    badgeLabel: "Scan to share",
+  },
 };

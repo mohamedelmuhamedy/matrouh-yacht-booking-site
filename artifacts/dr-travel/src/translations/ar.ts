@@ -193,6 +193,28 @@ export const ar = {
   },
 
   waFloat: "تواصل معنا على واتساب",
+
+  shareCardQr: {
+    sectionTitle: "كود QR",
+    description: "كود QR يفتح بطاقة المشاركة لما حد يصوّره بالموبايل. اطبعه على الفلاير أو ضعه على المركب أو شاركه رقمياً.",
+    foreground: "لون الكود",
+    background: "لون الخلفية",
+    size: "الحجم",
+    format: "الصيغة",
+    sizes: { small: "صغير", medium: "متوسط", large: "كبير", print: "طباعة" },
+    download: "⬇️ تحميل QR",
+    copy: "📋 نسخ الصورة",
+    share: "📤 شارك",
+    embedToggle: "عرض الكود داخل بطاقة المشاركة العامة (لمسحه من جهاز ثاني)",
+    contrastWarning: "⚠️ التباين بين اللونين ضعيف. الماسح قد لا يقرأ الكود — اختر ألوان متباينة أكثر.",
+    feedbackDownload: "✓ تم التحميل",
+    feedbackDownloadFail: "⚠️ فشل التحميل",
+    feedbackCopy: "✓ تم نسخ الصورة",
+    feedbackCopyFail: "⚠️ فشل النسخ",
+    feedbackCopyUnsupported: "⚠️ النسخ غير مدعوم في هذا المتصفح",
+    feedbackShare: "✓ تمت المشاركة",
+    badgeLabel: "امسح للمشاركة",
+  },
 };
 
 export type Translations = typeof ar;
