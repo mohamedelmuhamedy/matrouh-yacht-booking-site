@@ -21,6 +21,7 @@ import whyUsRouter from "./why-us";
 import aiChatRouter from "./ai-chat";
 import ticketsRouter from "./tickets";
 import shareScanRouter from "./share-scan";
+import sitemapRouter from "./sitemap";
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use(whyUsRouter);
 router.use(aiChatRouter);
 router.use(ticketsRouter);
 router.use(shareScanRouter);
+router.use(sitemapRouter);
 
 export default router;

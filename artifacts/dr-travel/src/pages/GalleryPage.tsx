@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { apiFetch, resolveApiAssetUrl } from "../lib/api";
+import SeoHead from "../components/SeoHead";
 
 interface PreviewItem { id: number; url: string; type: string; }
 interface Album {
@@ -39,6 +40,12 @@ export default function GalleryPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, var(--bg-page-2) 0%, var(--bg-page) 100%)", fontFamily: "Cairo, Montserrat, sans-serif", direction: ar ? "rtl" : "ltr" }}>
+      <SeoHead
+        title={ar ? "معرض الصور | DR Travel" : "Gallery | DR Travel"}
+        description={ar ? "صور وفيديوهات من رحلاتنا في مرسى مطروح — يخت، سفاري، شاطئ، ومغامرات." : "Photos and videos from our trips in Marsa Matruh — yacht, safari, beach, and adventures."}
+        lang={ar ? "ar" : "en"}
+        path="/gallery"
+      />
       {/* Header */}
       <div style={{ padding: "5rem 1.5rem 3rem", textAlign: "center", background: "linear-gradient(180deg,rgba(0,170,255,0.08) 0%,transparent 100%)" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.35rem 1.1rem", marginBottom: "1.5rem" }}>

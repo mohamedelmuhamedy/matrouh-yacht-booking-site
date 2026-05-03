@@ -3,6 +3,7 @@ import { db, bookings } from "@workspace/db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { ensureTicketToken } from "./tickets";
+import { recordAudit } from "../lib/audit";
 
 const router = Router();
 
@@ -50,10 +51,9 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
-    // The status update and the ticket-token issuance must succeed or fail
-    // together — otherwise an admin can see "confirmed" without a ticket and
-    // re-trigger issuance manually, double-charging the user mentally.
     const result = await db.transaction(async (tx) => {
+      const [existing] = await tx.select({ status: bookings.status }).from(bookings).where(eq(bookings.id, id));
+      if (!existing) return null;
       const [updated] = await tx
         .update(bookings)
         .set({ status, updatedAt: new Date() })
@@ -61,18 +61,22 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
         .returning();
       if (!updated) return null;
       if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
-        // Pass `tx` so token issuance is part of this transaction — if it
-        // fails, the status update rolls back too.
         const issued = await ensureTicketToken(id, tx as unknown as typeof db);
         if (issued) {
           updated.ticketToken = issued.token;
           updated.ticketNumber = issued.ticketNumber;
         }
       }
-      return updated;
+      return { updated, prevStatus: existing.status };
     });
     if (!result) return res.status(404).json({ error: "Booking not found" });
-    return res.json(result);
+    await recordAudit(req, {
+      action: "booking.status_change",
+      entity: "booking",
+      entityId: id,
+      metadata: { from: result.prevStatus, to: status },
+    });
+    return res.json(result.updated);
   } catch (err: unknown) {
     return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to update" });
   }
@@ -180,6 +184,17 @@ router.delete("/admin/bookings/:id", authMiddleware, async (req, res) => {
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const [deleted] = await db.delete(bookings).where(eq(bookings.id, id)).returning();
     if (!deleted) return res.status(404).json({ error: "Not found" });
+    await recordAudit(req, {
+      action: "booking.delete",
+      entity: "booking",
+      entityId: id,
+      metadata: {
+        name: deleted.name,
+        phone: deleted.phone,
+        packageName: deleted.packageName,
+        status: deleted.status,
+      },
+    });
     return res.json({ success: true });
   } catch (err: unknown) {
     return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to delete" });

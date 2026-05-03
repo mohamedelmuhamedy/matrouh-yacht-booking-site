@@ -38,8 +38,6 @@ router.put("/admin/settings", authMiddleware, async (req, res) => {
       return res.status(413).json({ error: "Too many settings in one request" });
     }
 
-    // All-or-nothing: a partial settings save (some keys updated, others
-    // failing) leaves the site in an incoherent half-configured state.
     let aiSettingsTouched = false;
     await db.transaction(async (tx) => {
       for (const [key, rawValue] of entries) {

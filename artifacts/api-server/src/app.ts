@@ -6,27 +6,34 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import router from "./routes";
 
 const app: Express = express();
+const isProduction = process.env["NODE_ENV"] === "production";
 
-// Behind Replit's proxy / production CDN; trust one hop so req.ip is the real
-// client IP (used by rate limiters) and Secure cookies work properly.
 app.set("trust proxy", 1);
 
-// ── Security headers ────────────────────────────────────────────────────────
-// Conservative defaults; CSP is disabled because the API also proxies the
-// frontend dev server in development. The frontend ships its own CSP via
-// index.html / hosting provider in production.
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: isProduction
+      ? {
+          useDefaults: true,
+          directives: {
+            "default-src": ["'self'"],
+            "img-src": ["'self'", "data:", "blob:", "https:"],
+            "media-src": ["'self'", "data:", "blob:", "https:"],
+            "script-src": ["'self'"],
+            "style-src": ["'self'", "'unsafe-inline'", "https:"],
+            "font-src": ["'self'", "data:", "https:"],
+            "connect-src": ["'self'", "https:", "wss:"],
+            "frame-ancestors": ["'self'"],
+            "object-src": ["'none'"],
+            "base-uri": ["'self'"],
+          },
+        }
+      : false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
 
-// ── CORS allowlist ──────────────────────────────────────────────────────────
-// Comma-separated origin list via ALLOWED_ORIGINS. Empty / unset => allow all
-// (dev convenience). Same-origin and tooling requests have no Origin header
-// and are always allowed.
 const rawAllowed = (process.env["ALLOWED_ORIGINS"] ?? "").trim();
 const allowedOrigins = rawAllowed
   ? rawAllowed.split(",").map((s) => s.trim()).filter(Boolean)
@@ -36,20 +43,20 @@ app.use(
   cors({
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
-      if (!allowedOrigins) return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`Origin not allowed: ${origin}`));
+      if (allowedOrigins) {
+        return cb(null, allowedOrigins.includes(origin));
+      }
+      // In production, refuse cross-origin requests when no allowlist set.
+      if (isProduction) return cb(null, false);
+      return cb(null, true);
     },
     credentials: true,
   }),
 );
 
-// ── Body parsers (with explicit cap; default is 100kb but we want to be
-// loud about the limit so large payloads fail fast and clearly).
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// Body-parser errors → JSON 400 (otherwise Express returns HTML stack traces).
 app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
   if (err && typeof err === "object" && "type" in err) {
     const e = err as { type?: string; message?: string; status?: number };
@@ -64,9 +71,6 @@ app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
   return next(err);
 });
 
-// ── Rate limiters ───────────────────────────────────────────────────────────
-// Generous global limiter to absorb traffic spikes without locking real users
-// out, plus tighter limiters mounted on abuse-prone endpoints.
 const globalLimiter = rateLimit({
   windowMs: 60_000,
   limit: 600,
@@ -118,7 +122,7 @@ app.use("/api", router);
 const FRONTEND_TARGET = process.env["FRONTEND_PROXY_TARGET"] ?? "http://localhost:5000";
 const ENABLE_FRONTEND_PROXY =
   process.env["ENABLE_FRONTEND_PROXY"] === "true" ||
-  (process.env["ENABLE_FRONTEND_PROXY"] !== "false" && process.env["NODE_ENV"] !== "production");
+  (process.env["ENABLE_FRONTEND_PROXY"] !== "false" && !isProduction);
 
 if (ENABLE_FRONTEND_PROXY) {
   app.use(

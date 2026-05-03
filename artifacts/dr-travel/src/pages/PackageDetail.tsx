@@ -8,6 +8,7 @@ import { formatPrice } from "../data/currencies";
 import { usePersonalization } from "../hooks/usePersonalization";
 import { apiFetch, storageObjectUrl } from "../lib/api";
 import DatePicker from "../components/DatePicker";
+import SeoHead from "../components/SeoHead";
 
 const WhatsAppIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -283,6 +284,11 @@ export default function PackageDetail() {
   const duration = ar ? pkg.durationAr : pkg.durationEn;
   const faq = (pkg as any).faq || [];
   const formatPkgPrice = (priceEGP: number) => formatPrice(priceEGP, currency, lang, settings);
+  const seoImage = (() => {
+    const imgs = (pkg as unknown as { images?: string[] }).images;
+    const first = (Array.isArray(imgs) && imgs[0]) || "";
+    return first ? storageObjectUrl(first) || first : "";
+  })();
 
   const waNumber = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
 
@@ -349,6 +355,14 @@ export default function PackageDetail() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", overflowX: "hidden" }}>
+      <SeoHead
+        title={`${title} | DR Travel`}
+        description={String(desc || "").slice(0, 160)}
+        image={seoImage || undefined}
+        lang={ar ? "ar" : "en"}
+        path={`/package/${pkg.id}`}
+        type="product"
+      />
 
       {/* Back button */}
       <div style={{ position: "fixed", top: isMobile ? "70px" : "80px", insetInlineStart: isMobile ? "0.75rem" : "1rem", zIndex: 100 }}>

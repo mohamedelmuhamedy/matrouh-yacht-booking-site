@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { db, bookings, siteSettings } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
+import { recordAudit } from "../lib/audit";
 import {
   generateTicketNumber,
   signTicket,
@@ -14,10 +15,6 @@ import {
   verifyTicketNumberChecksum,
 } from "../lib/ticketSecurity";
 
-// Strict admin detection — only tokens that look like admin login tokens
-// (carry numeric `userId` + `username` AND have no `kind` field) count.
-// Visitor / referral tokens are signed with the same JWT_SECRET but carry
-// `kind: "visitor"`; treating them as admin would leak customer phone numbers.
 function isAdminRequest(req: express.Request): boolean {
   const h = req.headers.authorization;
   if (!h || !h.startsWith("Bearer ")) return false;
@@ -37,6 +34,10 @@ function maskPhone(phone: string | null | undefined): string {
   return p.slice(0, 2) + "*".repeat(Math.max(0, p.length - 4)) + p.slice(-2);
 }
 
+function firstNameOnly(name: string | null | undefined): string {
+  return String(name ?? "").trim().split(/\s+/)[0] || "";
+}
+
 const router = Router();
 
 const TICKETS_DIR = path.resolve(process.cwd(), "data", "tickets");
@@ -51,20 +52,20 @@ export interface IssuedTicket {
   signature: string;
 }
 
-// Caller may pass a Drizzle transaction handle (`tx`) so the read+update
-// happen inside the caller's transaction; otherwise we use the global `db`.
-// Type matches what `db.transaction(async (tx) => ...)` hands back.
 type DbLike = typeof db;
-export async function ensureTicketToken(
-  bookingId: number,
-  txArg?: DbLike,
-): Promise<IssuedTicket | null> {
-  const conn: DbLike = txArg ?? db;
-  const [b] = await conn.select().from(bookings).where(eq(bookings.id, bookingId));
-  if (!b) return null;
 
-  let token = b.ticketToken && b.ticketToken.length >= 16 ? b.ticketToken : null;
-  let ticketNumber = b.ticketNumber || null;
+async function ensureTicketTokenInTx(tx: DbLike, bookingId: number): Promise<IssuedTicket | null> {
+  const locked = await tx.execute(
+    sql`select id, ticket_token, ticket_number, ticket_issued_at from bookings where id = ${bookingId} for update`,
+  );
+  // node-postgres returns rows on .rows
+  const rows = (locked as unknown as { rows: Array<Record<string, unknown>> }).rows;
+  const row = rows && rows[0];
+  if (!row) return null;
+
+  let token = typeof row.ticket_token === "string" && row.ticket_token.length >= 16 ? row.ticket_token : null;
+  let ticketNumber = typeof row.ticket_number === "string" && row.ticket_number.length > 0 ? row.ticket_number : null;
+  const hasIssuedAt = !!row.ticket_issued_at;
 
   const updates: Record<string, unknown> = {};
   if (!token) {
@@ -75,16 +76,24 @@ export async function ensureTicketToken(
     ticketNumber = generateTicketNumber(bookingId, token);
     updates.ticketNumber = ticketNumber;
   }
-  if (!b.ticketIssuedAt && (updates.ticketToken || updates.ticketNumber)) {
+  if (!hasIssuedAt && (updates.ticketToken || updates.ticketNumber)) {
     updates.ticketIssuedAt = new Date();
   }
   if (Object.keys(updates).length > 0) {
     updates.updatedAt = new Date();
-    await conn.update(bookings).set(updates).where(eq(bookings.id, bookingId));
+    await tx.update(bookings).set(updates).where(eq(bookings.id, bookingId));
   }
 
   const signature = signTicket({ bookingId, ticketToken: token, ticketNumber });
   return { token, ticketNumber, signature };
+}
+
+export async function ensureTicketToken(
+  bookingId: number,
+  txArg?: DbLike,
+): Promise<IssuedTicket | null> {
+  if (txArg) return ensureTicketTokenInTx(txArg, bookingId);
+  return db.transaction((tx) => ensureTicketTokenInTx(tx as unknown as DbLike, bookingId));
 }
 
 const PUBLIC_SETTING_KEYS = new Set([
@@ -92,12 +101,9 @@ const PUBLIC_SETTING_KEYS = new Set([
   "logo_url", "phone_number", "whatsapp_number", "instagram_url", "facebook_url",
   "address_ar", "address_en", "maps_url",
   "card_display_name_ar", "card_display_name_en",
-  // Admin-customizable WhatsApp templates for the "send ticket image" flow
-  // on the bookings admin page (BookingsPage.tsx -> sendTicketImageWhatsApp).
   "wa_image_message_ar", "wa_image_message_en",
 ]);
 
-// ── Public verify endpoint (lightweight, signature-checked) ──────────────
 router.get("/tickets/verify/:token", async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
@@ -128,7 +134,7 @@ router.get("/tickets/verify/:token", async (req, res) => {
       status: derivedStatus,
       ticket: {
         bookingId: b.id,
-        firstName: (b.name || "").split(/\s+/)[0] || "",
+        firstName: firstNameOnly(b.name),
         packageName: b.packageName,
         packageNameAr: b.packageNameAr,
         date: b.date,
@@ -147,14 +153,29 @@ router.get("/tickets/verify/:token", async (req, res) => {
   }
 });
 
-// Public PDF download — declared BEFORE the JSON route so Express does not
-// match `.pdf` as part of the :token param.
+function checkSig(b: { id: number; ticketNumber: string | null }, token: string, rawSig: unknown): boolean {
+  if (!b.ticketNumber) return false;
+  const sig = String(rawSig ?? "").trim().toUpperCase();
+  if (!sig) return false;
+  return verifyTicketSignature(
+    { bookingId: b.id, ticketToken: token, ticketNumber: b.ticketNumber },
+    sig,
+  );
+}
+
 router.get("/tickets/:token.pdf", async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(404).end();
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).end();
+
+    const adminAccess = isAdminRequest(req);
+    const sigOk = checkSig(b, token, req.query.sig);
+    if (!adminAccess && !sigOk) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     if (!fs.existsSync(pdfPath)) return res.status(404).json({ error: "PDF not yet generated" });
     const stat = fs.statSync(pdfPath);
@@ -163,7 +184,7 @@ router.get("/tickets/:token.pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Length", String(stat.size));
     res.setHeader("Content-Disposition", `${disposition}; filename="${safeName}.pdf"`);
-    res.setHeader("Cache-Control", "private, max-age=300");
+    res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
     fs.createReadStream(pdfPath).pipe(res);
     return;
@@ -180,10 +201,16 @@ router.get("/tickets/:token", async (req, res) => {
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Not found" });
 
-    // PII redaction: a leaked ticket URL should not expose the customer's
-    // full phone number or admin notes. Admins (with a valid JWT) get the
-    // raw record; everyone else gets a masked phone and no admin notes.
     const adminAccess = isAdminRequest(req);
+    let ticketNumber = b.ticketNumber || "";
+    if (!ticketNumber) {
+      const issued = await ensureTicketToken(b.id);
+      if (issued) ticketNumber = issued.ticketNumber;
+    }
+
+    const sigOk = checkSig({ id: b.id, ticketNumber }, token, req.query.sig);
+    const fullAccess = adminAccess || sigOk;
+
     const settingsRows = await db.select().from(siteSettings);
     const settings: Record<string, string> = {};
     for (const row of settingsRows) {
@@ -192,11 +219,42 @@ router.get("/tickets/:token", async (req, res) => {
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     const pdfAvailable = fs.existsSync(pdfPath);
 
-    let ticketNumber = b.ticketNumber || "";
-    if (!ticketNumber) {
-      const issued = await ensureTicketToken(b.id);
-      if (issued) ticketNumber = issued.ticketNumber;
+    if (!fullAccess) {
+      // Token-only access: enough to render the holder's own ticket but no
+      // notes / supervisor / pickup info — those are admin- or sig-gated.
+      return res.json({
+        id: b.id,
+        ticketToken: b.ticketToken,
+        ticketNumber,
+        ticketSignature: "",
+        ticketUsedAt: b.ticketUsedAt,
+        ticketUsedBy: null,
+        name: firstNameOnly(b.name),
+        phone: maskPhone(b.phone),
+        packageId: b.packageId,
+        packageName: b.packageName,
+        packageNameAr: b.packageNameAr,
+        date: b.date,
+        adults: b.adults,
+        children: b.children,
+        infants: b.infants,
+        notes: "",
+        currency: b.currency,
+        priceAtBooking: b.priceAtBooking,
+        status: b.status,
+        meetingTime: b.meetingTime,
+        pickupLocation: "",
+        pickupLocationAr: "",
+        supervisorName: "",
+        supervisorPhone: "",
+        issuedAt: b.ticketIssuedAt || b.updatedAt,
+        createdAt: b.createdAt,
+        pdfAvailable: false,
+        pdfUrl: null,
+        settings,
+      });
     }
+
     const signature = ticketNumber
       ? signTicket({ bookingId: b.id, ticketToken: token, ticketNumber })
       : "";
@@ -209,7 +267,7 @@ router.get("/tickets/:token", async (req, res) => {
       ticketUsedAt: b.ticketUsedAt,
       ticketUsedBy: b.ticketUsedBy,
       name: b.name,
-      phone: adminAccess ? b.phone : maskPhone(b.phone),
+      phone: b.phone,
       packageId: b.packageId,
       packageName: b.packageName,
       packageNameAr: b.packageNameAr,
@@ -229,7 +287,9 @@ router.get("/tickets/:token", async (req, res) => {
       issuedAt: b.ticketIssuedAt || b.updatedAt,
       createdAt: b.createdAt,
       pdfAvailable,
-      pdfUrl: pdfAvailable ? `/api/tickets/${token}.pdf` : null,
+      pdfUrl: pdfAvailable
+        ? `/api/tickets/${token}.pdf${signature ? `?sig=${encodeURIComponent(signature)}` : ""}`
+        : null,
       settings,
     });
   } catch (err) {
@@ -238,41 +298,63 @@ router.get("/tickets/:token", async (req, res) => {
   }
 });
 
-// Admin marks a ticket as used at the gate
 router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
-    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
-    if (!b) return res.status(404).json({ error: "Booking not found" });
-    if (b.status === "cancelled") {
-      return res.status(409).json({ error: "Booking is cancelled", status: "cancelled" });
+    const result = await db.transaction(async (tx) => {
+      const locked = await tx.execute(
+        sql`select id, status, ticket_used_at from bookings where ticket_token = ${token} for update`,
+      );
+      const rows = (locked as unknown as { rows: Array<Record<string, unknown>> }).rows;
+      const row = rows && rows[0];
+      if (!row) return { error: "not_found" as const };
+      if (row.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
+      if (row.status !== "confirmed") return { error: "not_confirmed" as const, status: row.status as string };
+      if (row.ticket_used_at) {
+        return { already: true, ticketUsedAt: row.ticket_used_at as Date };
+      }
+      const adminUser = (req as unknown as { admin?: { username?: string } }).admin?.username || "admin";
+      const usedAt = new Date();
+      await tx.update(bookings)
+        .set({ ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
+        .where(eq(bookings.id, row.id as number));
+      return { id: row.id as number, ticketUsedAt: usedAt, ticketUsedBy: adminUser };
+    });
+
+    if ("error" in result) {
+      if (result.error === "not_found") return res.status(404).json({ error: "Booking not found" });
+      if (result.error === "cancelled") {
+        return res.status(409).json({ error: "Booking is cancelled", status: "cancelled" });
+      }
+      return res.status(409).json({ error: "Booking not confirmed", status: result.status });
     }
-    if (b.status !== "confirmed") {
-      return res.status(409).json({ error: "Booking not confirmed", status: b.status });
-    }
-    if (b.ticketUsedAt) {
+    if ("already" in result && result.already) {
       return res.json({
         ok: true,
         already: true,
         status: "used",
-        ticketUsedAt: b.ticketUsedAt,
-        ticketUsedBy: b.ticketUsedBy,
+        ticketUsedAt: result.ticketUsedAt,
       });
     }
-    const adminUser = (req as any).admin?.username || "admin";
-    const usedAt = new Date();
-    await db.update(bookings)
-      .set({ ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
-      .where(eq(bookings.id, b.id));
-    return res.json({ ok: true, already: false, status: "used", ticketUsedAt: usedAt, ticketUsedBy: adminUser });
+    await recordAudit(req, {
+      action: "ticket.mark_used",
+      entity: "booking",
+      entityId: result.id,
+    });
+    return res.json({
+      ok: true,
+      already: false,
+      status: "used",
+      ticketUsedAt: result.ticketUsedAt,
+      ticketUsedBy: result.ticketUsedBy,
+    });
   } catch (err) {
     console.error("[tickets.use] error:", err);
     return res.status(500).json({ error: "Failed to mark ticket as used" });
   }
 });
 
-// Admin uploads/refreshes generated PDF for a booking
 router.post(
   "/admin/bookings/:id/ticket-pdf",
   authMiddleware,
@@ -289,19 +371,24 @@ router.post(
       if (!Buffer.isBuffer(body) || body.length < 1000) {
         return res.status(400).json({ error: "PDF body missing or too small" });
       }
-      // Validate PDF magic header
       if (body.slice(0, 4).toString("utf8") !== "%PDF") {
         return res.status(400).json({ error: "Invalid PDF file" });
       }
       ensureDir();
       const pdfPath = path.join(TICKETS_DIR, `${issued.token}.pdf`);
       fs.writeFileSync(pdfPath, body);
+      await recordAudit(req, {
+        action: "ticket.pdf_upload",
+        entity: "booking",
+        entityId: id,
+        metadata: { bytes: body.length },
+      });
       return res.json({
         ok: true,
         token: issued.token,
         ticketNumber: issued.ticketNumber,
         signature: issued.signature,
-        url: `/api/tickets/${issued.token}.pdf`,
+        url: `/api/tickets/${issued.token}.pdf?sig=${encodeURIComponent(issued.signature)}`,
         bytes: body.length,
       });
     } catch (err) {

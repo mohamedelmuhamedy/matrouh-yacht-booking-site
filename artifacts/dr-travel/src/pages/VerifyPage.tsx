@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { apiFetch } from "../lib/api";
+import SeoHead from "../components/SeoHead";
 
 type VerifyStatus = "valid" | "used" | "cancelled" | "invalid" | "loading";
 
@@ -101,6 +102,7 @@ export default function VerifyPage() {
       fontFamily: ar ? "Cairo, sans-serif" : "Montserrat, Cairo, sans-serif",
       color: "white",
     }}>
+      <SeoHead title={ar ? "تحقق من التذكرة | DR Travel" : "Verify Ticket | DR Travel"} lang={ar ? "ar" : "en"} noindex />
       <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ textAlign: "center", marginTop: 6 }}>
           <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>DR TRAVEL</div>

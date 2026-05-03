@@ -7,41 +7,30 @@ import { ensureTicketToken } from "./tickets";
 
 const router = Router();
 
-// ── Validators ──────────────────────────────────────────────────────────────
-// Accepts +20 1xxxxxxxxx, 011xxxxxxxx, 015xxxxxxxx, 010xxxxxxxx, 012xxxxxxxx,
-// generic international (E.164-ish), and tolerates spaces/dashes from the UI.
 function normalizePhone(raw: string): string {
   return raw.replace(/[\s\-().]/g, "");
 }
 function isValidPhone(raw: string): boolean {
   const p = normalizePhone(raw);
-  // Egyptian local: 11 digits starting with 0
   if (/^0(10|11|12|15)\d{8}$/.test(p)) return true;
-  // International: + and 8-15 digits
   if (/^\+?\d{8,15}$/.test(p)) return true;
   return false;
 }
 
-function parseIntSafe(value: unknown, fallback: number, min: number, max: number): number {
-  const n = Number.parseInt(String(value ?? ""), 10);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, n));
+function parseIntStrict(value: unknown, min: number, max: number): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const s = String(value).trim();
+  if (!/^-?\d+$/.test(s)) return null;
+  const n = Number.parseInt(s, 10);
+  if (!Number.isFinite(n) || n < min || n > max) return null;
+  return n;
 }
 
-// ── Idempotency cache (in-memory) ──────────────────────────────────────────
-// Bucketed by phone+packageId+date in 5-minute windows to absorb double-tap
-// submissions without inserting duplicate rows. Process-local is fine because
-// we run a single api server instance.
 const IDEMPOTENCY_TTL_MS = 5 * 60_000;
 const idempotencyCache = new Map<string, { id: number; at: number }>();
-// In-flight map serializes concurrent requests with the same key so the
-// second caller awaits the first one's insert and gets back the same id —
-// closes the check-then-insert race window without needing a DB unique index.
 const inFlight = new Map<string, Promise<number>>();
 
 function idempotencyKey(phone: string, packageId: number | null, packageName: string, date: string): string {
-  // When packageId is null (free-text custom request) the package name is
-  // part of the identity, otherwise different requests would collide.
   return crypto
     .createHash("sha256")
     .update(`${phone}|${packageId ?? `name:${packageName}`}|${date}`)
@@ -84,12 +73,19 @@ router.post("/bookings", async (req, res) => {
     if (!date) return res.status(400).json({ error: "Date is required" });
 
     const phone = normalizePhone(phoneRaw);
-    const adults = parseIntSafe(body.adults, 1, 1, 50);
-    const children = parseIntSafe(body.children, 0, 0, 50);
-    const infants = parseIntSafe(body.infants, 0, 0, 20);
+    const adults = parseIntStrict(body.adults ?? 1, 1, 50);
+    const children = parseIntStrict(body.children ?? 0, 0, 50);
+    const infants = parseIntStrict(body.infants ?? 0, 0, 20);
+    if (adults === null) {
+      return res.status(400).json({ error: "Adults must be a whole number between 1 and 50" });
+    }
+    if (children === null) {
+      return res.status(400).json({ error: "Children must be a whole number between 0 and 50" });
+    }
+    if (infants === null) {
+      return res.status(400).json({ error: "Infants must be a whole number between 0 and 20" });
+    }
 
-    // Resolve the package server-side (never trust the client's packageId
-    // unless we can find a published row with that id).
     const rawPackageId = body.packageId;
     let packageId: number | null = null;
     let packageName = "";
@@ -98,53 +94,45 @@ router.post("/bookings", async (req, res) => {
 
     if (rawPackageId !== undefined && rawPackageId !== null && rawPackageId !== "") {
       const pid = Number.parseInt(String(rawPackageId), 10);
-      if (Number.isFinite(pid) && pid > 0) {
-        const [pkg] = await db
-          .select()
-          .from(packages)
-          .where(and(eq(packages.id, pid), eq(packages.active, true)));
-        if (!pkg) {
-          return res.status(400).json({ error: "Selected package is not available" });
-        }
-        packageId = pkg.id;
-        packageName = pkg.titleEn;
-        packageNameAr = pkg.titleAr;
-        // Server-authoritative price: ignore body.priceAtBooking entirely.
-        priceAtBooking = pkg.priceEGP;
+      if (!Number.isFinite(pid) || pid <= 0) {
+        return res.status(400).json({ error: "Invalid package id" });
+      }
+      const [pkg] = await db
+        .select()
+        .from(packages)
+        .where(and(eq(packages.id, pid), eq(packages.active, true)));
+      if (!pkg) {
+        return res.status(400).json({ error: "Selected package is not available" });
+      }
+      packageId = pkg.id;
+      packageName = pkg.titleEn;
+      packageNameAr = pkg.titleAr;
+      priceAtBooking = pkg.priceEGP;
+    } else {
+      packageName = String(body.packageName ?? "").trim().slice(0, 200);
+      packageNameAr = String(body.packageNameAr ?? "").trim().slice(0, 200);
+      if (!packageName && !packageNameAr) {
+        return res.status(400).json({ error: "Package is required" });
       }
     }
 
-    // Allow free-text package fallback only when no packageId was supplied
-    // (e.g. legacy "custom request" form).
-    if (!packageId) {
-      packageName = String(body.packageName ?? "").trim().slice(0, 200);
-      packageNameAr = String(body.packageNameAr ?? "").trim().slice(0, 200);
-    }
-
-    // Idempotency: collapse rapid duplicate submissions.
     const key = idempotencyKey(phone, packageId, packageName, date);
     const recent = getRecentBooking(key);
     if (recent) {
       return res.status(200).json({ success: true, id: recent, deduplicated: true });
     }
 
-    // Serialize concurrent submissions of the same key — the second caller
-    // awaits the first's insert and returns the same id (deduplicated:true)
-    // instead of racing past the check-then-insert.
     const existingFlight = inFlight.get(key);
     if (existingFlight) {
       try {
         const id = await existingFlight;
         return res.status(200).json({ success: true, id, deduplicated: true });
       } catch {
-        // Fall through and try ourselves if the in-flight one failed.
+        // fall through
       }
     }
 
     const flight = (async (): Promise<number> => {
-      // Defensive DB-level check: any row with same phone+packageId+date in
-      // the last 5 minutes is treated as the same booking even across
-      // process restarts (in-memory cache lost).
       const since = new Date(Date.now() - IDEMPOTENCY_TTL_MS);
       const dupRows = await db
         .select({ id: bookings.id })
@@ -213,13 +201,9 @@ router.post("/bookings", async (req, res) => {
     try {
       createdId = await flight;
     } finally {
-      // Clear the slot only if it's still pointing at our promise (a later
-      // request may have re-inserted after we resolved).
       if (inFlight.get(key) === flight) inFlight.delete(key);
     }
 
-    // Distinguish a real new insert from a same-request dedupe hit by
-    // checking whether the cache pointed at this id before our flight ran.
     return res.status(201).json({ success: true, id: createdId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed to create booking";

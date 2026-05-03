@@ -5,6 +5,7 @@ import { useSiteData } from "../context/SiteDataContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { formatPrice, CurrencyCode } from "../data/currencies";
 import { storageObjectUrl } from "../lib/api";
+import SeoHead from "../components/SeoHead";
 
 function useIsMobile() {
   const [m, setM] = useState(window.innerWidth < 768);
@@ -35,6 +36,12 @@ function CheckIcon() {
 export default function TripsPage() {
   const { lang } = useLanguage();
   const { packages: allPackages, categories: dbCategories, settings } = useSiteData();
+  const seoTitle = lang === "ar"
+    ? "الرحلات والباقات | DR Travel"
+    : "Trips & Packages | DR Travel";
+  const seoDesc = lang === "ar"
+    ? "تصفح كل الرحلات السياحية والباقات المتوفرة لدى DR Travel — أسعار، فئات، تواريخ، وتفاصيل كاملة."
+    : "Browse all DR Travel trips and packages — prices, categories, dates, and full details.";
   const { currency } = useCurrency();
   const [, navigate] = useLocation();
   const isMobile = useIsMobile();
@@ -85,6 +92,7 @@ export default function TripsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr" }}>
+      <SeoHead title={seoTitle} description={seoDesc} lang={ar ? "ar" : "en"} path="/trips" />
 
       {/* Header */}
       <div style={{ background: "linear-gradient(180deg, var(--bg-page) 0%, var(--bg-page-2) 100%)", borderBottom: "1px solid var(--border)", paddingTop: isMobile ? "4.5rem" : "5.5rem", paddingBottom: "2rem", paddingInline: isMobile ? "1rem" : "2rem" }}>

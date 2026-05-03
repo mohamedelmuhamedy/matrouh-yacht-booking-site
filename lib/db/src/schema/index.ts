@@ -14,3 +14,4 @@ export * from "./push_subscriptions";
 export * from "./app_secrets";
 export * from "./why_us_cards";
 export * from "./qr_scans";
+export * from "./admin_audit_log";
