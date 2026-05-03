@@ -43,6 +43,9 @@ export async function ensureTicketToken(bookingId: number): Promise<IssuedTicket
     ticketNumber = generateTicketNumber(bookingId, token);
     updates.ticketNumber = ticketNumber;
   }
+  if (!b.ticketIssuedAt && (updates.ticketToken || updates.ticketNumber)) {
+    updates.ticketIssuedAt = new Date();
+  }
   if (Object.keys(updates).length > 0) {
     updates.updatedAt = new Date();
     await db.update(bookings).set(updates).where(eq(bookings.id, bookingId));
@@ -103,7 +106,7 @@ router.get("/tickets/verify/:token", async (req, res) => {
         ticketNumber: b.ticketNumber,
         bookingStatus: b.status,
         usedAt: b.ticketUsedAt,
-        issuedAt: b.updatedAt,
+        issuedAt: b.ticketIssuedAt || b.updatedAt,
       },
     });
   } catch (err) {
@@ -185,7 +188,7 @@ router.get("/tickets/:token", async (req, res) => {
       pickupLocationAr: b.pickupLocationAr,
       supervisorName: b.supervisorName,
       supervisorPhone: b.supervisorPhone,
-      issuedAt: b.updatedAt,
+      issuedAt: b.ticketIssuedAt || b.updatedAt,
       createdAt: b.createdAt,
       pdfAvailable,
       pdfUrl: pdfAvailable ? `/api/tickets/${token}.pdf` : null,

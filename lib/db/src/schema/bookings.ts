@@ -21,6 +21,7 @@ export const bookings = pgTable("bookings", {
   referralCode: text("referral_code").notNull().default(""),
   ticketToken: text("ticket_token").unique(),
   ticketNumber: text("ticket_number").unique(),
+  ticketIssuedAt: timestamp("ticket_issued_at"),
   ticketUsedAt: timestamp("ticket_used_at"),
   ticketUsedBy: text("ticket_used_by"),
   meetingTime: text("meeting_time").notNull().default(""),

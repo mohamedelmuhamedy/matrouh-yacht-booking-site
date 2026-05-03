@@ -28,9 +28,8 @@ export default function TicketPage() {
     document.title = `${T.pageTitle} · DRT-${String(data.id).padStart(5, "0")}`;
   }, [data, T.pageTitle]);
 
-  const sig = data?.ticketSignature || "";
   const publicUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/verify/${token}${sig ? `?sig=${encodeURIComponent(sig)}` : ""}`
+    ? `${window.location.origin}/verify/${token}`
     : "";
 
   if (loading) {

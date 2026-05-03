@@ -15,6 +15,7 @@ apply_ticket_columns() {
       const pool = new pg.Pool({ connectionString: process.env._URL_ });
       try {
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_number text');
+        await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_issued_at timestamp');
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_used_at timestamp');
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_used_by text');
         await pool.query(\`DO \$\$ BEGIN

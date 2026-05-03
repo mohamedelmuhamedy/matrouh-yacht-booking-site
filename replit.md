@@ -88,8 +88,8 @@ Per-feature visual editor lets the admin set image / icon / tint / AR+EN title f
 ### Anti-Fake Branded Tickets (2026-05-03)
 
 Each booking ticket carries multiple anti-counterfeit features:
-- **Formatted ticket number** `DR-YY-IIIIRRRRRR-CK` (year, booking id, base32 random, sha256 checksum). Generated server-side, unique constraint on `bookings.ticket_number`.
-- **HMAC-SHA256 signature** (`signTicket`) over `<token>.<bookingId>.<ticketNumber>` using `SESSION_SECRET` (fallback `JWT_SECRET`). Returned as a 12-char base32 `signature`. Required as `?sig=` on the verify URL.
+- **Formatted ticket number** `DR-YY-XXXXXX-CK` (year, 6-char base32 random, 2-char checksum). Generated server-side, unique constraint on `bookings.ticket_number`, validated by `verifyTicketNumberChecksum` against `^DR-\d{2}-[A-Z0-9]{6}-[A-Z0-9]{2}$`.
+- **HMAC-SHA256 signature** (`signTicket`) over `bookingId|ticketToken|ticketNumber` using `SESSION_SECRET` (fallback `JWT_SECRET`). Returned as a 12-char base32 `signature`. Required as `?sig=` on the verify URL; `Ticket.tsx` appends it to the public `/verify/:token` QR target.
 - **Public verify endpoint**: `GET /api/tickets/verify/:token?sig=` returns `{status, ticket}` where status ∈ `valid|used|cancelled|invalid`. Mobile-friendly page at `/verify/:token?sig=` shows status with localized colour and (for admin) a "تأكيد الدخول" button.
 - **Admin mark-as-used**: `POST /api/admin/tickets/:token/use` (idempotent; blocks cancelled). Sets `ticket_used_at`, `ticket_used_by` from the JWT username.
 - **Visual security**: `components/Ticket.tsx` renders SVG guilloche pattern, repeated "DR TRAVEL · AUTHENTIC" microtext stripes, full-page rotated watermark, gold seal corner, ticket number + 12-char security code shown next to the QR.
