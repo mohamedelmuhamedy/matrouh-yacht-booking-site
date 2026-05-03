@@ -71,7 +71,7 @@ export default function PushPrompt() {
     <div style={{
       position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
       zIndex: 9999, width: "min(95vw, 390px)",
-      background: "linear-gradient(135deg,#0D1B2A,#0a2040)",
+      background: "var(--bg-surface-solid)",
       border: "1px solid rgba(0,170,255,0.3)",
       borderRadius: 16, boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
       padding: "1.1rem 1.25rem",
@@ -87,7 +87,7 @@ export default function PushPrompt() {
         style={{
           position: "absolute", top: 10, left: 12,
           background: "none", border: "none",
-          color: "rgba(255,255,255,0.65)", fontSize: "1.1rem",
+          color: "var(--text-muted)", fontSize: "1.1rem",
           cursor: "pointer", lineHeight: 1, padding: "2px 6px",
           borderRadius: 4,
         }}
@@ -112,7 +112,7 @@ export default function PushPrompt() {
               <p style={{ margin: "0 0 0.5rem", fontWeight: 700, color: "#fbbf24", fontSize: "0.88rem" }}>
                 تعذّر تفعيل الإشعارات
               </p>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "0.8rem", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.8rem", lineHeight: 1.5 }}>
                 {errMsg}
               </p>
             </>
@@ -120,10 +120,10 @@ export default function PushPrompt() {
 
           {status === "idle" && (
             <>
-              <p style={{ margin: "0 0 0.25rem", fontWeight: 700, color: "#fff", fontSize: "0.95rem" }}>
+              <p style={{ margin: "0 0 0.25rem", fontWeight: 700, color: "var(--text-primary)", fontSize: "0.95rem" }}>
                 ابق على اطلاع دائم
               </p>
-              <p style={{ margin: "0 0 0.9rem", color: "rgba(255,255,255,0.85)", fontSize: "0.8rem", lineHeight: 1.5 }}>
+              <p style={{ margin: "0 0 0.9rem", color: "var(--text-secondary)", fontSize: "0.8rem", lineHeight: 1.5 }}>
                 فعّل الإشعارات لتصلك عروض رحلات اليخت والسفاري فور نشرها
               </p>
               <div style={{ display: "flex", gap: "0.6rem" }}>
@@ -133,7 +133,7 @@ export default function PushPrompt() {
                   style={{
                     flex: 1,
                     background: loading ? "rgba(0,170,255,0.5)" : "#00AAFF",
-                    color: "#fff", border: "none", borderRadius: 8,
+                    color: "var(--text-primary)", border: "none", borderRadius: 8,
                     padding: "0.55rem 1rem", fontSize: "0.82rem", fontWeight: 700,
                     cursor: loading ? "not-allowed" : "pointer",
                     fontFamily: "Cairo, sans-serif",
@@ -145,8 +145,8 @@ export default function PushPrompt() {
                   onClick={dismiss}
                   style={{
                     flex: 1,
-                    background: "rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.85)",
+                    background: "var(--bg-surface-2)",
+                    color: "var(--text-secondary)",
                     border: "1px solid var(--border-strong)",
                     borderRadius: 8, padding: "0.55rem 1rem",
                     fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",

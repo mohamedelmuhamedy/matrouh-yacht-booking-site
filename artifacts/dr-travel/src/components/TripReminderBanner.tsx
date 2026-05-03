@@ -116,7 +116,7 @@ export default function TripReminderBanner() {
         transform: "translateX(-50%)",
         zIndex: 950,
         width: "min(94vw, 540px)",
-        background: "linear-gradient(135deg,#0d2742,#0a3a52)",
+        background: "var(--bg-surface-solid)",
         border: "1px solid rgba(0,170,255,0.45)",
         borderRadius: 14,
         boxShadow: "0 10px 32px rgba(0,170,255,0.25), 0 4px 12px rgba(0,0,0,0.5)",
@@ -131,10 +131,10 @@ export default function TripReminderBanner() {
     >
       <style>{`@keyframes tripReminderIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}`}</style>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "#fff", marginBottom: 2 }}>
+        <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: 2 }}>
           {R.headline}
         </div>
-        <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis" }}>
           {subline}
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function TripReminderBanner() {
         style={{
           background: "linear-gradient(135deg,#00AAFF,#0066cc)",
           border: "none",
-          color: "#fff",
+          color: "var(--text-primary)",
           padding: "0.55rem 0.95rem",
           borderRadius: 8,
           fontWeight: 700,
@@ -163,7 +163,7 @@ export default function TripReminderBanner() {
         style={{
           background: "none",
           border: "none",
-          color: "rgba(255,255,255,0.65)",
+          color: "var(--text-muted)",
           fontSize: "1.05rem",
           cursor: "pointer",
           padding: "2px 6px",

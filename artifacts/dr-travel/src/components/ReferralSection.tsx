@@ -145,7 +145,7 @@ export default function ReferralSection() {
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
                 <div style={{ width: 44, height: 44, borderRadius: "12px", background: "rgba(201,168,76,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>🎁</div>
                 <div>
-                  <div style={{ color: "white", fontWeight: 700 }}>{T.yourCode}</div>
+                  <div style={{ color: "var(--text-primary)", fontWeight: 700 }}>{T.yourCode}</div>
                   <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem" }}>{codeInfo.nameAr}</div>
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default function ReferralSection() {
             {/* How it works + perks */}
             <div>
               <div style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--bg-surface-2)", borderRadius: "20px", padding: "1.75rem", marginBottom: "1rem" }}>
-                <div style={{ color: "white", fontWeight: 700, marginBottom: "1.25rem" }}>⚙️ {T.howTitle}</div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "1.25rem" }}>⚙️ {T.howTitle}</div>
                 {T.steps.map((step, i) => (
                   <div key={i} style={{ display: "flex", gap: "0.85rem", marginBottom: "0.9rem", alignItems: "flex-start" }}>
                     <div style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(0,170,255,0.15)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.78rem", flexShrink: 0, fontFamily: "Montserrat, sans-serif" }}>{i + 1}</div>
@@ -206,7 +206,7 @@ export default function ReferralSection() {
           <div style={{ maxWidth: "540px", margin: "0 auto" }}>
             <div style={{ background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "24px", padding: "2.5rem", textAlign: "center" }}>
               <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎁</div>
-              <h3 style={{ color: "white", fontWeight: 800, fontSize: "1.2rem", margin: "0 0 0.5rem" }}>{T.registerTitle}</h3>
+              <h3 style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "1.2rem", margin: "0 0 0.5rem" }}>{T.registerTitle}</h3>
               <p style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", margin: "0 0 2rem", lineHeight: 1.7 }}>{T.registerSubtitle}</p>
 
               <div style={{ display: "grid", gap: "0.85rem", textAlign: "right" }}>
