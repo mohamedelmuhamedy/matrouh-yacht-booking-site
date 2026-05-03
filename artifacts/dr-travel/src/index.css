@@ -65,7 +65,7 @@
   --bg-surface-solid:  #ffffff;
   --text-primary:      #0D1B2A;
   --text-secondary:    #475569;
-  --text-muted:        #94a3b8;
+  --text-muted:        #5a6b80;
   --text-on-light:     #0D1B2A;
   --border:            #e2e8f0;
   --border-strong:     #cbd5e1;
@@ -714,44 +714,40 @@ html[dir="ltr"] {
    These rules force dark, readable text inside all admin inputs.
    Scoped to .admin-wrap (AdminLayout) and .admin-login (LoginPage). ===== */
 
-/* Text color: class selector (.admin-wrap input) beats body inheritance (#0,1,1 > #0,0,1)
-   but does NOT override inline styles — so intentional dark-theme modals still work */
+/* Token-driven input text/placeholder/disabled/autofill so admin controls
+   read correctly in both themes. Inline styles still win for intentional dark modals. */
 .admin-wrap input:not([type="color"]),
 .admin-wrap textarea,
 .admin-wrap select,
 .admin-login input {
-  color: #0D1B2A;
+  color: var(--input-text);
 }
 
-/* Placeholder — visible but clearly distinct from actual typed text */
 .admin-wrap input:not([type="color"])::placeholder,
 .admin-wrap textarea::placeholder,
 .admin-login input::placeholder {
-  color: #9aabbf;
+  color: var(--text-muted);
   opacity: 1;
 }
 
-/* Disabled — muted but still readable */
 .admin-wrap input:disabled,
 .admin-wrap textarea:disabled,
 .admin-wrap select:disabled {
-  color: #667788;
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
-/* Autofill — browser can override bg to yellow/blue; force dark text + white bg */
 .admin-wrap input:-webkit-autofill,
 .admin-login input:-webkit-autofill {
-  -webkit-text-fill-color: #0D1B2A !important;
-  caret-color: #0D1B2A;
-  box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: var(--input-text) !important;
+  caret-color: var(--input-text);
+  box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* Select dropdown options */
 .admin-wrap select option {
-  color: #0D1B2A;
-  background: white;
+  color: var(--input-text);
+  background: var(--input-bg);
 }
 
 /* ===== INLINE BOOKING MODAL (PackageDetail) ===== */
@@ -1027,17 +1023,6 @@ main a:focus-visible {
 :root[data-theme="light"] #footer h4,
 :root[data-theme="light"] #footer strong {
   color: var(--text-primary);
-}
-
-/* Hero — keep dark overlay for legibility of white text on photo */
-:root[data-theme="light"] .hero-bg {
-  /* slightly lighter overlay so the photo shows through more */
-}
-.hero-bg .hero-title,
-.hero-bg p,
-.hero-bg h1,
-.hero-bg h2 {
-  /* hero text always white — photo is dark */
 }
 
 /* Reviews/testimonials cards in light mode */
