@@ -24,6 +24,7 @@ export const bookings = pgTable("bookings", {
   ticketIssuedAt: timestamp("ticket_issued_at"),
   ticketUsedAt: timestamp("ticket_used_at"),
   ticketUsedBy: text("ticket_used_by"),
+  reminderSentAt: timestamp("reminder_sent_at"),
   meetingTime: text("meeting_time").notNull().default(""),
   pickupLocation: text("pickup_location").notNull().default(""),
   pickupLocationAr: text("pickup_location_ar").notNull().default(""),

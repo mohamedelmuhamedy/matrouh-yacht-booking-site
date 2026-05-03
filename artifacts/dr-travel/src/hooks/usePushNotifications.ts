@@ -57,8 +57,17 @@ async function ensureSwActive(): Promise<ServiceWorkerRegistration | null> {
   }
 }
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const m = (err as { message?: unknown }).message;
+    if (typeof m === "string") return m;
+  }
+  return String(err ?? "");
+}
+
 function friendlyError(err: unknown): string {
-  const msg = (err as any)?.message ?? String(err ?? "");
+  const msg = errorMessage(err);
   const lower = msg.toLowerCase();
 
   if (lower.includes("push service error") || lower.includes("registration failed")) {
@@ -76,7 +85,7 @@ function friendlyError(err: unknown): string {
   return "unknown";
 }
 
-export async function subscribeToPush(): Promise<{ ok: boolean; errorCode?: string; error?: string }> {
+export async function subscribeToPush(opts?: { ticketToken?: string }): Promise<{ ok: boolean; errorCode?: string; error?: string }> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     return { ok: false, errorCode: "not_supported" };
   }
@@ -118,7 +127,8 @@ export async function subscribeToPush(): Promise<{ ok: boolean; errorCode?: stri
 
         if (sameKey) {
           // Valid subscription with correct VAPID key — just resend to server
-          await sendSubToServer(sub);
+          await sendSubToServer(sub, opts?.ticketToken);
+          await linkStoredTicketsToSubscription(sub.endpoint);
           return { ok: true };
         }
       }
@@ -135,14 +145,38 @@ export async function subscribeToPush(): Promise<{ ok: boolean; errorCode?: stri
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
     } catch (err) {
-      return { ok: false, errorCode: friendlyError(err), error: (err as any)?.message };
+      return { ok: false, errorCode: friendlyError(err), error: errorMessage(err) };
     }
 
-    await sendSubToServer(sub);
+    await sendSubToServer(sub, opts?.ticketToken);
+    await linkStoredTicketsToSubscription(sub.endpoint);
     return { ok: true };
-  } catch (err: any) {
+  } catch (err) {
     console.warn("Push subscribe error:", err);
-    return { ok: false, errorCode: friendlyError(err), error: err?.message };
+    return { ok: false, errorCode: friendlyError(err), error: errorMessage(err) };
+  }
+}
+
+// After a successful subscribe, link any tickets the user has previously
+// opened on this device so that pre-trip reminders can target this
+// subscription. Each call uses the ticket token as proof of ownership;
+// the server validates the token and derives the booking id.
+async function linkStoredTicketsToSubscription(endpoint: string): Promise<void> {
+  try {
+    const { readStoredTickets } = await import("../lib/myTickets");
+    const stored = readStoredTickets();
+    if (stored.length === 0) return;
+    await Promise.allSettled(
+      stored.map((t) =>
+        apiFetch("/api/push/link-booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint, ticketToken: t.token }),
+        }),
+      ),
+    );
+  } catch {
+    /* best-effort */
   }
 }
 
@@ -163,7 +197,7 @@ export async function unsubscribeFromPush(): Promise<void> {
   }
 }
 
-async function sendSubToServer(sub: PushSubscription): Promise<void> {
+async function sendSubToServer(sub: PushSubscription, ticketToken?: string): Promise<void> {
   const json = sub.toJSON();
   const r = await apiFetch("/api/push/subscribe", {
     method: "POST",
@@ -171,9 +205,31 @@ async function sendSubToServer(sub: PushSubscription): Promise<void> {
     body: JSON.stringify({
       endpoint: sub.endpoint,
       keys: { p256dh: json.keys?.p256dh ?? "", auth: json.keys?.auth ?? "" },
+      ticketToken: typeof ticketToken === "string" && ticketToken.length >= 16 ? ticketToken : undefined,
     }),
   });
   if (!r.ok) throw new Error(`server_rejected:${r.status}`);
+}
+
+// Link an existing push subscription to a booking by presenting the ticket
+// token (the same secret required to view the ticket). The server validates
+// the token and never trusts a raw bookingId from the client.
+export async function linkPushSubscriptionToTicket(ticketToken: string): Promise<boolean> {
+  if (!ticketToken || ticketToken.length < 16) return false;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return false;
+    const r = await apiFetch("/api/push/link-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ endpoint: sub.endpoint, ticketToken }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
 export function isPushSupported(): boolean {

@@ -236,6 +236,13 @@ export const ar = {
     loading: "جاري التحميل...",
     error: "فشل تحميل الإحصائيات",
   },
+  tripReminder: {
+    headline: "🚤 رحلتك على وشك الانطلاق",
+    subline: "{pkg} · بعد {hours} ساعة تقريباً — افتح تذكرتك الآن",
+    cta: "افتح التذكرة",
+    dismiss: "إخفاء",
+  },
+
   ticket: {
     pageTitle: "تذكرة الحجز",
     loading: "جاري تحميل التذكرة...",

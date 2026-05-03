@@ -20,6 +20,7 @@ import VerifyPage from "./pages/VerifyPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import PushPrompt from "./components/PushPrompt";
+import TripReminderBanner from "./components/TripReminderBanner";
 import { PACKAGES_DATA } from "./data/packages";
 import HeroSlider from "./components/HeroSlider";
 import { formatPrice, CurrencyCode } from "./data/currencies";
@@ -1863,6 +1864,7 @@ function HomePage() {
       <ScrollProgress />
       <Navbar />
       <Hero />
+      <TripReminderBanner />
       <StatsBar />
       <Services />
 

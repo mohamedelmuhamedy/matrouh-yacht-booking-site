@@ -239,6 +239,13 @@ export const en: Translations = {
     error: "Failed to load stats",
   },
 
+  tripReminder: {
+    headline: "🚤 Your trip is coming up",
+    subline: "{pkg} · in about {hours}h — open your ticket now",
+    cta: "Open ticket",
+    dismiss: "Dismiss",
+  },
+
   ticket: {
     pageTitle: "Booking Ticket",
     loading: "Loading ticket...",

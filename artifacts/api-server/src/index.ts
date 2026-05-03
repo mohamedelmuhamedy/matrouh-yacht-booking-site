@@ -46,9 +46,14 @@ async function start(): Promise<void> {
   console.log("[db] PostgreSQL connection verified");
 
   const { default: app } = await import("./app");
+  const { startTripReminderScheduler } = await import("./lib/tripReminders");
+  const { getVapidConfig } = await import("./routes/push");
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
     setInterval(() => pingHealthEndpoint(port), KEEP_ALIVE_INTERVAL_MS);
+    startTripReminderScheduler(getVapidConfig).catch((err) => {
+      console.error("[trip-reminders] failed to start:", err);
+    });
   });
 }
 

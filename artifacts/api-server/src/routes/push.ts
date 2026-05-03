@@ -1,9 +1,22 @@
 import "../loadEnv";
 import { Router, Request, Response } from "express";
 import webpush from "web-push";
-import { db, pushSubscriptions, appSecrets } from "@workspace/db";
+import { db, pushSubscriptions, appSecrets, bookings } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+
+async function resolveBookingIdFromTicketToken(token: unknown): Promise<number | null> {
+  if (typeof token !== "string") return null;
+  const trimmed = token.trim();
+  if (trimmed.length < 16 || trimmed.length > 128) return null;
+  const [b] = await db
+    .select({ id: bookings.id, status: bookings.status })
+    .from(bookings)
+    .where(eq(bookings.ticketToken, trimmed));
+  if (!b) return null;
+  if (b.status === "cancelled") return null;
+  return b.id;
+}
 
 const router = Router();
 
@@ -63,7 +76,7 @@ function tryConfigureVapid(
   }
 }
 
-async function getVapidConfig(): Promise<{ publicKey: string; privateKey: string } | null> {
+export async function getVapidConfig(): Promise<{ publicKey: string; privateKey: string } | null> {
   const envPublicKey = process.env["VAPID_PUBLIC_KEY"]?.trim() ?? "";
   const envPrivateKey = process.env["VAPID_PRIVATE_KEY"]?.trim() ?? "";
   if (
@@ -98,13 +111,18 @@ router.get("/push/vapid-public", async (_req: Request, res: Response) => {
   return res.json({ publicKey: (await getVapidConfig())?.publicKey ?? "" });
 });
 
-// POST /api/push/subscribe — save or update a push subscription
+// POST /api/push/subscribe — save or update a push subscription.
+// Optional `ticketToken` proves ownership of a specific booking; the server
+// derives the bookingId. We never trust a bookingId sent directly by the
+// client (would let anyone subscribe to another customer's reminders).
 router.post("/push/subscribe", async (req: Request, res: Response) => {
   try {
-    const { endpoint, keys } = req.body;
+    const { endpoint, keys, ticketToken } = req.body ?? {};
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
       return res.status(400).json({ error: "Missing subscription fields" });
     }
+
+    const linkedBookingId = await resolveBookingIdFromTicketToken(ticketToken);
 
     const existing = await db
       .select({ id: pushSubscriptions.id })
@@ -112,24 +130,55 @@ router.post("/push/subscribe", async (req: Request, res: Response) => {
       .where(eq(pushSubscriptions.endpoint, endpoint));
 
     if (existing.length > 0) {
+      const update: { p256dh: string; auth: string; bookingId?: number } = {
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      };
+      if (linkedBookingId !== null) update.bookingId = linkedBookingId;
       await db
         .update(pushSubscriptions)
-        .set({ p256dh: keys.p256dh, auth: keys.auth })
+        .set(update)
         .where(eq(pushSubscriptions.endpoint, endpoint));
     } else {
       await db.insert(pushSubscriptions).values({
         endpoint,
         p256dh: keys.p256dh,
-        auth:   keys.auth,
+        auth: keys.auth,
+        bookingId: linkedBookingId ?? undefined,
       });
     }
 
-    const total = await db.select({ id: pushSubscriptions.id }).from(pushSubscriptions);
-    console.log(`[push] subscription saved. total subscribers: ${total.length}`);
-    return res.json({ ok: true });
-  } catch (err: any) {
+    return res.json({ ok: true, linked: linkedBookingId !== null });
+  } catch (err) {
     console.error("[push] subscribe error:", err);
     return res.status(500).json({ error: "Failed to save subscription" });
+  }
+});
+
+// POST /api/push/link-booking — link an existing subscription to a booking
+// by presenting the ticket token (the same secret used to view the ticket).
+router.post("/push/link-booking", async (req: Request, res: Response) => {
+  try {
+    const { endpoint, ticketToken } = req.body ?? {};
+    if (!endpoint || typeof ticketToken !== "string") {
+      return res.status(400).json({ error: "endpoint and ticketToken required" });
+    }
+    const bookingId = await resolveBookingIdFromTicketToken(ticketToken);
+    if (bookingId === null) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+    const result = await db
+      .update(pushSubscriptions)
+      .set({ bookingId })
+      .where(eq(pushSubscriptions.endpoint, endpoint))
+      .returning({ id: pushSubscriptions.id });
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Subscription not found" });
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[push] link-booking error:", err);
+    return res.status(500).json({ error: "Failed to link booking" });
   }
 });
 
@@ -142,6 +191,18 @@ router.post("/push/unsubscribe", async (req: Request, res: Response) => {
     return res.json({ ok: true });
   } catch {
     return res.status(500).json({ error: "Failed to unsubscribe" });
+  }
+});
+
+// POST /api/admin/push/trigger-reminders — manually run reminder sweep (admin only)
+router.post("/admin/push/trigger-reminders", authMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const { runReminderSweep } = await import("../lib/tripReminders");
+    const result = await runReminderSweep(getVapidConfig);
+    return res.json({ ok: true, ...result });
+  } catch (err: any) {
+    console.error("[push] trigger-reminders error:", err);
+    return res.status(500).json({ error: "Failed to run reminder sweep" });
   }
 });
 

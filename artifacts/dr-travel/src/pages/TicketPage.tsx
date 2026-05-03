@@ -3,6 +3,8 @@ import { useRoute } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import Ticket, { type TicketData } from "../components/Ticket";
 import { apiFetch } from "../lib/api";
+import { rememberTicket } from "../lib/myTickets";
+import { getPushPermission, linkPushSubscriptionToTicket } from "../hooks/usePushNotifications";
 
 export default function TicketPage() {
   const [, params] = useRoute("/ticket/:token");
@@ -26,7 +28,11 @@ export default function TicketPage() {
   useEffect(() => {
     if (!data) return;
     document.title = `${T.pageTitle} · DRT-${String(data.id).padStart(5, "0")}`;
-  }, [data, T.pageTitle]);
+    if (token) rememberTicket(token);
+    if (token && data.status === "confirmed" && getPushPermission() === "granted") {
+      linkPushSubscriptionToTicket(token).catch(() => {});
+    }
+  }, [data, T.pageTitle, token]);
 
   const publicUrl = typeof window !== "undefined"
     ? `${window.location.origin}/verify/${token}`
