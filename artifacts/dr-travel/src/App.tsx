@@ -788,7 +788,7 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
         <button onClick={onClear}
-          style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+          style={{ background: "transparent", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
           {ar ? "مسح" : "Clear"}
         </button>
         <button onClick={onOpen}

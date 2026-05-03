@@ -25,7 +25,7 @@ interface VerifyResponse {
   };
 }
 
-const NAVY = "#0D1B2A";
+const NAVY = "var(--text-primary)";
 const GOLD = "#C9A84C";
 const SCANNER_ID = "dr-ticket-scanner";
 
@@ -302,7 +302,7 @@ export default function AdminScannerPage() {
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   marginTop: 8, padding: "6px 14px",
-                  background: NAVY, color: GOLD, borderRadius: 999,
+                  background: "#0D1B2A", color: GOLD, borderRadius: 999,
                   fontSize: 18, fontWeight: 900,
                 }}>
                   👥 {groupCount}
@@ -327,7 +327,7 @@ export default function AdminScannerPage() {
           {status === "valid" && (
             <button onClick={markUsed} disabled={marking}
               style={{
-                marginTop: 14, width: "100%", padding: "14px 20px", background: NAVY, color: GOLD,
+                marginTop: 14, width: "100%", padding: "14px 20px", background: "#0D1B2A", color: GOLD,
                 border: `2px solid ${GOLD}`, borderRadius: 12, fontWeight: 800, fontSize: 17,
                 cursor: marking ? "wait" : "pointer", fontFamily: "inherit", letterSpacing: 0.5,
               }}>
@@ -338,7 +338,7 @@ export default function AdminScannerPage() {
           <button onClick={reset}
             style={{
               marginTop: 10, width: "100%", padding: "12px 18px",
-              background: "var(--bg-surface-solid)", color: NAVY, border: `2px solid ${NAVY}`,
+              background: "var(--bg-surface-solid)", color: NAVY, border: `2px solid var(--text-primary)`,
               borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: "pointer",
               fontFamily: "inherit",
             }}>
@@ -360,13 +360,13 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 const btnStylePrimary: React.CSSProperties = {
-  flex: 1, padding: "12px 14px", background: NAVY, color: GOLD,
+  flex: 1, padding: "12px 14px", background: "#0D1B2A", color: GOLD,
   border: `2px solid ${GOLD}`, borderRadius: 12, fontWeight: 800,
   fontSize: 14, cursor: "pointer", fontFamily: "inherit",
 };
 const btnStyleSecondary: React.CSSProperties = {
-  flex: 1, padding: "12px 14px", background: "#fff", color: NAVY,
-  border: `2px solid ${NAVY}`, borderRadius: 12, fontWeight: 800,
+  flex: 1, padding: "12px 14px", background: "var(--bg-surface-solid)", color: "var(--text-primary)",
+  border: `2px solid var(--text-primary)`, borderRadius: 12, fontWeight: 800,
   fontSize: 14, cursor: "pointer", fontFamily: "inherit",
 };
 const btnStyleGhost: React.CSSProperties = {

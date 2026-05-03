@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { adminFetch, useAdmin } from "./AdminContext";
 
-const NAVY = "#0D1B2A";
+const NAVY = "var(--text-primary)";
 const OCEAN = "#00AAFF";
 const GOLD = "#C9A84C";
 
@@ -294,7 +294,7 @@ export default function DashboardPage() {
           </div>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
             <button onClick={() => setRefreshTick(t => t + 1)}
-              style={{ background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", borderRadius: 10, padding: "0.55rem 0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", borderRadius: 10, padding: "0.55rem 0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
               🔄 تحديث
             </button>
             {stats.counts.new > 0 && (

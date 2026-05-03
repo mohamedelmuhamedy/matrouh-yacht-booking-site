@@ -21,8 +21,8 @@ const SIZES = [
 interface GalleryAlbum { id: number; slug: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; coverImage: string; isVisible: boolean; sortOrder: number; items?: GalleryItem[]; }
 
 const dark = {
-  card: "var(--bg-surface-solid)", input: "#0d1824", border: "var(--border-strong)",
-  label: "var(--text-secondary)", text: "#ffffff", sub: "var(--text-muted)",
+  card: "var(--bg-surface-solid)", input: "var(--input-bg)", border: "var(--input-border)",
+  label: "var(--text-secondary)", text: "var(--input-text)", sub: "var(--text-muted)",
 };
 
 const EMPTY_ALBUM = { slug: "", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "", coverImage: "", isVisible: true, sortOrder: 0 };
@@ -290,7 +290,7 @@ export default function AdminGalleryPage() {
             return (
               <div key={item.id} style={{ background: dark.card, borderRadius: 10, overflow: "hidden", border: `1px solid ${dark.border}`, position: "relative" }}>
                 {/* Preview */}
-                <div style={{ aspectRatio: "1", overflow: "hidden", background: "#0d1824", position: "relative" }}>
+                <div style={{ aspectRatio: "1", overflow: "hidden", background: "var(--bg-surface-sunk)", position: "relative" }}>
                   {item.type === "video" ? (
                     isYoutubeUrl(item.url) ? (
                       <>
