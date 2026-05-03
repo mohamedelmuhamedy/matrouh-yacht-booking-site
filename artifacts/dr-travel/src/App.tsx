@@ -597,7 +597,7 @@ function Hero() {
         </FadeInSection>
 
         <FadeInSection delay={300}>
-          <p style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", color: "var(--text-secondary)", marginBottom: isMobile ? "1.5rem" : "2.5rem", lineHeight: 1.8 }}>
+          <p style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", color: "rgba(255,255,255,0.85)", marginBottom: isMobile ? "1.5rem" : "2.5rem", lineHeight: 1.8 }}>
             {subtitle}
           </p>
         </FadeInSection>

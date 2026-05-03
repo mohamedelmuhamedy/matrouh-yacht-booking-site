@@ -25,7 +25,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="admin-login" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0D1B2A 0%,#0a2040 100%)", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
+    <div className="admin-login" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
       <div style={{ background: "var(--bg-surface-solid)", borderRadius: "20px", padding: "3rem 2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🔐</div>
@@ -40,9 +40,9 @@ export default function LoginPage() {
             </label>
             <input type="text" value={username} onChange={e => setUsername(e.target.value)}
               required autoComplete="username"
-              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "2px solid #e0e8f0", outline: "none", fontSize: "0.95rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", transition: "border-color 0.2s" }}
+              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "2px solid var(--input-border)", background: "var(--input-bg)", color: "var(--input-text)", outline: "none", fontSize: "0.95rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", transition: "border-color 0.2s" }}
               onFocus={e => e.target.style.borderColor = "#00AAFF"}
-              onBlur={e => e.target.style.borderColor = "#e0e8f0"} />
+              onBlur={e => e.target.style.borderColor = "var(--input-border)"} />
           </div>
 
           <div style={{ marginBottom: "1.5rem" }}>
@@ -51,9 +51,9 @@ export default function LoginPage() {
             </label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)}
               required autoComplete="current-password"
-              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "2px solid #e0e8f0", outline: "none", fontSize: "0.95rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", transition: "border-color 0.2s" }}
+              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "2px solid var(--input-border)", background: "var(--input-bg)", color: "var(--input-text)", outline: "none", fontSize: "0.95rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", transition: "border-color 0.2s" }}
               onFocus={e => e.target.style.borderColor = "#00AAFF"}
-              onBlur={e => e.target.style.borderColor = "#e0e8f0"} />
+              onBlur={e => e.target.style.borderColor = "var(--input-border)"} />
           </div>
 
           {error && (

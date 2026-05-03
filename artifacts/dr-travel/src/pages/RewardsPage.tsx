@@ -80,7 +80,7 @@ export default function RewardsPage() {
   const [, navigate] = useLocation();
 
   return (
-    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif", minHeight: "100vh", background: "#060d16" }}>
+    <div dir={t.dir} lang={t.lang} style={{ fontFamily: "Cairo, sans-serif", minHeight: "100vh", background: "var(--bg-page)" }}>
       <RewardsNavbar />
 
       {/* Page header */}
@@ -101,7 +101,7 @@ export default function RewardsPage() {
       <ReferralSection />
 
       {/* Simple footer */}
-      <div style={{ textAlign: "center", padding: "2rem 1.5rem", background: "#060d16", borderTop: "1px solid var(--bg-surface-2)", color: "#2a3845", fontSize: "0.8rem" }}>
+      <div style={{ textAlign: "center", padding: "2rem 1.5rem", background: "var(--bg-page)", borderTop: "1px solid var(--bg-surface-2)", color: "var(--text-muted)", fontSize: "0.8rem" }}>
         © 2024 DR Travel — Marsa Matruh, Egypt
       </div>
 

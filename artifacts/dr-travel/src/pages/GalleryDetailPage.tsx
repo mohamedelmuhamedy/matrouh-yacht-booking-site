@@ -268,7 +268,7 @@ export default function GalleryDetailPage() {
   const items = album.items || [];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg,#080f18 0%,#0D1B2A 100%)", fontFamily: "Cairo,Montserrat,sans-serif", direction: ar ? "rtl" : "ltr" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo,Montserrat,sans-serif", direction: ar ? "rtl" : "ltr" }}>
 
       {/* Hero banner */}
       <div style={{ position: "relative", minHeight: 260, overflow: "hidden" }}>
@@ -276,7 +276,7 @@ export default function GalleryDetailPage() {
           <img src={album.coverImage} alt={ar ? album.titleAr : album.titleEn}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.35)", transform: "scale(1.05)" }} />
         ) : (
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0a1520,#1a2535)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "var(--bg-surface-2)" }} />
         )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(8,15,24,0.4) 0%,rgba(8,15,24,0.85) 100%)" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
