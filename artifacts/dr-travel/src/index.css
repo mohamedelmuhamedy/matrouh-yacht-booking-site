@@ -351,6 +351,32 @@ html[dir="ltr"] {
   background: rgba(0,170,255,0.15);
   transform: scale(1.08) rotate(3deg);
 }
+.service-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.1rem;
+  color: #00AAFF;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: "Cairo", sans-serif;
+  opacity: 0.7;
+  transition: opacity 0.25s, gap 0.25s;
+  gap: 0.1rem;
+}
+.service-card:hover .service-card-cta {
+  opacity: 1;
+}
+.service-card-cta-arrow {
+  display: inline-block;
+  transition: transform 0.25s;
+}
+[dir="rtl"] .service-card:hover .service-card-cta-arrow {
+  transform: translateX(-3px);
+}
+[dir="ltr"] .service-card:hover .service-card-cta-arrow {
+  transform: translateX(3px);
+}
 
 /* ===== PACKAGE CARDS ===== */
 .pkg-card {

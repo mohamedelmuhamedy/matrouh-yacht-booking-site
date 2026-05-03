@@ -777,6 +777,12 @@ function Services() {
                   <div className="service-icon-wrap">{service.icon}</div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.6rem" }}>{service.name}</h3>
                   <p style={{ color: "var(--section-subtitle)", fontSize: "0.875rem", lineHeight: 1.8, ...(uniformCards ? { flex: 1 } : {}) }}>{service.desc}</p>
+                  {clickable && (
+                    <div className="service-card-cta">
+                      <span>{lang === "ar" ? "اعرف أكثر" : "Learn More"}</span>
+                      <span className="service-card-cta-arrow">{lang === "ar" ? " ←" : " →"}</span>
+                    </div>
+                  )}
                 </div>
               </FadeInSection>
             );
