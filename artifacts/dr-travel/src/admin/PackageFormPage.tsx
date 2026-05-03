@@ -7,7 +7,7 @@ import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
   longDescriptionAr: "", longDescriptionEn: "", category: "safari",
-  priceEGP: 0, maxPriceEGP: null as number | null, durationAr: "", durationEn: "", color: "#00AAFF",
+  priceEGP: 0, maxPriceEGP: null as number | null, durationAr: "", durationEn: "", showDuration: true, color: "#00AAFF",
   badgeAr: "", badgeEn: "", badgeColor: "#C9A84C", featured: false, popular: false,
   familyFriendly: false, foreignerFriendly: false, childrenFriendly: false,
   experienceLevel: "easy", rating: 4.5, reviewCount: 0,
@@ -58,6 +58,7 @@ function mapApiToForm(data: Record<string, any>): FormData {
     maxPriceEGP: (data.maxPriceEGP !== null && data.maxPriceEGP !== undefined && Number(data.maxPriceEGP) > 0) ? Number(data.maxPriceEGP) : null,
     durationAr: safeStr(data.durationAr),
     durationEn: safeStr(data.durationEn),
+    showDuration: safeBool(data.showDuration, true),
     color: safeStr(data.color, "#00AAFF"),
     badgeAr: safeStr(data.badgeAr),
     badgeEn: safeStr(data.badgeEn),
@@ -454,6 +455,25 @@ export default function PackageFormPage() {
               <F label="Duration (English)">
                 <input style={inputSt} value={form.durationEn} placeholder="Full Day — 8 Hours" onChange={e => set("durationEn", e.target.value)} />
               </F>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.showDuration ? "rgba(0,170,255,0.08)" : "var(--bg-surface-sunk)", border: `1.5px solid ${form.showDuration ? "rgba(0,170,255,0.3)" : "var(--border)"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+              onClick={() => set("showDuration", !form.showDuration)}>
+              <div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>📅 إظهار المدة على الموقع</div>
+                <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "0.15rem" }}>عند التفعيل، تظهر شارة المدة على بطاقة الباقة وصفحة التفاصيل</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: form.showDuration ? "#00AAFF" : "var(--text-muted)" }}>
+                  {form.showDuration ? "ظاهرة" : "مخفية"}
+                </span>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); set("showDuration", !form.showDuration); }}
+                  style={{ position: "relative", display: "inline-flex", alignItems: "center", width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer", background: form.showDuration ? "#00AAFF" : "var(--border)", transition: "background 0.25s", flexShrink: 0, padding: 0 }}
+                  aria-checked={form.showDuration} role="switch">
+                  <span style={{ position: "absolute", top: 3, left: form.showDuration ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "var(--bg-surface-solid)", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s" }} />
+                </button>
+              </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1rem" }}>
               <F label="اللون الرئيسي">

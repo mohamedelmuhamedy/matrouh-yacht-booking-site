@@ -17,6 +17,7 @@ export const packages = pgTable("packages", {
   maxPriceEGP: integer("max_price_egp"),
   durationAr: text("duration_ar").notNull().default(""),
   durationEn: text("duration_en").notNull().default(""),
+  showDuration: boolean("show_duration").notNull().default(true),
   color: text("color").notNull().default("#00AAFF"),
   badgeAr: text("badge_ar"),
   badgeEn: text("badge_en"),

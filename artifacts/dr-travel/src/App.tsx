@@ -42,6 +42,7 @@ interface DisplayPkg {
   titleAr: string;
   includes: string[];
   duration: string;
+  showDuration: boolean;
   price: string;
   priceNum: number;
   maxPriceNum: number | null;
@@ -81,6 +82,7 @@ function dbPkgToDisplay(pkg: DBPackage, lang: string, currency: string, settings
     titleAr: pkg.titleAr,
     includes: (ar ? pkg.includesAr : pkg.includesEn).slice(0, 5),
     duration: ar ? pkg.durationAr : pkg.durationEn,
+    showDuration: (pkg as any).showDuration !== false,
     price: priceLabel,
     priceNum: pkg.priceEGP,
     maxPriceNum: hasMax ? pkg.maxPriceEGP! : null,
@@ -1039,7 +1041,9 @@ function PackagesAndBooking() {
                   <div className="pkg-card__footer" style={{ borderTop: "1px solid var(--bg-surface-2)", paddingTop: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
                       <div>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: pkg.featured ? "rgba(201,168,76,0.14)" : "rgba(0,170,255,0.12)", border: `1px solid ${pkg.featured ? "rgba(201,168,76,0.35)" : "rgba(0,170,255,0.3)"}`, color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.78rem", fontWeight: 800, padding: "0.25rem 0.65rem", borderRadius: "50px", marginBottom: "0.4rem" }}>📅 {pkg.duration}</div>
+                        {pkg.showDuration && pkg.duration && (
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: pkg.featured ? "rgba(201,168,76,0.14)" : "rgba(0,170,255,0.12)", border: `1px solid ${pkg.featured ? "rgba(201,168,76,0.35)" : "rgba(0,170,255,0.3)"}`, color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.78rem", fontWeight: 800, padding: "0.25rem 0.65rem", borderRadius: "50px", marginBottom: "0.4rem" }}>📅 {pkg.duration}</div>
+                        )}
                         <div style={{ color: pkg.featured ? "#C9A84C" : "#00AAFF", fontSize: "0.95rem", fontWeight: 800 }}>
                           {formatPrice(pkg.priceNum, currency as CurrencyCode, lang, settings)}
                         </div>
@@ -1201,7 +1205,9 @@ function PackagesAndBooking() {
                       ))}
                     </div>
                     <div style={{ borderTop: "1px solid var(--bg-surface-2)", marginTop: "1.25rem", paddingTop: "1.25rem" }}>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: `${selectedPkg.color}1f`, border: `1px solid ${selectedPkg.color}55`, color: selectedPkg.color, fontSize: "0.78rem", fontWeight: 800, padding: "0.3rem 0.7rem", borderRadius: "50px", marginBottom: "0.6rem" }}>📅 {selectedPkg.duration}</div>
+                      {selectedPkg.showDuration && selectedPkg.duration && (
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: `${selectedPkg.color}1f`, border: `1px solid ${selectedPkg.color}55`, color: selectedPkg.color, fontSize: "0.78rem", fontWeight: 800, padding: "0.3rem 0.7rem", borderRadius: "50px", marginBottom: "0.6rem" }}>📅 {selectedPkg.duration}</div>
+                      )}
                       {estimatedPrice > 0 && (
                         <div style={{ marginTop: "0.75rem" }}>
                           <div style={{ color: "var(--section-subtitle)", fontSize: "0.72rem", marginBottom: "0.25rem" }}>{bk.estimatedPrice}</div>

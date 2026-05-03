@@ -230,7 +230,7 @@ export default function TripsPage() {
                           {ar ? "عائلي" : "Family"}
                         </span>
                       )}
-                      {pkg.durationAr && (
+                      {(pkg as any).showDuration !== false && pkg.durationAr && (
                         <span className="trip-card-tag" style={{ background: "rgba(0,170,255,0.16)", border: "1px solid rgba(0,170,255,0.36)", color: "#00AAFF", fontWeight: 800 }}>
                           📅 {ar ? pkg.durationAr : pkg.durationEn}
                         </span>

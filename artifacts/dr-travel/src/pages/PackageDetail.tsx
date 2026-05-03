@@ -317,7 +317,9 @@ export default function PackageDetail() {
           ? `${formatPkgPrice(pkg.priceEGP)} — ${formatPkgPrice(pkg.maxPriceEGP!)}`
           : formatPkgPrice(pkg.priceEGP)}
       </div>
-      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: `${pkg.color}1f`, border: `1px solid ${pkg.color}55`, color: pkg.color, fontSize: "0.82rem", fontWeight: 800, padding: "0.35rem 0.8rem", borderRadius: "50px", marginBottom: "1.25rem" }}>📅 {duration}</div>
+      {(pkg as any).showDuration !== false && duration && (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: `${pkg.color}1f`, border: `1px solid ${pkg.color}55`, color: pkg.color, fontSize: "0.82rem", fontWeight: 800, padding: "0.35rem 0.8rem", borderRadius: "50px", marginBottom: "1.25rem" }}>📅 {duration}</div>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <button
@@ -451,7 +453,7 @@ export default function PackageDetail() {
               {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
               {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
               <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
-              <span style={{ background: "rgba(0,170,255,0.14)", border: "1px solid rgba(0,170,255,0.34)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 800 }}>📅 {duration}</span>
+              {(pkg as any).showDuration !== false && duration && <span style={{ background: "rgba(0,170,255,0.14)", border: "1px solid rgba(0,170,255,0.34)", color: "#00AAFF", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem", fontWeight: 800 }}>📅 {duration}</span>}
               {expLabels[pkg.experienceLevel] && <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.28rem 0.75rem", borderRadius: "50px", fontSize: "0.74rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
             </div>
 
@@ -574,7 +576,7 @@ export default function PackageDetail() {
                 {pkg.familyFriendly && <span style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للعائلات" : "Family Friendly"}</span>}
                 {pkg.foreignerFriendly && <span style={{ background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>{ar ? "مناسبة للأجانب" : "Foreigner Friendly"}</span>}
                 <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{pkg.rating} ★ ({pkg.reviewCount})</span>
-                <span style={{ background: "rgba(0,170,255,0.14)", border: "1px solid rgba(0,170,255,0.34)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 800 }}>📅 {duration}</span>
+                {(pkg as any).showDuration !== false && duration && <span style={{ background: "rgba(0,170,255,0.14)", border: "1px solid rgba(0,170,255,0.34)", color: "#00AAFF", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 800 }}>📅 {duration}</span>}
                 {expLabels[pkg.experienceLevel] && <span style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.3rem 0.9rem", borderRadius: "50px", fontSize: "0.78rem" }}>{expLabels[pkg.experienceLevel][ar ? "ar" : "en"]}</span>}
               </div>
 
