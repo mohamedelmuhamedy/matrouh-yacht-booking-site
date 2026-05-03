@@ -61,7 +61,23 @@ const DEFAULTS: Record<string, string> = {
   ai_system_prompt_extras: "",
   wa_image_message_ar: "أهلاً {name} 🌟\nمعاك صورة تذكرتك مع DR Travel.\n\n📌 الباقة: {package}\n📅 التاريخ: {date}\n🎫 رقم التذكرة: {ticket_no}\n\n🔗 صفحة التحقق:\n{verify_url}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.",
   wa_image_message_en: "Hi {name} 🌟\nHere is your DR Travel ticket image.\n\n📌 Package: {package}\n📅 Date: {date}\n🎫 Ticket No.: {ticket_no}\n\n🔗 Verify page:\n{verify_url}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.",
+  ticket_color_bg: "#FFFDF7",
+  ticket_color_text: "#0D1B2A",
+  ticket_color_accent: "#C9A84C",
+  ticket_heading_size: "30",
+  ticket_body_size: "16",
+  ticket_font_family: "Cairo",
 };
+
+const TICKET_FONT_OPTIONS: { value: string; label: string }[] = [
+  { value: "Cairo", label: "Cairo (افتراضي)" },
+  { value: "Tajawal", label: "Tajawal" },
+  { value: "Almarai", label: "Almarai" },
+  { value: "Noto Kufi Arabic", label: "Noto Kufi Arabic" },
+  { value: "Amiri", label: "Amiri" },
+  { value: "Montserrat", label: "Montserrat (لاتيني)" },
+  { value: "Inter", label: "Inter (لاتيني)" },
+];
 
 const AI_MODEL_OPTIONS: { value: string; label: string }[] = [
   { value: "openai/gpt-4o-mini", label: "GPT-4o mini — رخيص وسريع (الافتراضي)" },
@@ -79,7 +95,7 @@ type FieldDef = {
   key: string;
   label: string;
   placeholder?: string;
-  type?: "boolean" | "text" | "select" | "textarea" | "number";
+  type?: "boolean" | "text" | "select" | "textarea" | "number" | "color";
   hint?: string;
   options?: { value: string; label: string }[];
   min?: number;
@@ -236,6 +252,19 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
         placeholder: "Hi {name}...",
         hint: "Text sent alongside the ticket image. Placeholders: {name}, {package}, {date}, {ticket_no}, {verify_url}",
       },
+    ],
+  },
+  {
+    title: "تخصيص بطاقة التذكرة / Ticket Theme",
+    icon: "🎫",
+    section: "ticket",
+    keys: [
+      { key: "ticket_color_bg", label: "لون خلفية التذكرة", type: "color", hint: "لون الورق الأساسي للبطاقة" },
+      { key: "ticket_color_text", label: "لون النص الأساسي", type: "color", hint: "لون العناوين والقيم الرئيسية داخل البطاقة" },
+      { key: "ticket_color_accent", label: "لون العناصر البارزة (Accent)", type: "color", hint: "اللون الذهبي/المميز المستخدم في الإطار، رقم التذكرة، والشريط العلوي" },
+      { key: "ticket_heading_size", label: "حجم العناوين الكبيرة (px)", type: "number", min: 18, max: 48, step: 1, hint: "حجم عنوان 'TICKET' وسعر الباقة. الافتراضي 30" },
+      { key: "ticket_body_size", label: "حجم النص العادي (px)", type: "number", min: 11, max: 22, step: 1, hint: "حجم القيم داخل خانات البيانات. الافتراضي 16" },
+      { key: "ticket_font_family", label: "نوع الخط", type: "select", options: TICKET_FONT_OPTIONS, hint: "خط نصوص بطاقة التذكرة" },
     ],
   },
   {
@@ -892,6 +921,22 @@ export default function SettingsPage() {
                               e.target.style.boxShadow = "none";
                             }}
                           />
+                        ) : fieldType === "color" ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <input
+                              type="color"
+                              value={(val || DEFAULTS[key] || "#000000")}
+                              onChange={e => update(key, e.target.value)}
+                              style={{ width: 56, height: 40, border: "1.5px solid var(--border)", borderRadius: 8, cursor: "pointer", padding: 2, background: "var(--bg-surface-solid)" }}
+                            />
+                            <input
+                              type="text"
+                              value={val}
+                              placeholder={placeholder || DEFAULTS[key]}
+                              onChange={e => update(key, e.target.value)}
+                              style={{ ...inputBase, direction: "ltr", fontFamily: "Menlo, Consolas, monospace", flex: 1 }}
+                            />
+                          </div>
                         ) : (
                         <input
                           type={fieldType === "number" ? "number" : "text"}
