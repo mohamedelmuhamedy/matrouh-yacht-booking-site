@@ -29,6 +29,7 @@ const NAV: NavItem[] = [
   { path: "/admin/services",     icon: "🎯", label: "الخدمات" },
   { path: "/admin/why-us",       icon: "✨", label: "مميزاتنا" },
   { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: "bookings" },
+  { path: "/admin/scanner",      icon: "📷", label: "ماسح التذاكر" },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات", badge: "testimonials" },

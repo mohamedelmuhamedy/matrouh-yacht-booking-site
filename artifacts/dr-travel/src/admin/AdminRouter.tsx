@@ -21,6 +21,7 @@ import AdminWhyUsFormPage from "./AdminWhyUsFormPage";
 import AdminHeroSlidesPage from "./AdminHeroSlidesPage";
 import AdminShareCardPage from "./AdminShareCardPage";
 import PushNotificationsPage from "./PushNotificationsPage";
+import AdminScannerPage from "./AdminScannerPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAdmin();
@@ -114,6 +115,9 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/share-card">
         <AdminGuard><AdminShareCardPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/scanner">
+        <AdminGuard><AdminScannerPage /></AdminGuard>
       </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>

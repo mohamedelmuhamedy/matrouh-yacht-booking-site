@@ -296,6 +296,17 @@ export const ar = {
     poweredBy: "DR Travel · نظام تذاكر مؤمَّن",
     feedbackOk: "تم تأكيد الدخول",
     feedbackErr: "فشل تأكيد الدخول",
+    scannerTitle: "ماسح التذاكر",
+    scannerSubtitle: "وجّه الكاميرا نحو كود QR على التذكرة",
+    scanPrompt: "في انتظار المسح...",
+    cameraStart: "تشغيل الكاميرا",
+    cameraStop: "إيقاف الكاميرا",
+    cameraError: "تعذّر فتح الكاميرا. تأكد من السماح بالوصول.",
+    cameraPermission: "يرجى السماح للمتصفح بالوصول للكاميرا",
+    scanAgain: "مسح تذكرة جديدة",
+    scanInvalidPayload: "كود QR غير صالح — هذا ليس تذكرة DR Travel",
+    notSignedIn: "يجب تسجيل الدخول كأدمن لاستخدام الماسح",
+    flipCamera: "تبديل الكاميرا",
   },
 };
 
