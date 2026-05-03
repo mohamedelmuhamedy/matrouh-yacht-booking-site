@@ -419,11 +419,11 @@ export default function BookingsPage() {
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           {bookings.length > 0 && (
             <button onClick={allOpen ? collapseAll : expandAll}
-              style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)", fontSize: "0.85rem" }}>
+              style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)", fontSize: "0.85rem" }}>
               {allOpen ? "🔼 طي الكل" : "🔽 توسيع الكل"}
             </button>
           )}
-          <button onClick={() => load()} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#475569", fontSize: "0.85rem" }}>
+          <button onClick={() => load()} style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#475569", fontSize: "0.85rem" }}>
             🔄 تحديث
           </button>
           <button onClick={exportCSV} disabled={exporting}
@@ -439,7 +439,7 @@ export default function BookingsPage() {
           <input
             type="text" value={search} onChange={e => handleSearchChange(e.target.value)}
             placeholder="🔍 بحث بالاسم أو الهاتف أو الباقة..."
-            style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "12px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", boxSizing: "border-box", direction: "rtl", background: "white" }}
+            style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "12px", border: "1.5px solid var(--border)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", boxSizing: "border-box", direction: "rtl", background: "var(--bg-surface-solid)" }}
           />
         </div>
         <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
@@ -453,21 +453,21 @@ export default function BookingsPage() {
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           {[0,1,2].map(i => (
-            <div key={i} style={{ background: "white", borderRadius: "18px", padding: "1.1rem 1.25rem", display: "flex", gap: "0.85rem", alignItems: "center", boxShadow: "0 1px 3px rgba(13,27,42,0.04)" }}>
+            <div key={i} style={{ background: "var(--bg-surface-solid)", borderRadius: "18px", padding: "1.1rem 1.25rem", display: "flex", gap: "0.85rem", alignItems: "center", boxShadow: "0 1px 3px rgba(13,27,42,0.04)" }}>
               <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(90deg,#eef2f7,#f8fafc,#eef2f7)", backgroundSize: "200% 100%", animation: "bk-pulse 1.4s ease-in-out infinite" }} />
               <div style={{ flex: 1 }}>
                 <div style={{ width: "40%", height: 14, borderRadius: 6, background: "#eef2f7", marginBottom: 8 }} />
-                <div style={{ width: "70%", height: 10, borderRadius: 5, background: "#f1f5f9" }} />
+                <div style={{ width: "70%", height: 10, borderRadius: 5, background: "var(--bg-surface-2)" }} />
               </div>
             </div>
           ))}
         </div>
       ) : bookings.length === 0 ? (
-        <div style={{ background: "white", borderRadius: "18px", padding: "3.5rem 1.5rem", textAlign: "center", color: "#94a3b8", border: "1px dashed #e2e8f0" }}>
+        <div style={{ background: "var(--bg-surface-solid)", borderRadius: "18px", padding: "3.5rem 1.5rem", textAlign: "center", color: "#94a3b8", border: "1px dashed #e2e8f0" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.85rem" }}>📭</div>
           <p style={{ fontWeight: 700, color: "#475569", margin: 0 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
           {search && (
-            <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)" }}>
+            <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)" }}>
               ✕ مسح البحث
             </button>
           )}
@@ -625,13 +625,13 @@ export default function BookingsPage() {
       {noteBooking && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
           onClick={() => setNoteBooking(null)}>
-          <div style={{ background: "white", borderRadius: "16px", padding: "1.75rem", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.75rem", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ margin: "0 0 1rem", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif" }}>
               ملاحظة داخلية — {noteBooking.name}
             </h3>
             <textarea value={noteText} onChange={e => setNoteText(e.target.value)} rows={4}
               placeholder="أضف ملاحظة داخلية للأدمن..."
-              style={{ width: "100%", padding: "0.75rem", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical", boxSizing: "border-box", direction: "rtl" }} />
+              style={{ width: "100%", padding: "0.75rem", borderRadius: "10px", border: "1.5px solid var(--border)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical", boxSizing: "border-box", direction: "rtl" }} />
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1rem" }}>
               <button onClick={() => setNoteBooking(null)} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600 }}>إلغاء</button>
               <button onClick={saveNote} style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>💾 حفظ</button>
@@ -644,7 +644,7 @@ export default function BookingsPage() {
       {ticketBooking && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "1.5rem 0.75rem", overflowY: "auto" }}
           onClick={closeTicket}>
-          <div style={{ background: "#f8fafc", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: "var(--bg-surface-sunk)", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
               <h3 style={{ margin: 0, color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "1.1rem", fontWeight: 800 }}>
                 🎫 تذكرة #{ticketBooking.id} — {ticketBooking.name}
@@ -659,14 +659,14 @@ export default function BookingsPage() {
                   ))}
                 </div>
                 <button onClick={closeTicket}
-                  style={{ background: "white", border: "1px solid #cbd5e1", borderRadius: 8, padding: "0.4rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                  style={{ background: "var(--bg-surface-solid)", border: "1px solid #cbd5e1", borderRadius: 8, padding: "0.4rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                   ✕
                 </button>
               </div>
             </div>
 
             {/* Editable trip operations */}
-            <div style={{ background: "white", borderRadius: 12, padding: "0.85rem 1rem", border: "1px solid #e2e8f0", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.6rem" }}>
+            <div style={{ background: "var(--bg-surface-solid)", borderRadius: 12, padding: "0.85rem 1rem", border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.6rem" }}>
               <FieldInput label="وقت الانطلاق" placeholder="مثال: 8:00 صباحاً" value={ticketFields.meetingTime}
                 onChange={v => { setTicketFields(p => ({ ...p, meetingTime: v })); setTicketFieldsDirty(true); }} />
               <FieldInput label="نقطة التجمع (عربي)" placeholder="مثال: مرسى مطروح، أمام الفندق" value={ticketFields.pickupLocationAr}
@@ -696,16 +696,16 @@ export default function BookingsPage() {
                 💬 {ticketBusy === "whatsapp" ? "جاري التجهيز..." : "إرسال على واتساب"}
               </button>
               <button onClick={copyTicketLink} disabled={!ticketData || !!ticketBusy || ticketDownloading}
-                style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                style={{ background: "var(--bg-surface-solid)", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
                 🔗 {ticketBusy === "copy" ? "جاري التجهيز..." : "نسخ رابط PDF"}
               </button>
               <button onClick={downloadTicketQr} disabled={!ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading} title="تنزيل QR لصفحة التذكرة"
-                style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && ticketData.ticketToken && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                style={{ background: "var(--bg-surface-solid)", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && ticketData.ticketToken && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
                 📱 {ticketBusy === "qr" ? "جاري التجهيز..." : "تنزيل QR"}
               </button>
               {ticketData && ticketData.ticketToken && (
                 <a href={`/verify/${ticketData.ticketToken}${ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : ""}`} target="_blank" rel="noreferrer"
-                  style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                  style={{ background: "var(--bg-surface-solid)", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
                   ↗️ صفحة التحقق
                 </a>
               )}
@@ -716,7 +716,7 @@ export default function BookingsPage() {
                     📄 فتح PDF
                   </a>
                   <a href={`${ticketPdfAbsoluteUrl(ticketData.ticketToken)}?download=1`} target="_blank" rel="noreferrer"
-                    style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
+                    style={{ background: "var(--bg-surface-solid)", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
                     ⬇️ تحميل PDF من السيرفر
                   </a>
                 </>
@@ -772,7 +772,7 @@ function FieldInput({ label, value, placeholder, onChange }: { label: string; va
       <input
         type="text" value={value} placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
-        style={{ padding: "0.45rem 0.65rem", borderRadius: 8, border: "1px solid #cbd5e1", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", outline: "none", background: "white" }}
+        style={{ padding: "0.45rem 0.65rem", borderRadius: 8, border: "1px solid #cbd5e1", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", outline: "none", background: "var(--bg-surface-solid)" }}
       />
     </label>
   );

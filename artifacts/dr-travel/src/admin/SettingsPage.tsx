@@ -238,7 +238,7 @@ const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.75rem 1rem", borderRadius: "10px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.92rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "var(--text-primary)", background: "white",
+  color: "var(--text-primary)", background: "var(--bg-surface-solid)",
   transition: "border-color 0.2s, box-shadow 0.2s",
 };
 
@@ -259,7 +259,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <span style={{
         position: "absolute", top: 3, left: checked ? 27 : 3,
-        width: 22, height: 22, borderRadius: "50%", background: "white",
+        width: 22, height: 22, borderRadius: "50%", background: "var(--bg-surface-solid)",
         boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s",
       }} />
     </button>
@@ -564,7 +564,7 @@ export default function SettingsPage() {
                   padding: "0.7rem 0.75rem",
                   borderRadius: "10px",
                   border: `1.5px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
-                  background: active ? "rgba(0,170,255,0.08)" : "#f8fafc",
+                  background: active ? "rgba(0,170,255,0.08)" : "var(--bg-surface-sunk)",
                   color: active ? "#0066cc" : "var(--text-muted)",
                   cursor: "pointer",
                   fontFamily: stack,
@@ -587,7 +587,7 @@ export default function SettingsPage() {
   if (loading) return (
     <div>
       <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
-      <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)", background: "var(--bg-surface-solid)", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
         <div style={{ fontWeight: 700 }}>جاري تحميل الإعدادات...</div>
       </div>
@@ -652,7 +652,7 @@ export default function SettingsPage() {
       )}
 
       {/* Logo upload section */}
-      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
         <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
           🖼️ شعار الموقع (Logo)
         </h3>
@@ -701,7 +701,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Hero Background Upload */}
-      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
         <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
           🏞️ صورة خلفية الهيرو (Hero Background)
         </h3>
@@ -759,7 +759,7 @@ export default function SettingsPage() {
           const groupHasDefaults = group.keys.some(({ key }) => DEFAULTS[key] !== undefined);
           return (
             <div key={group.section}
-              style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+              style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
                 <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
                   {group.icon} {group.title}
@@ -767,7 +767,7 @@ export default function SettingsPage() {
                 {groupHasDefaults && (
                   <button
                     onClick={() => confirmAndRestore(group.section, group.title)}
-                    style={{ background: "none", border: "1px solid #e0e8f0", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
+                    style={{ background: "none", border: "1px solid var(--border)", borderRadius: 8, padding: "0.3rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.2s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#00AAFF"; (e.currentTarget as HTMLElement).style.color = "#00AAFF"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e0e8f0"; (e.currentTarget as HTMLElement).style.color = "#99aabb"; }}>
                     🔄 استعادة الأصل
@@ -786,7 +786,7 @@ export default function SettingsPage() {
                     const isOn = settings[key] === "true";
                     return (
                       <div key={key}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
                         onClick={() => updateBool(key, !isOn)}>
                         <div>
                           <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
@@ -930,7 +930,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Change Password Section */}
-        <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #e0e8f0" }}>
+        <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid var(--border)" }}>
           <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
             🔐 تغيير كلمة المرور
           </h3>

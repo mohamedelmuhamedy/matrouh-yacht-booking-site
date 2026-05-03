@@ -78,17 +78,17 @@ export default function AdminWhyUsPage() {
         </button>
       </div>
 
-      <div style={{ background: "white", borderRadius: 16, padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #e0e8f0" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid var(--border)" }}>
         {loading ? (
           <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem" }}>جاري التحميل...</div>
         ) : cards.length === 0 ? (
-          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: 10 }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "var(--bg-surface-sunk)", borderRadius: 10 }}>
             لا توجد بطاقات بعد — أضف بطاقة من زر "بطاقة جديدة"
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
             {cards.map(c => (
-              <div key={c.id} style={{ background: "#f9fafb", border: "1.5px solid #e0e8f0", borderRadius: 12, padding: "0.9rem 1rem", opacity: c.isActive ? 1 : 0.55 }}>
+              <div key={c.id} style={{ background: "var(--bg-surface-sunk)", border: "1.5px solid var(--border)", borderRadius: 12, padding: "0.9rem 1rem", opacity: c.isActive ? 1 : 0.55 }}>
                 {confirmDelete === c.id ? (
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
                     <span style={{ color: "#DC2626", fontSize: "0.86rem", flex: 1, fontWeight: 600 }}>
@@ -99,7 +99,7 @@ export default function AdminWhyUsPage() {
                       تأكيد الحذف
                     </button>
                     <button onClick={() => setConfirmDelete(null)}
-                      style={{ background: "white", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
@@ -127,7 +127,7 @@ export default function AdminWhyUsPage() {
                         {c.isActive ? "إخفاء" : "إظهار"}
                       </button>
                       <button onClick={() => navigate(`/admin/why-us/${c.id}/edit`)}
-                        style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         تعديل
                       </button>
                       <button onClick={() => setConfirmDelete(c.id)}

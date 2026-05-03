@@ -147,24 +147,24 @@ export default function AdminServicesPage() {
           }}>
           <span style={{
             position: "absolute", top: 3, [detailPagesEnabled ? "right" : "left"]: 3,
-            width: 24, height: 24, borderRadius: "50%", background: "white",
+            width: 24, height: 24, borderRadius: "50%", background: "var(--bg-surface-solid)",
             transition: "all 0.2s", boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           } as React.CSSProperties} />
         </button>
       </div>
 
       {/* List */}
-      <div style={{ background: "white", borderRadius: 16, padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #e0e8f0" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid var(--border)" }}>
         {loading ? (
           <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem" }}>جاري التحميل...</div>
         ) : services.length === 0 ? (
-          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: 10 }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "var(--bg-surface-sunk)", borderRadius: 10 }}>
             لا توجد خدمات بعد — أضف خدمة من زر "خدمة جديدة"
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
             {services.map(svc => (
-              <div key={svc.id} style={{ background: "#f9fafb", border: "1.5px solid #e0e8f0", borderRadius: 12, padding: "0.9rem 1rem", opacity: svc.isActive ? 1 : 0.55 }}>
+              <div key={svc.id} style={{ background: "var(--bg-surface-sunk)", border: "1.5px solid var(--border)", borderRadius: 12, padding: "0.9rem 1rem", opacity: svc.isActive ? 1 : 0.55 }}>
                 {confirmDelete === svc.id ? (
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
                     <span style={{ color: "#DC2626", fontSize: "0.86rem", flex: 1, fontWeight: 600 }}>
@@ -175,13 +175,13 @@ export default function AdminServicesPage() {
                       تأكيد الحذف
                     </button>
                     <button onClick={() => setConfirmDelete(null)}
-                      style={{ background: "white", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--section-subtitle)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.45rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                       إلغاء
                     </button>
                   </div>
                 ) : (
                   <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "1.65rem", flexShrink: 0, width: 42, height: 42, background: "white", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e0e8f0" }}>{svc.icon}</span>
+                    <span style={{ fontSize: "1.65rem", flexShrink: 0, width: 42, height: 42, background: "var(--bg-surface-solid)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)" }}>{svc.icon}</span>
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                         <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem" }}>{svc.titleAr}</span>
@@ -200,7 +200,7 @@ export default function AdminServicesPage() {
                         {svc.isActive ? "إخفاء" : "إظهار"}
                       </button>
                       <button onClick={() => navigate(`/admin/services/${svc.id}/edit`)}
-                        style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                        style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                         تعديل
                       </button>
                       <button onClick={() => setConfirmDelete(svc.id)}

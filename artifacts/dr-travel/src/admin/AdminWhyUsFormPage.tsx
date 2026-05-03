@@ -46,17 +46,17 @@ const EMPTY: FormState = {
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.6rem 0.85rem", borderRadius: 8,
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
-  fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)", background: "white",
+  fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
 const labelSt: React.CSSProperties = {
   display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.78rem", marginBottom: "0.3rem",
 };
 const sectionSt: React.CSSProperties = {
-  background: "white", borderRadius: 14, padding: "1.25rem", marginBottom: "1rem",
-  border: "1.5px solid #e0e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+  background: "var(--bg-surface-solid)", borderRadius: 14, padding: "1.25rem", marginBottom: "1rem",
+  border: "1.5px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
 const ghostBtnSt: React.CSSProperties = {
-  background: "white", color: "#475569", border: "1px solid #d0dce8", borderRadius: 8,
+  background: "var(--bg-surface-solid)", color: "#475569", border: "1px solid #d0dce8", borderRadius: 8,
   padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif",
   fontSize: "0.76rem", fontWeight: 700,
 };
@@ -291,10 +291,10 @@ export default function AdminWhyUsFormPage() {
             + إضافة نقطة
           </button>
         </div>
-        {form.bullets.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد نقاط بعد</div>}
+        {form.bullets.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "var(--bg-surface-sunk)", borderRadius: 8 }}>لا توجد نقاط بعد</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {form.bullets.map((b, i) => (
-            <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.85rem", border: "1px solid #e0e8f0" }}>
+            <div key={i} style={{ background: "var(--bg-surface-sunk)", borderRadius: 10, padding: "0.85rem", border: "1px solid var(--border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                 <span style={{ color: "#475569", fontSize: "0.78rem", fontWeight: 700 }}>نقطة #{i + 1}</span>
                 <div style={{ display: "flex", gap: "0.3rem" }}>
@@ -325,10 +325,10 @@ export default function AdminWhyUsFormPage() {
             + إضافة إحصائية
           </button>
         </div>
-        {form.stats.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد إحصائيات بعد</div>}
+        {form.stats.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "var(--bg-surface-sunk)", borderRadius: 8 }}>لا توجد إحصائيات بعد</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {form.stats.map((s, i) => (
-            <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.6rem", border: "1px solid #e0e8f0", display: "grid", gridTemplateColumns: "50px 90px 1fr 1fr 70px", gap: "0.4rem", alignItems: "center" }}>
+            <div key={i} style={{ background: "var(--bg-surface-sunk)", borderRadius: 10, padding: "0.6rem", border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "50px 90px 1fr 1fr 70px", gap: "0.4rem", alignItems: "center" }}>
               <input value={s.icon} onChange={e => { const a = [...form.stats]; a[i] = { ...a[i], icon: e.target.value }; set("stats", a); }} placeholder="⭐" style={{ ...inputSt, textAlign: "center", fontSize: "1.1rem" }} />
               <input value={s.value} onChange={e => { const a = [...form.stats]; a[i] = { ...a[i], value: e.target.value }; set("stats", a); }} placeholder="5+" style={{ ...inputSt, fontWeight: 700 }} />
               <input value={s.labelAr} onChange={e => { const a = [...form.stats]; a[i] = { ...a[i], labelAr: e.target.value }; set("stats", a); }} placeholder="عربي" style={inputSt} />
@@ -347,7 +347,7 @@ export default function AdminWhyUsFormPage() {
             + إضافة صورة
           </button>
         </div>
-        {form.galleryImages.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "#f9fafb", borderRadius: 8 }}>لا توجد صور في المعرض</div>}
+        {form.galleryImages.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: "0.82rem", textAlign: "center", padding: "1rem", background: "var(--bg-surface-sunk)", borderRadius: 8 }}>لا توجد صور في المعرض</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {form.galleryImages.map((img, i) => (
             <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>

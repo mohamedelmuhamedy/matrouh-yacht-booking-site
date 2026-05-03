@@ -38,9 +38,9 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
 };
 
 const S = {
-  card: { background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem" },
+  card: { background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem" },
   h3: { color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem", margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" } as React.CSSProperties,
-  input: { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)" } as React.CSSProperties,
+  input: { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid var(--border)", outline: "none", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)" } as React.CSSProperties,
   label: { display: "block", color: "#374151", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem" } as React.CSSProperties,
   btn: (color: string, bg: string) => ({ padding: "0.5rem 1rem", border: "none", borderRadius: "8px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: bg, color }) as React.CSSProperties,
 };
@@ -220,7 +220,7 @@ export default function AdminRewardsPage() {
           </h2>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>إدارة نظام الإحالة وأكواد المكافآت</p>
         </div>
-        <div style={{ display: "flex", gap: "0.4rem", background: "#f1f5f9", borderRadius: "12px", padding: "0.3rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", background: "var(--bg-surface-2)", borderRadius: "12px", padding: "0.3rem" }}>
           {[
             { key: "settings", label: "⚙️ الإعدادات" },
             { key: "codes", label: "🔑 الأكواد" },
@@ -402,7 +402,7 @@ export default function AdminRewardsPage() {
           {loadingCodes ? (
             <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>⏳ جاري التحميل...</div>
           ) : codes.length === 0 ? (
-            <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔑</div>
               <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد أكواد إحالة</div>
               <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>أنشئ أول كود إحالة لبدء نظام المكافآت</div>
@@ -410,7 +410,7 @@ export default function AdminRewardsPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {codes.map(c => (
-                <div key={c.id} style={{ background: "white", borderRadius: "14px", padding: "1.1rem 1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", opacity: c.isActive ? 1 : 0.55 }}>
+                <div key={c.id} style={{ background: "var(--bg-surface-solid)", borderRadius: "14px", padding: "1.1rem 1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", opacity: c.isActive ? 1 : 0.55 }}>
                   <div style={{ fontFamily: "monospace", fontWeight: 900, fontSize: "1.1rem", color: "#00AAFF", letterSpacing: "2px", background: "#EFF6FF", padding: "0.4rem 0.85rem", borderRadius: "8px", cursor: "pointer", userSelect: "all" }}
                     onClick={() => copyCode(c.code)} title="اضغط للنسخ">
                     {c.code}
@@ -465,7 +465,7 @@ export default function AdminRewardsPage() {
           {loadingRewards ? (
             <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)" }}>⏳ جاري التحميل...</div>
           ) : filteredRewards.length === 0 ? (
-            <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🏆</div>
               <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد مكافآت {filterStatus !== "all" ? "بهذه الحالة" : "بعد"}</div>
               <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>ستظهر هنا المكافآت عند حجز العملاء بأكواد الإحالة</div>
@@ -477,7 +477,7 @@ export default function AdminRewardsPage() {
                 const rewardLabel = r.rewardType === "fixed" ? `${r.rewardValue} جنيه` :
                   r.rewardType === "percentage" ? `${r.rewardValue}%` : r.rewardValue;
                 return (
-                  <div key={r.id} style={{ background: "white", borderRadius: "14px", padding: "1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", borderRight: `4px solid ${st.color}` }}>
+                  <div key={r.id} style={{ background: "var(--bg-surface-solid)", borderRadius: "14px", padding: "1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", borderRight: `4px solid ${st.color}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.75rem" }}>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.25rem" }}>
@@ -502,7 +502,7 @@ export default function AdminRewardsPage() {
                     {r.status === "pending" && (
                       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                         <input
-                          style={{ flex: 1, minWidth: 150, padding: "0.5rem 0.8rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
+                          style={{ flex: 1, minWidth: 150, padding: "0.5rem 0.8rem", borderRadius: "8px", border: "1.5px solid var(--border)", outline: "none", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
                           placeholder="ملاحظة (اختياري)"
                           value={rewardNotes[r.id] || ""}
                           onChange={e => setRewardNotes(prev => ({ ...prev, [r.id]: e.target.value }))}

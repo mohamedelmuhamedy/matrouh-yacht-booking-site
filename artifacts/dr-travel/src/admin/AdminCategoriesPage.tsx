@@ -21,7 +21,7 @@ const inputSt: React.CSSProperties = {
   fontFamily: "Cairo, sans-serif",
   boxSizing: "border-box",
   color: "var(--text-primary)",
-  background: "white",
+  background: "var(--bg-surface-solid)",
 };
 
 const labelSt: React.CSSProperties = {
@@ -140,7 +140,7 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Add Form */}
-      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem", border: "1.5px solid #e0e8f0" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem", border: "1.5px solid var(--border)" }}>
         <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
           إضافة فئة جديدة
         </h2>
@@ -186,7 +186,7 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Categories List */}
-      <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #e0e8f0" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid var(--border)" }}>
         <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
           الفئات الحالية ({categories.length})
         </h2>
@@ -196,7 +196,7 @@ export default function AdminCategoriesPage() {
             جاري التحميل...
           </div>
         ) : categories.length === 0 ? (
-          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "#f9fafb", borderRadius: "10px" }}>
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem 0", fontSize: "0.9rem", background: "var(--bg-surface-sunk)", borderRadius: "10px" }}>
             لا توجد فئات بعد — أضف فئة من الأعلى
           </div>
         ) : (
@@ -204,7 +204,7 @@ export default function AdminCategoriesPage() {
             {categories.map(cat => (
               <div
                 key={cat.id}
-                style={{ background: "#f9fafb", border: "1.5px solid #e0e8f0", borderRadius: "10px", padding: "0.9rem 1rem" }}>
+                style={{ background: "var(--bg-surface-sunk)", border: "1.5px solid var(--border)", borderRadius: "10px", padding: "0.9rem 1rem" }}>
 
                 {editId === cat.id ? (
                   <div>
@@ -260,7 +260,7 @@ export default function AdminCategoriesPage() {
                     </div>
                     <button
                       onClick={() => { setEditId(cat.id); setEditForm({ nameAr: cat.nameAr, nameEn: cat.nameEn }); }}
-                      style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                      style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: "6px", padding: "0.4rem 0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
                       تعديل
                     </button>
                     <button

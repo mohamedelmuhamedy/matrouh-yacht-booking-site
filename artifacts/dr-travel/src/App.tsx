@@ -1462,12 +1462,12 @@ function ReviewSubmitForm() {
         <div onClick={closeModal}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", direction: ar ? "rtl" : "ltr" }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: "linear-gradient(180deg,#1a2535,#0f1a28)", border: "1px solid var(--border-strong)", borderRadius: 22, padding: "1.75rem", width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 60px rgba(0,0,0,0.6)", fontFamily: "Cairo, sans-serif" }}>
+            style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border-strong)", borderRadius: 22, padding: "1.75rem", width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 60px rgba(0,0,0,0.6)", fontFamily: "Cairo, sans-serif" }}>
 
             {done ? (
               <div style={{ textAlign: "center", padding: "1.5rem 0.5rem" }}>
                 <div style={{ fontSize: "3.5rem", marginBottom: "0.75rem" }}>🎉</div>
-                <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.2rem", marginBottom: "0.6rem" }}>
+                <h3 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.2rem", marginBottom: "0.6rem" }}>
                   {ar ? "شكراً لك!" : "Thank you!"}
                 </h3>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.8, marginBottom: "1.5rem" }}>
@@ -1481,7 +1481,7 @@ function ReviewSubmitForm() {
             ) : (
               <>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-                  <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.15rem", margin: 0 }}>
+                  <h3 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.15rem", margin: 0 }}>
                     ✍️ {ar ? "شاركنا تجربتك" : "Share your experience"}
                   </h3>
                   <button onClick={closeModal}
@@ -1514,7 +1514,7 @@ function ReviewSubmitForm() {
                   </label>
                   <input value={name} onChange={e => setName(e.target.value)} maxLength={80}
                     placeholder={ar ? "اكتب اسمك..." : "Your name..."}
-                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--border-strong)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box" }} />
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--input-border)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "var(--input-bg)", color: "var(--input-text)", boxSizing: "border-box" }} />
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
@@ -1523,7 +1523,7 @@ function ReviewSubmitForm() {
                   </label>
                   <textarea value={text} onChange={e => setText(e.target.value)} maxLength={1500} rows={5}
                     placeholder={ar ? "احكي لنا عن تجربتك..." : "Tell us about your experience..."}
-                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--border-strong)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box", resize: "vertical", lineHeight: 1.8 }} />
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid var(--input-border)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "var(--input-bg)", color: "var(--input-text)", boxSizing: "border-box", resize: "vertical", lineHeight: 1.8 }} />
                   <div style={{ color: "var(--text-muted)", fontSize: "0.72rem", marginTop: "0.25rem", textAlign: ar ? "left" : "right" }}>
                     {text.length} / 1500
                   </div>

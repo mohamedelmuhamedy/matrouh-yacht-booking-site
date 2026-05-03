@@ -18,7 +18,7 @@ const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.7rem 0.9rem", borderRadius: "10px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.9rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "var(--text-primary)", background: "white",
+  color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -26,7 +26,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const cardStyle: React.CSSProperties = {
-  background: "white", borderRadius: "14px", border: "1.5px solid #e0e8f0",
+  background: "var(--bg-surface-solid)", borderRadius: "14px", border: "1.5px solid var(--border)",
   padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem",
 };
 
@@ -45,7 +45,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <span style={{
         position: "absolute", top: 3, left: checked ? 23 : 3,
-        width: 20, height: 20, borderRadius: "50%", background: "white",
+        width: 20, height: 20, borderRadius: "50%", background: "var(--bg-surface-solid)",
         boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s",
       }} />
     </button>
@@ -250,7 +250,7 @@ export default function AdminShareCardPage() {
               {LINK_FIELDS.map(f => {
                 const enabled = (settings[f.toggleKey] ?? "true") === "true";
                 return (
-                  <div key={f.key} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.6rem", alignItems: "center", padding: "0.65rem 0.7rem", background: "#f8fafc", border: "1.5px solid #e0e8f0", borderRadius: "12px" }}>
+                  <div key={f.key} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.6rem", alignItems: "center", padding: "0.65rem 0.7rem", background: "var(--bg-surface-sunk)", border: "1.5px solid var(--border)", borderRadius: "12px" }}>
                     <Toggle checked={enabled} onChange={v => updateBool(f.toggleKey, v)} />
                     <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "0.5rem", alignItems: "center" }}>
                       <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "0.85rem" }}>{f.labelAr}</div>
@@ -299,7 +299,7 @@ export default function AdminShareCardPage() {
                     style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: accent === c ? "3px solid #0D1B2A" : "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
                 ))}
                 <input type="color" value={accent} onChange={e => update("card_accent_color", e.target.value)}
-                  style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "white", cursor: "pointer" }} />
+                  style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
                 <input type="text" value={accent} onChange={e => update("card_accent_color", e.target.value)} style={{ ...inputBase, width: 110, padding: "0.45rem 0.65rem", fontSize: "0.82rem", direction: "ltr" }} />
               </div>
             </div>
@@ -344,7 +344,7 @@ export default function AdminShareCardPage() {
                       style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: (settings.card_bg_color || "#0D1B2A") === c ? "3px solid #00AAFF" : "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
                   ))}
                   <input type="color" value={settings.card_bg_color || "#0D1B2A"} onChange={e => update("card_bg_color", e.target.value)}
-                    style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "white", cursor: "pointer" }} />
+                    style={{ width: 50, height: 36, border: "1.5px solid #d0dce8", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
                   <input type="text" value={settings.card_bg_color || "#0D1B2A"} onChange={e => update("card_bg_color", e.target.value)} style={{ ...inputBase, width: 110, padding: "0.45rem 0.65rem", fontSize: "0.82rem", direction: "ltr" }} />
                 </div>
               )}
@@ -359,7 +359,7 @@ export default function AdminShareCardPage() {
                     </button>
                     {settings.card_bg_image_url && (
                       <button type="button" onClick={() => update("card_bg_image_url", "")}
-                        style={{ padding: "0.6rem 1rem", borderRadius: 10, border: "1.5px solid #ef4444", background: "white", color: "#ef4444", fontWeight: 700, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.82rem" }}>
+                        style={{ padding: "0.6rem 1rem", borderRadius: 10, border: "1.5px solid #ef4444", background: "var(--bg-surface-solid)", color: "#ef4444", fontWeight: 700, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.82rem" }}>
                         إزالة الصورة
                       </button>
                     )}
@@ -412,7 +412,7 @@ export default function AdminShareCardPage() {
             <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "0.95rem" }}>👁️ معاينة مباشرة</div>
             <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem" }}>التغييرات تظهر هنا قبل الحفظ</div>
           </div>
-          <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #e0e8f0", boxShadow: "0 14px 30px rgba(0,0,0,0.12)", maxHeight: "calc(100vh - 8rem)", overflowY: "auto", background: "var(--bg-page-2)" }}>
+          <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid var(--border)", boxShadow: "0 14px 30px rgba(0,0,0,0.12)", maxHeight: "calc(100vh - 8rem)", overflowY: "auto", background: "var(--bg-page-2)" }}>
             <ShareCard settings={settings} />
           </div>
         </div>

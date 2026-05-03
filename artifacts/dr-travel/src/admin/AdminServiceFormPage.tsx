@@ -59,7 +59,7 @@ const inputSt: React.CSSProperties = {
   fontFamily: "Cairo, sans-serif",
   boxSizing: "border-box",
   color: "var(--text-primary)",
-  background: "white",
+  background: "var(--bg-surface-solid)",
 };
 const labelSt: React.CSSProperties = {
   display: "block",
@@ -69,15 +69,15 @@ const labelSt: React.CSSProperties = {
   marginBottom: "0.3rem",
 };
 const sectionSt: React.CSSProperties = {
-  background: "white",
+  background: "var(--bg-surface-solid)",
   borderRadius: 14,
   padding: "1.25rem",
   marginBottom: "1rem",
-  border: "1.5px solid #e0e8f0",
+  border: "1.5px solid var(--border)",
   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 };
 const ghostBtnSt: React.CSSProperties = {
-  background: "white",
+  background: "var(--bg-surface-solid)",
   color: "#475569",
   border: "1px solid #d0dce8",
   borderRadius: 8,
@@ -185,7 +185,7 @@ function ImageUploadField({
             </button>
             {preview && (
               <button type="button" onClick={() => onChange("")}
-                style={{ background: "white", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
+                style={{ background: "var(--bg-surface-solid)", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 6, padding: "0.4rem 0.85rem", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem", fontFamily: "Cairo, sans-serif" }}>
                 حذف
               </button>
             )}
@@ -229,8 +229,8 @@ function FeatureEditorCard({
 
   return (
     <div style={{
-      background: "#f8fafc",
-      border: "1.5px solid #e2e8f0",
+      background: "var(--bg-surface-sunk)",
+      border: "1.5px solid var(--border)",
       borderRadius: 12,
       padding: "0.85rem",
       display: "grid",
@@ -517,7 +517,7 @@ export default function AdminServiceFormPage() {
         </div>
         <button
           onClick={() => navigate("/admin/services")}
-          style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+          style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
           ← رجوع
         </button>
       </div>
@@ -665,7 +665,7 @@ export default function AdminServiceFormPage() {
               />
             ))}
             {form.features.length === 0 && (
-              <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", padding: "1.25rem", background: "#f8fafc", border: "1.5px dashed #cbd5e1", borderRadius: 10 }}>
+              <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", padding: "1.25rem", background: "var(--bg-surface-sunk)", border: "1.5px dashed #cbd5e1", borderRadius: 10 }}>
                 لا توجد مميزات بعد. اضغط "+ إضافة ميزة" لإضافة أول ميزة.
               </div>
             )}
@@ -675,7 +675,7 @@ export default function AdminServiceFormPage() {
             style={{
               marginTop: "0.85rem",
               width: "100%",
-              background: "white",
+              background: "var(--bg-surface-solid)",
               color: "#0369a1",
               border: "1.5px dashed #00AAFF",
               borderRadius: 10,
@@ -724,7 +724,7 @@ export default function AdminServiceFormPage() {
 
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end", marginTop: "1rem" }}>
           <button type="button" onClick={() => navigate("/admin/services")}
-            style={{ background: "white", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
+            style={{ background: "var(--bg-surface-solid)", color: "var(--text-muted)", border: "1px solid #d0dce8", borderRadius: 10, padding: "0.7rem 1.4rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
             إلغاء
           </button>
           <button type="submit" disabled={saving}

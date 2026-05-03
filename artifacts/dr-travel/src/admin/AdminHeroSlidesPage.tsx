@@ -30,7 +30,7 @@ const TRANSITIONS = [
 ];
 
 const card: React.CSSProperties = {
-  background: "white", borderRadius: "14px", border: "1.5px solid #d0dce8",
+  background: "var(--bg-surface-solid)", borderRadius: "14px", border: "1.5px solid #d0dce8",
   padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem",
 };
 
@@ -258,7 +258,7 @@ export default function AdminHeroSlidesPage() {
   const inputStyle: React.CSSProperties = {
     padding: "0.55rem 0.85rem", borderRadius: "8px", border: "1.5px solid #d0dce8",
     outline: "none", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif",
-    color: "var(--text-primary)", background: "white", width: "80px",
+    color: "var(--text-primary)", background: "var(--bg-surface-solid)", width: "80px",
   };
 
   return (
@@ -434,10 +434,10 @@ export default function AdminHeroSlidesPage() {
                   {/* Controls */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
                     <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
-                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === 0 ? "#f8fafc" : "#eef4fb", color: i === 0 ? "#b0bec5" : "#1565c0", cursor: i === 0 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === 0 ? "var(--bg-surface-sunk)" : "#eef4fb", color: i === 0 ? "#b0bec5" : "#1565c0", cursor: i === 0 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
                       title="تحريك لأعلى">▲ أعلى</button>
                     <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
-                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "#f8fafc" : "#eef4fb", color: i === slides.length - 1 ? "#b0bec5" : "#1565c0", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "var(--bg-surface-sunk)" : "#eef4fb", color: i === slides.length - 1 ? "#b0bec5" : "#1565c0", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
                       title="تحريك لأسفل">▼ أسفل</button>
                     <button onClick={() => setDeleteTarget(slide)}
                       style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #fca5a5", background: "#fef2f2", color: "#dc2626", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
@@ -506,7 +506,7 @@ export default function AdminHeroSlidesPage() {
                       {hasSavedTrim && (
                         <button
                           onClick={() => clearTrim(slide)}
-                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "white", color: "#64748b", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                          style={{ padding: "0.5rem 1.1rem", borderRadius: "8px", border: "1.5px solid #d0dce8", background: "var(--bg-surface-solid)", color: "#64748b", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
                         >🔄 إزالة القص (فيديو كامل)</button>
                       )}
                     </div>

@@ -273,7 +273,7 @@ export default function AdminScannerPage() {
       {/* Result card */}
       {meta && (
         <div style={{
-          background: "white", borderRadius: 18, padding: "22px 20px",
+          background: "var(--bg-surface-solid)", borderRadius: 18, padding: "22px 20px",
           boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
           textAlign: "center", border: `3px solid ${meta.color}`,
         }}>
@@ -290,7 +290,7 @@ export default function AdminScannerPage() {
           {t && (
             <div style={{
               marginTop: 16, textAlign: ar ? "right" : "left",
-              background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px",
+              background: "var(--bg-surface-sunk)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px",
               display: "flex", flexDirection: "column", gap: 8,
             }}>
               <div style={{
@@ -338,7 +338,7 @@ export default function AdminScannerPage() {
           <button onClick={reset}
             style={{
               marginTop: 10, width: "100%", padding: "12px 18px",
-              background: "white", color: NAVY, border: `2px solid ${NAVY}`,
+              background: "var(--bg-surface-solid)", color: NAVY, border: `2px solid ${NAVY}`,
               borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: "pointer",
               fontFamily: "inherit",
             }}>

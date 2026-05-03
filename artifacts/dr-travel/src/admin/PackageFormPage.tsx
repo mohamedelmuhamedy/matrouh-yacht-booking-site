@@ -101,13 +101,13 @@ const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "var(--text-primary)", background: "white",
+  color: "var(--text-primary)", background: "var(--bg-surface-solid)",
 };
 const labelSt: React.CSSProperties = {
   display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem",
 };
 const cardSt: React.CSSProperties = {
-  background: "#f9fafb", border: "1.5px solid #e0e8f0", borderRadius: "10px",
+  background: "var(--bg-surface-sunk)", border: "1.5px solid var(--border)", borderRadius: "10px",
   padding: "1rem", marginBottom: "0.75rem",
 };
 const addBtnSt: React.CSSProperties = {
@@ -138,7 +138,7 @@ const ArrField = ({ label, items, onAdd, onRemove, inputVal, setInputVal, placeh
         style={{ padding: "0.5rem 0.9rem", background: "#00AAFF", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}>+</button>
     </div>
     {items.map((item: string, i: number) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#f9fafb", borderRadius: "6px", padding: "0.4rem 0.75rem", marginBottom: "0.3rem" }}>
+      <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--bg-surface-sunk)", borderRadius: "6px", padding: "0.4rem 0.75rem", marginBottom: "0.3rem" }}>
         <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text-primary)" }}>{item}</span>
         <button type="button" onClick={() => onRemove(i)} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "1rem", lineHeight: 1, fontWeight: 700 }}>×</button>
       </div>
@@ -311,7 +311,7 @@ export default function PackageFormPage() {
         <div style={{ height: 28, width: 220, background: "#e0e8f0", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
         <div style={{ height: 36, width: 80, background: "#e0e8f0", borderRadius: 8 }} />
       </div>
-      <div style={{ background: "white", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ textAlign: "center", padding: "3rem 2rem", color: "var(--section-subtitle)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>⏳</div>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem" }}>جاري تحميل بيانات الباقة...</div>
@@ -364,7 +364,7 @@ export default function PackageFormPage() {
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "white", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "var(--bg-surface-solid)", borderRadius: 12, padding: "0.4rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             style={{ flexShrink: 0, padding: "0.55rem 0.85rem", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: tab === t.id ? "#00AAFF" : "transparent", color: tab === t.id ? "white" : "var(--section-subtitle)", transition: "all 0.2s", whiteSpace: "nowrap" }}>
@@ -373,7 +373,7 @@ export default function PackageFormPage() {
         ))}
       </div>
 
-      <div style={{ background: "white", borderRadius: 16, padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
 
         {/* ── TAB: BASIC ── */}
         {tab === "basic" && (
@@ -482,7 +482,7 @@ export default function PackageFormPage() {
             </div>
             {/* Cancellation policy toggle */}
             <div
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "var(--bg-surface-sunk)", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
               onClick={() => set("hasCancellationPolicy", !form.hasCancellationPolicy)}>
               <div>
                 <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
@@ -496,7 +496,7 @@ export default function PackageFormPage() {
                   onClick={e => { e.stopPropagation(); set("hasCancellationPolicy", !form.hasCancellationPolicy); }}
                   style={{ position: "relative", display: "inline-flex", alignItems: "center", width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer", background: form.hasCancellationPolicy ? "#00AAFF" : "#d0dce8", transition: "background 0.25s", flexShrink: 0, padding: 0 }}
                   aria-checked={form.hasCancellationPolicy} role="switch">
-                  <span style={{ position: "absolute", top: 3, left: form.hasCancellationPolicy ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s" }} />
+                  <span style={{ position: "absolute", top: 3, left: form.hasCancellationPolicy ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "var(--bg-surface-solid)", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", transition: "left 0.25s" }} />
                 </button>
               </div>
             </div>
@@ -583,7 +583,7 @@ export default function PackageFormPage() {
                 onAdd={(v: string) => addToArr("excludesEn", v)} onRemove={(i: number) => removeFromArr("excludesEn", i)}
                 inputVal={excEnInput} setInputVal={setExcEnInput} placeholder="Transportation" />
             </div>
-            <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
+            <hr style={{ border: "none", borderTop: "1.5px solid var(--border)", margin: "1.25rem 0" }} />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
               <ArrField label="ماذا تحضر (عربي)" items={form.whatToBringAr}
                 onAdd={(v: string) => addToArr("whatToBringAr", v)} onRemove={(i: number) => removeFromArr("whatToBringAr", i)}
@@ -648,7 +648,7 @@ export default function PackageFormPage() {
               </div>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
+            <hr style={{ border: "none", borderTop: "1.5px solid var(--border)", margin: "1.25rem 0" }} />
 
             <div style={{ marginBottom: "1.75rem" }}>
               <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "1rem" }}>
@@ -690,7 +690,7 @@ export default function PackageFormPage() {
               </div>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
+            <hr style={{ border: "none", borderTop: "1.5px solid var(--border)", margin: "1.25rem 0" }} />
 
             <div>
               <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -746,7 +746,7 @@ export default function PackageFormPage() {
                 { key: "includesAccommodation" as keyof FormData, label: "تشمل إقامة 🏨" },
                 { key: "active" as keyof FormData, label: "ظاهرة للزوار 👁️" },
               ].map(({ key, label }) => (
-                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: form[key] ? "#00AAFF08" : "#f9fafb", border: `1.5px solid ${form[key] ? "#00AAFF30" : "#e0e8f0"}`, borderRadius: 10, padding: "0.75rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>
+                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: form[key] ? "#00AAFF08" : "var(--bg-surface-sunk)", border: `1.5px solid ${form[key] ? "#00AAFF30" : "#e0e8f0"}`, borderRadius: 10, padding: "0.75rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>
                   <input type="checkbox" checked={form[key] as boolean} onChange={() => toggle(key)} style={{ accentColor: "#00AAFF", width: 16, height: 16 }} />
                   <span style={{ color: form[key] ? "#00AAFF" : "var(--section-subtitle)", fontWeight: 700, fontSize: "0.85rem" }}>{label}</span>
                 </label>

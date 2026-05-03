@@ -167,7 +167,7 @@ export default function PackagesPage() {
           {packages.map(pkg => {
             const statusBadge = STATUS_BADGES[pkg.status] || STATUS_BADGES.draft;
             return (
-              <div key={pkg.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
+              <div key={pkg.id} style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                   {pkg.images?.[0] ? (
                     <img
@@ -188,7 +188,7 @@ export default function PackagesPage() {
                         {statusBadge.label}
                       </span>
                       {!pkg.active && pkg.status === "published" && (
-                        <span style={{ background: "#f3f4f6", color: "#9ca3af", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مخفية</span>
+                        <span style={{ background: "var(--bg-surface-sunk)", color: "#9ca3af", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مخفية</span>
                       )}
                       {pkg.featured && <span style={{ background: "#FEF3C7", color: "#D97706", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>مميزة</span>}
                       {pkg.popular && <span style={{ background: "#EFF6FF", color: "#3B82F6", padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>الأكثر طلباً</span>}
@@ -212,7 +212,7 @@ export default function PackagesPage() {
                       </select>
                       {pkg.status !== "archived" && (
                         <button onClick={() => toggleActive(pkg)}
-                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "#f9fafb" : "#25D36610", color: pkg.active ? "var(--section-subtitle)" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
+                          style={{ padding: "0.4rem 0.75rem", border: `1px solid ${pkg.active ? "#e0e8f0" : "#25D366"}`, borderRadius: "8px", cursor: "pointer", background: pkg.active ? "var(--bg-surface-sunk)" : "#25D36610", color: pkg.active ? "var(--section-subtitle)" : "#25D366", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600 }}>
                           {pkg.active ? "🙈 إخفاء" : "👁️ إظهار"}
                         </button>
                       )}
@@ -246,7 +246,7 @@ export default function PackagesPage() {
           })}
 
           {packages.length === 0 && (
-            <div style={{ background: "white", borderRadius: "16px", padding: "4rem", textAlign: "center" }}>
+            <div style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "4rem", textAlign: "center" }}>
               <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📦</div>
               <p style={{ color: "#99aabb", fontWeight: 600 }}>لا توجد باقات بعد. أضف أول باقة!</p>
             </div>

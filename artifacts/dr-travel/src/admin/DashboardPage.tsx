@@ -250,7 +250,7 @@ export default function DashboardPage() {
   if (loading) return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {[1, 2, 3, 4].map(i => (
-        <div key={i} style={{ background: "white", borderRadius: 16, height: 80, animation: "pulse 1.5s ease-in-out infinite", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }} />
+        <div key={i} style={{ background: "var(--bg-surface-solid)", borderRadius: 16, height: 80, animation: "pulse 1.5s ease-in-out infinite", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }} />
       ))}
       <style>{`@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }`}</style>
     </div>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
             {stats.counts.new > 0 && (
               <button onClick={() => navigate("/admin/bookings")}
                 style={{ background: "#EF4444", border: "1px solid #EF444460", color: "white", borderRadius: 10, padding: "0.55rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem", boxShadow: "0 4px 14px rgba(239,68,68,0.4)" }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "white", display: "inline-block", animation: "ping 1.5s ease-in-out infinite" }} />
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--bg-surface-solid)", display: "inline-block", animation: "ping 1.5s ease-in-out infinite" }} />
                 {stats.counts.new} حجز جديد
                 <style>{`@keyframes ping { 0%,100%{opacity:1}50%{opacity:0.3} }`}</style>
               </button>
@@ -433,7 +433,7 @@ export default function DashboardPage() {
                         <span style={{ color: "#475569", fontWeight: 700 }}>{s.label}</span>
                         <span style={{ color: s.color, fontWeight: 800 }}>{s.count} <span style={{ color: "#94a3b8", fontWeight: 600 }}>({pct}%)</span></span>
                       </div>
-                      <div style={{ height: 8, background: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: 8, background: "var(--bg-surface-2)", borderRadius: 4, overflow: "hidden" }}>
                         <div style={{ width: `${pct}%`, height: "100%", background: s.color, borderRadius: 4, transition: "width 0.5s" }} />
                       </div>
                     </div>
@@ -535,7 +535,7 @@ export default function DashboardPage() {
                       </span>
                       <span style={{ color: GOLD, fontWeight: 800, fontSize: "0.85rem" }}>{p.count}</span>
                     </div>
-                    <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden", marginRight: 24 }}>
+                    <div style={{ height: 6, background: "var(--bg-surface-2)", borderRadius: 3, overflow: "hidden", marginRight: 24 }}>
                       <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${OCEAN}, ${GOLD})`, borderRadius: 3 }} />
                     </div>
                     <div style={{ marginRight: 24, fontSize: "0.7rem", color: "#94a3b8", marginTop: 3 }}>
@@ -578,7 +578,7 @@ export default function DashboardPage() {
                   <div key={pkg.id}
                     onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}
                     style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.5rem 0.6rem", borderRadius: 8, cursor: "pointer", transition: "background 0.15s" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#f9fafb"; }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-sunk)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                     <span style={{ fontSize: "1.2rem" }}>{pkg.icon || "🏖️"}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                   return (
                     <tr key={b.id} style={{ borderBottom: "1px solid #f0f4f8", cursor: "pointer" }}
                       onClick={() => navigate("/admin/bookings")}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#f9fafb"; }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-sunk)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}>
                       <td style={{ padding: "0.7rem 0.6rem", fontWeight: 600, color: NAVY }}>{b.name}</td>
                       <td style={{ padding: "0.7rem 0.6rem", color: "var(--section-subtitle)", direction: "ltr" }}>{b.phone}</td>
@@ -644,7 +644,7 @@ export default function DashboardPage() {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "white", borderRadius: 16, padding: "1.1rem 1.15rem",
+  background: "var(--bg-surface-solid)", borderRadius: 16, padding: "1.1rem 1.15rem",
   boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9",
   minWidth: 0,
 };
@@ -668,7 +668,7 @@ function KpiCard({ icon, label, sublabel, value, color, delta, deltaLabel, onCli
   return (
     <button onClick={onClick}
       style={{
-        background: "white", borderRadius: 14, padding: "1rem 1.1rem",
+        background: "var(--bg-surface-solid)", borderRadius: 14, padding: "1rem 1.1rem",
         boxShadow: "0 2px 12px rgba(0,0,0,0.06)", cursor: onClick ? "pointer" : "default",
         border: `1px solid ${color}25`, textAlign: "right", transition: "all 0.2s",
         fontFamily: "Cairo, sans-serif", display: "flex", flexDirection: "column", gap: 4,

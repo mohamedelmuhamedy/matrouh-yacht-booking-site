@@ -246,9 +246,9 @@ export default function TestimonialsPage() {
       </div>
 
       {/* Search + Status Filter */}
-      <div style={{ background: "white", borderRadius: "12px", padding: "1rem 1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", marginBottom: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+      <div style={{ background: "var(--bg-surface-solid)", borderRadius: "12px", padding: "1rem 1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", marginBottom: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
         <input
-          style={{ flex: 1, minWidth: 200, padding: "0.6rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
+          style={{ flex: 1, minWidth: 200, padding: "0.6rem 0.9rem", borderRadius: "8px", border: "1.5px solid var(--border)", outline: "none", fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
           placeholder="🔍 بحث بالاسم أو النص..."
           value={search} onChange={e => setSearch(e.target.value)}
         />
@@ -268,7 +268,7 @@ export default function TestimonialsPage() {
         </div>
         {(search || filterStatus !== "pending") && (
           <button onClick={() => { setSearch(""); setFilterStatus("pending"); }}
-            style={{ padding: "0.45rem 0.75rem", border: "1px solid #e0e8f0", borderRadius: "8px", cursor: "pointer", background: "#f9fafb", color: "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+            style={{ padding: "0.45rem 0.75rem", border: "1px solid var(--border)", borderRadius: "8px", cursor: "pointer", background: "var(--bg-surface-sunk)", color: "var(--section-subtitle)", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
             مسح
           </button>
         )}
@@ -416,7 +416,7 @@ export default function TestimonialsPage() {
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ background: "white", borderRadius: 16, padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+        <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>{items.length === 0 ? "💬" : "🔍"}</div>
           <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>
             {items.length === 0 ? "لا توجد تقييمات بعد" : "لا توجد نتائج"}
@@ -431,7 +431,7 @@ export default function TestimonialsPage() {
             const status = (item.status as Status) || "approved";
             const meta = STATUS_META[status];
             return (
-              <div key={item.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", opacity: item.isVisible || status === "pending" ? 1 : 0.65, transition: "opacity 0.2s", border: status === "pending" ? "1.5px solid #F59E0B" : "1.5px solid transparent", position: "relative" }}>
+              <div key={item.id} style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", opacity: item.isVisible || status === "pending" ? 1 : 0.65, transition: "opacity 0.2s", border: status === "pending" ? "1.5px solid #F59E0B" : "1.5px solid transparent", position: "relative" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem", alignItems: "flex-start", gap: "0.5rem" }}>
                   <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flex: 1, minWidth: 0 }}>
                     {item.avatar ? (
@@ -464,7 +464,7 @@ export default function TestimonialsPage() {
 
                 {item.imageUrl && (
                   <img src={resolveApiAssetUrl(item.imageUrl) || item.imageUrl} alt=""
-                    style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 10, marginBottom: "0.75rem", border: "1px solid #e0e8f0" }}
+                    style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 10, marginBottom: "0.75rem", border: "1px solid var(--border)" }}
                     onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 )}
 
@@ -494,7 +494,7 @@ export default function TestimonialsPage() {
                     </button>
                   ) : (
                     <button onClick={() => toggleVisible(item)}
-                      style={{ flex: 1, padding: "0.4rem", border: `1px solid ${item.isVisible ? "#e0e8f0" : "#10B981"}`, borderRadius: "8px", cursor: "pointer", background: item.isVisible ? "#f9fafb" : "#10B98110", fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", color: item.isVisible ? "#6B7280" : "#10B981", fontWeight: 600 }}>
+                      style={{ flex: 1, padding: "0.4rem", border: `1px solid ${item.isVisible ? "#e0e8f0" : "#10B981"}`, borderRadius: "8px", cursor: "pointer", background: item.isVisible ? "var(--bg-surface-sunk)" : "#10B98110", fontSize: "0.78rem", fontFamily: "Cairo, sans-serif", color: item.isVisible ? "#6B7280" : "#10B981", fontWeight: 600 }}>
                       {item.isVisible ? "🙈 إخفاء" : "👁️ إظهار"}
                     </button>
                   )}

@@ -40,7 +40,7 @@ export default function TicketPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif" }}>
         <div style={{ fontSize: "1.1rem" }}>{T.loading}</div>
       </div>
     );
@@ -48,7 +48,7 @@ export default function TicketPage() {
 
   if (error || !data) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "white", fontFamily: "Cairo, sans-serif", flexDirection: "column", gap: 10, padding: "1rem", textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", flexDirection: "column", gap: 10, padding: "1rem", textAlign: "center" }}>
         <div style={{ fontSize: "3rem" }}>🎫</div>
         <div style={{ fontSize: "1.05rem", fontWeight: 700 }}>{T.unavailableTitle}</div>
         <div style={{ fontSize: "0.9rem", opacity: 0.7 }}>{T.unavailableHint}</div>
@@ -76,7 +76,7 @@ export default function TicketPage() {
       <button
         onClick={() => window.print()}
         style={{
-          background: "var(--border)", color: "white", border: "1px solid var(--border-strong)",
+          background: "rgba(255,255,255,0.12)", color: "white", border: "1px solid rgba(255,255,255,0.25)",
           padding: "0.6rem 1.4rem", borderRadius: 10, cursor: "pointer", fontFamily: "Cairo, sans-serif",
           fontWeight: 700, fontSize: "0.9rem",
         }}

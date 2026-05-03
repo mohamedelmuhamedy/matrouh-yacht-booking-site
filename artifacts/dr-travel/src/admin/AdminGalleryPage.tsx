@@ -367,7 +367,7 @@ export default function AdminGalleryPage() {
       </div>
 
       {albums.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "4rem 2rem", background: "white", borderRadius: 12, border: "2px dashed #e2e8f0" }}>
+        <div style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-surface-solid)", borderRadius: 12, border: "2px dashed #e2e8f0" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🖼️</div>
           <div style={{ color: "#64748b", fontSize: "1.05rem", marginBottom: "1.5rem" }}>لا توجد ألبومات بعد. أنشئ ألبومك الأول!</div>
           <button onClick={openNew} style={{ background: "#00AAFF", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
@@ -377,8 +377,8 @@ export default function AdminGalleryPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "1rem" }}>
           {albums.map(album => (
-            <div key={album.id} style={{ background: "white", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", border: "1px solid #e2e8f0", transition: "box-shadow 0.2s" }}>
-              <div style={{ position: "relative", height: 160, background: "#f1f5f9", overflow: "hidden", cursor: "pointer" }}
+            <div key={album.id} style={{ background: "var(--bg-surface-solid)", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", border: "1px solid var(--border)", transition: "box-shadow 0.2s" }}>
+              <div style={{ position: "relative", height: 160, background: "var(--bg-surface-2)", overflow: "hidden", cursor: "pointer" }}
                 onClick={() => openAlbumItems(album)}>
                 {album.coverImage ? (
                   <img src={resolveApiAssetUrl(album.coverImage)} alt={album.titleAr} style={{ width: "100%", height: "100%", objectFit: "cover" }}
@@ -401,11 +401,11 @@ export default function AdminGalleryPage() {
                     📂 الصور
                   </button>
                   <button onClick={() => openEdit(album)}
-                    style={{ background: "#f1f5f9", color: "var(--text-primary)", border: "1px solid #e2e8f0", padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                    style={{ background: "var(--bg-surface-2)", color: "var(--text-primary)", border: "1px solid var(--border)", padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                     ✏️
                   </button>
                   <button onClick={() => toggleVisible(album)}
-                    style={{ background: album.isVisible ? "#dcfce7" : "#f1f5f9", color: album.isVisible ? "#166534" : "#64748b", border: `1px solid ${album.isVisible ? "#86efac" : "#e2e8f0"}`, padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                    style={{ background: album.isVisible ? "#dcfce7" : "var(--bg-surface-2)", color: album.isVisible ? "#166534" : "#64748b", border: `1px solid ${album.isVisible ? "#86efac" : "#e2e8f0"}`, padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                     {album.isVisible ? "👁️" : "🙈"}
                   </button>
                   <button onClick={() => setConfirmDelAlbum(album)}
@@ -477,7 +477,7 @@ export default function AdminGalleryPage() {
                   <label style={{ color: dark.label, fontSize: "0.85rem", fontWeight: 700 }}>ظاهر للزوار</label>
                   <button type="button" onClick={() => setAlbumForm(f => ({ ...f, isVisible: !f.isVisible }))}
                     style={{ width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: albumForm.isVisible ? "#22c55e" : "#64748b", position: "relative", transition: "background 0.2s" }}>
-                    <span style={{ position: "absolute", top: 3, width: 18, height: 18, background: "white", borderRadius: "50%", transition: "right 0.2s, left 0.2s", right: albumForm.isVisible ? 3 : "auto", left: albumForm.isVisible ? "auto" : 3 }} />
+                    <span style={{ position: "absolute", top: 3, width: 18, height: 18, background: "var(--bg-surface-solid)", borderRadius: "50%", transition: "right 0.2s, left 0.2s", right: albumForm.isVisible ? 3 : "auto", left: albumForm.isVisible ? "auto" : 3 }} />
                   </button>
                 </div>
               </div>
