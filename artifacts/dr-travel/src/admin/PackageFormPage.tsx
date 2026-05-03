@@ -101,7 +101,7 @@ const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "#0D1B2A", background: "white",
+  color: "var(--text-primary)", background: "white",
 };
 const labelSt: React.CSSProperties = {
   display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem",
@@ -139,7 +139,7 @@ const ArrField = ({ label, items, onAdd, onRemove, inputVal, setInputVal, placeh
     </div>
     {items.map((item: string, i: number) => (
       <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#f9fafb", borderRadius: "6px", padding: "0.4rem 0.75rem", marginBottom: "0.3rem" }}>
-        <span style={{ flex: 1, fontSize: "0.85rem", color: "#0D1B2A" }}>{item}</span>
+        <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text-primary)" }}>{item}</span>
         <button type="button" onClick={() => onRemove(i)} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "1rem", lineHeight: 1, fontWeight: 700 }}>×</button>
       </div>
     ))}
@@ -345,7 +345,7 @@ export default function PackageFormPage() {
     <div style={{ maxWidth: 860 }} key={formKey}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
             {isEdit ? `تعديل باقة: ${form.titleAr || "..."}` : "إضافة باقة جديدة"}
           </h2>
           {isDirty && (
@@ -485,7 +485,7 @@ export default function PackageFormPage() {
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", borderRadius: 10, background: form.hasCancellationPolicy ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${form.hasCancellationPolicy ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
               onClick={() => set("hasCancellationPolicy", !form.hasCancellationPolicy)}>
               <div>
-                <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>تفعيل سياسة الإلغاء</div>
                 <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "0.15rem" }}>عند التفعيل، تظهر سياسة الإلغاء للعميل في صفحة الرحلة</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -602,7 +602,7 @@ export default function PackageFormPage() {
         {tab === "content" && (
           <div>
             <div style={{ marginBottom: "1.75rem" }}>
-              <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 🗓️ برنامج الرحلة (Itinerary)
                 <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem" }}>{form.itineraryAr.length} يوم</span>
               </div>
@@ -651,7 +651,7 @@ export default function PackageFormPage() {
             <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
 
             <div style={{ marginBottom: "1.75rem" }}>
-              <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem" }}>
+              <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "1rem" }}>
                 ⭐ لماذا هذه الرحلة؟ (Why This Trip?)
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -693,7 +693,7 @@ export default function PackageFormPage() {
             <hr style={{ border: "none", borderTop: "1.5px solid #e0e8f0", margin: "1.25rem 0" }} />
 
             <div>
-              <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 ❓ الأسئلة الشائعة (FAQ)
                 <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem" }}>{form.faq.length} سؤال</span>
               </div>

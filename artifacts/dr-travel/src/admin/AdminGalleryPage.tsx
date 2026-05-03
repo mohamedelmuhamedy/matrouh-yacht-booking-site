@@ -359,7 +359,7 @@ export default function AdminGalleryPage() {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", direction: "rtl", fontFamily: "Cairo, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 800, color: "#0D1B2A" }}>🖼️ المعرض</h1>
+        <h1 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 800, color: "var(--text-primary)" }}>🖼️ المعرض</h1>
         <button onClick={openNew}
           style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", padding: "0.65rem 1.5rem", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", boxShadow: "0 4px 12px rgba(0,170,255,0.3)" }}>
           + ألبوم جديد
@@ -393,7 +393,7 @@ export default function AdminGalleryPage() {
                 )}
               </div>
               <div style={{ padding: "0.9rem 1rem" }}>
-                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0D1B2A", marginBottom: "0.2rem" }}>{album.titleAr}</div>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--text-primary)", marginBottom: "0.2rem" }}>{album.titleAr}</div>
                 <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.75rem" }}>{album.titleEn}</div>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   <button onClick={() => openAlbumItems(album)}
@@ -401,7 +401,7 @@ export default function AdminGalleryPage() {
                     📂 الصور
                   </button>
                   <button onClick={() => openEdit(album)}
-                    style={{ background: "#f1f5f9", color: "#0D1B2A", border: "1px solid #e2e8f0", padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+                    style={{ background: "#f1f5f9", color: "var(--text-primary)", border: "1px solid #e2e8f0", padding: "0.5rem 0.75rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
                     ✏️
                   </button>
                   <button onClick={() => toggleVisible(album)}

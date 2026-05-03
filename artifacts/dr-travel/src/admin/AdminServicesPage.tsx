@@ -103,7 +103,7 @@ export default function AdminServicesPage() {
       {/* Header */}
       <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
             إدارة الخدمات
           </h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>
@@ -121,7 +121,7 @@ export default function AdminServicesPage() {
       <div style={{ marginBottom: "1.25rem", background: detailPagesEnabled ? "#e8f4ff" : "#fef3c7", border: `1.5px solid ${detailPagesEnabled ? "#bcdcff" : "#fde68a"}`, borderRadius: 12, padding: "0.9rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap" }}>
         <span style={{ fontSize: "1.4rem" }}>{detailPagesEnabled ? "👁️" : "🚫"}</span>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ color: "#0D1B2A", fontWeight: 800, fontSize: "0.92rem" }}>
+          <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "0.92rem" }}>
             صفحات تفاصيل الخدمات
           </div>
           <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "0.15rem", lineHeight: 1.6 }}>
@@ -184,7 +184,7 @@ export default function AdminServicesPage() {
                     <span style={{ fontSize: "1.65rem", flexShrink: 0, width: 42, height: 42, background: "white", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e0e8f0" }}>{svc.icon}</span>
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <span style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.95rem" }}>{svc.titleAr}</span>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem" }}>{svc.titleAr}</span>
                         <span style={{ background: "#e8f4ff", color: "#0077cc", borderRadius: 6, padding: "0.15rem 0.55rem", fontSize: "0.7rem", fontFamily: "monospace", fontWeight: 600 }} dir="ltr">{svc.slug}</span>
                         {!svc.isActive && (
                           <span style={{ background: "#fef3c7", color: "#92400e", borderRadius: 6, padding: "0.15rem 0.55rem", fontSize: "0.72rem", fontWeight: 700 }}>مخفي</span>

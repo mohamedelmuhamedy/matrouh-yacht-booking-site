@@ -413,13 +413,13 @@ export default function BookingsPage() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
-        <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>
+        <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>
           إدارة الحجوزات <span style={{ color: "#00AAFF" }}>({bookings.length})</span>
         </h2>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           {bookings.length > 0 && (
             <button onClick={allOpen ? collapseAll : expandAll}
-              style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#0D1B2A", fontSize: "0.85rem" }}>
+              style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)", fontSize: "0.85rem" }}>
               {allOpen ? "🔼 طي الكل" : "🔽 توسيع الكل"}
             </button>
           )}
@@ -467,7 +467,7 @@ export default function BookingsPage() {
           <div style={{ fontSize: "3rem", marginBottom: "0.85rem" }}>📭</div>
           <p style={{ fontWeight: 700, color: "#475569", margin: 0 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
           {search && (
-            <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#0D1B2A" }}>
+            <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "var(--text-primary)" }}>
               ✕ مسح البحث
             </button>
           )}
@@ -626,7 +626,7 @@ export default function BookingsPage() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
           onClick={() => setNoteBooking(null)}>
           <div style={{ background: "white", borderRadius: "16px", padding: "1.75rem", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 1rem", color: "#0D1B2A", fontFamily: "Cairo, sans-serif" }}>
+            <h3 style={{ margin: "0 0 1rem", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif" }}>
               ملاحظة داخلية — {noteBooking.name}
             </h3>
             <textarea value={noteText} onChange={e => setNoteText(e.target.value)} rows={4}
@@ -646,7 +646,7 @@ export default function BookingsPage() {
           onClick={closeTicket}>
           <div style={{ background: "#f8fafc", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-              <h3 style={{ margin: 0, color: "#0D1B2A", fontFamily: "Cairo, sans-serif", fontSize: "1.1rem", fontWeight: 800 }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "1.1rem", fontWeight: 800 }}>
                 🎫 تذكرة #{ticketBooking.id} — {ticketBooking.name}
               </h3>
               <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
@@ -696,16 +696,16 @@ export default function BookingsPage() {
                 💬 {ticketBusy === "whatsapp" ? "جاري التجهيز..." : "إرسال على واتساب"}
               </button>
               <button onClick={copyTicketLink} disabled={!ticketData || !!ticketBusy || ticketDownloading}
-                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
                 🔗 {ticketBusy === "copy" ? "جاري التجهيز..." : "نسخ رابط PDF"}
               </button>
               <button onClick={downloadTicketQr} disabled={!ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading} title="تنزيل QR لصفحة التذكرة"
-                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && ticketData.ticketToken && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && ticketData.ticketToken && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !ticketData.ticketToken || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
                 📱 {ticketBusy === "qr" ? "جاري التجهيز..." : "تنزيل QR"}
               </button>
               {ticketData && ticketData.ticketToken && (
                 <a href={`/verify/${ticketData.ticketToken}${ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : ""}`} target="_blank" rel="noreferrer"
-                  style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                  style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
                   ↗️ صفحة التحقق
                 </a>
               )}
@@ -716,7 +716,7 @@ export default function BookingsPage() {
                     📄 فتح PDF
                   </a>
                   <a href={`${ticketPdfAbsoluteUrl(ticketData.ticketToken)}?download=1`} target="_blank" rel="noreferrer"
-                    style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
+                    style={{ background: "white", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
                     ⬇️ تحميل PDF من السيرفر
                   </a>
                 </>

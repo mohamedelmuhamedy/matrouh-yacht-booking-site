@@ -113,13 +113,13 @@ export default function TripsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={ar ? "ابحث عن رحلة..." : "Search trips..."}
-              style={{ width: "100%", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem 0.75rem 2.5rem", color: "white", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", outline: "none" }}
+              style={{ width: "100%", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem 0.75rem 2.5rem", color: "var(--text-primary)", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", outline: "none" }}
             />
           </div>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as any)}
-            style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem", color: "white", fontSize: "0.85rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", outline: "none" }}>
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "0.75rem 1rem", color: "var(--text-primary)", fontSize: "0.85rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", outline: "none" }}>
             <option value="default">{ar ? "الترتيب الافتراضي" : "Default"}</option>
             <option value="price-asc">{ar ? "السعر: الأقل" : "Price: Low"}</option>
             <option value="price-desc">{ar ? "السعر: الأعلى" : "Price: High"}</option>
@@ -151,13 +151,13 @@ export default function TripsPage() {
         </div>
 
         {/* Results count */}
-        <p style={{ color: "#556677", fontSize: "0.82rem", marginBottom: "1.25rem" }}>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", marginBottom: "1.25rem" }}>
           {ar ? `${packages.length} رحلة` : `${packages.length} trips`}
         </p>
 
         {/* Package Grid */}
         {packages.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#556677" }}>
+          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--text-muted)" }}>
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
             <p style={{ fontSize: "1.1rem" }}>{ar ? "لا توجد رحلات مطابقة" : "No trips found"}</p>
           </div>
@@ -196,7 +196,7 @@ export default function TripsPage() {
 
                   {/* Content */}
                   <div style={{ padding: "1.15rem 1.15rem 1.25rem" }}>
-                    <h3 style={{ color: "white", fontWeight: 700, fontSize: "1.02rem", margin: "0 0 0.4rem", lineHeight: 1.3 }}>{title}</h3>
+                    <h3 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.02rem", margin: "0 0 0.4rem", lineHeight: 1.3 }}>{title}</h3>
                     <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "0 0 0.95rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{desc}</p>
 
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", paddingTop: "0.75rem", borderTop: "1px solid var(--bg-surface-2)" }}>
@@ -207,14 +207,14 @@ export default function TripsPage() {
                         {pkg.maxPriceEGP && (
                           <span style={{ color: "var(--section-subtitle)", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang, settings)}</span>
                         )}
-                        <span style={{ color: "#556677", fontSize: "0.75rem", marginInlineStart: "0.3rem" }}>
+                        <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginInlineStart: "0.3rem" }}>
                           {ar ? "/ شخص" : "/ person"}
                         </span>
                       </div>
 
                       <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", color: "#FFD700", fontSize: "0.82rem", background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.18)", borderRadius: "50px", padding: "0.2rem 0.6rem" }}>
                         <StarIcon />
-                        <span style={{ color: "white", fontWeight: 700 }}>{pkg.rating?.toFixed(1)}</span>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{pkg.rating?.toFixed(1)}</span>
                       </div>
                     </div>
 

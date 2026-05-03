@@ -20,7 +20,7 @@ const inputSt: React.CSSProperties = {
   fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif",
   boxSizing: "border-box",
-  color: "#0D1B2A",
+  color: "var(--text-primary)",
   background: "white",
 };
 
@@ -131,7 +131,7 @@ export default function AdminCategoriesPage() {
 
       {/* Page header */}
       <div style={{ marginBottom: "1.75rem" }}>
-        <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
+        <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
           إدارة الفئات
         </h1>
         <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>
@@ -141,7 +141,7 @@ export default function AdminCategoriesPage() {
 
       {/* Add Form */}
       <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem", border: "1.5px solid #e0e8f0" }}>
-        <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
+        <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
           إضافة فئة جديدة
         </h2>
         <form onSubmit={handleAdd}>
@@ -187,7 +187,7 @@ export default function AdminCategoriesPage() {
 
       {/* Categories List */}
       <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #e0e8f0" }}>
-        <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
+        <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1.1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #e8eef4" }}>
           الفئات الحالية ({categories.length})
         </h2>
 
@@ -255,7 +255,7 @@ export default function AdminCategoriesPage() {
                       {cat.slug}
                     </span>
                     <div style={{ flex: 1 }}>
-                      <span style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.92rem" }}>{cat.nameAr}</span>
+                      <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.92rem" }}>{cat.nameAr}</span>
                       <span style={{ color: "var(--section-subtitle)", fontSize: "0.83rem", marginInlineStart: "0.5rem" }}>/ {cat.nameEn}</span>
                     </div>
                     <button

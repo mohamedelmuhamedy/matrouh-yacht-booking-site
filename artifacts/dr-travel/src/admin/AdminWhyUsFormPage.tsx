@@ -46,7 +46,7 @@ const EMPTY: FormState = {
 const inputSt: React.CSSProperties = {
   width: "100%", padding: "0.6rem 0.85rem", borderRadius: 8,
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.88rem",
-  fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "#0D1B2A", background: "white",
+  fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)", background: "white",
 };
 const labelSt: React.CSSProperties = {
   display: "block", color: "var(--section-subtitle)", fontWeight: 700, fontSize: "0.78rem", marginBottom: "0.3rem",
@@ -178,7 +178,7 @@ export default function AdminWhyUsFormPage() {
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "1.5rem 1rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: 0 }}>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.5rem", margin: 0 }}>
             {isEdit ? "تعديل بطاقة" : "بطاقة جديدة"}
           </h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: "0.25rem 0 0" }}>
@@ -198,7 +198,7 @@ export default function AdminWhyUsFormPage() {
 
       {/* === Identity === */}
       <div style={sectionSt}>
-        <h3 style={{ color: "#0D1B2A", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🆔 الهوية</h3>
+        <h3 style={{ color: "var(--text-primary)", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🆔 الهوية</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.85rem" }}>
           <div>
             <label style={labelSt}>Slug (إنجليزي بدون مسافات) *</label>
@@ -220,7 +220,7 @@ export default function AdminWhyUsFormPage() {
             <input type="number" value={form.sortOrder} onChange={e => set("sortOrder", Number(e.target.value) || 0)} style={inputSt} />
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem", color: "#0D1B2A", fontWeight: 600 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 600 }}>
               <input type="checkbox" checked={form.isActive} onChange={e => set("isActive", e.target.checked)} />
               مفعّلة
             </label>
@@ -230,7 +230,7 @@ export default function AdminWhyUsFormPage() {
 
       {/* === Card text (home + hero) === */}
       <div style={sectionSt}>
-        <h3 style={{ color: "#0D1B2A", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🏷️ نص البطاقة (الرئيسية + الهيرو)</h3>
+        <h3 style={{ color: "var(--text-primary)", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🏷️ نص البطاقة (الرئيسية + الهيرو)</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
           <div>
             <label style={labelSt}>العنوان عربي *</label>
@@ -253,7 +253,7 @@ export default function AdminWhyUsFormPage() {
 
       {/* === Images === */}
       <div style={sectionSt}>
-        <h3 style={{ color: "#0D1B2A", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🖼️ الصور</h3>
+        <h3 style={{ color: "var(--text-primary)", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🖼️ الصور</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
           <ImageField label="صورة الهيرو (خلفية أعلى الصفحة)" value={form.heroImageUrl} onChange={v => set("heroImageUrl", v)} />
           <ImageField label="صورة فرعية (داخل قسم الحكاية)" value={form.accentImageUrl} onChange={v => set("accentImageUrl", v)} />
@@ -262,7 +262,7 @@ export default function AdminWhyUsFormPage() {
 
       {/* === Detail page text === */}
       <div style={sectionSt}>
-        <h3 style={{ color: "#0D1B2A", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>📝 نصوص صفحة التفاصيل</h3>
+        <h3 style={{ color: "var(--text-primary)", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>📝 نصوص صفحة التفاصيل</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
           <div>
             <label style={labelSt}>المقدمة عربي</label>
@@ -286,7 +286,7 @@ export default function AdminWhyUsFormPage() {
       {/* === Bullets === */}
       <div style={sectionSt}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ color: "#0D1B2A", margin: 0, fontSize: "1rem", fontWeight: 800 }}>✨ النقاط المميزة (Bullets) — {form.bullets.length}</h3>
+          <h3 style={{ color: "var(--text-primary)", margin: 0, fontSize: "1rem", fontWeight: 800 }}>✨ النقاط المميزة (Bullets) — {form.bullets.length}</h3>
           <button type="button" onClick={() => set("bullets", [...form.bullets, { icon: "✨", titleAr: "", titleEn: "", descAr: "", descEn: "" }])} style={ghostBtnSt}>
             + إضافة نقطة
           </button>
@@ -320,7 +320,7 @@ export default function AdminWhyUsFormPage() {
       {/* === Stats === */}
       <div style={sectionSt}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ color: "#0D1B2A", margin: 0, fontSize: "1rem", fontWeight: 800 }}>📊 الإحصائيات — {form.stats.length}</h3>
+          <h3 style={{ color: "var(--text-primary)", margin: 0, fontSize: "1rem", fontWeight: 800 }}>📊 الإحصائيات — {form.stats.length}</h3>
           <button type="button" onClick={() => set("stats", [...form.stats, { icon: "✨", value: "", labelAr: "", labelEn: "" }])} style={ghostBtnSt}>
             + إضافة إحصائية
           </button>
@@ -342,7 +342,7 @@ export default function AdminWhyUsFormPage() {
       {/* === Gallery === */}
       <div style={sectionSt}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ color: "#0D1B2A", margin: 0, fontSize: "1rem", fontWeight: 800 }}>🖼️ المعرض — {form.galleryImages.length}</h3>
+          <h3 style={{ color: "var(--text-primary)", margin: 0, fontSize: "1rem", fontWeight: 800 }}>🖼️ المعرض — {form.galleryImages.length}</h3>
           <button type="button" onClick={() => set("galleryImages", [...form.galleryImages, ""])} style={ghostBtnSt}>
             + إضافة صورة
           </button>
@@ -361,7 +361,7 @@ export default function AdminWhyUsFormPage() {
 
       {/* === CTA === */}
       <div style={sectionSt}>
-        <h3 style={{ color: "#0D1B2A", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🎯 زر الـ CTA</h3>
+        <h3 style={{ color: "var(--text-primary)", margin: "0 0 1rem", fontSize: "1rem", fontWeight: 800 }}>🎯 زر الـ CTA</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.85rem" }}>
           <div>
             <label style={labelSt}>نص الزر عربي</label>

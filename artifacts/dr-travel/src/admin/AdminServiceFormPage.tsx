@@ -58,7 +58,7 @@ const inputSt: React.CSSProperties = {
   fontSize: "0.88rem",
   fontFamily: "Cairo, sans-serif",
   boxSizing: "border-box",
-  color: "#0D1B2A",
+  color: "var(--text-primary)",
   background: "white",
 };
 const labelSt: React.CSSProperties = {
@@ -508,7 +508,7 @@ export default function AdminServiceFormPage() {
 
       <div style={{ marginBottom: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.2rem" }}>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.2rem" }}>
             {isEdit ? "تعديل خدمة" : "خدمة جديدة"}
           </h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", margin: 0 }}>
@@ -526,7 +526,7 @@ export default function AdminServiceFormPage() {
 
         {/* Basics */}
         <div style={sectionSt}>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             المعلومات الأساسية
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "120px 100px 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
@@ -569,7 +569,7 @@ export default function AdminServiceFormPage() {
 
         {/* Cover images for the detail page sections */}
         <div style={sectionSt}>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             🖼️ صور غلاف صفحة التفاصيل
           </h2>
           <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: "0 0 1rem" }}>
@@ -610,7 +610,7 @@ export default function AdminServiceFormPage() {
 
         {/* Long descriptions */}
         <div style={sectionSt}>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             الوصف الطويل
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
@@ -628,7 +628,7 @@ export default function AdminServiceFormPage() {
         {/* Features — rich editor */}
         <div style={sectionSt}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.4rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
-            <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", margin: 0 }}>
+            <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", margin: 0 }}>
               ✨ مميزات الخدمة
             </h2>
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -691,7 +691,7 @@ export default function AdminServiceFormPage() {
 
         {/* CTA & misc */}
         <div style={sectionSt}>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1rem", marginTop: 0, marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e8eef4" }}>
             زر الإجراء (CTA) والترتيب
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.85rem", marginBottom: "0.85rem" }}>
@@ -716,7 +716,7 @@ export default function AdminServiceFormPage() {
             <div>
               <label style={{ ...labelSt, display: "flex", alignItems: "center", gap: "0.55rem", cursor: "pointer", marginBottom: 0, marginTop: "0.6rem" }}>
                 <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
-                <span style={{ color: "#0D1B2A", fontSize: "0.9rem" }}>الخدمة مرئية للعملاء</span>
+                <span style={{ color: "var(--text-primary)", fontSize: "0.9rem" }}>الخدمة مرئية للعملاء</span>
               </label>
             </div>
           </div>

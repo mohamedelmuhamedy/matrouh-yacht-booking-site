@@ -29,13 +29,13 @@ export default function LoginPage() {
       <div style={{ background: "white", borderRadius: "20px", padding: "3rem 2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🔐</div>
-          <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.3rem" }}>لوحة الإدارة</h1>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.3rem" }}>لوحة الإدارة</h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>DR Travel Admin Panel</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1.25rem" }}>
-            <label style={{ display: "block", color: "#0D1B2A", fontWeight: 700, marginBottom: "0.4rem", fontSize: "0.9rem" }}>
+            <label style={{ display: "block", color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.4rem", fontSize: "0.9rem" }}>
               اسم المستخدم
             </label>
             <input type="text" value={username} onChange={e => setUsername(e.target.value)}
@@ -46,7 +46,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", color: "#0D1B2A", fontWeight: 700, marginBottom: "0.4rem", fontSize: "0.9rem" }}>
+            <label style={{ display: "block", color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.4rem", fontSize: "0.9rem" }}>
               كلمة المرور
             </label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)}

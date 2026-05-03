@@ -427,7 +427,7 @@ function Navbar() {
           <div style={{ padding: "0.75rem 1.5rem 1.25rem", borderTop: "1px solid rgba(0,170,255,0.15)" }}>
             {navLinks.map(link => (
               <button key={link.href} onClick={() => scrollTo(link.href)}
-                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "var(--text-primary)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid var(--bg-surface-2)", transition: "color 0.2s" }}>
+                style={{ display: "block", width: "100%", background: "none", border: "none", color: activeSection === link.href ? "#00AAFF" : "rgba(255,255,255,0.88)", padding: "0.8rem 0", fontSize: "1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, textAlign, borderBottom: "1px solid rgba(255,255,255,0.08)", transition: "color 0.2s" }}>
                 {link.label}
               </button>
             ))}
@@ -499,7 +499,7 @@ function Navbar() {
               </div>
             )}
             <button onClick={() => setShowIOSGuide(false)}
-              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "var(--border)", border: "1px solid var(--border-strong)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
+              style={{ display: "block", width: "100%", marginTop: "1.5rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)", color: "white", borderRadius: "12px", padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "1rem" }}>
               {ar ? "إغلاق" : "Close"}
             </button>
           </div>
@@ -611,9 +611,9 @@ function Hero() {
               {t.hero.cta1}
             </a>
             <button onClick={() => navigate("/trips")}
-              style={{ background: "var(--bg-surface-2)", backdropFilter: "blur(10px)", border: "1px solid var(--border-strong)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.25)", color: "white", padding: "0.95rem 2.5rem", borderRadius: "14px", fontWeight: 700, fontSize: "1rem", fontFamily: "Cairo, sans-serif", cursor: "pointer", transition: "all 0.3s", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.18)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               🗺️ {ar ? "تفاصيل الرحلات" : "Trip Details"}
             </button>
             <button onClick={() => navigate("/gallery")}
@@ -777,7 +777,7 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
   return (
     <div style={{ position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 990, background: "rgba(8,16,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,170,255,0.25)", padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, flexWrap: "wrap" }}>
-        <span style={{ color: "var(--section-subtitle)", fontSize: "0.82rem", flexShrink: 0 }}>
+        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem", flexShrink: 0 }}>
           {ar ? `${packages.length} باقات للمقارنة` : `${packages.length} packages to compare`}
         </span>
         {packages.map(p => (
@@ -788,7 +788,7 @@ function CompareBar({ packages, onOpen, onClear, lang }: { packages: DisplayPkg[
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
         <button onClick={onClear}
-          style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--section-subtitle)", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
+          style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)", padding: "0.55rem 1rem", borderRadius: "10px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.82rem" }}>
           {ar ? "مسح" : "Clear"}
         </button>
         <button onClick={onOpen}

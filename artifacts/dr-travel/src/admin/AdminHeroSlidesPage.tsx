@@ -258,14 +258,14 @@ export default function AdminHeroSlidesPage() {
   const inputStyle: React.CSSProperties = {
     padding: "0.55rem 0.85rem", borderRadius: "8px", border: "1.5px solid #d0dce8",
     outline: "none", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif",
-    color: "#0D1B2A", background: "white", width: "80px",
+    color: "var(--text-primary)", background: "white", width: "80px",
   };
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1.25rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0D1B2A", margin: 0 }}>🎬 خلفية الهيرو — الشرائح</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>🎬 خلفية الهيرو — الشرائح</h1>
           <p style={{ color: "#64748b", fontSize: "0.9rem", marginTop: "0.35rem" }}>
             ارفع صور أو فيديوهات تظهر كخلفية متحركة في قسم الهيرو
           </p>
@@ -289,7 +289,7 @@ export default function AdminHeroSlidesPage() {
 
       {/* Transition selector */}
       <div style={{ ...card, marginBottom: "1.5rem" }}>
-        <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0D1B2A" }}>🎭 نوع الانتقال</div>
+        <div style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-primary)" }}>🎭 نوع الانتقال</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.75rem" }}>
           {TRANSITIONS.map(t => (
             <button
@@ -305,7 +305,7 @@ export default function AdminHeroSlidesPage() {
             >
               <span style={{ fontSize: "1.4rem" }}>{t.icon}</span>
               <div>
-                <div style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "0.9rem" }}>{t.label}</div>
+                <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.9rem" }}>{t.label}</div>
                 <div style={{ color: "#64748b", fontSize: "0.78rem" }}>{t.desc}</div>
               </div>
               {transition === t.value && (
@@ -355,7 +355,7 @@ export default function AdminHeroSlidesPage() {
         ) : (
           <>
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📁</div>
-            <div style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "1rem" }}>اسحب وأفلت أو اضغط لرفع صور/فيديوهات</div>
+            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1rem" }}>اسحب وأفلت أو اضغط لرفع صور/فيديوهات</div>
             <div style={{ color: "#64748b", fontSize: "0.82rem", marginTop: "0.35rem" }}>JPG, PNG, WebP — حتى 15MB · MP4, WebM, MOV — حتى 300MB</div>
           </>
         )}
@@ -410,7 +410,7 @@ export default function AdminHeroSlidesPage() {
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <span style={labelStyle}>الترتيب:</span>
-                      <span style={{ fontWeight: 700, color: "#0D1B2A", fontSize: "0.9rem" }}>#{i + 1}</span>
+                      <span style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.9rem" }}>#{i + 1}</span>
                     </div>
                     {!isVideo && (
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

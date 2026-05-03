@@ -238,7 +238,7 @@ const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.75rem 1rem", borderRadius: "10px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.92rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "#0D1B2A", background: "white",
+  color: "var(--text-primary)", background: "white",
   transition: "border-color 0.2s, box-shadow 0.2s",
 };
 
@@ -586,7 +586,7 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div>
-      <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
+      <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
       <div style={{ textAlign: "center", padding: "3rem", color: "var(--section-subtitle)", background: "white", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
         <div style={{ fontWeight: 700 }}>جاري تحميل الإعدادات...</div>
@@ -596,7 +596,7 @@ export default function SettingsPage() {
 
   if (loadError) return (
     <div>
-      <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
+      <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 1.5rem" }}>إعدادات الموقع</h2>
       <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "2rem", textAlign: "center" }}>
         <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>⚠️</div>
         <div style={{ color: "#DC2626", fontWeight: 700, marginBottom: "0.5rem" }}>فشل تحميل الإعدادات</div>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>إعدادات الموقع</h2>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>إعدادات الموقع</h2>
           <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem" }}>
             مكتمل: <strong style={{ color: "#10B981" }}>{totalFilled}</strong> / {totalKeys} حقل
           </div>
@@ -653,7 +653,7 @@ export default function SettingsPage() {
 
       {/* Logo upload section */}
       <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
-        <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+        <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
           🖼️ شعار الموقع (Logo)
         </h3>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
@@ -670,7 +670,7 @@ export default function SettingsPage() {
             )}
           </div>
           <div>
-            <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
               {settings.logo_url ? "تم رفع شعار مخصص" : "لم يُرفع شعار بعد — يُستخدم الشعار الافتراضي"}
             </div>
             <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
@@ -702,7 +702,7 @@ export default function SettingsPage() {
 
       {/* Hero Background Upload */}
       <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem" }}>
-        <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+        <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
           🏞️ صورة خلفية الهيرو (Hero Background)
         </h3>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "1.5rem", flexWrap: "wrap" }}>
@@ -724,7 +724,7 @@ export default function SettingsPage() {
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.35rem" }}>
               {settings.hero_bg_url ? "تم رفع صورة خلفية مخصصة" : "لم تُرفع خلفية بعد — يُستخدم صورة البحر الافتراضية"}
             </div>
             <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>
@@ -761,7 +761,7 @@ export default function SettingsPage() {
             <div key={group.section}
               style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-                <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+                <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
                   {group.icon} {group.title}
                 </h3>
                 {groupHasDefaults && (
@@ -789,7 +789,7 @@ export default function SettingsPage() {
                         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1rem", borderRadius: 10, background: isOn ? "#f0fdf4" : "#f9fafb", border: `1.5px solid ${isOn ? "#10B98130" : "#e0e8f0"}`, cursor: "pointer", transition: "all 0.2s", userSelect: "none" }}
                         onClick={() => updateBool(key, !isOn)}>
                         <div>
-                          <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
+                          <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.9rem" }}>{label}</div>
                           {hint && <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "0.15rem" }}>{hint}</div>}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -931,7 +931,7 @@ export default function SettingsPage() {
 
         {/* Change Password Section */}
         <div style={{ background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #e0e8f0" }}>
-          <h3 style={{ color: "#0D1B2A", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+          <h3 style={{ color: "var(--text-primary)", fontWeight: 800, margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
             🔐 تغيير كلمة المرور
           </h3>
 

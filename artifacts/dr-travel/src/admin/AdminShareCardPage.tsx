@@ -18,7 +18,7 @@ const inputBase: React.CSSProperties = {
   width: "100%", padding: "0.7rem 0.9rem", borderRadius: "10px",
   border: "1.5px solid #d0dce8", outline: "none", fontSize: "0.9rem",
   fontFamily: "Cairo, sans-serif", boxSizing: "border-box",
-  color: "#0D1B2A", background: "white",
+  color: "var(--text-primary)", background: "white",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -173,7 +173,7 @@ export default function AdminShareCardPage() {
   return (
     <div style={{ fontFamily: "Cairo, sans-serif", direction: "rtl", maxWidth: 1320, margin: "0 auto" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.5rem" }}>
-        <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>🪪 بطاقة المشاركة / Share Card</h2>
+        <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>🪪 بطاقة المشاركة / Share Card</h2>
         <p style={{ color: "var(--section-subtitle)", fontSize: "0.88rem", margin: 0 }}>
           صفحة بسيطة (Linktree-style) تجمع كل وسائل التواصل في مكان واحد. شارك الرابط مع عملائك على الواتساب أو في البايو.
         </p>
@@ -211,7 +211,7 @@ export default function AdminShareCardPage() {
 
           {/* Identity */}
           <div style={cardStyle}>
-            <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>🪪 الهوية</h3>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem" }}>🪪 الهوية</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
               <div>
                 <label style={labelStyle}>اسم العرض (عربي)</label>
@@ -242,7 +242,7 @@ export default function AdminShareCardPage() {
 
           {/* Links */}
           <div style={cardStyle}>
-            <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>🔗 الروابط ووسائل التواصل</h3>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem" }}>🔗 الروابط ووسائل التواصل</h3>
             <p style={{ margin: 0, color: "var(--section-subtitle)", fontSize: "0.78rem" }}>
               فعّل الزر اللي عايزه يظهر في البطاقة، وامسح القيمة عشان يختفي. كل الروابط مشتركة مع باقي إعدادات الموقع.
             </p>
@@ -253,7 +253,7 @@ export default function AdminShareCardPage() {
                   <div key={f.key} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.6rem", alignItems: "center", padding: "0.65rem 0.7rem", background: "#f8fafc", border: "1.5px solid #e0e8f0", borderRadius: "12px" }}>
                     <Toggle checked={enabled} onChange={v => updateBool(f.toggleKey, v)} />
                     <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "0.5rem", alignItems: "center" }}>
-                      <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "0.85rem" }}>{f.labelAr}</div>
+                      <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "0.85rem" }}>{f.labelAr}</div>
                       <input type={f.type || "text"} style={{ ...inputBase, padding: "0.5rem 0.7rem", fontSize: "0.83rem", direction: f.type === "url" || f.type === "email" ? "ltr" : undefined, opacity: enabled ? 1 : 0.55 }}
                         value={settings[f.valueKey] || ""} onChange={e => update(f.valueKey, e.target.value)} placeholder={f.placeholder} />
                     </div>
@@ -265,7 +265,7 @@ export default function AdminShareCardPage() {
 
           {/* Appearance */}
           <div style={cardStyle}>
-            <h3 style={{ margin: 0, color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem" }}>🎨 المظهر</h3>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem" }}>🎨 المظهر</h3>
 
             {/* Theme */}
             <div>
@@ -279,7 +279,7 @@ export default function AdminShareCardPage() {
                         textAlign: "right", padding: "0.7rem 0.8rem", borderRadius: "12px",
                         border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
                         background: active ? "rgba(0,170,255,0.08)" : "white",
-                        color: "#0D1B2A", cursor: "pointer", fontFamily: "Cairo, sans-serif",
+                        color: "var(--text-primary)", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                         display: "flex", flexDirection: "column", gap: "0.2rem",
                       }}>
                       <span style={{ fontWeight: 800, fontSize: "0.92rem" }}>{t.labelAr} · {t.labelEn}</span>
@@ -316,7 +316,7 @@ export default function AdminShareCardPage() {
                   const active = bgType === opt.value;
                   return (
                     <button key={opt.value} type="button" onClick={() => update("card_bg_type", opt.value)}
-                      style={{ padding: "0.55rem 1.1rem", borderRadius: 10, border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: "#0D1B2A", fontWeight: 800, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.85rem" }}>
+                      style={{ padding: "0.55rem 1.1rem", borderRadius: 10, border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: "var(--text-primary)", fontWeight: 800, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.85rem" }}>
                       {opt.label}
                     </button>
                   );
@@ -409,7 +409,7 @@ export default function AdminShareCardPage() {
         {/* Right: Live preview */}
         <div style={{ position: "sticky", top: "1rem" }}>
           <div style={{ marginBottom: "0.6rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "0.95rem" }}>👁️ معاينة مباشرة</div>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "0.95rem" }}>👁️ معاينة مباشرة</div>
             <div style={{ color: "var(--section-subtitle)", fontSize: "0.75rem" }}>التغييرات تظهر هنا قبل الحفظ</div>
           </div>
           <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #e0e8f0", boxShadow: "0 14px 30px rgba(0,0,0,0.12)", maxHeight: "calc(100vh - 8rem)", overflowY: "auto", background: "var(--bg-page-2)" }}>

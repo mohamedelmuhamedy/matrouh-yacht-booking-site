@@ -830,8 +830,8 @@ main a:focus-visible {
 
 /* ─── Trips page package cards ─── */
 .trip-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-surface-solid);
+  border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
@@ -839,12 +839,12 @@ main a:focus-visible {
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
               border-color 0.3s ease,
               box-shadow 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-card);
 }
 .trip-card:hover {
   transform: translateY(-6px);
   border-color: rgba(0,170,255,0.35);
-  box-shadow: 0 18px 38px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,170,255,0.12);
+  box-shadow: 0 18px 38px rgba(13,27,42,0.18), 0 0 0 1px rgba(0,170,255,0.18);
 }
 .trip-card-img-wrap {
   height: 200px;
@@ -987,19 +987,6 @@ main a:focus-visible {
 /* ===== THEME SWITCH FOCUS POLISH ===== */
 .theme-switch:focus-visible { box-shadow: 0 0 0 3px rgba(0,170,255,0.30) !important; }
 
-/* ===== LIGHT MODE — INLINE STYLE OVERRIDES =====
-   Inline styles that hardcode color:white inside card containers must be
-   forced to dark text in light mode. !important + class selector overrides
-   inline style without !important. ===== */
-:root[data-theme="light"] .service-card h3,
-:root[data-theme="light"] .pkg-card h3,
-:root[data-theme="light"] .why-card h3,
-:root[data-theme="light"] .pkg-card div[style*="color: white"],
-:root[data-theme="light"] .pkg-card div[style*='color:"white"'],
-:root[data-theme="light"] main h3[style*='color: "white"'],
-:root[data-theme="light"] main h3[style*='color:"white"'] {
-  color: var(--text-primary) !important;
-}
 
 /* Section default text in light mode — service cards descriptions etc */
 :root[data-theme="light"] .service-card p,

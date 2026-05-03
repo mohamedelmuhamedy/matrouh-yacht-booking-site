@@ -67,7 +67,7 @@ export default function PushNotificationsPage() {
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: 640, fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
-      <h1 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0D1B2A", marginBottom: "1.5rem" }}>
+      <h1 style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--text-primary)", marginBottom: "1.5rem" }}>
         📢 إشعارات Push
       </h1>
 
@@ -88,7 +88,7 @@ export default function PushNotificationsPage() {
             fontSize: "1.6rem",
           }}>🔔</div>
           <div>
-            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#0D1B2A", lineHeight: 1 }}>
+            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
               {stats === null ? "..." : stats.count.toLocaleString("ar")}
             </div>
             <div style={{ color: "#6B7280", fontSize: "0.82rem", marginTop: 2 }}>
@@ -109,7 +109,7 @@ export default function PushNotificationsPage() {
 
       {/* Compose form */}
       <div style={card}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 800, color: "#0D1B2A", margin: "0 0 1.2rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 1.2rem" }}>
           إرسال إشعار جديد
         </h2>
 

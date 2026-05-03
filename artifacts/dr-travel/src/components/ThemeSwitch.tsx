@@ -38,7 +38,7 @@ export default function ThemeSwitch({
         border: "1px solid var(--border-strong)",
         background: isDark
           ? "linear-gradient(135deg, #0a1830 0%, #142847 100%)"
-          : "linear-gradient(135deg, #cfe9ff 0%, #fde9b6 100%)",
+          : "linear-gradient(135deg, #e6eef5 0%, #d0dde8 100%)",
         cursor: "pointer",
         padding: 0,
         outline: "none",
@@ -60,11 +60,11 @@ export default function ThemeSwitch({
           borderRadius: "50%",
           background: isDark
             ? "linear-gradient(135deg, #f8fafc 0%, #c7d2dc 100%)"
-            : "linear-gradient(135deg, #ffffff 0%, #ffe9a8 100%)",
-          color: isDark ? "#0D1B2A" : "#a8842c",
+            : "linear-gradient(135deg, #ffffff 0%, #e2eaf2 100%)",
+          color: isDark ? "#0D1B2A" : "#0086c9",
           boxShadow: isDark
             ? "0 2px 8px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(0,0,0,0.15)"
-            : "0 2px 8px rgba(201,168,76,0.45), inset 0 -1px 2px rgba(168,132,44,0.2)",
+            : "0 2px 6px rgba(13,27,42,0.18), inset 0 -1px 2px rgba(13,27,42,0.08)",
           transform: "translateY(-50%)",
           transition: "inset-inline-start 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease",
           display: "flex",

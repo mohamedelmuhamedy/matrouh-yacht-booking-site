@@ -143,7 +143,7 @@ export default function PackagesPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.35rem" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.35rem" }}>
             الباقات السياحية <span style={{ color: "#00AAFF" }}>({packages.length})</span>
           </h2>
           <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.82rem" }}>
@@ -183,7 +183,7 @@ export default function PackagesPage() {
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
-                      <span style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem" }}>{pkg.titleAr}</span>
+                      <span style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem" }}>{pkg.titleAr}</span>
                       <span style={{ background: statusBadge.bg, color: statusBadge.color, padding: "0.2rem 0.6rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>
                         {statusBadge.label}
                       </span>
@@ -223,7 +223,7 @@ export default function PackagesPage() {
                         📋 نسخ
                       </button>
                       <button onClick={() => downloadPackageQr(pkg)} disabled={qrBusy === pkg.id} title="تنزيل QR للباقة"
-                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #0D1B2A30", borderRadius: "8px", cursor: qrBusy === pkg.id ? "wait" : "pointer", background: "#0D1B2A08", color: "#0D1B2A", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: qrBusy === pkg.id ? 0.6 : 1 }}>
+                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #0D1B2A30", borderRadius: "8px", cursor: qrBusy === pkg.id ? "wait" : "pointer", background: "#0D1B2A08", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: qrBusy === pkg.id ? 0.6 : 1 }}>
                         {qrBusy === pkg.id ? "⏳ QR" : "📱 QR"}
                       </button>
                       <button onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}

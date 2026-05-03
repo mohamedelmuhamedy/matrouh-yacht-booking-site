@@ -64,7 +64,7 @@ export default function AdminWhyUsPage() {
     <div style={{ maxWidth: 880, margin: "0 auto", padding: "1.5rem 1rem", fontFamily: "Cairo, sans-serif", direction: "rtl" }}>
       <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h1 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.5rem", margin: "0 0 0.25rem" }}>
             مميزاتنا (Why Us)
           </h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>
@@ -108,7 +108,7 @@ export default function AdminWhyUsPage() {
                     <span style={{ fontSize: "1.65rem", flexShrink: 0, width: 42, height: 42, background: c.color + "18", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${c.color}33` }}>{c.icon}</span>
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <span style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.95rem" }}>{c.titleAr}</span>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem" }}>{c.titleAr}</span>
                         <span style={{ background: "#e8f4ff", color: "#0077cc", borderRadius: 6, padding: "0.15rem 0.55rem", fontSize: "0.7rem", fontFamily: "monospace", fontWeight: 600 }} dir="ltr">{c.slug}</span>
                         {!c.isActive && (
                           <span style={{ background: "#fef3c7", color: "#92400e", borderRadius: 6, padding: "0.15rem 0.55rem", fontSize: "0.72rem", fontWeight: 700 }}>مخفي</span>

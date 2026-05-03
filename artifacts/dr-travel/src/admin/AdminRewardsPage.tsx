@@ -39,8 +39,8 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
 
 const S = {
   card: { background: "white", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem" },
-  h3: { color: "#0D1B2A", fontWeight: 900, fontSize: "1.05rem", margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" } as React.CSSProperties,
-  input: { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "#0D1B2A" } as React.CSSProperties,
+  h3: { color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem", margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" } as React.CSSProperties,
+  input: { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)" } as React.CSSProperties,
   label: { display: "block", color: "#374151", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem" } as React.CSSProperties,
   btn: (color: string, bg: string) => ({ padding: "0.5rem 1rem", border: "none", borderRadius: "8px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: bg, color }) as React.CSSProperties,
 };
@@ -215,7 +215,7 @@ export default function AdminRewardsPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>
             🎁 المكافآت والإحالة
           </h2>
           <p style={{ color: "var(--section-subtitle)", fontSize: "0.85rem", margin: 0 }}>إدارة نظام الإحالة وأكواد المكافآت</p>
@@ -404,7 +404,7 @@ export default function AdminRewardsPage() {
           ) : codes.length === 0 ? (
             <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔑</div>
-              <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد أكواد إحالة</div>
+              <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد أكواد إحالة</div>
               <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>أنشئ أول كود إحالة لبدء نظام المكافآت</div>
             </div>
           ) : (
@@ -416,7 +416,7 @@ export default function AdminRewardsPage() {
                     {c.code}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "0.92rem" }}>{c.nameAr} {c.nameEn && <span style={{ color: "var(--section-subtitle)", fontWeight: 400 }}>· {c.nameEn}</span>}</div>
+                    <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "0.92rem" }}>{c.nameAr} {c.nameEn && <span style={{ color: "var(--section-subtitle)", fontWeight: 400 }}>· {c.nameEn}</span>}</div>
                     <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "0.15rem" }}>
                       {c.phone && <span>📞 {c.phone} </span>}
                       {c.email && <span>✉️ {c.email} </span>}
@@ -467,7 +467,7 @@ export default function AdminRewardsPage() {
           ) : filteredRewards.length === 0 ? (
             <div style={{ background: "white", borderRadius: "16px", padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🏆</div>
-              <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد مكافآت {filterStatus !== "all" ? "بهذه الحالة" : "بعد"}</div>
+              <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>لا توجد مكافآت {filterStatus !== "all" ? "بهذه الحالة" : "بعد"}</div>
               <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>ستظهر هنا المكافآت عند حجز العملاء بأكواد الإحالة</div>
             </div>
           ) : (
@@ -484,7 +484,7 @@ export default function AdminRewardsPage() {
                           <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#00AAFF", fontSize: "0.95rem" }}>{r.referralCode}</span>
                           <span style={{ background: st.bg, color: st.color, padding: "0.2rem 0.65rem", borderRadius: "50px", fontSize: "0.72rem", fontWeight: 700 }}>{st.label}</span>
                         </div>
-                        <div style={{ color: "#0D1B2A", fontWeight: 700, fontSize: "0.92rem" }}>👤 {r.bookingName}</div>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.92rem" }}>👤 {r.bookingName}</div>
                         {r.bookingPackage && <div style={{ color: "var(--section-subtitle)", fontSize: "0.82rem" }}>📦 {r.bookingPackage}</div>}
                         <div style={{ color: "var(--section-subtitle)", fontSize: "0.78rem", marginTop: "0.25rem" }}>
                           📅 {new Date(r.createdAt).toLocaleDateString("ar-EG")}
@@ -502,7 +502,7 @@ export default function AdminRewardsPage() {
                     {r.status === "pending" && (
                       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                         <input
-                          style={{ flex: 1, minWidth: 150, padding: "0.5rem 0.8rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", color: "#0D1B2A" }}
+                          style={{ flex: 1, minWidth: 150, padding: "0.5rem 0.8rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
                           placeholder="ملاحظة (اختياري)"
                           value={rewardNotes[r.id] || ""}
                           onChange={e => setRewardNotes(prev => ({ ...prev, [r.id]: e.target.value }))}

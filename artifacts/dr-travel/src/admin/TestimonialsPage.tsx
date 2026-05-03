@@ -231,9 +231,9 @@ export default function TestimonialsPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>التقييمات والآراء</h2>
+          <h2 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: "1.4rem", margin: "0 0 0.25rem" }}>التقييمات والآراء</h2>
           <div style={{ display: "flex", gap: "1rem", fontSize: "0.82rem", color: "var(--section-subtitle)", flexWrap: "wrap" }}>
-            <span>المجموع: <strong style={{ color: "#0D1B2A" }}>{counts.all}</strong></span>
+            <span>المجموع: <strong style={{ color: "var(--text-primary)" }}>{counts.all}</strong></span>
             <span>قيد الانتظار: <strong style={{ color: "#F59E0B" }}>{counts.pending}</strong></span>
             <span>مقبول: <strong style={{ color: "#10B981" }}>{counts.approved}</strong></span>
             <span>مرفوض: <strong style={{ color: "#EF4444" }}>{counts.rejected}</strong></span>
@@ -248,7 +248,7 @@ export default function TestimonialsPage() {
       {/* Search + Status Filter */}
       <div style={{ background: "white", borderRadius: "12px", padding: "1rem 1.25rem", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", marginBottom: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
         <input
-          style={{ flex: 1, minWidth: 200, padding: "0.6rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", color: "#0D1B2A" }}
+          style={{ flex: 1, minWidth: 200, padding: "0.6rem 0.9rem", borderRadius: "8px", border: "1.5px solid #e0e8f0", outline: "none", fontSize: "0.88rem", fontFamily: "Cairo, sans-serif", color: "var(--text-primary)" }}
           placeholder="🔍 بحث بالاسم أو النص..."
           value={search} onChange={e => setSearch(e.target.value)}
         />
@@ -418,7 +418,7 @@ export default function TestimonialsPage() {
       ) : filtered.length === 0 ? (
         <div style={{ background: "white", borderRadius: 16, padding: "3rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>{items.length === 0 ? "💬" : "🔍"}</div>
-          <div style={{ color: "#0D1B2A", fontWeight: 700, marginBottom: "0.5rem" }}>
+          <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: "0.5rem" }}>
             {items.length === 0 ? "لا توجد تقييمات بعد" : "لا توجد نتائج"}
           </div>
           <div style={{ color: "var(--section-subtitle)", fontSize: "0.88rem" }}>
@@ -443,7 +443,7 @@ export default function TestimonialsPage() {
                       </div>
                     )}
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "0.92rem", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.nameAr}</div>
+                      <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.nameAr}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.15rem" }}>
                         {item.source === "visitor" && (
                           <span style={{ fontSize: "0.62rem", color: "#9333EA", fontWeight: 700, background: "#F3E8FF", padding: "1px 5px", borderRadius: 4 }}>زائر</span>
