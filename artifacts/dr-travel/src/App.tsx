@@ -1744,7 +1744,7 @@ function Footer() {
           {/* Map (optional) */}
           {showMap && (
             <div>
-              <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <h4 style={{ color: "white", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <span style={{ width: 3, height: 16, background: "#C9A84C", borderRadius: 2, display: "inline-block" }} />
                 {lang === "ar" ? "موقعنا على الخريطة" : "Find us on the map"}
               </h4>
@@ -1754,7 +1754,7 @@ function Footer() {
                 rel="noreferrer"
                 aria-label={lang === "ar" ? "افتح موقعنا في Google Maps" : "Open our location in Google Maps"}
                 style={{
-                  display: "block", position: "relative", width: "100%", aspectRatio: "1 / 1",
+                  display: "block", position: "relative", width: "100%", aspectRatio: "16 / 11",
                   borderRadius: "12px", overflow: "hidden",
                   border: "1px solid rgba(201,168,76,0.25)",
                   boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
@@ -1791,9 +1791,6 @@ function Footer() {
                   {lang === "ar" ? "افتح في Google Maps" : "Open in Google Maps"}
                 </span>
               </a>
-              <p style={{ color: "#445566", fontSize: "0.78rem", margin: "0.85rem 0 0", lineHeight: 1.7 }}>
-                {lang === "ar" ? (settings.location_ar || "مرسى مطروح، مصر") : (settings.location_en || "Marsa Matruh, Egypt")}
-              </p>
             </div>
           )}
         </div>
