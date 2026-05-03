@@ -3,7 +3,7 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Ticket, { formatPhoneIntl, type TicketData } from "../components/Ticket";
-import { apiFetch } from "../lib/api";
+import { apiFetch, apiUrl } from "../lib/api";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -155,7 +155,10 @@ export default function BookingsPage() {
   };
 
   const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
-  const ticketPdfAbsoluteUrl = (token: string) => `${window.location.origin}/api/tickets/${token}.pdf`;
+  const ticketPdfAbsoluteUrl = (token: string) => {
+    const u = apiUrl(`/api/tickets/${token}.pdf`);
+    return /^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`;
+  };
 
   const reloadTicket = async (token: string): Promise<TicketData | null> => {
     const dr = await apiFetch(`/api/tickets/${encodeURIComponent(token)}`);
