@@ -131,7 +131,7 @@ export default function CompareModal({ packages, onClose, onBook }: Props) {
 
         {/* Header */}
         <div style={{ padding: "1.5rem 1.75rem", borderBottom: "1px solid var(--bg-surface-2)", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--bg-surface-solid)", zIndex: 1 }}>
-          <div style={{ color: "white", fontWeight: 800, fontSize: "1.1rem" }}>{ct.title}</div>
+          <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "1.1rem" }}>{ct.title}</div>
           <button onClick={onClose} style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border)", color: "var(--section-subtitle)", width: 34, height: 34, borderRadius: "8px", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
 

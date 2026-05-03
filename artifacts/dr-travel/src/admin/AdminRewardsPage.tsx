@@ -340,7 +340,7 @@ export default function AdminRewardsPage() {
               <div style={{ background: "var(--bg-surface-solid)", border: "1px solid var(--border)", borderRadius: "20px", padding: "2rem", width: "100%", maxWidth: "520px", direction: "rtl", boxShadow: "0 24px 48px rgba(0,0,0,0.5)" }}
                 onClick={e => e.stopPropagation()}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h3 style={{ color: "white", fontWeight: 900, margin: 0 }}>{editingCode ? "✏️ تعديل الكود" : "➕ كود إحالة جديد"}</h3>
+                  <h3 style={{ color: "var(--text-primary)", fontWeight: 900, margin: 0 }}>{editingCode ? "✏️ تعديل الكود" : "➕ كود إحالة جديد"}</h3>
                   <button onClick={() => setShowCodeForm(false)} style={{ background: "var(--border)", border: "1px solid var(--border)", color: "var(--text-muted)", borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>✕</button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -353,7 +353,7 @@ export default function AdminRewardsPage() {
                     <div key={f.key}>
                       <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>{f.label}</label>
                       <input
-                        style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box", direction: f.ltr ? "ltr" : "rtl" }}
+                        style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--input-border)", background: "var(--input-bg)", color: "var(--input-text)", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box", direction: f.ltr ? "ltr" : "rtl" }}
                         placeholder={f.placeholder}
                         value={(codeForm as any)[f.key]}
                         onChange={e => setCodeForm(p => ({ ...p, [f.key]: e.target.value }))}
@@ -373,7 +373,7 @@ export default function AdminRewardsPage() {
                   <div style={{ gridColumn: "span 2" }}>
                     <label style={{ display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.8rem", marginBottom: "0.3rem" }}>ملاحظات داخلية</label>
                     <input
-                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: "#0d1824", color: "white", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--input-border)", background: "var(--input-bg)", color: "var(--input-text)", fontFamily: "Cairo, sans-serif", fontSize: "0.88rem", outline: "none", boxSizing: "border-box" }}
                       placeholder="ملاحظة للأدمن"
                       value={codeForm.notes}
                       onChange={e => setCodeForm(p => ({ ...p, notes: e.target.value }))}

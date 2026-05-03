@@ -1054,13 +1054,6 @@ main a:focus-visible {
   fill: var(--bg-page) !important;
 }
 
-/* Generic card h3 in light mode — covers cases like AdminRewardsPage/etc with inline color:white */
-:root[data-theme="light"] .admin-wrap h1[style*='color: "white"'],
-:root[data-theme="light"] .admin-wrap h2[style*='color: "white"'],
-:root[data-theme="light"] .admin-wrap h3[style*='color: "white"'] {
-  color: var(--text-primary) !important;
-}
-
 /* Show-pkg-btn hide variant — uses hardcoded muted grey */
 :root[data-theme="light"] .show-pkg-btn.hide {
   background: var(--bg-surface-2) !important;

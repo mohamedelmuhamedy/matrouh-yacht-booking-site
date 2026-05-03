@@ -501,8 +501,8 @@ export default function AIAssistant() {
               <AssistantIcon size={22} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: "white", fontWeight: 800, fontSize: "0.92rem" }}>{T.title}</div>
-              <div style={{ color: "#8db5d6", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: "0.92rem" }}>{T.title}</div>
+              <div style={{ color: "var(--text-secondary)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
                 {T.subtitle}
               </div>
