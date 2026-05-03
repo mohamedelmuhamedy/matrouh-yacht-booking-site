@@ -295,7 +295,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="admin-wrap" style={{ display: "flex", minHeight: "100vh", fontFamily: "Cairo, sans-serif", direction: "rtl", background: "#f0f4f8" }}>
       {Toast}
       {/* Desktop sidebar */}
-      <aside style={{ width: drawerOpen ? 220 : 64, minHeight: "100vh", background: "linear-gradient(180deg,#0D1B2A 0%,#0a1420 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
+      <aside style={{ width: drawerOpen ? 220 : 64, height: "100vh", maxHeight: "100dvh", background: "linear-gradient(180deg,#0D1B2A 0%,#0a1420 100%)", transition: "width 0.3s ease", overflow: "hidden", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, right: 0, zIndex: 100, boxShadow: "0 0 30px rgba(0,0,0,0.5)" }}>
         <button onClick={() => setDrawerOpen(!drawerOpen)}
           style={{ background: "none", border: "none", color: "#00AAFF", fontSize: "1.4rem", cursor: "pointer", padding: "1.2rem", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
           {drawerOpen ? "✕" : "☰"}
@@ -308,7 +308,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
+        <nav style={{ flex: 1, minHeight: 0, padding: "0.75rem 0", overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
           {NAV.map(item => {
             const active = location.startsWith(item.path);
             const count = badgeFor(item.badge);
