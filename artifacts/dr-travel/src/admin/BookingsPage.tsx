@@ -8,6 +8,7 @@ import { downloadQrPng } from "../components/ShareCardQR";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import "./bookings.css";
 
 interface Booking {
   id: number;
@@ -51,6 +52,38 @@ const EMPTY_TICKET_FIELDS: TicketFieldsForm = {
   meetingTime: "", pickupLocation: "", pickupLocationAr: "", supervisorName: "", supervisorPhone: "",
 };
 
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function shade(hex: string, percent: number): string {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const num = parseInt(full, 16);
+  const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + Math.round(255 * (percent / 100))));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + Math.round(255 * (percent / 100))));
+  const b = Math.max(0, Math.min(255, (num & 0xff) + Math.round(255 * (percent / 100))));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
+
+function timeAgo(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "الآن";
+  if (diffMin < 60) return `منذ ${diffMin} د`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `منذ ${diffH} س`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) return `منذ ${diffD} يوم`;
+  if (diffD < 30) return `منذ ${Math.floor(diffD / 7)} أسبوع`;
+  return date.toLocaleDateString("ar-EG", { day: "numeric", month: "short" });
+}
+
 const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
   { value: "contacted", label: "تم التواصل", color: "#F59E0B" },
@@ -69,6 +102,14 @@ export default function BookingsPage() {
   const [noteText, setNoteText] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggleExpanded = (id: number) => setExpanded(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const expandAll = () => setExpanded(new Set(bookings.map(b => b.id)));
+  const collapseAll = () => setExpanded(new Set());
   const [ticketBooking, setTicketBooking] = useState<Booking | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [ticketLang, setTicketLang] = useState<"ar" | "en">("ar");
@@ -367,125 +408,213 @@ export default function BookingsPage() {
     }
   };
 
+  const allOpen = bookings.length > 0 && bookings.every(b => expanded.has(b.id));
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
         <h2 style={{ color: "#0D1B2A", fontWeight: 900, fontSize: "1.4rem", margin: 0 }}>
           إدارة الحجوزات <span style={{ color: "#00AAFF" }}>({bookings.length})</span>
         </h2>
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button onClick={() => load()} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600, color: "#667788" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {bookings.length > 0 && (
+            <button onClick={allOpen ? collapseAll : expandAll}
+              style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#0D1B2A", fontSize: "0.85rem" }}>
+              {allOpen ? "🔼 طي الكل" : "🔽 توسيع الكل"}
+            </button>
+          )}
+          <button onClick={() => load()} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.5rem 0.9rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#475569", fontSize: "0.85rem" }}>
             🔄 تحديث
           </button>
           <button onClick={exportCSV} disabled={exporting}
-            style={{ background: "#10B981", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "white", opacity: exporting ? 0.7 : 1 }}>
+            style={{ background: "linear-gradient(135deg, #10B981, #0d9668)", border: "none", borderRadius: "10px", padding: "0.5rem 0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 800, color: "white", opacity: exporting ? 0.7 : 1, fontSize: "0.85rem", boxShadow: "0 8px 20px -10px #10B981" }}>
             📥 {exporting ? "جاري التصدير..." : "تصدير CSV"}
           </button>
         </div>
       </div>
 
-      {/* Search */}
-      <div style={{ marginBottom: "1rem" }}>
-        <input
-          type="text" value={search} onChange={e => handleSearchChange(e.target.value)}
-          placeholder="🔍 بحث بالاسم أو الهاتف أو الباقة..."
-          style={{ width: "100%", padding: "0.65rem 1rem", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", boxSizing: "border-box", direction: "rtl" }}
-        />
-      </div>
-
-      {/* Filter tabs (horizontal scroll on mobile) */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
-        <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={v => setFilter(v)} />
-        {STATUS_OPTIONS.map(s => (
-          <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
-        ))}
+      {/* Sticky toolbar: search + filters */}
+      <div className="bk-toolbar">
+        <div style={{ marginBottom: "0.65rem" }}>
+          <input
+            type="text" value={search} onChange={e => handleSearchChange(e.target.value)}
+            placeholder="🔍 بحث بالاسم أو الهاتف أو الباقة..."
+            style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "12px", border: "1.5px solid #e2e8f0", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", outline: "none", boxSizing: "border-box", direction: "rtl", background: "white" }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "thin", paddingBottom: 4 }}>
+          <FilterTab value="all" current={filter} count={bookings.length} label="الكل" color="#667788" onClick={v => setFilter(v)} />
+          {STATUS_OPTIONS.map(s => (
+            <FilterTab key={s.value} value={s.value} current={filter} count={counts[s.value] || 0} label={s.label} color={s.color} onClick={v => setFilter(v)} />
+          ))}
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#667788" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div>
-          جاري التحميل...
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ background: "white", borderRadius: "18px", padding: "1.1rem 1.25rem", display: "flex", gap: "0.85rem", alignItems: "center", boxShadow: "0 1px 3px rgba(13,27,42,0.04)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(90deg,#eef2f7,#f8fafc,#eef2f7)", backgroundSize: "200% 100%", animation: "bk-pulse 1.4s ease-in-out infinite" }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: "40%", height: 14, borderRadius: 6, background: "#eef2f7", marginBottom: 8 }} />
+                <div style={{ width: "70%", height: 10, borderRadius: 5, background: "#f1f5f9" }} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : bookings.length === 0 ? (
-        <div style={{ background: "white", borderRadius: "16px", padding: "4rem", textAlign: "center", color: "#99aabb" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
-          <p style={{ fontWeight: 600 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
+        <div style={{ background: "white", borderRadius: "18px", padding: "3.5rem 1.5rem", textAlign: "center", color: "#94a3b8", border: "1px dashed #e2e8f0" }}>
+          <div style={{ fontSize: "3rem", marginBottom: "0.85rem" }}>📭</div>
+          <p style={{ fontWeight: 700, color: "#475569", margin: 0 }}>لا توجد حجوزات {search ? "تطابق البحث" : "في هذا التصنيف"}</p>
+          {search && (
+            <button onClick={() => handleSearchChange("")} style={{ marginTop: "1rem", background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "0.5rem 1rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, color: "#0D1B2A" }}>
+              ✕ مسح البحث
+            </button>
+          )}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           {bookings.map(b => {
             const sObj = STATUS_OPTIONS.find(s => s.value === b.status) || STATUS_OPTIONS[0];
+            const isOpen = expanded.has(b.id);
+            const isPulse = b.status === "new";
+            const partyTotal = (b.adults || 0) + (b.children || 0) + (b.infants || 0);
+            const initials = b.name.trim().split(/\s+/).slice(0,2).map(s => s[0] || "").join("").toUpperCase() || "?";
+            const created = new Date(b.createdAt);
+            const cssVars = {
+              ["--bk-color" as string]: sObj.color,
+              ["--bk-color2" as string]: shade(sObj.color, -22),
+              ["--bk-pill-bg" as string]: hexToRgba(sObj.color, 0.10),
+              ["--bk-color-soft" as string]: hexToRgba(sObj.color, 0.22),
+            } as React.CSSProperties;
             return (
-              <div key={b.id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${sObj.color}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-                      <span style={{ fontWeight: 800, color: "#0D1B2A", fontSize: "1rem" }}>{b.name}</span>
-                      <span style={{ background: `${sObj.color}15`, color: sObj.color, padding: "0.2rem 0.65rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 700 }}>
+              <div key={b.id} className={`bk-card ${isOpen ? "is-open" : ""}`} style={cssVars}>
+                <div className="bk-head" role="button" tabIndex={0}
+                  onClick={() => toggleExpanded(b.id)}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleExpanded(b.id); } }}
+                  aria-expanded={isOpen}>
+                  <div className={`bk-avatar ${b.status === "confirmed" ? "bk-confirmed-ring" : ""}`}>{initials}</div>
+                  <div className="bk-meta">
+                    <div className="bk-name-row">
+                      <span className="bk-name">{b.name}</span>
+                      <span className="bk-status-pill">
+                        <span className={`bk-status-dot ${isPulse ? "is-pulse" : ""}`} />
                         {sObj.label}
                       </span>
-                      {b.packageNameAr && (
-                        <span style={{ background: "#00AAFF15", color: "#00AAFF", padding: "0.2rem 0.65rem", borderRadius: "50px", fontSize: "0.78rem", fontWeight: 600 }}>
-                          {b.packageNameAr}
-                        </span>
+                      {b.ticketUsedAt && (
+                        <span className="bk-chip" style={{ background: "#dcfce7", color: "#166534" }}>✓ تذكرة مُستخدمة</span>
                       )}
                     </div>
-                    <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", color: "#667788", fontSize: "0.875rem" }}>
-                      <span>📞 <span style={{ direction: "ltr", display: "inline-block" }}>{b.phone}</span></span>
-                      <span>📅 {b.date}</span>
-                      <span>👥 {b.adults} كبار {b.children > 0 ? `+ ${b.children} أطفال` : ""}</span>
-                      {b.priceAtBooking && <span>💰 {b.priceAtBooking.toLocaleString("ar-EG")} {b.currency}</span>}
+                    <div className="bk-sub">
+                      {b.packageNameAr && <span className="bk-chip is-pkg">📌 {b.packageNameAr}</span>}
+                      <span className="bk-sub-item is-strong">📅 {b.date}</span>
+                      <span className="bk-sub-item">👥 {partyTotal}</span>
+                      {b.priceAtBooking != null && (
+                        <span className="bk-chip is-price">💰 {b.priceAtBooking.toLocaleString("ar-EG")} {b.currency}</span>
+                      )}
+                      <span className="bk-sub-item" style={{ color: "#94a3b8" }} title={created.toLocaleString("ar-EG")}>
+                        🕒 {timeAgo(created)}
+                      </span>
                     </div>
+                  </div>
+                  <div className="bk-trail" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+                    <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer" className="bk-icon-btn is-wa" title="واتساب">💬</a>
+                    <button className="bk-icon-btn is-chevron" title={isOpen ? "طي" : "توسيع"} onClick={() => toggleExpanded(b.id)}>
+                      <span className="bk-chev">▾</span>
+                    </button>
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <div className="bk-body">
+                    <div className="bk-body-grid">
+                      <div className="bk-info">
+                        <span className="bk-info-label">📞 الهاتف</span>
+                        <span className="bk-info-val is-mono">{b.phone}</span>
+                      </div>
+                      <div className="bk-info">
+                        <span className="bk-info-label">👥 المجموعة</span>
+                        <span className="bk-info-val">
+                          {b.adults} كبار{b.children > 0 ? ` · ${b.children} أطفال` : ""}{b.infants > 0 ? ` · ${b.infants} رضّع` : ""}
+                        </span>
+                      </div>
+                      {b.priceAtBooking != null && (
+                        <div className="bk-info">
+                          <span className="bk-info-label">💰 السعر</span>
+                          <span className="bk-info-val">{b.priceAtBooking.toLocaleString("ar-EG")} {b.currency}</span>
+                        </div>
+                      )}
+                      {b.referralCode && (
+                        <div className="bk-info">
+                          <span className="bk-info-label">🎟️ كود إحالة</span>
+                          <span className="bk-info-val is-mono">{b.referralCode}</span>
+                        </div>
+                      )}
+                      {b.ticketNumber && (
+                        <div className="bk-info">
+                          <span className="bk-info-label">🎫 رقم التذكرة</span>
+                          <span className="bk-info-val is-mono">{b.ticketNumber}</span>
+                        </div>
+                      )}
+                      {b.meetingTime && (
+                        <div className="bk-info">
+                          <span className="bk-info-label">⏰ وقت الانطلاق</span>
+                          <span className="bk-info-val">{b.meetingTime}</span>
+                        </div>
+                      )}
+                      {b.pickupLocationAr && (
+                        <div className="bk-info">
+                          <span className="bk-info-label">📍 نقطة التجمع</span>
+                          <span className="bk-info-val">{b.pickupLocationAr}</span>
+                        </div>
+                      )}
+                    </div>
+
                     {b.notes && (
-                      <div style={{ marginTop: "0.5rem", color: "#99aabb", fontSize: "0.82rem", background: "#f9fafb", borderRadius: "6px", padding: "0.4rem 0.75rem" }}>
-                        📝 ملاحظة العميل: {b.notes}
+                      <div className="bk-note is-customer">
+                        <span className="bk-note-icon">📝</span>
+                        <div><strong>ملاحظة العميل:</strong> {b.notes}</div>
                       </div>
                     )}
                     {b.adminNotes && (
-                      <div style={{ marginTop: "0.4rem", fontSize: "0.82rem", background: "#fffbeb", borderRadius: "6px", padding: "0.4rem 0.75rem", color: "#92400e", borderRight: "3px solid #F59E0B" }}>
-                        🔒 ملاحظة داخلية: {b.adminNotes}
+                      <div className="bk-note is-admin">
+                        <span className="bk-note-icon">🔒</span>
+                        <div><strong>ملاحظة داخلية:</strong> {b.adminNotes}</div>
                       </div>
                     )}
-                    <div style={{ color: "#c0ccd8", fontSize: "0.75rem", marginTop: "0.35rem" }}>
-                      #{b.id} · {new Date(b.createdAt).toLocaleString("ar-EG")}
-                    </div>
-                  </div>
 
-                  <div data-mobile-actions="true" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
-                    <select value={b.status} disabled={updating === b.id}
-                      onChange={e => updateStatus(b.id, e.target.value)}
-                      style={{ padding: "0.4rem 0.75rem", borderRadius: "8px", border: `1.5px solid ${sObj.color}`, color: sObj.color, fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, background: `${sObj.color}08`, cursor: "pointer", outline: "none" }}>
-                      {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                    </select>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <div className="bk-actions" data-mobile-actions="true">
+                      <select value={b.status} disabled={updating === b.id} onChange={e => updateStatus(b.id, e.target.value)} className="bk-status-select">
+                        {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                      </select>
                       {b.status === "confirmed" && (
-                        <button onClick={() => openTicket(b)}
-                          style={{ background: "#0D1B2A", color: "#C9A84C", border: "1px solid #C9A84C", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.35rem" }}
-                          title="تذكرة الحجز">
+                        <button className="bk-btn is-ticket" onClick={() => openTicket(b)} title="تذكرة الحجز">
                           🎫 تذكرة
                         </button>
                       )}
-                      {b.ticketUsedAt && (
-                        <span title={b.ticketUsedBy ? `بواسطة ${b.ticketUsedBy}` : ""}
-                          style={{ background: "#dcfce7", color: "#166534", border: "1px solid #86efac", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                          ✓ مستخدمة
-                        </span>
-                      )}
-                      <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer"
-                        style={{ background: "#25D366", color: "white", border: "none", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", textDecoration: "none", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer" className="bk-btn is-wa">
                         💬 واتساب
                       </a>
-                      <button onClick={() => { setNoteBooking(b); setNoteText(b.adminNotes || ""); }}
-                        style={{ background: "#fffbeb", color: "#92400e", border: "1px solid #F59E0B", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                      <button className="bk-btn is-warn" onClick={() => { setNoteBooking(b); setNoteText(b.adminNotes || ""); }}>
                         📌 ملاحظة
                       </button>
-                      <button onClick={() => setConfirmDelete(b.id)}
-                        style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
-                        🗑️
+                      <button className="bk-btn is-danger" onClick={() => setConfirmDelete(b.id)}>
+                        🗑️ حذف
                       </button>
                     </div>
+
+                    <div className="bk-audit">
+                      <span>#{b.id}</span>
+                      <span>أُنشئ {created.toLocaleString("ar-EG")}</span>
+                      {b.updatedAt && b.updatedAt !== b.createdAt && (
+                        <span>تحديث {new Date(b.updatedAt).toLocaleString("ar-EG")}</span>
+                      )}
+                      {b.ticketUsedAt && (
+                        <span>اُستخدمت {new Date(b.ticketUsedAt).toLocaleString("ar-EG")}{b.ticketUsedBy ? ` · ${b.ticketUsedBy}` : ""}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
