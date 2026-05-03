@@ -14,6 +14,7 @@ import GalleryPage from "./pages/GalleryPage";
 import GalleryDetailPage from "./pages/GalleryDetailPage";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
 import WhyUsDetailPage from "./pages/WhyUsDetailPage";
+import SharePage from "./pages/SharePage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import PushPrompt from "./components/PushPrompt";
@@ -2009,6 +2010,8 @@ function PublicAppShell() {
             <Route path="/gallery/:slug" component={GalleryDetailPageWrapper} />
             <Route path="/services/:slug" component={ServiceDetailPageWrapper} />
             <Route path="/why-us/:slug" component={WhyUsDetailPageWrapper} />
+            <Route path="/card" component={SharePage} />
+            <Route path="/share" component={SharePage} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />

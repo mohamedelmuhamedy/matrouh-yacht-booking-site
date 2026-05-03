@@ -33,13 +33,15 @@ const NAV: NavItem[] = [
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
   { path: "/admin/testimonials", icon: "⭐", label: "التقييمات", badge: "testimonials" },
   { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو" },
+  { path: "/admin/share-card",   icon: "🪪", label: "بطاقة المشاركة" },
   { path: "/admin/push",         icon: "🔔", label: "الإشعارات" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
 ];
 const BOTTOM_NAV = NAV.filter(n =>
   n.path !== "/admin/testimonials" &&
   n.path !== "/admin/settings" &&
-  n.path !== "/admin/push"
+  n.path !== "/admin/push" &&
+  n.path !== "/admin/share-card"
 );
 
 function Badge({ count }: { count: number }) {

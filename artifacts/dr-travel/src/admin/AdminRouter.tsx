@@ -2,6 +2,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { useEffect } from "react";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { ToastProvider } from "../components/Toast";
+import { LanguageProvider } from "../LanguageContext";
 import AdminLayout from "./AdminLayout";
 import LoginPage from "./LoginPage";
 import DashboardPage from "./DashboardPage";
@@ -18,6 +19,7 @@ import AdminServiceFormPage from "./AdminServiceFormPage";
 import AdminWhyUsPage from "./AdminWhyUsPage";
 import AdminWhyUsFormPage from "./AdminWhyUsFormPage";
 import AdminHeroSlidesPage from "./AdminHeroSlidesPage";
+import AdminShareCardPage from "./AdminShareCardPage";
 import PushNotificationsPage from "./PushNotificationsPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -110,6 +112,9 @@ function AdminRoutes() {
       <Route path="/admin/push">
         <AdminGuard><PushNotificationsPage /></AdminGuard>
       </Route>
+      <Route path="/admin/share-card">
+        <AdminGuard><AdminShareCardPage /></AdminGuard>
+      </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>
       </Route>
@@ -119,10 +124,12 @@ function AdminRoutes() {
 
 export default function AdminRouter() {
   return (
-    <AdminProvider>
-      <ToastProvider>
-        <AdminRoutes />
-      </ToastProvider>
-    </AdminProvider>
+    <LanguageProvider>
+      <AdminProvider>
+        <ToastProvider>
+          <AdminRoutes />
+        </ToastProvider>
+      </AdminProvider>
+    </LanguageProvider>
   );
 }
