@@ -1,0 +1,5 @@
+# Playwright
+tests/.auth/
+tests/.output/
+playwright-report/
+test-results/
