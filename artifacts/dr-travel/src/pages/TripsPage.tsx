@@ -93,7 +93,7 @@ export default function TripsPage() {
             style={{ background: "rgba(0,170,255,0.1)", border: "1px solid rgba(0,170,255,0.2)", color: "#00AAFF", padding: "0.45rem 1rem", borderRadius: "50px", cursor: "pointer", fontWeight: 600, fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", marginBottom: "1.5rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
             {ar ? "← الرئيسية" : "← Home"}
           </button>
-          <h1 style={{ color: "white", fontWeight: 900, fontSize: isMobile ? "1.75rem" : "2.5rem", margin: "0 0 0.5rem", lineHeight: 1.2 }}>
+          <h1 style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: isMobile ? "1.75rem" : "2.5rem", margin: "0 0 0.5rem", lineHeight: 1.2 }}>
             {ar ? "تفاصيل الرحلات" : "Trip Details"}
           </h1>
           <p style={{ color: "var(--section-subtitle)", fontSize: isMobile ? "0.9rem" : "1rem", margin: 0 }}>

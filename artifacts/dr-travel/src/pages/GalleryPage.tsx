@@ -46,7 +46,7 @@ export default function GalleryPage() {
             {ar ? "✦ معرض الصور ✦" : "✦ PHOTO GALLERY ✦"}
           </span>
         </div>
-        <h1 style={{ fontSize: "2.5rem", fontWeight: 900, color: "white", margin: "0 0 1rem", lineHeight: 1.2 }}>
+        <h1 style={{ fontSize: "2.5rem", fontWeight: 900, color: "var(--text-primary)", margin: "0 0 1rem", lineHeight: 1.2 }}>
           {ar ? "معرض DR Travel" : "DR Travel Gallery"}
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "1rem", maxWidth: 520, margin: "0 auto" }}>
@@ -133,7 +133,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
       </div>
 
       <div style={{ padding: "1rem 1.1rem" }}>
-        <h3 style={{ margin: "0 0 0.3rem", color: "white", fontWeight: 800, fontSize: "1rem" }}>
+        <h3 style={{ margin: "0 0 0.3rem", color: "var(--text-primary)", fontWeight: 800, fontSize: "1rem" }}>
           {ar ? album.titleAr : album.titleEn}
         </h3>
         {(ar ? album.descriptionAr : album.descriptionEn) && (
