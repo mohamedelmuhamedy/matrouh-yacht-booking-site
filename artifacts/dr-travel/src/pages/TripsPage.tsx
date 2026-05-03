@@ -175,65 +175,63 @@ export default function TripsPage() {
               return (
                 <div
                   key={pkg.id}
-                  onClick={() => navigate(`/packages/${pkg.slug}`)}
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "18px", overflow: "hidden", cursor: "pointer", transition: "transform 0.2s, border-color 0.2s", position: "relative" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,170,255,0.3)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "none"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)"; }}>
+                  className="trip-card"
+                  onClick={() => navigate(`/packages/${pkg.slug}`)}>
 
                   {/* Image */}
-                  <div style={{ height: "190px", background: imgSrc ? "transparent" : pkg.color || "#00AAFF", position: "relative", overflow: "hidden" }}>
+                  <div className="trip-card-img-wrap" style={{ background: imgSrc ? "#0a1520" : pkg.color || "#00AAFF" }}>
                     {imgSrc ? (
-                      <img src={imgSrc} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={imgSrc} alt={title} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>
                         {pkg.icon || "🏖️"}
                       </div>
                     )}
                     {badge && (
-                      <div style={{ position: "absolute", top: "0.75rem", insetInlineStart: "0.75rem", background: pkg.badgeColor || "#FF6B35", color: "white", borderRadius: "50px", padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 700 }}>
+                      <div className="trip-card-badge" style={{ background: pkg.badgeColor || "#FF6B35" }}>
                         {badge}
                       </div>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div style={{ padding: "1.1rem" }}>
-                    <h3 style={{ color: "white", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.4rem", lineHeight: 1.3 }}>{title}</h3>
-                    <p style={{ color: "#8899aa", fontSize: "0.82rem", margin: "0 0 0.85rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{desc}</p>
+                  <div style={{ padding: "1.15rem 1.15rem 1.25rem" }}>
+                    <h3 style={{ color: "white", fontWeight: 700, fontSize: "1.02rem", margin: "0 0 0.4rem", lineHeight: 1.3 }}>{title}</h3>
+                    <p style={{ color: "#8899aa", fontSize: "0.82rem", margin: "0 0 0.95rem", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{desc}</p>
 
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                       <div>
-                        <span style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1.05rem" }}>
+                        <span style={{ color: "#00AAFF", fontWeight: 800, fontSize: "1.1rem", fontFamily: "Montserrat, sans-serif" }}>
                           {formatPrice(pkg.priceEGP, curr, lang, settings)}
                         </span>
                         {pkg.maxPriceEGP && (
                           <span style={{ color: "#667788", fontSize: "0.78rem" }}> – {formatPrice(pkg.maxPriceEGP, curr, lang, settings)}</span>
                         )}
-                        <span style={{ color: "#556677", fontSize: "0.75rem", marginInlineStart: "0.25rem" }}>
+                        <span style={{ color: "#556677", fontSize: "0.75rem", marginInlineStart: "0.3rem" }}>
                           {ar ? "/ شخص" : "/ person"}
                         </span>
                       </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", color: "#FFD700", fontSize: "0.8rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", color: "#FFD700", fontSize: "0.82rem", background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.18)", borderRadius: "50px", padding: "0.2rem 0.6rem" }}>
                         <StarIcon />
-                        <span style={{ color: "white" }}>{pkg.rating?.toFixed(1)}</span>
+                        <span style={{ color: "white", fontWeight: 700 }}>{pkg.rating?.toFixed(1)}</span>
                       </div>
                     </div>
 
                     {/* Tags */}
-                    <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.75rem", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.85rem", flexWrap: "wrap" }}>
                       {pkg.includesMeals && (
-                        <span style={{ background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.2)", color: "#00C864", borderRadius: "50px", padding: "0.2rem 0.6rem", fontSize: "0.7rem", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <span className="trip-card-tag" style={{ background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.22)", color: "#00C864" }}>
                           <CheckIcon /> {ar ? "وجبات" : "Meals"}
                         </span>
                       )}
                       {pkg.familyFriendly && (
-                        <span style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.2)", color: "#FF6B35", borderRadius: "50px", padding: "0.2rem 0.6rem", fontSize: "0.7rem" }}>
+                        <span className="trip-card-tag" style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.22)", color: "#FF6B35" }}>
                           {ar ? "عائلي" : "Family"}
                         </span>
                       )}
                       {pkg.durationAr && (
-                        <span style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.15)", color: "#00AAFF", borderRadius: "50px", padding: "0.2rem 0.6rem", fontSize: "0.7rem" }}>
+                        <span className="trip-card-tag" style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.18)", color: "#00AAFF" }}>
                           {ar ? pkg.durationAr : pkg.durationEn}
                         </span>
                       )}

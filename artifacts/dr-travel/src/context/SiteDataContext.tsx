@@ -174,6 +174,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   services_detail_pages_enabled: "true",
   uniform_home_cards: "false",
   show_footer_map: "false",
+  booking_skip_confirmation: "false",
   brand_name: "DR TRAVEL",
   brand_short_name: "DR Travel",
   brand_tagline_ar: "يخت سياحة وسفاري · مرسى مطروح",

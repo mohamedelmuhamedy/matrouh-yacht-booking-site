@@ -133,8 +133,14 @@ export default function PackageDetail() {
       bookForm.date || (ar ? "غير محدد" : "TBD"),
       bookForm.people, "0", "0", bookForm.notes
     );
-    setBookWaUrl(`https://wa.me/201205756024?text=${encodeURIComponent(waMsg)}`);
+    const waNum = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
+    const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(waMsg)}`;
     setBookSubmitting(false);
+    if (settings.booking_skip_confirmation === "true") {
+      window.location.href = waUrl;
+      return;
+    }
+    setBookWaUrl(waUrl);
     setBookDone(true);
   };
 
@@ -271,6 +277,8 @@ export default function PackageDetail() {
   const faq = (pkg as any).faq || [];
   const formatPkgPrice = (priceEGP: number) => formatPrice(priceEGP, currency, lang, settings);
 
+  const waNumber = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
+
   const waMsg = encodeURIComponent(
     ar ? `مرحباً DR Travel 👋\nأريد الاستفسار عن: ${title}\n💰 السعر: ${formatPkgPrice(pkg.priceEGP)}/فرد`
        : `Hello DR Travel 👋\nI'd like to inquire about: ${title}\n💰 Price: ${formatPkgPrice(pkg.priceEGP)}/person`
@@ -310,7 +318,7 @@ export default function PackageDetail() {
           style={{ background: `linear-gradient(135deg,${pkg.color},${pkg.color}cc)`, color: pkg.featured ? "#0D1B2A" : "white", border: "none", padding: isMobile ? "0.95rem 1rem" : "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", transition: "all 0.3s", width: "100%", boxSizing: "border-box" }}>
           {ar ? "احجز الآن" : "Book Now"}
         </button>
-        <a href={`https://wa.me/201205756024?text=${waMsg}`} target="_blank" rel="noreferrer"
+        <a href={`https://wa.me/${waNumber}?text=${waMsg}`} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", padding: isMobile ? "0.85rem 1rem" : "0.85rem", borderRadius: "12px", fontWeight: 700, fontSize: "0.88rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", boxSizing: "border-box" }}>
           <WhatsAppIcon /> {ar ? "استفسار واتساب" : "WhatsApp Inquiry"}
         </a>
@@ -808,8 +816,8 @@ export default function PackageDetail() {
           ) : (
             /* Success state */
             <div style={{ textAlign: "center", padding: "0.5rem 0 0.25rem" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>✅</div>
-              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.1rem", margin: "0 0 0.6rem" }}>
+              <div className="book-success-badge">✅</div>
+              <h3 style={{ color: "white", fontWeight: 900, fontSize: "1.15rem", margin: "0 0 0.6rem" }}>
                 {ar ? "تم استلام طلب الحجز!" : "Booking Request Received!"}
               </h3>
               <p style={{ color: "#8899aa", fontSize: "0.85rem", lineHeight: 1.75, margin: "0 0 1.5rem" }}>
@@ -818,7 +826,7 @@ export default function PackageDetail() {
                   : "DR Travel team will contact you within an hour to confirm. You can also confirm instantly via WhatsApp."}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <a href={bookWaUrl} target="_blank" rel="noreferrer"
+                <a href={bookWaUrl} target="_blank" rel="noreferrer" className="book-wa-cta"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "1rem", borderRadius: "14px", fontWeight: 800, fontSize: "0.95rem", textDecoration: "none", fontFamily: "Cairo, sans-serif" }}>
                   <WhatsAppIcon /> {ar ? "تأكيد عبر واتساب" : "Confirm on WhatsApp"}
                 </a>

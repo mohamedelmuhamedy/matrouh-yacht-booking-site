@@ -52,6 +52,7 @@ const DEFAULTS: Record<string, string> = {
   services_detail_pages_enabled: "true",
   uniform_home_cards: "false",
   show_footer_map: "false",
+  booking_skip_confirmation: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
   ai_model: "openai/gpt-4o-mini",
@@ -228,6 +229,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "services_link_to_trips", label: "الضغط على الخدمات يفتح صفحة تفاصيل الرحلات", type: "boolean", hint: "لما يتفعّل، الضغط على أي بطاقة خدمة في الصفحة الرئيسية بيوّدي العميل مباشرة لصفحة /trips. هذا الإعداد له الأولوية على صفحات تفاصيل الخدمات" },
       { key: "uniform_home_cards", label: "توحيد حجم البطاقات (خدماتنا و'ليه DR Travel')", type: "boolean", hint: "لما يتفعّل، كل البطاقات في قسم 'خدماتنا' وقسم 'ليه DR Travel' هتبقى بنفس الارتفاع بالظبط مهما كان طول النص جوّاها" },
       { key: "show_footer_map", label: "إظهار خريطة الموقع في الفوتر", type: "boolean", hint: "لما يتفعّل، بتظهر خريطة جوجل صغيرة على شمال الفوتر، والباقي بيتزحزح يمين شوية. الضغط على الخريطة بيفتح المكان على Google Maps. لو معطّل، الفوتر يفضل زي ما هو" },
+      { key: "booking_skip_confirmation", label: "تخطي شاشة تأكيد الحجز والتوجيه المباشر للواتساب", type: "boolean", hint: "لما يتفعّل، بعد ما العميل يبعت طلب الحجز بينتقل فوراً لمحادثة الواتساب برسالة جاهزة فيها كل تفاصيل الحجز (بدون شاشة 'تم استلام طلبك'). الحجز بيتسجّل عند الإدارة في الحالتين. لو معطّل، شاشة التأكيد الحالية بتفضل زي ما هي" },
     ],
   },
 ];
