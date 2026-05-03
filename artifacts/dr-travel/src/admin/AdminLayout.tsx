@@ -204,7 +204,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} />
             <div
               onClick={e => e.stopPropagation()}
-              style={{ position: "relative", width: 260, maxWidth: "80vw", background: "linear-gradient(180deg,#0D1B2A,#0a1420)", height: "100vh", display: "flex", flexDirection: "column", boxShadow: "4px 0 30px rgba(0,0,0,0.5)", marginRight: 0 }}>
+              style={{ position: "relative", width: 260, maxWidth: "80vw", background: "linear-gradient(180deg,#0D1B2A,#0a1420)", height: "100dvh", maxHeight: "100dvh", display: "flex", flexDirection: "column", boxShadow: "4px 0 30px rgba(0,0,0,0.5)", marginRight: 0, overflow: "hidden" }}>
               {/* Drawer header */}
               <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
@@ -218,7 +218,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Nav items */}
-              <nav style={{ flex: 1, padding: "0.75rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto" }}>
+              <nav style={{ flex: 1, minHeight: 0, padding: "0.75rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
                 {NAV.map(item => {
                   const active = location.startsWith(item.path);
                   const count = badgeFor(item.badge);
@@ -260,15 +260,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
 
-        {/* Bottom nav bar */}
-        <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)" }}>
+        {/* Bottom nav bar (horizontally scrollable when many items) */}
+        <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
           {BOTTOM_NAV.map(item => {
             const active = location.startsWith(item.path);
             const count = badgeFor(item.badge);
             const showBadge = count > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
-                style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", position: "relative", transition: "all 0.2s" }}>
+                style={{ flex: "0 0 auto", minWidth: 64, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.6rem", position: "relative", transition: "all 0.2s" }}>
                 {active && (
                   <span style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: 2, background: "#00AAFF", borderRadius: "0 0 2px 2px" }} />
                 )}
