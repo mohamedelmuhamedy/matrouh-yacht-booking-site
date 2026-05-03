@@ -170,7 +170,7 @@ function ImageUploadField({
       <div style={{
         display: "flex", gap: "0.6rem", alignItems: "center",
         padding: "0.6rem", border: "1.5px dashed var(--border)", borderRadius: 10,
-        background: "#fafbfc",
+        background: "var(--bg-surface-sunk)",
       }}>
         {preview ? (
           <img src={preview} alt="" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flexShrink: 0, background: "#eef" }} />

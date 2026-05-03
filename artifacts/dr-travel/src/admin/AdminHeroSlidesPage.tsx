@@ -320,7 +320,7 @@ export default function AdminHeroSlidesPage() {
       {/* Upload area */}
       <div
         style={{
-          ...card, marginBottom: "1.5rem", cursor: "pointer", border: "2px dashed #b0c4de",
+          ...card, marginBottom: "1.5rem", cursor: "pointer", border: "2px dashed var(--border-strong)",
           background: "rgba(0,170,255,0.02)", alignItems: "center", textAlign: "center",
           padding: "2rem",
         }}
@@ -434,10 +434,10 @@ export default function AdminHeroSlidesPage() {
                   {/* Controls */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
                     <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
-                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === 0 ? "var(--bg-surface-sunk)" : "#eef4fb", color: i === 0 ? "#b0bec5" : "#1565c0", cursor: i === 0 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: i === 0 ? "var(--bg-surface-sunk)" : "rgba(0,170,255,0.08)", color: i === 0 ? "var(--text-muted)" : "#00AAFF", cursor: i === 0 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
                       title="تحريك لأعلى">▲ أعلى</button>
                     <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
-                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #b0c4de", background: i === slides.length - 1 ? "var(--bg-surface-sunk)" : "#eef4fb", color: i === slides.length - 1 ? "#b0bec5" : "#1565c0", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
+                      style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid var(--border-strong)", background: i === slides.length - 1 ? "var(--bg-surface-sunk)" : "rgba(0,170,255,0.08)", color: i === slides.length - 1 ? "var(--text-muted)" : "#00AAFF", cursor: i === slides.length - 1 ? "not-allowed" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}
                       title="تحريك لأسفل">▼ أسفل</button>
                     <button onClick={() => setDeleteTarget(slide)}
                       style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.45rem 0.9rem", borderRadius: "8px", border: "1.5px solid #fca5a5", background: "#fef2f2", color: "#dc2626", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.15s" }}

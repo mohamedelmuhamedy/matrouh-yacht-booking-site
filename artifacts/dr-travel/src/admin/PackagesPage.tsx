@@ -223,7 +223,7 @@ export default function PackagesPage() {
                         📋 نسخ
                       </button>
                       <button onClick={() => downloadPackageQr(pkg)} disabled={qrBusy === pkg.id} title="تنزيل QR للباقة"
-                        style={{ padding: "0.4rem 0.75rem", border: "1px solid #0D1B2A30", borderRadius: "8px", cursor: qrBusy === pkg.id ? "wait" : "pointer", background: "#0D1B2A08", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: qrBusy === pkg.id ? 0.6 : 1 }}>
+                        style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border-strong)", borderRadius: "8px", cursor: qrBusy === pkg.id ? "wait" : "pointer", background: "var(--bg-surface-sunk)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "0.78rem", fontWeight: 600, opacity: qrBusy === pkg.id ? 0.6 : 1 }}>
                         {qrBusy === pkg.id ? "⏳ QR" : "📱 QR"}
                       </button>
                       <button onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}
