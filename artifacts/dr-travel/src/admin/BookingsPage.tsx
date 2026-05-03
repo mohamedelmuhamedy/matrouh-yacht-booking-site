@@ -260,6 +260,14 @@ export default function BookingsPage() {
       }
       const blob = await generateTicketBlob();
       if (!blob) throw new Error();
+      if (ticketBooking) {
+        try {
+          await adminFetch(`/admin/bookings/${ticketBooking.id}/ticket-pdf`, {
+            method: "POST", headers: { "Content-Type": "application/pdf" }, body: blob,
+          });
+          if (ticketData.ticketToken) await reloadTicket(ticketData.ticketToken);
+        } catch { /* non-blocking, still let user download locally */ }
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -540,11 +548,17 @@ export default function BookingsPage() {
                   ↗️ صفحة التحقق
                 </a>
               )}
-              {ticketData?.pdfUrl && (
-                <a href={ticketData.pdfUrl} target="_blank" rel="noreferrer"
-                  style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
-                  📄 آخر PDF منشور
-                </a>
+              {ticketData?.pdfUrl && ticketData.ticketToken && (
+                <>
+                  <a href={ticketPdfAbsoluteUrl(ticketData.ticketToken)} target="_blank" rel="noreferrer"
+                    style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
+                    📄 فتح PDF
+                  </a>
+                  <a href={`${ticketPdfAbsoluteUrl(ticketData.ticketToken)}?download=1`} target="_blank" rel="noreferrer"
+                    style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700 }}>
+                    ⬇️ تحميل PDF من السيرفر
+                  </a>
+                </>
               )}
             </div>
 

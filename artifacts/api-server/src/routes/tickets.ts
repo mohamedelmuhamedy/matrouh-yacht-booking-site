@@ -126,9 +126,14 @@ router.get("/tickets/:token.pdf", async (req, res) => {
     if (b.status !== "confirmed") return res.status(403).end();
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     if (!fs.existsSync(pdfPath)) return res.status(404).json({ error: "PDF not yet generated" });
+    const stat = fs.statSync(pdfPath);
+    const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
+    const safeName = b.ticketNumber || `dr-travel-ticket-${b.id}`;
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="dr-travel-ticket-${b.id}.pdf"`);
+    res.setHeader("Content-Length", String(stat.size));
+    res.setHeader("Content-Disposition", `${disposition}; filename="${safeName}.pdf"`);
     res.setHeader("Cache-Control", "private, max-age=300");
+    res.setHeader("X-Content-Type-Options", "nosniff");
     fs.createReadStream(pdfPath).pipe(res);
     return;
   } catch (err) {
