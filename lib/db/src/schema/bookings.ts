@@ -19,6 +19,7 @@ export const bookings = pgTable("bookings", {
   priceAtBooking: integer("price_at_booking"),
   status: text("status").notNull().default("new"),
   referralCode: text("referral_code").notNull().default(""),
+  ticketToken: text("ticket_token"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -2,6 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import Ticket, { formatPhoneIntl, type TicketData } from "../components/Ticket";
+import { apiFetch } from "../lib/api";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
@@ -21,6 +25,12 @@ export default function BookingsPage() {
   const [noteText, setNoteText] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [ticketBooking, setTicketBooking] = useState<any | null>(null);
+  const [ticketData, setTicketData] = useState<TicketData | null>(null);
+  const [ticketLang, setTicketLang] = useState<"ar" | "en">("ar");
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketDownloading, setTicketDownloading] = useState(false);
+  const ticketRef = useRef<HTMLDivElement>(null);
   const { success, error: toastError } = useToast();
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -99,6 +109,91 @@ export default function BookingsPage() {
     const num = phone.replace(/\D/g, "");
     const intl = num.startsWith("0") ? "2" + num : num.startsWith("20") ? num : "20" + num;
     return `https://wa.me/${intl}?text=${msg}`;
+  };
+
+  const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
+
+  const openTicket = async (booking: any) => {
+    setTicketBooking(booking);
+    setTicketData(null);
+    setTicketLoading(true);
+    const initialLang: "ar" | "en" = (booking.packageNameAr && booking.packageNameAr.length > 0) ? "ar" : "en";
+    setTicketLang(initialLang);
+    try {
+      const tr = await adminFetch(`/admin/bookings/${booking.id}/issue-ticket`, { method: "POST" });
+      if (!tr.ok) throw new Error();
+      const { token } = await tr.json();
+      const dr = await apiFetch(`/api/tickets/${encodeURIComponent(token)}`);
+      if (!dr.ok) throw new Error();
+      const data: TicketData = await dr.json();
+      setTicketData(data);
+    } catch {
+      toastError("فشل تجهيز التذكرة");
+      setTicketBooking(null);
+    } finally {
+      setTicketLoading(false);
+    }
+  };
+
+  const closeTicket = () => {
+    setTicketBooking(null);
+    setTicketData(null);
+  };
+
+  const downloadTicketPdf = async () => {
+    if (!ticketRef.current || !ticketData) return;
+    setTicketDownloading(true);
+    try {
+      const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
+      if (!node) throw new Error("ticket node missing");
+      try { if (document.fonts && (document.fonts as any).ready) await (document.fonts as any).ready; } catch {}
+      // Wait for QR + images to settle
+      await new Promise(r => setTimeout(r, 250));
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
+      const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+      const w = canvas.width * ratio;
+      const h = canvas.height * ratio;
+      const x = (pageW - w) / 2;
+      const y = (pageH - h) / 2;
+      pdf.addImage(imgData, "PNG", x, y, w, h);
+      const safeName = ticketData.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g, "").trim().replace(/\s+/g, "-").slice(0, 40) || "guest";
+      pdf.save(`dr-travel-ticket-${ticketData.id}-${safeName}.pdf`);
+      success("تم تنزيل التذكرة");
+    } catch {
+      toastError("فشل تنزيل التذكرة");
+    } finally {
+      setTicketDownloading(false);
+    }
+  };
+
+  const sendTicketWhatsApp = () => {
+    if (!ticketData || !ticketData.ticketToken) return;
+    const url = ticketPublicUrl(ticketData.ticketToken);
+    const intl = formatPhoneIntl(ticketData.phone);
+    const ar = ticketLang === "ar";
+    const pkg = ar ? (ticketData.packageNameAr || ticketData.packageName) : (ticketData.packageName || ticketData.packageNameAr);
+    const msg = ar
+      ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: DRT-${String(ticketData.id).padStart(5, "0")}\n\nرابط التذكرة:\n${url}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
+      : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: DRT-${String(ticketData.id).padStart(5, "0")}\n\nTicket link:\n${url}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
+    window.open(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const copyTicketLink = async () => {
+    if (!ticketData || !ticketData.ticketToken) return;
+    const url = ticketPublicUrl(ticketData.ticketToken);
+    try {
+      await navigator.clipboard.writeText(url);
+      success("تم نسخ رابط التذكرة");
+    } catch {
+      toastError("تعذر نسخ الرابط");
+    }
   };
 
   return (
@@ -192,6 +287,13 @@ export default function BookingsPage() {
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {(b.status === "confirmed" || b.status === "completed") && (
+                        <button onClick={() => openTicket(b)}
+                          style={{ background: "#0D1B2A", color: "#C9A84C", border: "1px solid #C9A84C", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.35rem" }}
+                          title="تذكرة الحجز">
+                          🎫 تذكرة
+                        </button>
+                      )}
                       <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer"
                         style={{ background: "#25D366", color: "white", border: "none", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", textDecoration: "none", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
                         💬 واتساب
@@ -213,7 +315,7 @@ export default function BookingsPage() {
         </div>
       )}
 
-      {/* Note modal */}
+{/* Note modal */}
       {noteBooking && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
           onClick={() => setNoteBooking(null)}>
@@ -227,6 +329,71 @@ export default function BookingsPage() {
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1rem" }}>
               <button onClick={() => setNoteBooking(null)} style={{ background: "#f0f4f8", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 600 }}>إلغاء</button>
               <button onClick={saveNote} style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: "8px", padding: "0.6rem 1.25rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>💾 حفظ</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket modal */}
+      {ticketBooking && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "1.5rem 0.75rem", overflowY: "auto" }}
+          onClick={closeTicket}>
+          <div style={{ background: "#f8fafc", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+              <h3 style={{ margin: 0, color: "#0D1B2A", fontFamily: "Cairo, sans-serif", fontSize: "1.1rem", fontWeight: 800 }}>
+                🎫 تذكرة #{ticketBooking.id} — {ticketBooking.name}
+              </h3>
+              <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                <div style={{ display: "inline-flex", background: "#e2e8f0", borderRadius: 8, padding: 2 }}>
+                  {(["ar", "en"] as const).map(lng => (
+                    <button key={lng} onClick={() => setTicketLang(lng)}
+                      style={{ background: ticketLang === lng ? "#0D1B2A" : "transparent", color: ticketLang === lng ? "white" : "#475569", border: "none", borderRadius: 6, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
+                      {lng === "ar" ? "AR" : "EN"}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={closeTicket}
+                  style={{ background: "white", border: "1px solid #cbd5e1", borderRadius: 8, padding: "0.4rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem" }}>
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Action bar */}
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading}
+                style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading ? 0.6 : 1 }}>
+                ⬇️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل PDF"}
+              </button>
+              <button onClick={sendTicketWhatsApp} disabled={!ticketData}
+                style={{ background: "#25D366", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData ? 0.6 : 1 }}>
+                💬 إرسال على واتساب
+              </button>
+              <button onClick={copyTicketLink} disabled={!ticketData}
+                style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData ? 0.6 : 1 }}>
+                🔗 نسخ الرابط
+              </button>
+              {ticketData && ticketData.ticketToken && (
+                <a href={ticketPublicUrl(ticketData.ticketToken)} target="_blank" rel="noreferrer"
+                  style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                  ↗️ صفحة التحقق
+                </a>
+              )}
+            </div>
+
+            {/* Preview */}
+            <div ref={ticketRef} style={{ background: "#e2e8f0", borderRadius: 14, padding: "1rem", display: "flex", justifyContent: "center", overflow: "auto" }}>
+              {ticketLoading || !ticketData ? (
+                <div style={{ padding: "3rem", color: "#475569", fontFamily: "Cairo, sans-serif" }}>⏳ جاري تجهيز التذكرة...</div>
+              ) : (
+                <div style={{ transform: "scale(0.78)", transformOrigin: "top center", width: 800 }}>
+                  <Ticket
+                    data={ticketData}
+                    lang={ticketLang}
+                    publicUrl={ticketData.ticketToken ? ticketPublicUrl(ticketData.ticketToken) : ""}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

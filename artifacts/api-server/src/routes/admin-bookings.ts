@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, bookings } from "@workspace/db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { ensureTicketToken } from "./tickets";
 
 const router = Router();
 
@@ -54,9 +55,29 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
       .where(eq(bookings.id, id))
       .returning();
     if (!updated) return res.status(404).json({ error: "Booking not found" });
+    if (status === "confirmed" && !updated.ticketToken) {
+      const token = await ensureTicketToken(id);
+      if (token) updated.ticketToken = token;
+    }
     return res.json(updated);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || "Failed to update" });
+  }
+});
+
+router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const [b] = await db.select().from(bookings).where(eq(bookings.id, id));
+    if (!b) return res.status(404).json({ error: "Booking not found" });
+    if (b.status !== "confirmed" && b.status !== "completed") {
+      return res.status(400).json({ error: "Booking must be confirmed first" });
+    }
+    const token = await ensureTicketToken(id);
+    return res.json({ token, bookingId: id });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Failed to issue ticket" });
   }
 });
 

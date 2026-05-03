@@ -19,6 +19,7 @@ import fsUploadRouter from "./fs-upload";
 import pushRouter from "./push";
 import whyUsRouter from "./why-us";
 import aiChatRouter from "./ai-chat";
+import ticketsRouter from "./tickets";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(fsUploadRouter);
 router.use(pushRouter);
 router.use(whyUsRouter);
 router.use(aiChatRouter);
+router.use(ticketsRouter);
 
 export default router;
