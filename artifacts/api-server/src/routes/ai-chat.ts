@@ -23,6 +23,8 @@ import { authMiddleware, getJwtSecret } from "../middleware/auth";
 const router = Router();
 
 const DEFAULT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_TEMPERATURE = 0.4;
+const DEFAULT_MAX_TOKENS = 600;
 const CONTEXT_TTL_MS = 30_000;
 const MAX_USER_CHARS = 1500;
 const MAX_HISTORY = 8;
@@ -34,8 +36,31 @@ interface ContextSnapshot {
   text: string;
   settings: Record<string, string>;
   model: string;
+  temperature: number;
+  maxTokens: number;
+  promptExtras: string;
   validSlugs: Set<string>;
   pkgIndex: { slug: string; titleEn: string; titleAr: string }[];
+}
+
+export function invalidateAiContextCache() {
+  cachedContext = null;
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+function parseTemperature(raw: string | undefined): number {
+  const n = Number.parseFloat(raw ?? "");
+  if (!Number.isFinite(n)) return DEFAULT_TEMPERATURE;
+  return clamp(n, 0, 2);
+}
+
+function parseMaxTokens(raw: string | undefined): number {
+  const n = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_MAX_TOKENS;
+  return clamp(n, 50, 4000);
 }
 
 interface ChatTurn {
@@ -255,7 +280,10 @@ async function buildContext(): Promise<ContextSnapshot> {
     builtAt: now,
     text: lines.join("\n"),
     settings,
-    model: settings.ai_model || DEFAULT_MODEL,
+    model: (settings.ai_model || "").trim() || DEFAULT_MODEL,
+    temperature: parseTemperature(settings.ai_temperature),
+    maxTokens: parseMaxTokens(settings.ai_max_tokens),
+    promptExtras: (settings.ai_system_prompt_extras || "").trim().slice(0, 4000),
     validSlugs: new Set(pkgRows.map((p) => p.slug)),
     pkgIndex: pkgRows.map((p) => ({ slug: p.slug, titleEn: p.titleEn, titleAr: p.titleAr })),
   };
@@ -407,6 +435,12 @@ router.post("/ai/chat", async (req, res) => {
         ? `إذا اقترحت باقة معينة، أنهِ ردك بسطر منفصل بالشكل التالي بالضبط: [[slugs:slug1,slug2]] حيث slug1 من قائمة الـ slugs أعلاه. لا تذكر هذا السطر في النص العادي.`
         : `If you suggest specific packages, end your reply with one separate line in this exact format: [[slugs:slug1,slug2]] where slug1 is from the slugs list above. Do not mention this tag in the prose.`;
 
+    const extrasBlock = ctx.promptExtras
+      ? (lang === "ar"
+          ? `\n\n=== توجيهات إضافية من الإدارة ===\n${ctx.promptExtras}\n=== انتهت التوجيهات ===`
+          : `\n\n=== ADDITIONAL ADMIN INSTRUCTIONS ===\n${ctx.promptExtras}\n=== END ADDITIONAL INSTRUCTIONS ===`)
+      : "";
+
     const systemPrompt =
       lang === "ar"
         ? `أنت "مساعد DR Travel" — مساعد سفر ودود ومحترف لشركة DR Travel في مرسى مطروح. أجب دائماً بالعربية الفصحى السهلة (اللهجة المصرية الودودة مرحب بها) وبشكل موجز ومفيد.
@@ -423,7 +457,7 @@ router.post("/ai/chat", async (req, res) => {
 
 === بيانات الموقع المباشرة ===
 ${ctx.text}${visitorBlock}
-=== انتهت البيانات ===`
+=== انتهت البيانات ===${extrasBlock}`
         : `You are "DR Travel Assistant" — a friendly, professional travel assistant for DR Travel in Marsa Matruh, Egypt. Respond concisely and helpfully in clear English.
 
 Strict rules:
@@ -438,7 +472,7 @@ Strict rules:
 
 === LIVE SITE DATA ===
 ${ctx.text}${visitorBlock}
-=== END DATA ===`;
+=== END DATA ===${extrasBlock}`;
 
     const upstreamMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
       { role: "system", content: systemPrompt },
@@ -458,8 +492,8 @@ ${ctx.text}${visitorBlock}
       body: JSON.stringify({
         model: ctx.model,
         messages: upstreamMessages,
-        temperature: 0.4,
-        max_tokens: 600,
+        temperature: ctx.temperature,
+        max_tokens: ctx.maxTokens,
       }),
     });
 

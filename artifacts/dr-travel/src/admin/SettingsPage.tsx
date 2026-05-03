@@ -54,9 +54,35 @@ const DEFAULTS: Record<string, string> = {
   show_footer_map: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
+  ai_model: "openai/gpt-4o-mini",
+  ai_temperature: "0.4",
+  ai_max_tokens: "600",
+  ai_system_prompt_extras: "",
 };
 
-type FieldDef = { key: string; label: string; placeholder?: string; type?: "boolean" | "text" | "select"; hint?: string; options?: { value: string; label: string }[] };
+const AI_MODEL_OPTIONS: { value: string; label: string }[] = [
+  { value: "openai/gpt-4o-mini", label: "GPT-4o mini — رخيص وسريع (الافتراضي)" },
+  { value: "openai/gpt-4o", label: "GPT-4o — جودة عالية (Premium)" },
+  { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet — Premium" },
+  { value: "anthropic/claude-3-haiku", label: "Claude 3 Haiku — رخيص وسريع" },
+  { value: "google/gemini-flash-1.5", label: "Gemini 1.5 Flash — رخيص" },
+  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash (Free) — مجاني" },
+  { value: "deepseek/deepseek-chat", label: "DeepSeek Chat — رخيص جداً" },
+  { value: "meta-llama/llama-3.1-70b-instruct", label: "Llama 3.1 70B — مفتوح المصدر" },
+  { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Free) — مجاني" },
+];
+
+type FieldDef = {
+  key: string;
+  label: string;
+  placeholder?: string;
+  type?: "boolean" | "text" | "select" | "textarea" | "number";
+  hint?: string;
+  options?: { value: string; label: string }[];
+  min?: number;
+  max?: number;
+  step?: number;
+};
 
 const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: string }[] = [
   {
@@ -145,6 +171,47 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
     keys: [
       { key: "font_arabic", label: "الخط العربي" },
       { key: "font_en", label: "English Font" },
+    ],
+  },
+  {
+    title: "المساعد الذكي / AI Assistant",
+    icon: "🤖",
+    section: "ai",
+    keys: [
+      {
+        key: "ai_model",
+        label: "نموذج الذكاء الاصطناعي (AI Model)",
+        type: "select",
+        hint: "اختر النموذج المستخدم في المساعد الذكي. الموديلات الأرخص أسرع، والـ Premium بتدّي إجابات أدق",
+        options: AI_MODEL_OPTIONS,
+      },
+      {
+        key: "ai_temperature",
+        label: "درجة الإبداع (Temperature)",
+        type: "number",
+        placeholder: "0.4",
+        hint: "من 0 (إجابات ثابتة ودقيقة) حتى 2 (إبداعي ومتنوع). الافتراضي 0.4",
+        min: 0,
+        max: 2,
+        step: 0.1,
+      },
+      {
+        key: "ai_max_tokens",
+        label: "الحد الأقصى لطول الرد (Max Tokens)",
+        type: "number",
+        placeholder: "600",
+        hint: "أقصى عدد توكن لكل رد (50–4000). الافتراضي 600 ≈ 3-4 فقرات قصيرة",
+        min: 50,
+        max: 4000,
+        step: 50,
+      },
+      {
+        key: "ai_system_prompt_extras",
+        label: "تعليمات إضافية للمساعد (Persona / Tone)",
+        type: "textarea",
+        placeholder: "مثال: استخدم لهجة مصرية ودودة وبسيطة. ركّز على العائلات والأطفال. اذكر دائماً وجود مرشد عربي.",
+        hint: "نص حر يُضاف لتعليمات النظام لتعديل أسلوب أو شخصية المساعد. اتركه فارغاً للسلوك الافتراضي",
+      },
     ],
   },
   {
@@ -735,12 +802,13 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-                  {group.keys.map(({ key, label, placeholder, hint, type: fieldType, options }) => {
+                  {group.keys.map(({ key, label, placeholder, hint, type: fieldType, options, min, max, step }) => {
                     const val = settings[key] ?? "";
                     const hasValue = val.trim().length > 0;
                     const isAccent = key.includes("accent");
+                    const fullWidth = fieldType === "select" || fieldType === "textarea";
                     return (
-                      <div key={key} style={fieldType === "select" ? { gridColumn: "1 / -1" } : {}}>
+                      <div key={key} style={fullWidth ? { gridColumn: "1 / -1" } : {}}>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#445566", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
                           {isAccent && (
                             <span style={{ background: "linear-gradient(135deg,#00AAFF,#C9A84C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", fontWeight: 900, fontSize: "0.9rem" }}>✦</span>
@@ -754,19 +822,57 @@ export default function SettingsPage() {
                           </div>
                         )}
                         {fieldType === "select" && options ? (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                            {options.map(opt => {
-                              const active = (val || DEFAULTS[key]) === opt.value;
-                              return (
-                                <button key={opt.value} onClick={() => update(key, opt.value)}
-                                  style={{ padding: "0.45rem 1rem", borderRadius: 8, fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 600, fontSize: "0.82rem", cursor: "pointer", border: `1.5px solid ${active ? "#00AAFF" : "#d0dce8"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: active ? "#00AAFF" : "#556677", transition: "all 0.18s" }}>
-                                  {opt.label}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          options.length > 6 ? (
+                            <select
+                              value={val || DEFAULTS[key] || ""}
+                              onChange={e => update(key, e.target.value)}
+                              style={{ ...inputBase, cursor: "pointer", direction: "ltr" }}
+                            >
+                              {options.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                              {options.map(opt => {
+                                const active = (val || DEFAULTS[key]) === opt.value;
+                                return (
+                                  <button key={opt.value} onClick={() => update(key, opt.value)}
+                                    style={{ padding: "0.45rem 1rem", borderRadius: 8, fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 600, fontSize: "0.82rem", cursor: "pointer", border: `1.5px solid ${active ? "#00AAFF" : "#d0dce8"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: active ? "#00AAFF" : "#556677", transition: "all 0.18s" }}>
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )
+                        ) : fieldType === "textarea" ? (
+                          <textarea
+                            style={{
+                              ...inputBase,
+                              borderColor: hasValue ? "#00AAFF40" : "#d0dce8",
+                              minHeight: 110,
+                              resize: "vertical",
+                              fontFamily: "Cairo, sans-serif",
+                              lineHeight: 1.6,
+                            }}
+                            value={val}
+                            placeholder={placeholder}
+                            onChange={e => update(key, e.target.value)}
+                            onFocus={e => {
+                              e.target.style.borderColor = "#00AAFF";
+                              e.target.style.boxShadow = "0 0 0 3px rgba(0,170,255,0.12)";
+                            }}
+                            onBlur={e => {
+                              e.target.style.borderColor = settings[key]?.trim() ? "#00AAFF40" : "#d0dce8";
+                              e.target.style.boxShadow = "none";
+                            }}
+                          />
                         ) : (
                         <input
+                          type={fieldType === "number" ? "number" : "text"}
+                          min={fieldType === "number" ? min : undefined}
+                          max={fieldType === "number" ? max : undefined}
+                          step={fieldType === "number" ? step : undefined}
                           style={{
                             ...inputBase,
                             borderColor: hasValue ? (isAccent ? "#C9A84C40" : "#00AAFF40") : "#d0dce8",
