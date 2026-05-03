@@ -55,9 +55,12 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
       .where(eq(bookings.id, id))
       .returning();
     if (!updated) return res.status(404).json({ error: "Booking not found" });
-    if (status === "confirmed" && !updated.ticketToken) {
-      const token = await ensureTicketToken(id);
-      if (token) updated.ticketToken = token;
+    if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
+      const issued = await ensureTicketToken(id);
+      if (issued) {
+        updated.ticketToken = issued.token;
+        updated.ticketNumber = issued.ticketNumber;
+      }
     }
     return res.json(updated);
   } catch (err: unknown) {
@@ -102,8 +105,14 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res)
     if (b.status !== "confirmed" && b.status !== "completed") {
       return res.status(400).json({ error: "Booking must be confirmed first" });
     }
-    const token = await ensureTicketToken(id);
-    return res.json({ token, bookingId: id });
+    const issued = await ensureTicketToken(id);
+    if (!issued) return res.status(500).json({ error: "Token issuance failed" });
+    return res.json({
+      token: issued.token,
+      ticketNumber: issued.ticketNumber,
+      signature: issued.signature,
+      bookingId: id,
+    });
   } catch (err: unknown) {
     return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to issue ticket" });
   }

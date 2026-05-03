@@ -16,6 +16,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import WhyUsDetailPage from "./pages/WhyUsDetailPage";
 import SharePage from "./pages/SharePage";
 import TicketPage from "./pages/TicketPage";
+import VerifyPage from "./pages/VerifyPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminRouter from "./admin/AdminRouter";
 import PushPrompt from "./components/PushPrompt";
@@ -2014,6 +2015,7 @@ function PublicAppShell() {
             <Route path="/card" component={SharePage} />
             <Route path="/share" component={SharePage} />
             <Route path="/ticket/:token" component={TicketPage} />
+            <Route path="/verify/:token" component={VerifyPage} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />

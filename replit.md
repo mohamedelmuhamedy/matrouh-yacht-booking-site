@@ -85,6 +85,18 @@ Per-feature visual editor lets the admin set image / icon / tint / AR+EN title f
 - `artifacts/dr-travel/src/pages/ServiceDetailPage.tsx` — `getEffectiveFeatures()` prefers rich `features[]` if present, else falls back to legacy AR/EN string arrays + auto-detected visuals.
 - `artifacts/api-server/src/routes/services.ts` — `normalizeRichFeatures()` (drops empty entries, normalizes invalid hex tints to `#00AAFF`, caps at 30) + `deriveFeatureFields()` (when rich `features[]` is non-empty, server derives `featuresAr`/`featuresEn` from it so legacy stays in sync regardless of what the client sends).
 
+### Anti-Fake Branded Tickets (2026-05-03)
+
+Each booking ticket carries multiple anti-counterfeit features:
+- **Formatted ticket number** `DR-YY-IIIIRRRRRR-CK` (year, booking id, base32 random, sha256 checksum). Generated server-side, unique constraint on `bookings.ticket_number`.
+- **HMAC-SHA256 signature** (`signTicket`) over `<token>.<bookingId>.<ticketNumber>` using `SESSION_SECRET` (fallback `JWT_SECRET`). Returned as a 12-char base32 `signature`. Required as `?sig=` on the verify URL.
+- **Public verify endpoint**: `GET /api/tickets/verify/:token?sig=` returns `{status, ticket}` where status ∈ `valid|used|cancelled|invalid`. Mobile-friendly page at `/verify/:token?sig=` shows status with localized colour and (for admin) a "تأكيد الدخول" button.
+- **Admin mark-as-used**: `POST /api/admin/tickets/:token/use` (idempotent; blocks cancelled). Sets `ticket_used_at`, `ticket_used_by` from the JWT username.
+- **Visual security**: `components/Ticket.tsx` renders SVG guilloche pattern, repeated "DR TRAVEL · AUTHENTIC" microtext stripes, full-page rotated watermark, gold seal corner, ticket number + 12-char security code shown next to the QR.
+- **Ticket button gating**: `BookingsPage.tsx` only shows "إصدار/مشاركة التذكرة" when booking `status === "confirmed"`. Once used, a "✓ مستخدمة" pill is shown.
+
+Files: `artifacts/api-server/src/lib/ticketSecurity.ts`, `artifacts/api-server/src/routes/tickets.ts`, `artifacts/api-server/src/routes/admin-bookings.ts`, `artifacts/dr-travel/src/components/Ticket.tsx`, `artifacts/dr-travel/src/pages/VerifyPage.tsx`, `artifacts/dr-travel/src/admin/BookingsPage.tsx`, schema in `lib/db/src/schema/bookings.ts` (`ticket_number unique`, `ticket_used_at`, `ticket_used_by`).
+
 ## Workaround for Replit Dev-Proxy Port 5000 Bug (resolved 2026-05-02)
 
 The public Replit dev domain on port 5000 (`https://$REPLIT_DEV_DOMAIN/` and `:5000`) returns HTTP 502 because of a port-mapping mismatch in this Repl: `.replit` maps `localPort=5000 → externalPort=80` (old convention), but Replit's canvas/preview infrastructure expects external port 5000 directly. Both `vite` and `npx serve` reproduce the 502, proving it is not application-specific. Port 3001 (with 1:1 mapping) works fine through the same proxy.

@@ -25,6 +25,9 @@ interface Booking {
   status: string;
   referralCode: string;
   ticketToken: string | null;
+  ticketNumber?: string | null;
+  ticketUsedAt?: string | null;
+  ticketUsedBy?: string | null;
   meetingTime?: string;
   pickupLocation?: string;
   pickupLocationAr?: string;
@@ -295,11 +298,12 @@ export default function BookingsPage() {
     try {
       const pdfUrl = await uploadTicketPdfToServer();
       if (!pdfUrl) return;
-      const verifyUrl = ticketPublicUrl(ticketData.ticketToken);
+      const sig = ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : "";
+      const verifyUrl = `${window.location.origin}/verify/${ticketData.ticketToken}${sig}`;
       const intl = formatPhoneIntl(ticketData.phone);
       const ar = ticketLang === "ar";
       const pkg = ar ? ticketData.packageNameAr || ticketData.packageName : ticketData.packageName || ticketData.packageNameAr;
-      const ticketNo = `DRT-${String(ticketData.id).padStart(5, "0")}`;
+      const ticketNo = ticketData.ticketNumber || `DRT-${String(ticketData.id).padStart(5, "0")}`;
       const msg = ar
         ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
         : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
@@ -418,12 +422,18 @@ export default function BookingsPage() {
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                      {(b.status === "confirmed" || b.status === "completed") && (
+                      {b.status === "confirmed" && (
                         <button onClick={() => openTicket(b)}
                           style={{ background: "#0D1B2A", color: "#C9A84C", border: "1px solid #C9A84C", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.35rem" }}
                           title="تذكرة الحجز">
                           🎫 تذكرة
                         </button>
+                      )}
+                      {b.ticketUsedAt && (
+                        <span title={b.ticketUsedBy ? `بواسطة ${b.ticketUsedBy}` : ""}
+                          style={{ background: "#dcfce7", color: "#166534", border: "1px solid #86efac", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                          ✓ مستخدمة
+                        </span>
                       )}
                       <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer"
                         style={{ background: "#25D366", color: "white", border: "none", borderRadius: "8px", padding: "0.4rem 0.75rem", cursor: "pointer", textDecoration: "none", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
@@ -525,7 +535,7 @@ export default function BookingsPage() {
                 🔗 {ticketBusy === "copy" ? "جاري التجهيز..." : "نسخ رابط PDF"}
               </button>
               {ticketData && ticketData.ticketToken && (
-                <a href={ticketPublicUrl(ticketData.ticketToken)} target="_blank" rel="noreferrer"
+                <a href={`/verify/${ticketData.ticketToken}${ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : ""}`} target="_blank" rel="noreferrer"
                   style={{ background: "white", color: "#0D1B2A", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", textDecoration: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
                   ↗️ صفحة التحقق
                 </a>
@@ -547,7 +557,7 @@ export default function BookingsPage() {
                   <Ticket
                     data={ticketData}
                     lang={ticketLang}
-                    publicUrl={ticketData.ticketToken ? ticketPublicUrl(ticketData.ticketToken) : ""}
+                    publicUrl={ticketData.ticketToken ? `${window.location.origin}/verify/${ticketData.ticketToken}` : ""}
                   />
                 </div>
               )}
