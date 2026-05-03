@@ -21,16 +21,17 @@ function useAdminBrandName() {
   return brand;
 }
 
-const NAV = [
+type NavItem = { path: string; icon: string; label: string; badge?: "bookings" | "testimonials" };
+const NAV: NavItem[] = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
   { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
   { path: "/admin/categories",   icon: "🏷️", label: "الفئات" },
   { path: "/admin/services",     icon: "🎯", label: "الخدمات" },
   { path: "/admin/why-us",       icon: "✨", label: "مميزاتنا" },
-  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: true },
+  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: "bookings" },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
-  { path: "/admin/testimonials", icon: "⭐", label: "التقييمات" },
+  { path: "/admin/testimonials", icon: "⭐", label: "التقييمات", badge: "testimonials" },
   { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو" },
   { path: "/admin/push",         icon: "🔔", label: "الإشعارات" },
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
@@ -87,7 +88,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [newCount, setNewCount] = useState(0);
+  const [pendingTestimonials, setPendingTestimonials] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
+  const badgeFor = (b?: "bookings" | "testimonials") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : 0;
   const seenIds = useRef<Set<number>>(new Set());
   const initialized = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -123,15 +126,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       .catch(() => {});
   };
 
+  const fetchPendingTestimonials = () => {
+    adminFetch("/admin/testimonials/pending-count")
+      .then(r => r.ok ? r.json() : { count: 0 })
+      .then(d => setPendingTestimonials(d.count ?? 0))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchCount();
-    pollRef.current = setInterval(fetchCount, 60_000);
+    fetchPendingTestimonials();
+    pollRef.current = setInterval(() => { fetchCount(); fetchPendingTestimonials(); }, 60_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
-  // Refresh count when navigating away from bookings page (admin may have acted)
+  // Refresh count when navigating (admin may have acted)
   useEffect(() => {
     fetchCount();
+    fetchPendingTestimonials();
   }, [location]);
 
   const navTo = (path: string) => {
@@ -206,18 +218,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <nav style={{ flex: 1, padding: "0.75rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto" }}>
                 {NAV.map(item => {
                   const active = location.startsWith(item.path);
-                  const showBadge = item.badge && newCount > 0;
+                  const count = badgeFor(item.badge);
+                  const showBadge = count > 0;
                   return (
                     <button key={item.path} onClick={() => navTo(item.path)}
                       style={{ display: "flex", alignItems: "center", gap: "0.85rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "transparent", border: "none", borderRadius: 10, borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.65)", padding: "0.85rem 1rem", cursor: "pointer", fontSize: "0.92rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, textAlign: "right", transition: "all 0.2s" }}>
                       <span style={{ fontSize: "1.15rem", position: "relative", flexShrink: 0 }}>
                         {item.icon}
-                        <Badge count={showBadge ? newCount : 0} />
+                        <Badge count={showBadge ? count : 0} />
                       </span>
                       <span style={{ flex: 1 }}>{item.label}</span>
                       {showBadge && (
                         <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 7px", fontFamily: "Cairo, sans-serif" }}>
-                          {newCount > 99 ? "99+" : newCount} جديد
+                          {count > 99 ? "99+" : count} {item.badge === "testimonials" ? "قيد الانتظار" : "جديد"}
                         </span>
                       )}
                     </button>
@@ -248,7 +261,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#0D1B2A,#0a1420)", borderTop: "1px solid rgba(0,170,255,0.15)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)" }}>
           {BOTTOM_NAV.map(item => {
             const active = location.startsWith(item.path);
-            const showBadge = item.badge && newCount > 0;
+            const count = badgeFor(item.badge);
+            const showBadge = count > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
                 style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", position: "relative", transition: "all 0.2s" }}>
@@ -259,7 +273,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   {item.icon}
                   {showBadge && (
                     <span style={{ position: "absolute", top: -5, left: -6, minWidth: 16, height: 16, borderRadius: 8, background: "#EF4444", color: "white", fontSize: "0.55rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", boxShadow: "0 0 0 1.5px #0D1B2A" }}>
-                      {newCount > 99 ? "99+" : newCount}
+                      {count > 99 ? "99+" : count}
                     </span>
                   )}
                 </span>
@@ -294,20 +308,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
           {NAV.map(item => {
             const active = location.startsWith(item.path);
-            const showBadge = item.badge && newCount > 0;
+            const count = badgeFor(item.badge);
+            const showBadge = count > 0;
             return (
               <button key={item.path} onClick={() => navTo(item.path)}
                 style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", background: active ? "rgba(0,170,255,0.15)" : "none", border: "none", borderRight: active ? "3px solid #00AAFF" : "3px solid transparent", color: active ? "#00AAFF" : "rgba(255,255,255,0.6)", padding: "0.8rem 1rem", cursor: "pointer", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", fontWeight: active ? 700 : 500, transition: "all 0.2s", textAlign: "right", whiteSpace: "nowrap" }}>
                 <span style={{ fontSize: "1.2rem", flexShrink: 0, position: "relative" }}>
                   {item.icon}
-                  <Badge count={showBadge ? newCount : 0} />
+                  <Badge count={showBadge ? count : 0} />
                 </span>
                 {drawerOpen && (
                   <>
                     <span style={{ flex: 1 }}>{item.label}</span>
                     {showBadge && (
                       <span style={{ background: "#EF4444", color: "white", fontSize: "0.65rem", fontWeight: 900, borderRadius: 9, padding: "2px 7px", flexShrink: 0, fontFamily: "Cairo, sans-serif" }}>
-                        {newCount > 99 ? "99+" : newCount}
+                        {count > 99 ? "99+" : count}
                       </span>
                     )}
                   </>

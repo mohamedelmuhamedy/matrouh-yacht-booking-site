@@ -93,7 +93,9 @@ function testimonialToReview(t: DBTestimonial, lang: string) {
   const ar = lang === "ar";
   return {
     name: ar ? t.nameAr : (t.nameEn || t.nameAr),
-    initials: t.avatar || t.nameAr.slice(0, 2),
+    initials: (t.avatar && t.avatar.length <= 4 ? t.avatar : "") || (t.nameAr || t.nameEn || "؟").slice(0, 2),
+    avatarUrl: t.avatar && (t.avatar.startsWith("http") || t.avatar.startsWith("/")) ? t.avatar : "",
+    image: t.imageUrl || "",
     review: ar ? t.textAr : (t.textEn || t.textAr),
     stars: t.rating,
   };
@@ -1305,16 +1307,24 @@ function WhyUs() {
 }
 
 // ===== REVIEWS =====
-function ReviewCard({ review, colorIndex }: { review: { name: string; initials: string; review: string; stars: number }; colorIndex: number }) {
+function ReviewCard({ review, colorIndex }: { review: { name: string; initials: string; avatarUrl?: string; image?: string; review: string; stars: number }; colorIndex: number }) {
   const stars = Math.max(1, Math.min(5, review.stars || 5));
+  const imgSrc = review.image ? resolveApiAssetUrl(review.image) || review.image : "";
+  const avatarSrc = review.avatarUrl ? resolveApiAssetUrl(review.avatarUrl) || review.avatarUrl : "";
   return (
-    <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "18px", padding: "1.35rem 1.5rem", minWidth: "280px", maxWidth: "340px", flexShrink: 0, transition: "all 0.3s" }}
+    <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "18px", padding: "1.35rem 1.5rem", minWidth: "280px", maxWidth: "340px", flexShrink: 0, transition: "all 0.3s", display: "flex", flexDirection: "column", gap: "0.85rem" }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,170,255,0.3)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(0,170,255,0.14)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.9rem" }}>
-        <div style={{ width: 46, height: 46, borderRadius: "50%", background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 800, color: "white", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
-          {review.initials}
-        </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {avatarSrc ? (
+          <img src={avatarSrc} alt={review.name}
+            style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)", border: "2px solid rgba(255,255,255,0.15)" }}
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        ) : (
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: AVATAR_COLORS[colorIndex % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 800, color: "white", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+            {review.initials}
+          </div>
+        )}
         <div>
           <div style={{ color: "#e8f0f8", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.2rem" }}>{review.name}</div>
           <div style={{ display: "flex", gap: "1px" }}>
@@ -1325,7 +1335,241 @@ function ReviewCard({ review, colorIndex }: { review: { name: string; initials: 
         </div>
       </div>
       <p style={{ color: "#b8c8d8", fontSize: "0.875rem", lineHeight: 1.9, margin: 0, fontStyle: "italic" }}>"{review.review}"</p>
+      {imgSrc && (
+        <img src={imgSrc} alt=""
+          style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
+          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+      )}
     </div>
+  );
+}
+
+// ===== PUBLIC REVIEW SUBMIT FORM =====
+function ReviewSubmitForm() {
+  const { lang } = useLanguage();
+  const ar = lang === "ar";
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Revoke any blob: object URL when preview changes or component unmounts to avoid memory leaks.
+  useEffect(() => {
+    return () => { if (imagePreview && imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview); };
+  }, [imagePreview]);
+
+  const clearPreview = () => {
+    if (imagePreview && imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
+    setImagePreview("");
+    setImageUrl("");
+  };
+
+  const reset = () => {
+    setName(""); setText(""); setRating(5); setHoverRating(0);
+    clearPreview(); setError(""); setDone(false);
+  };
+
+  const closeModal = () => { setOpen(false); setTimeout(reset, 300); };
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
+      setError(ar ? "صور JPG / PNG / WEBP فقط" : "JPG / PNG / WEBP only");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError(ar ? "حجم الصورة كبير جداً (الحد 8 MB)" : "Image too large (max 8 MB)");
+      return;
+    }
+    setError("");
+    setUploading(true);
+    if (imagePreview && imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
+    setImagePreview(URL.createObjectURL(file));
+    try {
+      const r = await apiFetch("/api/testimonials/upload", {
+        method: "POST",
+        headers: { "Content-Type": file.type, "x-content-type": file.type },
+        body: file,
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || (ar ? "فشل رفع الصورة" : "Upload failed"));
+      }
+      const data = await r.json();
+      setImageUrl(data.proxyUrl || data.url || "");
+    } catch (e: any) {
+      setError(e.message || (ar ? "فشل رفع الصورة" : "Upload failed"));
+      setImagePreview("");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const submit = async () => {
+    if (!name.trim()) { setError(ar ? "الاسم مطلوب" : "Name is required"); return; }
+    if (text.trim().length < 8) { setError(ar ? "اكتب رأيك بشكل أوسع شوية" : "Tell us a bit more"); return; }
+    setError("");
+    setSubmitting(true);
+    try {
+      const body: any = ar
+        ? { nameAr: name.trim(), textAr: text.trim(), rating, imageUrl }
+        : { nameAr: name.trim(), nameEn: name.trim(), textAr: text.trim(), textEn: text.trim(), rating, imageUrl };
+      const r = await apiFetch("/api/testimonials/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || (ar ? "فشل إرسال التقييم" : "Submission failed"));
+      }
+      setDone(true);
+    } catch (e: any) {
+      setError(e.message || (ar ? "فشل الإرسال" : "Submission failed"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "2rem", paddingInline: "1.5rem" }}>
+        <button onClick={() => setOpen(true)}
+          style={{ background: "linear-gradient(135deg,#C9A84C,#a8842c)", color: "#0D1B2A", border: "none", borderRadius: "999px", padding: "0.85rem 2rem", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 8px 24px rgba(201,168,76,0.35)", transition: "transform 0.2s" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+          ✍️ {ar ? "اكتب رأيك" : "Write a review"}
+        </button>
+      </div>
+
+      {open && (
+        <div onClick={closeModal}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", direction: ar ? "rtl" : "ltr" }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: "linear-gradient(180deg,#1a2535,#0f1a28)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 22, padding: "1.75rem", width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 60px rgba(0,0,0,0.6)", fontFamily: "Cairo, sans-serif" }}>
+
+            {done ? (
+              <div style={{ textAlign: "center", padding: "1.5rem 0.5rem" }}>
+                <div style={{ fontSize: "3.5rem", marginBottom: "0.75rem" }}>🎉</div>
+                <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.2rem", marginBottom: "0.6rem" }}>
+                  {ar ? "شكراً لك!" : "Thank you!"}
+                </h3>
+                <p style={{ color: "#b8c8d8", fontSize: "0.9rem", lineHeight: 1.8, marginBottom: "1.5rem" }}>
+                  {ar ? "تم استلام تقييمك وسيظهر بعد الموافقة عليه من إدارة الموقع." : "Your review has been received and will appear once approved by our team."}
+                </p>
+                <button onClick={closeModal}
+                  style={{ background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 10, padding: "0.7rem 1.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, cursor: "pointer", fontSize: "0.92rem" }}>
+                  {ar ? "إغلاق" : "Close"}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+                  <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.15rem", margin: 0 }}>
+                    ✍️ {ar ? "شاركنا تجربتك" : "Share your experience"}
+                  </h3>
+                  <button onClick={closeModal}
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "0.3rem 0.7rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700 }}>
+                    ✕
+                  </button>
+                </div>
+
+                {/* Stars */}
+                <div style={{ marginBottom: "1.1rem" }}>
+                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
+                    {ar ? "كم نجمة تستاهل تجربتك؟" : "How many stars?"}
+                  </label>
+                  <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", padding: "0.5rem" }}>
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <button key={n} type="button"
+                        onMouseEnter={() => setHoverRating(n)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(n)}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: "2.2rem", lineHeight: 1, transition: "transform 0.15s" }}>
+                        <span style={{ color: n <= (hoverRating || rating) ? "#C9A84C" : "#2a3a4a", textShadow: n <= (hoverRating || rating) ? "0 0 12px rgba(201,168,76,0.5)" : "none", display: "inline-block", transform: n <= (hoverRating || rating) ? "scale(1.05)" : "scale(1)" }}>★</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                    {ar ? "اسمك" : "Your name"} *
+                  </label>
+                  <input value={name} onChange={e => setName(e.target.value)} maxLength={80}
+                    placeholder={ar ? "اكتب اسمك..." : "Your name..."}
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.12)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box" }} />
+                </div>
+
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                    {ar ? "رأيك في الرحلة" : "Your review"} *
+                  </label>
+                  <textarea value={text} onChange={e => setText(e.target.value)} maxLength={1500} rows={5}
+                    placeholder={ar ? "احكي لنا عن تجربتك..." : "Tell us about your experience..."}
+                    style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.12)", outline: "none", fontFamily: "Cairo, sans-serif", fontSize: "0.92rem", background: "#0d1824", color: "#fff", boxSizing: "border-box", resize: "vertical", lineHeight: 1.8 }} />
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.72rem", marginTop: "0.25rem", textAlign: ar ? "left" : "right" }}>
+                    {text.length} / 1500
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "1.1rem" }}>
+                  <label style={{ display: "block", color: "rgba(255,255,255,0.75)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.4rem" }}>
+                    {ar ? "صورة من الرحلة (اختياري)" : "Photo from your trip (optional)"}
+                  </label>
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                  {imagePreview ? (
+                    <div style={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
+                      <img src={imagePreview} alt="preview"
+                        style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)" }} />
+                      <button type="button"
+                        onClick={clearPreview}
+                        style={{ position: "absolute", top: 8, [ar ? "left" : "right"]: 8, background: "rgba(0,0,0,0.7)", color: "white", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontWeight: 900 }}>
+                        ✕
+                      </button>
+                      {uploading && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700 }}>
+                          ⏳ {ar ? "جاري الرفع..." : "Uploading..."}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                      style={{ width: "100%", padding: "1rem", borderRadius: 12, border: "1.5px dashed rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.65)", cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.9rem" }}>
+                      {uploading ? `⏳ ${ar ? "جاري الرفع..." : "Uploading..."}` : `📸 ${ar ? "اضغط لاختيار صورة" : "Tap to choose a photo"}`}
+                    </button>
+                  )}
+                </div>
+
+                {error && (
+                  <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: 10, padding: "0.7rem 1rem", marginBottom: "1rem", color: "#FCA5A5", fontSize: "0.85rem", fontWeight: 600 }}>
+                    ⚠️ {error}
+                  </div>
+                )}
+
+                <button onClick={submit} disabled={submitting || uploading}
+                  style={{ width: "100%", background: submitting ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#C9A84C,#a8842c)", color: submitting ? "rgba(255,255,255,0.5)" : "#0D1B2A", border: "none", borderRadius: 12, padding: "0.95rem", cursor: submitting ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 900, fontSize: "1rem", boxShadow: submitting ? "none" : "0 8px 24px rgba(201,168,76,0.3)" }}>
+                  {submitting ? `⏳ ${ar ? "جاري الإرسال..." : "Submitting..."}` : `🚀 ${ar ? "إرسال التقييم" : "Submit review"}`}
+                </button>
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.74rem", textAlign: "center", marginTop: "0.85rem", lineHeight: 1.6 }}>
+                  {ar ? "سيتم مراجعة تقييمك من الإدارة قبل نشره." : "Your review will be reviewed by our team before being published."}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1365,6 +1609,8 @@ function Reviews() {
           {[...row2, ...row2].map((r, i) => <ReviewCard key={i} review={r} colorIndex={i + 4} />)}
         </div>
       </div>
+
+      <ReviewSubmitForm />
     </section>
   );
 }

@@ -32,10 +32,14 @@ router.get("/packages/:slug", async (req, res) => {
 router.get("/testimonials", async (_req, res) => {
   try {
     const rows = await db.select().from(testimonials)
-      .where(eq(testimonials.isVisible, true))
+      .where(and(
+        eq(testimonials.isVisible, true),
+        eq(testimonials.status, "approved"),
+      ))
       .orderBy(asc(testimonials.sortOrder));
     return res.json(rows);
-  } catch {
+  } catch (err: any) {
+    console.error("GET /testimonials failed:", err);
     return res.status(500).json({ error: "Failed to fetch testimonials" });
   }
 });

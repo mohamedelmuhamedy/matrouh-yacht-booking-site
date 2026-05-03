@@ -66,6 +66,9 @@ export interface DBTestimonial {
   textAr: string;
   textEn: string;
   avatar: string;
+  imageUrl?: string;
+  status?: string;
+  source?: string;
   packageName: string;
   isVisible: boolean;
   sortOrder: number;
