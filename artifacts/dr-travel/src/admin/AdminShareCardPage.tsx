@@ -277,8 +277,8 @@ export default function AdminShareCardPage() {
                     <button key={t.value} type="button" onClick={() => update("card_theme", t.value)}
                       style={{
                         textAlign: "right", padding: "0.7rem 0.8rem", borderRadius: "12px",
-                        border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`,
-                        background: active ? "rgba(0,170,255,0.08)" : "white",
+                        border: `2px solid ${active ? "#00AAFF" : "var(--border)"}`,
+                        background: active ? "rgba(0,170,255,0.12)" : "var(--bg-surface-solid)",
                         color: "var(--text-primary)", cursor: "pointer", fontFamily: "Cairo, sans-serif",
                         display: "flex", flexDirection: "column", gap: "0.2rem",
                       }}>
@@ -316,7 +316,7 @@ export default function AdminShareCardPage() {
                   const active = bgType === opt.value;
                   return (
                     <button key={opt.value} type="button" onClick={() => update("card_bg_type", opt.value)}
-                      style={{ padding: "0.55rem 1.1rem", borderRadius: 10, border: `2px solid ${active ? "#00AAFF" : "#e0e8f0"}`, background: active ? "rgba(0,170,255,0.08)" : "white", color: "var(--text-primary)", fontWeight: 800, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.85rem" }}>
+                      style={{ padding: "0.55rem 1.1rem", borderRadius: 10, border: `2px solid ${active ? "#00AAFF" : "var(--border)"}`, background: active ? "rgba(0,170,255,0.12)" : "var(--bg-surface-solid)", color: "var(--text-primary)", fontWeight: 800, fontFamily: "Cairo, sans-serif", cursor: "pointer", fontSize: "0.85rem" }}>
                       {opt.label}
                     </button>
                   );
