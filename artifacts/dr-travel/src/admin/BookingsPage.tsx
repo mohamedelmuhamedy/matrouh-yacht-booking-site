@@ -209,7 +209,7 @@ export default function BookingsPage() {
       const s = ticketData.settings || {};
       const url = ticketPublicUrl(ticketData.ticketToken);
       const fg = s.card_qr_fg || "#0D1B2A";
-      const bg = s.card_qr_bg || "var(--bg-surface-solid)";
+      const bg = s.card_qr_bg || "#ffffff";
       const logoSrc = resolveApiAssetUrl(s.logo_url) || logoFallback;
       const baseName = (s.brand_short_name || s.brand_name || "dr-travel")
         .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
@@ -249,6 +249,10 @@ export default function BookingsPage() {
   };
 
   const openTicket = async (booking: Booking) => {
+    if (booking.status !== "confirmed") {
+      toastError("يجب تأكيد الحجز أولاً قبل إصدار التذكرة");
+      return;
+    }
     setTicketBooking(booking);
     setTicketData(null);
     setTicketLoading(true);
@@ -256,12 +260,17 @@ export default function BookingsPage() {
     setTicketLang(initialLang);
     try {
       const tr = await adminFetch(`/admin/bookings/${booking.id}/issue-ticket`, { method: "POST" });
-      if (!tr.ok) throw new Error();
+      if (!tr.ok) {
+        const j = await tr.clone().json().catch(() => ({} as { error?: string }));
+        throw new Error(j.error || "issue-ticket failed");
+      }
       const { token } = await tr.json() as { token: string };
       const data = await reloadTicket(token);
-      if (!data) throw new Error();
-    } catch {
-      toastError("فشل تجهيز التذكرة");
+      if (!data) throw new Error("reload-ticket failed");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      console.error("[openTicket]", err);
+      toastError(msg ? `فشل تجهيز التذكرة: ${msg}` : "فشل تجهيز التذكرة");
       setTicketBooking(null);
     } finally {
       setTicketLoading(false);
@@ -294,16 +303,98 @@ export default function BookingsPage() {
   };
 
   const generateTicketBlob = async (): Promise<Blob | null> => {
-    if (!ticketRef.current || !ticketData) return null;
+    if (!ticketRef.current || !ticketData) {
+      console.error("[generateTicketBlob] missing ticketRef or ticketData");
+      return null;
+    }
     const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
-    if (!node) return null;
+    if (!node) {
+      console.error("[generateTicketBlob] [data-ticket-root] not found in ticketRef");
+      return null;
+    }
     try {
       const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
       if (fonts?.ready) await fonts.ready;
     } catch { /* ignore */ }
-    await new Promise(r => setTimeout(r, 280));
-    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "var(--bg-surface-solid)", useCORS: true, allowTaint: false });
-    const imgData = canvas.toDataURL("image/png");
+    // Wait for any <img> inside the ticket to finish loading. html2canvas
+    // hangs/fails silently if an image is mid-load when capture starts.
+    const imgs = Array.from(node.querySelectorAll("img"));
+    await Promise.all(imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise<void>(resolve => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+        // Fail-safe timeout so we never hang forever.
+        setTimeout(done, 4000);
+      });
+    }));
+    await new Promise(r => setTimeout(r, 200));
+    // Sanitize the cloned document to avoid html2canvas createPattern errors:
+    // strip SVG-data-URL backgrounds, replace linear/radial gradients with the
+    // first color stop (or a fallback), and remove rotations on the watermark.
+    const sanitizeForHtml2Canvas = (clonedDoc: Document) => {
+      const els = clonedDoc.querySelectorAll<HTMLElement>("[style]");
+      const firstColor = (str: string): string => {
+        const m = str.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/);
+        return m ? m[0] : "#ffffff";
+      };
+      els.forEach(el => {
+        const bgImg = el.style.backgroundImage;
+        if (bgImg) {
+          if (/data:image\/svg\+xml|gradient/i.test(bgImg)) {
+            // If it's a gradient and there's no explicit background-color, pick the first stop.
+            if (/gradient/i.test(bgImg) && !el.style.backgroundColor) {
+              el.style.backgroundColor = firstColor(bgImg);
+            }
+            el.style.backgroundImage = "none";
+          }
+        }
+        // Inline `background:` shorthand carrying a gradient.
+        const bgShorthand = el.style.background;
+        if (bgShorthand && /gradient/i.test(bgShorthand)) {
+          el.style.background = firstColor(bgShorthand);
+        }
+        // Remove rotations on the decorative watermark to keep capture math sane.
+        if (el.style.transform && /rotate\(/i.test(el.style.transform)) {
+          el.style.transform = "none";
+        }
+      });
+    };
+    // Use intrinsic layout dimensions, not getBoundingClientRect, because the
+    // ticket preview is rendered inside a `transform: scale(0.78)` wrapper —
+    // the bounding rect would be ~624x881 and crop the captured PDF.
+    const captureWidth = Math.ceil(node.offsetWidth || 800);
+    const captureHeight = Math.ceil(node.offsetHeight || 1130);
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(node, {
+        scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false, logging: false,
+        width: captureWidth, height: captureHeight,
+        windowWidth: captureWidth, windowHeight: captureHeight,
+        onclone: sanitizeForHtml2Canvas,
+      });
+    } catch (err) {
+      console.error("[generateTicketBlob] html2canvas (useCORS) failed:", err);
+      try {
+        canvas = await html2canvas(node, {
+          scale: 2, backgroundColor: "#ffffff", useCORS: false, allowTaint: true, logging: false,
+          width: captureWidth, height: captureHeight,
+          windowWidth: captureWidth, windowHeight: captureHeight,
+          onclone: sanitizeForHtml2Canvas,
+        });
+      } catch (err2) {
+        console.error("[generateTicketBlob] html2canvas retry failed:", err2);
+        throw err2;
+      }
+    }
+    let imgData: string;
+    try {
+      imgData = canvas.toDataURL("image/png");
+    } catch (err) {
+      console.error("[generateTicketBlob] canvas tainted, cannot toDataURL:", err);
+      throw err;
+    }
     const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -328,25 +419,29 @@ export default function BookingsPage() {
         if (!ok) return;
       }
       const blob = await generateTicketBlob();
-      if (!blob) throw new Error();
+      if (!blob) throw new Error("blob_null");
       if (ticketBooking) {
         try {
           await adminFetch(`/admin/bookings/${ticketBooking.id}/ticket-pdf`, {
             method: "POST", headers: { "Content-Type": "application/pdf" }, body: blob,
           });
           if (ticketData.ticketToken) await reloadTicket(ticketData.ticketToken);
-        } catch { /* non-blocking, still let user download locally */ }
+        } catch (err) { console.warn("[downloadTicketPdf] upload failed (non-blocking):", err); }
       }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       const safeName = ticketData.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g, "").trim().replace(/\s+/g, "-").slice(0, 40) || "guest";
       a.download = `dr-travel-ticket-${ticketData.id}-${safeName}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
       success("تم تنزيل التذكرة");
-    } catch {
-      toastError("فشل تنزيل التذكرة");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      console.error("[downloadTicketPdf]", err);
+      toastError(msg ? `فشل تنزيل التذكرة: ${msg}` : "فشل تنزيل التذكرة");
     } finally {
       setTicketDownloading(false);
     }
@@ -371,10 +466,14 @@ export default function BookingsPage() {
 
   const sendTicketWhatsApp = async () => {
     if (!ticketData || !ticketData.ticketToken) return;
+    // Open the popup synchronously (with a placeholder URL) inside the click
+    // gesture, then redirect once the upload is ready. This avoids popup
+    // blockers swallowing the wa.me link after our async upload.
+    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
     setTicketBusy("whatsapp");
     try {
       const pdfUrl = await uploadTicketPdfToServer();
-      if (!pdfUrl) return;
+      if (!pdfUrl) { popup?.close(); return; }
       const sig = ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : "";
       const verifyUrl = `${window.location.origin}/verify/${ticketData.ticketToken}${sig}`;
       const intl = formatPhoneIntl(ticketData.phone);
@@ -384,11 +483,43 @@ export default function BookingsPage() {
       const msg = ar
         ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
         : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
-      window.open(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
+      if (popup && !popup.closed) {
+        popup.location.href = waUrl;
+      } else {
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+      }
       success("تم تجهيز رسالة الواتساب");
+    } catch (err) {
+      console.error("[sendTicketWhatsApp]", err);
+      popup?.close();
+      toastError("فشل إرسال رسالة الواتساب");
     } finally {
       setTicketBusy("");
     }
+  };
+
+  const writeToClipboardWithFallback = async (text: string): Promise<boolean> => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch { /* fall through */ }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch { return false; }
   };
 
   const copyTicketLink = async () => {
@@ -397,12 +528,12 @@ export default function BookingsPage() {
     try {
       const pdfUrl = await uploadTicketPdfToServer();
       if (!pdfUrl) return;
-      try {
-        await navigator.clipboard.writeText(pdfUrl);
-        success("تم نسخ رابط ملف PDF");
-      } catch {
-        toastError("تعذر نسخ الرابط");
-      }
+      const ok = await writeToClipboardWithFallback(pdfUrl);
+      if (ok) success("تم نسخ رابط ملف PDF");
+      else toastError(`تعذر نسخ الرابط — ${pdfUrl}`);
+    } catch (err) {
+      console.error("[copyTicketLink]", err);
+      toastError("تعذر نسخ الرابط");
     } finally {
       setTicketBusy("");
     }
