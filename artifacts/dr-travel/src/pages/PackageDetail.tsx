@@ -128,11 +128,17 @@ export default function PackageDetail() {
       );
       return;
     }
-    const waMsg = t.booking.waMessage(
+    const baseMsg = t.booking.waMessage(
       pkgName, bookForm.name, bookForm.phone,
       bookForm.date || (ar ? "غير محدد" : "TBD"),
       bookForm.people, "0", "0", bookForm.notes
     );
+    const peopleNum = parseInt(bookForm.people) || 1;
+    const estimatedPrice = pkg ? formatPkgPrice(pkg.priceEGP * peopleNum) : "";
+    const priceLine = estimatedPrice
+      ? (ar ? `\n💰 السعر التقديري: ${estimatedPrice}` : `\n💰 Estimated Price: ${estimatedPrice}`)
+      : "";
+    const waMsg = baseMsg + priceLine;
     const waNum = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
     const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(waMsg)}`;
     setBookSubmitting(false);
