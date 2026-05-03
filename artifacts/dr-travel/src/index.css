@@ -1016,6 +1016,36 @@ main a:focus-visible {
   gap: 0.3rem;
   font-weight: 600;
 }
+.trip-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(0,170,255,0.08);
+  border: 1px solid rgba(0,170,255,0.18);
+  color: #00AAFF;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: "Cairo", sans-serif;
+  transition: background 0.2s, border-color 0.2s;
+}
+.trip-card:hover .trip-card-cta {
+  background: rgba(0,170,255,0.16);
+  border-color: rgba(0,170,255,0.35);
+}
+.trip-card-cta-arrow {
+  font-size: 1rem;
+  transition: transform 0.2s;
+}
+[dir="rtl"] .trip-card:hover .trip-card-cta-arrow {
+  transform: translateX(-4px);
+}
+[dir="ltr"] .trip-card:hover .trip-card-cta-arrow {
+  transform: translateX(4px);
+}
+
 /* ─── Booking modal: success screen polish ─── */
 .book-success-badge {
   width: 78px;
