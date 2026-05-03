@@ -57,10 +57,12 @@ export default function PushNotificationsPage() {
     fontSize: "0.85rem", marginBottom: "0.4rem",
   };
   const inputStyle: React.CSSProperties = {
-    width: "100%", border: "1.5px solid #e5e7eb", borderRadius: 8,
+    width: "100%", border: "1.5px solid var(--input-border)", borderRadius: 8,
     padding: "0.65rem 0.85rem", fontSize: "0.9rem",
     fontFamily: "Cairo, sans-serif", outline: "none",
-    boxSizing: "border-box", color: "#111",
+    boxSizing: "border-box",
+    background: "var(--input-bg)",
+    color: "var(--input-text)",
   };
 
   const vapidOk = stats?.vapidConfigured !== false;

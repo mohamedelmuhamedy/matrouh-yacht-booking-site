@@ -2,10 +2,10 @@ import { useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import { useSiteData } from "../context/SiteDataContext";
 import ReferralSection from "../components/ReferralSection";
-import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import CurrencySwitcher from "../components/CurrencySwitcher";
 import AIAssistant from "../components/AIAssistant";
 import SeoHead from "../components/SeoHead";
+import { useState, useEffect } from "react";
 
 const WhatsAppIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -26,49 +26,53 @@ function RewardsNavbar() {
   const { settings } = useSiteData();
   const [, navigate] = useLocation();
   const ar = lang === "ar";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
 
   return (
     <nav className="navbar scrolled" style={{ position: "sticky", top: 0, zIndex: 1000 }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" }}>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", cursor: "pointer" }} onClick={() => navigate("/")}>
-          <div style={{ position: "relative" }}>
-            <img src={logoImg} alt="DR Travel" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,170,255,0.5)", boxShadow: "0 0 16px rgba(0,170,255,0.3)" }} />
-            <span style={{ position: "absolute", bottom: 0, left: 0, width: 11, height: 11, borderRadius: "50%", background: "#25D366", border: "2px solid #0a1520" }} />
-          </div>
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", cursor: "pointer", flexShrink: 0 }} onClick={() => navigate("/")}>
           <div>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
-            <div style={{ fontSize: "0.6rem", color: "var(--text-muted)" }}>{settings.dev_name || "Yousef Mostafa"}</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.9rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
+            {!isMobile && <div style={{ fontSize: "0.6rem", color: "var(--text-muted)" }}>{settings.dev_name || "Yousef Mostafa"}</div>}
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        {/* Page badge — hide on very small screens */}
+        {!isMobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.3rem 0.85rem", flexShrink: 0 }}>
+            <span style={{ fontSize: "0.85rem" }}>🎁</span>
+            <span style={{ color: "#C9A84C", fontSize: "0.8rem", fontWeight: 700 }}>{ar ? "المكافآت" : "Rewards"}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
           <button onClick={() => navigate("/")}
-            className="nav-link"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>
-            {ar ? "الرئيسية" : "Home"}
+            style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "0.35rem 0.75rem", cursor: "pointer", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700 }}>
+            {ar ? "← الرئيسية" : "← Home"}
           </button>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "50px", padding: "0.3rem 0.85rem" }}>
-            <span style={{ fontSize: "0.85rem" }}>🎁</span>
-            <span style={{ color: "#C9A84C", fontSize: "0.82rem", fontWeight: 700 }}>
-              {ar ? "المكافآت والإحالة" : "Rewards & Referral"}
-            </span>
-          </div>
-
-          <CurrencySwitcher />
+          {!isMobile && <CurrencySwitcher />}
 
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "8px", padding: "0.35rem 0.65rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.78rem", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
+            style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.25)", borderRadius: "8px", padding: "0.35rem 0.6rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 700, fontFamily: "Cairo, sans-serif" }}>
             <GlobeIcon />
-            {t.langSwitcher.label}
+            {!isMobile && t.langSwitcher.label}
           </button>
 
           <a href="https://wa.me/201205756024" target="_blank" rel="noreferrer"
-            style={{ background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "0.5rem 1rem", borderRadius: "50px", fontWeight: 700, fontSize: "0.82rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            style={{ background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: isMobile ? "0.4rem 0.65rem" : "0.45rem 0.9rem", borderRadius: "50px", fontWeight: 700, fontSize: "0.78rem", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.35rem", flexShrink: 0 }}>
             <WhatsAppIcon />
-            {ar ? "تواصل" : "WhatsApp"}
+            {!isMobile && (ar ? "تواصل" : "Chat")}
           </a>
         </div>
       </div>

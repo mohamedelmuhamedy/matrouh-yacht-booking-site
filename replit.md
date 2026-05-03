@@ -2,207 +2,53 @@
 
 ## Overview
 
-A professional travel booking platform (Yacht Tourism & Safari - Marsa Matrouh). Features a public-facing website for browsing and booking travel packages, an admin dashboard for content management, and a dedicated backend API server.
+DR Travel is a professional travel booking platform specializing in Yacht Tourism and Safari experiences in Marsa Matrouh. The project aims to provide a comprehensive solution for customers to browse and book travel packages through a public-facing website, while administrators can manage content and bookings via a dedicated admin dashboard. The platform is built with a focus on user experience, robust backend services, and a scalable architecture to support future growth in the travel industry.
 
-## Architecture
+## User Preferences
 
-pnpm monorepo with the following packages:
+- The agent should prioritize high-level descriptions over granular implementation details.
+- Avoid including changelogs, update logs, or date-specific entries.
+- Consolidate redundant information and eliminate repetition.
+- Focus on architectural decisions and core features.
+- External dependencies should only include those actively integrated into the project.
 
-- `artifacts/dr-travel` — React + Vite frontend (public site + admin panel)
-- `artifacts/api-server` — Express.js backend API
-- `lib/db` — Shared PostgreSQL + Drizzle ORM database layer
-- `lib/api-spec` — OpenAPI YAML spec (source of truth)
-- `lib/api-client-react` — Generated React Query hooks
-- `lib/api-zod` — Generated Zod validation schemas
-- `scripts` — Utility scripts
+## System Architecture
 
-### Visual / e2e tests
+The project utilizes a `pnpm` monorepo structure, separating concerns into distinct packages:
 
-`artifacts/dr-travel/tests/` holds a Playwright suite that guards the
-theme system: toggle persistence + full-page screenshots of `/`,
-`/trips`, and `/admin/dashboard` in light + dark. Run with
-`pnpm --filter @workspace/dr-travel test:e2e`; refresh baselines with
-`test:e2e:update`. Config auto-starts both servers; admin login uses
-`ADMIN_USERNAME` / `ADMIN_PASSWORD` (defaults `admin` / `drtravel2024`).
-Baselines are committed under
-`artifacts/dr-travel/tests/visual.spec.ts-snapshots/` and
-`.github/workflows/visual-tests.yml` runs the suite on every PR. See
-`artifacts/dr-travel/tests/README.md`.
+- **Frontend (`artifacts/dr-travel`):** Developed with React 19, Vite v7, TypeScript, Tailwind CSS v4, Radix UI, TanStack Query, and Wouter. It serves both the public website and the admin panel.
+  - **UI/UX:** Adheres to a dark navy, gold, and blue palette. Components are designed for responsiveness and accessibility.
+  - **Localization:** Supports Arabic and English with RTL (Right-to-Left) for Arabic.
+  - **Performance:** Admin-specific pages are lazy-loaded with `React.lazy` and `Suspense` to optimize public bundle size. Dynamic imports are used for large libraries like `jspdf` to reduce initial load.
+  - **SEO:** Implements `react-helmet-async` for managing `SeoHead` components, enabling canonical URLs, hreflang, OpenGraph, and Twitter card metadata.
+- **Backend API (`artifacts/api-server`):** Built with Node.js 20, Express v5, and TypeScript. It provides a RESTful API for all platform functionalities.
+  - **Security:** Implements `helmet` for security headers, CORS allowlisting, `express-rate-limit` for API throttling, and robust input validation.
+  - **Proxying:** The Express server acts as a unified gateway, handling `/api/*` requests and proxying all other requests to the Vite development server for seamless HMR in the Replit environment.
+  - **Booking Integrity:** Server-side validation discards client-supplied prices, using database-resolved package prices. Implements 5-minute idempotency for bookings to prevent duplicates.
+  - **Ticket Security:** Features anti-counterfeit measures including formatted ticket numbers with checksums, HMAC-SHA256 signatures, public verification endpoints, and visual security elements (guilloche patterns, microtext, watermarks).
+  - **Data Privacy:** Customer phone numbers are redacted for non-admin requests to `/api/tickets/:token`.
+- **Database Layer (`lib/db`):** Shared PostgreSQL database with Drizzle ORM for schema management and interaction.
+  - **Atomicity:** Critical operations like settings updates and booking status changes are wrapped in Drizzle transactions to ensure data consistency.
+- **API Specification (`lib/api-spec`):** OpenAPI YAML spec serves as the single source of truth for API definitions.
+- **Generated Clients:**
+  - `lib/api-client-react`: Generated React Query hooks for frontend-backend communication.
+  - `lib/api-zod`: Generated Zod validation schemas for robust type checking.
+- **Core Features:**
+  - Travel packages browsing, booking, and management.
+  - CRUD operations for services, categories, hero sliders, testimonials, and bookings.
+  - Advanced rich features editor for services, allowing visual customization without code changes.
+  - Abandoned booking recovery system with WhatsApp integration.
+  - AI Quiz/Recommender for personalized travel package suggestions.
+  - Client-side revenue forecasting for administrators.
+  - Customer trip photos upload and moderation with public display.
+  - Referral reward system and push notifications (VAPID).
+  - Anti-Fake Branded Tickets with robust security features and verification.
 
-## Recent Features (May 2026)
+## External Dependencies
 
-Four new features added on top of the existing 7:
-- **Abandoned booking recovery** — `abandoned_carts` table, `POST /api/abandoned-carts/track` (debounced 1.5s from booking form via `sessionStorage` session key), admin page at `/admin/abandoned-carts` with WhatsApp recovery messages, and auto-mark-recovered on successful booking (fire-and-forget call from `public-bookings.ts`).
-- **AI Quiz / Recommender** — `POST /api/ai/quiz` rule-based scoring on packages (vibe / budget / water / desert / group size), public page `/quiz` with 4-step wizard returning top 3 matches + active promo.
-- **Revenue forecasting** — purely client-side in `AdminStatsPage`: next 3 months projection blending future-confirmed bookings + trailing-3-month run-rate, plus YoY comparison.
-- **Customer trip photos** — `customer_photos` table, public token-gated streaming upload `POST /api/customer-photos/upload?token=<ticketToken>` (Supabase Storage), admin moderation page `/admin/customer-photos` with featured flag, public list `GET /api/customer-photos` with masked customer names. Upload section appears in `/review/:token` page after a review is submitted.
-
-## Stack
-
-- **Frontend:** React 19, Vite v7, TypeScript, Tailwind CSS v4, Radix UI, TanStack Query, Wouter
-- **Backend:** Node.js 20, Express v5, TypeScript
-- **Database:** Supabase PostgreSQL with Drizzle ORM
-- **Auth:** JWT with bcryptjs
-- **Storage:** Google Cloud Storage (local fallback)
-- **API Codegen:** Orval from OpenAPI spec
-
-## Running the App
-
-Two workflows are configured:
-1. **Start application** — Frontend on port 5000 (`PORT=5000 API_PORT=3001 pnpm --filter @workspace/dr-travel run dev`), output type webview
-2. **Backend API** — API server on port 3001 (`PORT=3001 pnpm --filter @workspace/api-server run dev`), output type console
-
-**Two-way proxy setup** (works around the Replit dev-proxy port 5000→80 bug):
-- The Vite dev server proxies `/api/*` to the backend on port 3001 (so the frontend can fetch its API).
-- The Express backend proxies all non-`/api/*` requests to Vite on port 5000 (so the Replit canvas/preview pane, which can only reach port 3001 reliably, can also serve the frontend with HMR).
-- Implementation: `artifacts/api-server/src/app.ts` uses `http-proxy-middleware`, dev-only (`NODE_ENV !== "production"`).
-
-## Environment Variables / Secrets
-
-- `SUPABASE_DATABASE_URL` — Supabase Postgres connection string (preferred by `lib/db`)
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` — Supabase client/admin
-- `JWT_SECRET`, `SESSION_SECRET` — auth secrets
-- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` — web push notifications
-- `DATABASE_URL` — Replit-managed Postgres (fallback if SUPABASE_DATABASE_URL not set)
-
-`lib/db/src/index.ts` selects the connection string in this order:
-`SUPABASE_DATABASE_URL` → individual `PG*` vars → `DATABASE_URL`.
-
-## Database
-
-PostgreSQL hosted on Supabase. Schema managed by Drizzle ORM.
-Push schema changes with: `pnpm --filter @workspace/db push`
-Schema has been pushed; tables (packages, categories, testimonials, settings, etc.) are populated.
-
-## Key Features
-
-- Travel packages browsing and booking
-- Services CRUD: each home-page service card opens its own detail page at `/services/:slug` (8 default services pre-seeded). Admin manages them at `/admin/services`. The `services_link_to_trips` setting still overrides per-service links when ON; `services_detail_pages_enabled` (default true) globally toggles whether cards open detail pages.
-- ServiceDetailPage uses the site's dark navy + gold/blue palette and is wrapped with Navbar + Footer + WhatsAppFloat + AIAssistant (matching HomePage shell). Bottom CTA button + Navbar links all route back home; navigating from any non-`/` page via Navbar links goes to `/<hash>` and HomePage scrolls to the hash on mount.
-- Admin dashboard (CRUD for packages, categories, hero sliders, testimonials, bookings, services)
-- Arabic/English localization (RTL support)
-- Currency switching
-- Referral reward system
-- Push notifications (VAPID)
-- Media/file upload support
-
-### Services table
-
-`services` table on Supabase has columns: `id, slug (unique), icon, title_ar/en, description_ar/en, long_description_ar/en, image_url, about_image_url, features_image_url, cta_image_url, color, features_ar/en (JSONB string arrays), features (JSONB rich array), cta_text_ar/en, cta_link, sort_order, is_active, created_at, updated_at`.
-
-Seed: `pnpm --filter @workspace/api-server seed-services` (idempotent — uses ON CONFLICT DO NOTHING on slug, so admin edits are preserved).
-
-API:
-- Public: `GET /api/services`, `GET /api/services/:slug` (only active services).
-- Admin (Bearer JWT): `GET/POST /api/admin/services`, `GET/PUT/DELETE /api/admin/services/:id`.
-
-The admin "toggle visibility" button refetches the full record before PUT to avoid wiping non-toggle fields.
-
-### Rich features editor (admin → service detail page)
-
-Per-feature visual editor lets the admin set image / icon / tint / AR+EN title for every "what's included" card on the service detail page — no code edits needed. Files:
-- `artifacts/dr-travel/src/lib/featureVisuals.ts` — shared `FEATURE_VISUAL_MAP` (24+ keyword → image/icon/tint), `getFeatureVisual()`, `buildFeatureFromText()`, used by both pages.
-- `artifacts/dr-travel/src/admin/AdminServiceFormPage.tsx` — per-card editor (AR/EN title, emoji, color, image upload, ▲▼ reorder, 🗑 delete, 💡 auto-suggest), bulk "↺ restore defaults" + "🗑 clear all", plus per-section image fields each with "↺ افتراضي" reset.
-- `artifacts/dr-travel/src/pages/ServiceDetailPage.tsx` — `getEffectiveFeatures()` prefers rich `features[]` if present, else falls back to legacy AR/EN string arrays + auto-detected visuals.
-- `artifacts/api-server/src/routes/services.ts` — `normalizeRichFeatures()` (drops empty entries, normalizes invalid hex tints to `#00AAFF`, caps at 30) + `deriveFeatureFields()` (when rich `features[]` is non-empty, server derives `featuresAr`/`featuresEn` from it so legacy stays in sync regardless of what the client sends).
-
-### Anti-Fake Branded Tickets (2026-05-03)
-
-Each booking ticket carries multiple anti-counterfeit features:
-- **Formatted ticket number** `DR-YY-XXXXXX-CK` (year, 6-char base32 random, 2-char checksum). Generated server-side, unique constraint on `bookings.ticket_number`, validated by `verifyTicketNumberChecksum` against `^DR-\d{2}-[A-Z0-9]{6}-[A-Z0-9]{2}$`.
-- **HMAC-SHA256 signature** (`signTicket`) over `bookingId|ticketToken|ticketNumber` using `SESSION_SECRET` (fallback `JWT_SECRET`). Returned as a 12-char base32 `signature`. Required as `?sig=` on the verify URL; `Ticket.tsx` appends it to the public `/verify/:token` QR target.
-- **Public verify endpoint**: `GET /api/tickets/verify/:token?sig=` returns `{status, ticket}` where status ∈ `valid|used|cancelled|invalid`. Mobile-friendly page at `/verify/:token?sig=` shows status with localized colour and (for admin) a "تأكيد الدخول" button.
-- **Admin mark-as-used**: `POST /api/admin/tickets/:token/use` (idempotent; blocks cancelled). Sets `ticket_used_at`, `ticket_used_by` from the JWT username.
-- **Visual security**: `components/Ticket.tsx` renders SVG guilloche pattern, repeated "DR TRAVEL · AUTHENTIC" microtext stripes, full-page rotated watermark, gold seal corner, ticket number + 12-char security code shown next to the QR.
-- **Ticket button gating**: `BookingsPage.tsx` only shows "إصدار/مشاركة التذكرة" when booking `status === "confirmed"`. Once used, a "✓ مستخدمة" pill is shown.
-
-Files: `artifacts/api-server/src/lib/ticketSecurity.ts`, `artifacts/api-server/src/routes/tickets.ts`, `artifacts/api-server/src/routes/admin-bookings.ts`, `artifacts/dr-travel/src/components/Ticket.tsx`, `artifacts/dr-travel/src/pages/VerifyPage.tsx`, `artifacts/dr-travel/src/admin/BookingsPage.tsx`, schema in `lib/db/src/schema/bookings.ts` (`ticket_number unique`, `ticket_used_at`, `ticket_used_by`).
-
-## Workaround for Replit Dev-Proxy Port 5000 Bug (resolved 2026-05-02)
-
-The public Replit dev domain on port 5000 (`https://$REPLIT_DEV_DOMAIN/` and `:5000`) returns HTTP 502 because of a port-mapping mismatch in this Repl: `.replit` maps `localPort=5000 → externalPort=80` (old convention), but Replit's canvas/preview infrastructure expects external port 5000 directly. Both `vite` and `npx serve` reproduce the 502, proving it is not application-specific. Port 3001 (with 1:1 mapping) works fine through the same proxy.
-
-**Fix applied:** Express on port 3001 was made into a unified gateway:
-- `/api/*` → handled by Express routes (existing).
-- everything else → proxied to Vite on `localhost:5000` via `http-proxy-middleware` (with `ws: true` for HMR).
-
-The canvas/preview iframe (auto-routed to port 3001 as `__default_preview__`) now successfully serves the full frontend with HMR. No changes were needed to the frontend code.
-
-## Site-wide hardening (Task #18, May 2026)
-
-### API security middleware (`artifacts/api-server/src/app.ts`)
-
-- `helmet()` — sensible default security headers (HSTS, nosniff, frameguard,
-  Referrer-Policy, COOP, etc.). CSP is intentionally disabled because the
-  same Express server proxies the Vite dev server in development.
-- CORS allowlist via `ALLOWED_ORIGINS` (comma-separated). Empty / unset =
-  allow-all (dev convenience). Same-origin requests (no `Origin` header)
-  always pass.
-- `app.set("trust proxy", 1)` so `req.ip` is the real client (not the
-  Replit / production reverse proxy) — required for accurate rate limiting.
-- `express.json({ limit: "1mb" })` and `urlencoded({ limit: "1mb" })`. A
-  central error handler converts `entity.too.large` / parse failures into
-  JSON 400/413 instead of HTML stack traces.
-- Rate limiters via `express-rate-limit`:
-  - global `/api`: 600 req/min/IP
-  - `/api/admin/login`: 20 / 15 min/IP
-  - `/api/bookings`, `/api/push/subscribe`, `/api/push/link-booking`: 30 / min
-  - `/api/ai/chat`: 20 / min (in addition to the in-memory per-IP limit
-    inside the route)
-  - `/api/share/scan`: 60 / min
-
-### Booking integrity (`artifacts/api-server/src/routes/public-bookings.ts`)
-
-- Server now resolves the package by `packageId` against the `packages`
-  table and copies `priceEGP` from the row. The client-supplied
-  `priceAtBooking` is **discarded** — eliminates the price-tampering vector.
-- Hard input validation: name (≤200), phone (Egyptian local or
-  international E.164-ish), date required, adults 1–50, children/infants
-  0–50/0–20.
-- 5-minute idempotency on `(phone, packageId|packageName, date)` — both
-  in-memory (sub-second dedupe) and a defensive DB check (survives
-  process restarts). Returns the original booking id with
-  `{ deduplicated: true }`.
-
-### Ticket privacy (`artifacts/api-server/src/routes/tickets.ts`)
-
-- `GET /api/tickets/:token` now redacts the customer phone (masked to
-  `01******24`) for non-admin requests. Requests carrying a valid admin
-  JWT (Bearer) get the unredacted record. Admin notes were already gated
-  by route-level auth.
-
-### Settings & status atomicity
-
-- `PUT /api/admin/settings` is now wrapped in a Drizzle transaction with
-  per-key validation; partial saves are no longer possible.
-- `PUT /api/admin/bookings/:id/status` wraps the status update + ticket
-  token issuance in a single transaction so a "confirmed" booking always
-  has a ticket.
-- `POST /api/push/subscribe` uses `INSERT … ON CONFLICT (endpoint) DO
-  UPDATE` instead of select-then-insert to remove the race window.
-
-### AI chat input hygiene (`artifacts/api-server/src/routes/ai-chat.ts`)
-
-- Reject empty / single-character messages.
-- Crude prompt-injection denylist refuses messages containing common
-  jailbreak markers (`ignore previous instructions`, `system prompt`,
-  `you are now`, etc.) before they reach the model.
-
-### Frontend perf & SEO
-
-- `AdminRouter` is now `React.lazy` + `Suspense` in `src/App.tsx`, so the
-  public bundle no longer ships the admin pages or their dependencies
-  (`html5-qrcode`, etc.).
-- `jspdf`, `html2canvas`, `html-to-image` are dynamically imported inside
-  `BookingsPage.tsx` only when the admin actually exports a ticket
-  (~400 kB gzipped pulled out of the initial admin chunk).
-- `react-helmet-async` is wired in `src/main.tsx`. New
-  `src/components/SeoHead.tsx` emits canonical URL, hreflang
-  `ar`/`en`/`x-default`, OpenGraph and Twitter card metadata. Used on
-  `NotFoundPage` (with `noindex`) and `TicketPage`.
-
-### New environment variables
-
-- `ALLOWED_ORIGINS` — comma-separated list of origins the API should
-  accept CORS requests from in production (e.g. `https://drtravel.eg,
-  https://www.drtravel.eg`). Leave unset for dev / single-origin setups.
+- **Database:** Supabase PostgreSQL with Drizzle ORM.
+- **Authentication:** JWT with `bcryptjs`.
+- **Storage:** Google Cloud Storage (with a local fallback mechanism).
+- **API Codegen:** Orval (used to generate API clients from OpenAPI spec).
+- **Push Notifications:** VAPID (used for web push notifications).
+- **AI Integration:** Implements basic prompt injection detection for AI chat.
