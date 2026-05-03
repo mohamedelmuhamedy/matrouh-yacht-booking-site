@@ -412,7 +412,7 @@ function Navbar() {
             <button onClick={() => setMenuOpen(!menuOpen)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
               {[0, 1, 2].map(i => (
-                <span key={i} style={{ width: 24, height: 2, background: "var(--text-primary)", display: "block", borderRadius: "2px", transition: "all 0.3s",
+                <span key={i} style={{ width: 24, height: 2, background: scrolled ? "var(--text-primary)" : "#ffffff", display: "block", borderRadius: "2px", transition: "all 0.3s",
                   transform: i === 0 && menuOpen ? "rotate(45deg) translate(5px,5px)" : i === 2 && menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none",
                   opacity: i === 1 && menuOpen ? 0 : 1 }} />
               ))}
@@ -1034,7 +1034,7 @@ function PackagesAndBooking() {
                       {pkg.slug && (
                         <button onClick={e => viewDetails(pkg.slug, e)}
                           style={{ flex: 1, background: "var(--bg-surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "0.45rem 0.5rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.75rem", fontFamily: "Cairo, sans-serif", fontWeight: 600, transition: "all 0.2s" }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface-2)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}>
                           🔍 {lang === "ar" ? "التفاصيل" : "Details"}
                         </button>
@@ -1221,7 +1221,7 @@ function PackagesAndBooking() {
               </a>
               <button onClick={() => setShowModal(false)}
                 style={{ background: "transparent", border: "1px solid var(--border-strong)", color: "var(--section-subtitle)", padding: "0.8rem", borderRadius: "12px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.9rem", transition: "all 0.2s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLElement).style.color = "var(--section-subtitle)"; }}>
                 {bk.modal.closeBtn}
               </button>

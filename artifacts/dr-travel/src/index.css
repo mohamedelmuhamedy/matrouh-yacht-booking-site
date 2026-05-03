@@ -188,6 +188,12 @@ html[dir="ltr"] {
 .nav-link.active { color: #00AAFF; }
 .nav-link.active::after { width: 100%; }
 
+/* Navbar text contrast: white over hero (unscrolled), tokenized over chrome (scrolled) */
+.navbar:not(.scrolled) .nav-link { color: rgba(255,255,255,0.85); }
+.navbar:not(.scrolled) .nav-link:hover { color: #ffffff; }
+.navbar.scrolled .nav-link { color: var(--text-secondary); }
+.navbar.scrolled .nav-link:hover { color: var(--text-primary); }
+
 /* ===== HERO ===== */
 .hero-bg {
   background:
