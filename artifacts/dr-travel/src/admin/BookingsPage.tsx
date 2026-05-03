@@ -759,7 +759,7 @@ function FilterTab({ value, current, count, label, color, onClick }: { value: st
   const active = value === current;
   return (
     <button onClick={() => onClick(value)}
-      style={{ background: active ? color : "white", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0 }}>
+      style={{ background: active ? color : "var(--bg-surface-solid)", color: active ? "white" : color, border: `1.5px solid ${color}`, borderRadius: "50px", padding: "0.35rem 0.9rem", cursor: "pointer", fontSize: "0.82rem", fontFamily: "Cairo, sans-serif", fontWeight: 700, transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0 }}>
       {label} {count > 0 && <span style={{ background: active ? "var(--text-muted)" : `${color}20`, borderRadius: "50px", padding: "0.1rem 0.4rem", marginRight: "0.25rem" }}>{count}</span>}
     </button>
   );

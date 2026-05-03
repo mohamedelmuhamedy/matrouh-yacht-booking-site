@@ -666,7 +666,7 @@ export default function SettingsPage() {
               onError={e => { (e.target as HTMLImageElement).src = logoFallback; }}
             />
             {settings.logo_url && (
-              <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: "white", fontWeight: 900, border: "2px solid white" }}>✓</div>
+              <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: "white", fontWeight: 900, border: "2px solid var(--bg-surface-solid)" }}>✓</div>
             )}
           </div>
           <div>
@@ -720,7 +720,7 @@ export default function SettingsPage() {
               )}
             </div>
             {settings.hero_bg_url && (
-              <div style={{ position: "absolute", top: 4, right: 4, width: 20, height: 20, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.55rem", color: "white", fontWeight: 900, border: "2px solid white" }}>✓</div>
+              <div style={{ position: "absolute", top: 4, right: 4, width: 20, height: 20, background: "#10B981", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.55rem", color: "white", fontWeight: 900, border: "2px solid var(--bg-surface-solid)" }}>✓</div>
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>

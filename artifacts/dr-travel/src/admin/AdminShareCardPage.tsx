@@ -296,7 +296,7 @@ export default function AdminShareCardPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                 {ACCENT_COLOR_PRESETS.map(c => (
                   <button key={c} type="button" onClick={() => update("card_accent_color", c)} title={c}
-                    style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: accent === c ? "3px solid #0D1B2A" : "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
+                    style={{ width: 34, height: 34, borderRadius: "10px", background: c, border: accent === c ? "3px solid var(--text-primary)" : "2px solid var(--border-strong)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer" }} />
                 ))}
                 <input type="color" value={accent} onChange={e => update("card_accent_color", e.target.value)}
                   style={{ width: 50, height: 36, border: "1.5px solid var(--border)", borderRadius: 10, padding: 0, background: "var(--bg-surface-solid)", cursor: "pointer" }} />
