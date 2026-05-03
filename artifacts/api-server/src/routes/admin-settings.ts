@@ -28,18 +28,43 @@ router.get("/admin/settings", authMiddleware, async (_req, res) => {
 
 router.put("/admin/settings", authMiddleware, async (req, res) => {
   try {
-    const updates: Record<string, string> = req.body;
-    let aiSettingsTouched = false;
-    for (const [key, value] of Object.entries(updates)) {
-      await db.insert(siteSettings)
-        .values({ key, value, updatedAt: new Date() })
-        .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
-      if (AI_SETTING_KEYS.has(key)) aiSettingsTouched = true;
+    const updates = req.body;
+    if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
+      return res.status(400).json({ error: "Invalid settings payload" });
     }
+    const entries = Object.entries(updates as Record<string, unknown>);
+    if (entries.length === 0) return res.json({ success: true });
+    if (entries.length > 500) {
+      return res.status(413).json({ error: "Too many settings in one request" });
+    }
+
+    // All-or-nothing: a partial settings save (some keys updated, others
+    // failing) leaves the site in an incoherent half-configured state.
+    let aiSettingsTouched = false;
+    await db.transaction(async (tx) => {
+      for (const [key, rawValue] of entries) {
+        if (typeof key !== "string" || key.length === 0 || key.length > 128) {
+          throw new Error(`Invalid setting key: ${String(key).slice(0, 32)}`);
+        }
+        const value = rawValue == null ? "" : String(rawValue);
+        if (value.length > 200_000) {
+          throw new Error(`Setting "${key}" exceeds maximum size`);
+        }
+        await tx
+          .insert(siteSettings)
+          .values({ key, value, updatedAt: new Date() })
+          .onConflictDoUpdate({
+            target: siteSettings.key,
+            set: { value, updatedAt: new Date() },
+          });
+        if (AI_SETTING_KEYS.has(key)) aiSettingsTouched = true;
+      }
+    });
     if (aiSettingsTouched) invalidateAiContextCache();
     return res.json({ success: true });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Failed to update settings" });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to update settings";
+    return res.status(500).json({ error: msg });
   }
 });
 

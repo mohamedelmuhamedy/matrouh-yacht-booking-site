@@ -124,29 +124,27 @@ router.post("/push/subscribe", async (req: Request, res: Response) => {
 
     const linkedBookingId = await resolveBookingIdFromTicketToken(ticketToken);
 
-    const existing = await db
-      .select({ id: pushSubscriptions.id })
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.endpoint, endpoint));
+    // Atomic upsert keyed on the unique endpoint — eliminates the race
+    // between the SELECT and the INSERT/UPDATE that previously could create
+    // duplicate rows or 23505 errors under concurrent requests.
+    const updateSet: { p256dh: string; auth: string; bookingId?: number } = {
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+    };
+    if (linkedBookingId !== null) updateSet.bookingId = linkedBookingId;
 
-    if (existing.length > 0) {
-      const update: { p256dh: string; auth: string; bookingId?: number } = {
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-      };
-      if (linkedBookingId !== null) update.bookingId = linkedBookingId;
-      await db
-        .update(pushSubscriptions)
-        .set(update)
-        .where(eq(pushSubscriptions.endpoint, endpoint));
-    } else {
-      await db.insert(pushSubscriptions).values({
+    await db
+      .insert(pushSubscriptions)
+      .values({
         endpoint,
         p256dh: keys.p256dh,
         auth: keys.auth,
         bookingId: linkedBookingId ?? undefined,
+      })
+      .onConflictDoUpdate({
+        target: pushSubscriptions.endpoint,
+        set: updateSet,
       });
-    }
 
     return res.json({ ok: true, linked: linkedBookingId !== null });
   } catch (err) {

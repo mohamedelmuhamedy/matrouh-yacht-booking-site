@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import Ticket, { type TicketData } from "../components/Ticket";
+import SeoHead from "../components/SeoHead";
 import { apiFetch } from "../lib/api";
 import { rememberTicket } from "../lib/myTickets";
 import { getPushPermission, linkPushSubscriptionToTicket } from "../hooks/usePushNotifications";
@@ -57,6 +58,13 @@ export default function TicketPage() {
   }
 
   return (
+    <>
+    <SeoHead
+      lang={ar ? "ar" : "en"}
+      title={`${T.pageTitle} · DRT-${String(data.id).padStart(5, "0")}`}
+      description={ar ? "تذكرة رحلة DR Travel" : "DR Travel booking ticket"}
+      noindex
+    />
     <div
       style={{
         minHeight: "100vh",
@@ -91,5 +99,6 @@ export default function TicketPage() {
         }
       `}</style>
     </div>
+    </>
   );
 }

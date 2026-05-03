@@ -6,10 +6,23 @@ import Ticket, { formatPhoneIntl, type TicketData } from "../components/Ticket";
 import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
 import { downloadQrPng } from "../components/ShareCardQR";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
-import html2canvas from "html2canvas";
-import * as htmlToImage from "html-to-image";
-import jsPDF from "jspdf";
 import "./bookings.css";
+
+// Heavy libraries (jspdf ≈ 350 kB gz, html2canvas ≈ 50 kB, html-to-image ≈ 25 kB)
+// are loaded on demand the first time the admin actually exports a ticket.
+// This keeps the admin bundle small for routine workflows like reading
+// bookings or updating statuses.
+async function loadHtml2Canvas() {
+  const m = await import("html2canvas");
+  return m.default;
+}
+async function loadHtmlToImage() {
+  return await import("html-to-image");
+}
+async function loadJsPDF() {
+  const m = await import("jspdf");
+  return m.default;
+}
 
 interface Booking {
   id: number;
@@ -417,6 +430,7 @@ export default function BookingsPage() {
     const captureWidth = Math.ceil(node.offsetWidth || 800);
     const captureHeight = Math.ceil(node.offsetHeight || 1130);
     let canvas: HTMLCanvasElement;
+    const html2canvas = await loadHtml2Canvas();
     try {
       canvas = await html2canvas(node, {
         scale: 2, backgroundColor: "#ffffff", useCORS: true, allowTaint: false, logging: false,
@@ -451,6 +465,7 @@ export default function BookingsPage() {
       console.error("[generateTicketBlob] canvas tainted, cannot toDataURL:", err);
       throw err;
     }
+    const jsPDF = await loadJsPDF();
     const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -489,6 +504,7 @@ export default function BookingsPage() {
     await new Promise(r => setTimeout(r, 150));
     const w = Math.ceil(node.offsetWidth || 800);
     const h = Math.ceil(node.offsetHeight || 1130);
+    const htmlToImage = await loadHtmlToImage();
     return await htmlToImage.toBlob(node, {
       pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff",
       width: w, height: h, style: { transform: "none", margin: "0" },

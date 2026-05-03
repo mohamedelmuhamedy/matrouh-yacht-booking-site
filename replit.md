@@ -119,3 +119,82 @@ The public Replit dev domain on port 5000 (`https://$REPLIT_DEV_DOMAIN/` and `:5
 - everything else → proxied to Vite on `localhost:5000` via `http-proxy-middleware` (with `ws: true` for HMR).
 
 The canvas/preview iframe (auto-routed to port 3001 as `__default_preview__`) now successfully serves the full frontend with HMR. No changes were needed to the frontend code.
+
+## Site-wide hardening (Task #18, May 2026)
+
+### API security middleware (`artifacts/api-server/src/app.ts`)
+
+- `helmet()` — sensible default security headers (HSTS, nosniff, frameguard,
+  Referrer-Policy, COOP, etc.). CSP is intentionally disabled because the
+  same Express server proxies the Vite dev server in development.
+- CORS allowlist via `ALLOWED_ORIGINS` (comma-separated). Empty / unset =
+  allow-all (dev convenience). Same-origin requests (no `Origin` header)
+  always pass.
+- `app.set("trust proxy", 1)` so `req.ip` is the real client (not the
+  Replit / production reverse proxy) — required for accurate rate limiting.
+- `express.json({ limit: "1mb" })` and `urlencoded({ limit: "1mb" })`. A
+  central error handler converts `entity.too.large` / parse failures into
+  JSON 400/413 instead of HTML stack traces.
+- Rate limiters via `express-rate-limit`:
+  - global `/api`: 600 req/min/IP
+  - `/api/admin/login`: 20 / 15 min/IP
+  - `/api/bookings`, `/api/push/subscribe`, `/api/push/link-booking`: 30 / min
+  - `/api/ai/chat`: 20 / min (in addition to the in-memory per-IP limit
+    inside the route)
+  - `/api/share/scan`: 60 / min
+
+### Booking integrity (`artifacts/api-server/src/routes/public-bookings.ts`)
+
+- Server now resolves the package by `packageId` against the `packages`
+  table and copies `priceEGP` from the row. The client-supplied
+  `priceAtBooking` is **discarded** — eliminates the price-tampering vector.
+- Hard input validation: name (≤200), phone (Egyptian local or
+  international E.164-ish), date required, adults 1–50, children/infants
+  0–50/0–20.
+- 5-minute idempotency on `(phone, packageId|packageName, date)` — both
+  in-memory (sub-second dedupe) and a defensive DB check (survives
+  process restarts). Returns the original booking id with
+  `{ deduplicated: true }`.
+
+### Ticket privacy (`artifacts/api-server/src/routes/tickets.ts`)
+
+- `GET /api/tickets/:token` now redacts the customer phone (masked to
+  `01******24`) for non-admin requests. Requests carrying a valid admin
+  JWT (Bearer) get the unredacted record. Admin notes were already gated
+  by route-level auth.
+
+### Settings & status atomicity
+
+- `PUT /api/admin/settings` is now wrapped in a Drizzle transaction with
+  per-key validation; partial saves are no longer possible.
+- `PUT /api/admin/bookings/:id/status` wraps the status update + ticket
+  token issuance in a single transaction so a "confirmed" booking always
+  has a ticket.
+- `POST /api/push/subscribe` uses `INSERT … ON CONFLICT (endpoint) DO
+  UPDATE` instead of select-then-insert to remove the race window.
+
+### AI chat input hygiene (`artifacts/api-server/src/routes/ai-chat.ts`)
+
+- Reject empty / single-character messages.
+- Crude prompt-injection denylist refuses messages containing common
+  jailbreak markers (`ignore previous instructions`, `system prompt`,
+  `you are now`, etc.) before they reach the model.
+
+### Frontend perf & SEO
+
+- `AdminRouter` is now `React.lazy` + `Suspense` in `src/App.tsx`, so the
+  public bundle no longer ships the admin pages or their dependencies
+  (`html5-qrcode`, etc.).
+- `jspdf`, `html2canvas`, `html-to-image` are dynamically imported inside
+  `BookingsPage.tsx` only when the admin actually exports a ticket
+  (~400 kB gzipped pulled out of the initial admin chunk).
+- `react-helmet-async` is wired in `src/main.tsx`. New
+  `src/components/SeoHead.tsx` emits canonical URL, hreflang
+  `ar`/`en`/`x-default`, OpenGraph and Twitter card metadata. Used on
+  `NotFoundPage` (with `noindex`) and `TicketPage`.
+
+### New environment variables
+
+- `ALLOWED_ORIGINS` — comma-separated list of origins the API should
+  accept CORS requests from in production (e.g. `https://drtravel.eg,
+  https://www.drtravel.eg`). Leave unset for dev / single-origin setups.

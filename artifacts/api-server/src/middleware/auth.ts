@@ -20,7 +20,19 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   const token = authHeader.substring(7);
   try {
     const secret = getJwtSecret();
-    const decoded = jwt.verify(token, secret) as { userId: number; username: string };
+    const decoded = jwt.verify(token, secret) as Record<string, unknown>;
+    // Reject visitor / referral / non-admin JWTs that happen to be signed
+    // with the same JWT_SECRET — they must not unlock admin routes.
+    if (
+      !decoded ||
+      typeof decoded !== "object" ||
+      typeof decoded.userId !== "number" ||
+      typeof decoded.username !== "string" ||
+      ("kind" in decoded && decoded.kind !== "admin")
+    ) {
+      res.status(401).json({ error: "Invalid or expired token", code: "INVALID_TOKEN" });
+      return;
+    }
     (req as any).admin = decoded;
     next();
   } catch (err: any) {

@@ -5,13 +5,37 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import express from "express";
-import { authMiddleware } from "../middleware/auth";
+import jwt from "jsonwebtoken";
+import { authMiddleware, getJwtSecret } from "../middleware/auth";
 import {
   generateTicketNumber,
   signTicket,
   verifyTicketSignature,
   verifyTicketNumberChecksum,
 } from "../lib/ticketSecurity";
+
+// Strict admin detection — only tokens that look like admin login tokens
+// (carry numeric `userId` + `username` AND have no `kind` field) count.
+// Visitor / referral tokens are signed with the same JWT_SECRET but carry
+// `kind: "visitor"`; treating them as admin would leak customer phone numbers.
+function isAdminRequest(req: express.Request): boolean {
+  const h = req.headers.authorization;
+  if (!h || !h.startsWith("Bearer ")) return false;
+  try {
+    const decoded = jwt.verify(h.slice(7), getJwtSecret()) as Record<string, unknown>;
+    if (!decoded || typeof decoded !== "object") return false;
+    if ("kind" in decoded && decoded.kind !== "admin") return false;
+    return typeof decoded.userId === "number" && typeof decoded.username === "string";
+  } catch {
+    return false;
+  }
+}
+
+function maskPhone(phone: string | null | undefined): string {
+  const p = String(phone ?? "");
+  if (p.length < 4) return p;
+  return p.slice(0, 2) + "*".repeat(Math.max(0, p.length - 4)) + p.slice(-2);
+}
 
 const router = Router();
 
@@ -27,8 +51,16 @@ export interface IssuedTicket {
   signature: string;
 }
 
-export async function ensureTicketToken(bookingId: number): Promise<IssuedTicket | null> {
-  const [b] = await db.select().from(bookings).where(eq(bookings.id, bookingId));
+// Caller may pass a Drizzle transaction handle (`tx`) so the read+update
+// happen inside the caller's transaction; otherwise we use the global `db`.
+// Type matches what `db.transaction(async (tx) => ...)` hands back.
+type DbLike = typeof db;
+export async function ensureTicketToken(
+  bookingId: number,
+  txArg?: DbLike,
+): Promise<IssuedTicket | null> {
+  const conn: DbLike = txArg ?? db;
+  const [b] = await conn.select().from(bookings).where(eq(bookings.id, bookingId));
   if (!b) return null;
 
   let token = b.ticketToken && b.ticketToken.length >= 16 ? b.ticketToken : null;
@@ -48,7 +80,7 @@ export async function ensureTicketToken(bookingId: number): Promise<IssuedTicket
   }
   if (Object.keys(updates).length > 0) {
     updates.updatedAt = new Date();
-    await db.update(bookings).set(updates).where(eq(bookings.id, bookingId));
+    await conn.update(bookings).set(updates).where(eq(bookings.id, bookingId));
   }
 
   const signature = signTicket({ bookingId, ticketToken: token, ticketNumber });
@@ -147,6 +179,11 @@ router.get("/tickets/:token", async (req, res) => {
     if (!token || token.length < 16) return res.status(404).json({ error: "Not found" });
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Not found" });
+
+    // PII redaction: a leaked ticket URL should not expose the customer's
+    // full phone number or admin notes. Admins (with a valid JWT) get the
+    // raw record; everyone else gets a masked phone and no admin notes.
+    const adminAccess = isAdminRequest(req);
     const settingsRows = await db.select().from(siteSettings);
     const settings: Record<string, string> = {};
     for (const row of settingsRows) {
@@ -172,7 +209,7 @@ router.get("/tickets/:token", async (req, res) => {
       ticketUsedAt: b.ticketUsedAt,
       ticketUsedBy: b.ticketUsedBy,
       name: b.name,
-      phone: b.phone,
+      phone: adminAccess ? b.phone : maskPhone(b.phone),
       packageId: b.packageId,
       packageName: b.packageName,
       packageNameAr: b.packageNameAr,

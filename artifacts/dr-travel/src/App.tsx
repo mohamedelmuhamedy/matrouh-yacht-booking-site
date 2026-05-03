@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
@@ -19,7 +19,9 @@ import SharePage from "./pages/SharePage";
 import TicketPage from "./pages/TicketPage";
 import VerifyPage from "./pages/VerifyPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import AdminRouter from "./admin/AdminRouter";
+// AdminRouter is loaded lazily so the public bundle never ships the admin
+// pages or their dependencies (jspdf, html2canvas, html5-qrcode, etc.).
+const AdminRouter = lazy(() => import("./admin/AdminRouter"));
 import PushPrompt from "./components/PushPrompt";
 import TripReminderBanner from "./components/TripReminderBanner";
 import { PACKAGES_DATA } from "./data/packages";
@@ -2070,7 +2072,9 @@ export default function App() {
     return (
       <>
         <InitialSplashScreen isInitializing={false} settleDelayMs={0} />
-        <AdminRouter />
+        <Suspense fallback={null}>
+          <AdminRouter />
+        </Suspense>
       </>
     );
   }

@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { useLanguage } from "../LanguageContext";
 import logoImg from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
+import SeoHead from "../components/SeoHead";
 
 export default function NotFoundPage() {
   const [, navigate] = useLocation();
@@ -8,6 +9,15 @@ export default function NotFoundPage() {
   const ar = lang === "ar";
 
   return (
+    <>
+    <SeoHead
+      lang={ar ? "ar" : "en"}
+      title={ar ? "الصفحة غير موجودة · DR Travel" : "Page Not Found · DR Travel"}
+      description={ar
+        ? "عذراً، الصفحة التي تبحث عنها غير موجودة. تصفّح باقات السفاري واليخوت في مرسى مطروح."
+        : "Sorry, the page you're looking for doesn't exist. Browse our Marsa Matruh safari and yacht packages."}
+      noindex
+    />
     <div style={{
       minHeight: "100vh", background: "var(--bg-page)", display: "flex", alignItems: "center",
       justifyContent: "center", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr",
@@ -39,5 +49,6 @@ export default function NotFoundPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

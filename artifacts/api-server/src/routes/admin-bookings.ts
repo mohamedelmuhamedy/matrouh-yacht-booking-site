@@ -50,19 +50,29 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
-    const [updated] = await db.update(bookings)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(bookings.id, id))
-      .returning();
-    if (!updated) return res.status(404).json({ error: "Booking not found" });
-    if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
-      const issued = await ensureTicketToken(id);
-      if (issued) {
-        updated.ticketToken = issued.token;
-        updated.ticketNumber = issued.ticketNumber;
+    // The status update and the ticket-token issuance must succeed or fail
+    // together — otherwise an admin can see "confirmed" without a ticket and
+    // re-trigger issuance manually, double-charging the user mentally.
+    const result = await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(bookings)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(bookings.id, id))
+        .returning();
+      if (!updated) return null;
+      if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
+        // Pass `tx` so token issuance is part of this transaction — if it
+        // fails, the status update rolls back too.
+        const issued = await ensureTicketToken(id, tx as unknown as typeof db);
+        if (issued) {
+          updated.ticketToken = issued.token;
+          updated.ticketNumber = issued.ticketNumber;
+        }
       }
-    }
-    return res.json(updated);
+      return updated;
+    });
+    if (!result) return res.status(404).json({ error: "Booking not found" });
+    return res.json(result);
   } catch (err: unknown) {
     return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to update" });
   }

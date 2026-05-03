@@ -371,6 +371,29 @@ router.post("/ai/chat", async (req, res) => {
     }
 
     if (!userMessage) return res.status(400).json({ error: "Message required" });
+    // Defensive minimum: a single character is almost always abuse / probing.
+    if (userMessage.length < 2) {
+      return res.status(400).json({ error: "Message too short" });
+    }
+    // Crude prompt-injection denylist — we cannot block all variants but we
+    // can refuse the most common attempts so the assistant stays on-topic.
+    const lowered = userMessage.toLowerCase();
+    const INJECTION_MARKERS = [
+      "ignore previous instructions",
+      "ignore the above",
+      "disregard previous",
+      "system prompt",
+      "you are now",
+      "act as",
+      "jailbreak",
+    ];
+    if (INJECTION_MARKERS.some((m) => lowered.includes(m))) {
+      return res.status(400).json({
+        error: lang === "ar"
+          ? "عذراً، لا يمكنني تنفيذ هذا الطلب."
+          : "Sorry, I can't process that request.",
+      });
+    }
 
     const ctx = await buildContext();
 
