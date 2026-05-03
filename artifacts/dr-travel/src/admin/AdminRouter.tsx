@@ -30,6 +30,8 @@ import AdminCapacityPage from "./AdminCapacityPage";
 import AdminUsersPage from "./AdminUsersPage";
 import AdminCalendarPage from "./AdminCalendarPage";
 import AdminStatsPage from "./AdminStatsPage";
+import AdminAbandonedCartsPage from "./AdminAbandonedCartsPage";
+import AdminCustomerPhotosPage from "./AdminCustomerPhotosPage";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAdmin();
@@ -150,6 +152,12 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/stats">
         <AdminGuard><AdminStatsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/abandoned-carts">
+        <AdminGuard><AdminAbandonedCartsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/customer-photos">
+        <AdminGuard><AdminCustomerPhotosPage /></AdminGuard>
       </Route>
       <Route path="/admin">
         <AdminGuard><DashboardPage /></AdminGuard>

@@ -20,3 +20,5 @@ export * from "./promo_codes";
 export * from "./booking_reviews";
 export * from "./waitlist";
 export * from "./package_capacity";
+export * from "./abandoned_carts";
+export * from "./customer_photos";

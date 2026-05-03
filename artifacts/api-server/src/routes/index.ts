@@ -27,6 +27,9 @@ import adminReviewsRouter from "./admin-reviews";
 import adminWaitlistRouter from "./admin-waitlist";
 import adminCapacityRouter from "./admin-capacity";
 import adminUsersRouter from "./admin-users";
+import adminAbandonedCartsRouter from "./admin-abandoned-carts";
+import customerPhotosRouter from "./customer-photos";
+import aiQuizRouter from "./ai-quiz";
 
 const router: IRouter = Router();
 
@@ -58,5 +61,8 @@ router.use(adminReviewsRouter);
 router.use(adminWaitlistRouter);
 router.use(adminCapacityRouter);
 router.use(adminUsersRouter);
+router.use(adminAbandonedCartsRouter);
+router.use(customerPhotosRouter);
+router.use(aiQuizRouter);
 
 export default router;

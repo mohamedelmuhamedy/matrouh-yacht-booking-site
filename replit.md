@@ -29,6 +29,14 @@ Baselines are committed under
 `.github/workflows/visual-tests.yml` runs the suite on every PR. See
 `artifacts/dr-travel/tests/README.md`.
 
+## Recent Features (May 2026)
+
+Four new features added on top of the existing 7:
+- **Abandoned booking recovery** — `abandoned_carts` table, `POST /api/abandoned-carts/track` (debounced 1.5s from booking form via `sessionStorage` session key), admin page at `/admin/abandoned-carts` with WhatsApp recovery messages, and auto-mark-recovered on successful booking (fire-and-forget call from `public-bookings.ts`).
+- **AI Quiz / Recommender** — `POST /api/ai/quiz` rule-based scoring on packages (vibe / budget / water / desert / group size), public page `/quiz` with 4-step wizard returning top 3 matches + active promo.
+- **Revenue forecasting** — purely client-side in `AdminStatsPage`: next 3 months projection blending future-confirmed bookings + trailing-3-month run-rate, plus YoY comparison.
+- **Customer trip photos** — `customer_photos` table, public token-gated streaming upload `POST /api/customer-photos/upload?token=<ticketToken>` (Supabase Storage), admin moderation page `/admin/customer-photos` with featured flag, public list `GET /api/customer-photos` with masked customer names. Upload section appears in `/review/:token` page after a review is submitted.
+
 ## Stack
 
 - **Frontend:** React 19, Vite v7, TypeScript, Tailwind CSS v4, Radix UI, TanStack Query, Wouter

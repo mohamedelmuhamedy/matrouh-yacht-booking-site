@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { apiFetch } from "../lib/api";
+import { apiFetch, apiUrl } from "../lib/api";
 
 interface BookingInfo {
   bookingId: number; customerName: string; packageName: string; date: string;
@@ -18,6 +18,37 @@ export default function ReviewPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hover, setHover] = useState(0);
+  const [photos, setPhotos] = useState<{ id: number; photoUrl: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [photoMsg, setPhotoMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadPhoto = async (file: File) => {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      setPhotoMsg("نوع الصورة غير مدعوم (JPG / PNG / WebP فقط)");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setPhotoMsg("حجم الصورة كبير (الحد 8 MB)");
+      return;
+    }
+    setUploading(true); setPhotoMsg("");
+    try {
+      const r = await fetch(apiUrl(`/api/customer-photos/upload?token=${encodeURIComponent(token)}`), {
+        method: "POST",
+        headers: { "Content-Type": file.type, "X-Content-Type": file.type },
+        body: file,
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "فشل الرفع");
+      setPhotos(p => [...p, { id: data.id, photoUrl: data.photoUrl }]);
+      setPhotoMsg("✓ تم الرفع بنجاح! ستظهر الصورة بعد الموافقة.");
+    } catch (e: any) {
+      setPhotoMsg(e.message || "فشل الرفع");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     apiFetch(`/api/reviews/by-token/${encodeURIComponent(token)}`)
@@ -57,7 +88,31 @@ export default function ReviewPage() {
             <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🌟</div>
             <h2 style={{ color: "#0D1B2A", margin: "0 0 0.5rem" }}>شكرًا لتقييمك!</h2>
             <p style={{ color: "#666", lineHeight: 1.7 }}>{info?.alreadyReviewed && !submitted ? "لقد قمت بتقييم هذه الرحلة من قبل." : "تم استلام تقييمك بنجاح. سنراجعه قريبًا."}</p>
-            <button onClick={() => navigate("/")} style={{ marginTop: "1rem", background: "#00AAFF", color: "white", border: "none", padding: "0.8rem 2rem", borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Cairo,sans-serif" }}>العودة للرئيسية</button>
+
+            {/* Photo upload (after review) */}
+            <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid #eee", textAlign: "right" }}>
+              <h3 style={{ color: "#0D1B2A", fontSize: "1.1rem", margin: "0 0 .25rem" }}>📸 شارك صورك من الرحلة</h3>
+              <p style={{ color: "#666", fontSize: ".85rem", margin: "0 0 .85rem" }}>ساعد المسافرين القادمين برؤية تجربتك الحقيقية! (اختياري)</p>
+
+              {photos.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: ".75rem" }}>
+                  {photos.map(p => (
+                    <img key={p.id} src={p.photoUrl} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 8 }} />
+                  ))}
+                </div>
+              )}
+
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+                style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ""; }} />
+              <button onClick={() => fileInputRef.current?.click()} disabled={uploading || photos.length >= 12}
+                style={{ width: "100%", background: uploading ? "#94A3B8" : "#10B981", color: "white", border: "none", padding: ".8rem", borderRadius: 10, fontWeight: 700, cursor: uploading ? "wait" : "pointer", fontFamily: "Cairo,sans-serif" }}>
+                {uploading ? "⏳ جاري الرفع..." : photos.length >= 12 ? "وصلت الحد الأقصى (12 صورة)" : "📷 إضافة صورة"}
+              </button>
+              {photoMsg && <div style={{ marginTop: ".5rem", color: photoMsg.startsWith("✓") ? "#10B981" : "#EF4444", fontSize: ".85rem", fontWeight: 700 }}>{photoMsg}</div>}
+            </div>
+
+            <button onClick={() => navigate("/")} style={{ marginTop: "1.5rem", background: "#00AAFF", color: "white", border: "none", padding: "0.8rem 2rem", borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Cairo,sans-serif" }}>العودة للرئيسية</button>
           </div>
         ) : info ? (
           <form onSubmit={submit}>

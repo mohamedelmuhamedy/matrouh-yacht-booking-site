@@ -35,6 +35,8 @@ const NAV: NavItem[] = [
   { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: "bookings" },
   { path: "/admin/capacity",     icon: "🪑", label: "السعة" },
   { path: "/admin/waitlist",     icon: "📋", label: "قائمة الانتظار" },
+  { path: "/admin/abandoned-carts", icon: "🛒", label: "العربات المتروكة" },
+  { path: "/admin/customer-photos", icon: "📸", label: "صور العملاء" },
   { path: "/admin/scanner",      icon: "📷", label: "ماسح التذاكر" },
   { path: "/admin/promo-codes",  icon: "🎟️", label: "أكواد الخصم" },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },

@@ -19,6 +19,7 @@ import SharePage from "./pages/SharePage";
 import TicketPage from "./pages/TicketPage";
 import VerifyPage from "./pages/VerifyPage";
 import ReviewPage from "./pages/ReviewPage";
+import QuizPage from "./pages/QuizPage";
 import SeoHead from "./components/SeoHead";
 import NotFoundPage from "./pages/NotFoundPage";
 // AdminRouter is loaded lazily so the public bundle never ships the admin
@@ -936,6 +937,41 @@ function PackagesAndBooking() {
   const bk = t.booking;
   const estimatedPrice = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
 
+  // Abandoned-cart tracking: stable session key + debounced POST when form has phone or name
+  const sessionKeyRef = useRef<string>("");
+  if (!sessionKeyRef.current) {
+    try {
+      const k = sessionStorage.getItem("drt_cart_session");
+      if (k && k.length >= 8) sessionKeyRef.current = k;
+      else {
+        const nk = "drt-" + Math.random().toString(36).slice(2, 10) + "-" + Date.now().toString(36);
+        sessionStorage.setItem("drt_cart_session", nk);
+        sessionKeyRef.current = nk;
+      }
+    } catch { sessionKeyRef.current = "drt-" + Math.random().toString(36).slice(2, 12); }
+  }
+  useEffect(() => {
+    if (!selectedPkg) return;
+    if (!form.phone.trim() && !form.name.trim()) return;
+    const t = setTimeout(() => {
+      apiFetch("/api/abandoned-carts/track", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionKey: sessionKeyRef.current,
+          name: form.name, phone: form.phone,
+          packageId: selectedPkg.id,
+          packageName: selectedPkg.titleAr || selectedPkg.name || "",
+          date: form.date,
+          adults: parseInt(form.adults) || 1,
+          children: parseInt(form.children) || 0,
+          estimatedValue: estimatedPrice || 0,
+        }),
+      }).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [form.name, form.phone, form.date, form.adults, form.children, selectedPkg?.id, estimatedPrice]);
+
+
   const selectPkg = (pkg: DisplayPkg) => {
     if (selectedPkg?.id === pkg.id) { setSelectedPkg(null); return; }
     setSelectedPkg(pkg);
@@ -973,6 +1009,7 @@ function PackagesAndBooking() {
             priceAtBooking: estimatedPrice || null,
             referralCode: referralStatus === "valid" ? form.referralCode.trim().toUpperCase() : undefined,
             promoCode: promoStatus === "valid" ? form.promoCode.trim().toUpperCase() : undefined,
+            sessionKey: sessionKeyRef.current,
           }),
         });
         if (r.status === 409) {
@@ -2147,6 +2184,7 @@ function PublicAppShell() {
             <Route path="/ticket/:token" component={TicketPage} />
             <Route path="/verify/:token" component={VerifyPage} />
             <Route path="/review/:token" component={ReviewPage} />
+            <Route path="/quiz" component={QuizPage} />
             <Route component={NotFoundPage} />
           </Switch>
           <PushPrompt />

@@ -76,7 +76,55 @@ export default function AdminStatsPage() {
       if (!isNaN(d.getTime())) dow[d.getDay()] += 1;
     });
 
-    return { totalBookings: inRange.length, confirmed: confirmed.length, totalRevenue, totalGuests, avgValue, avgGroup, conversion, repeatCustomers, byMonth, topPackages, promoSavings, promoUsed, dow };
+    // === Revenue forecasting (next 3 months) ===
+    // Two signals combined:
+    // 1. Future confirmed bookings already on the books (date >= today)
+    // 2. Trailing 3-month average run-rate (for the "uncertain" portion of the month)
+    const todayMs = new Date().setHours(0, 0, 0, 0);
+    const trailing3 = byMonth.slice(-3);
+    const trailingAvgRevenue = trailing3.length ? trailing3.reduce((s, m) => s + m.revenue, 0) / trailing3.length : 0;
+    const trailingAvgCount = trailing3.length ? trailing3.reduce((s, m) => s + m.count, 0) / trailing3.length : 0;
+
+    const forecast: { label: string; booked: number; projected: number; bookings: number }[] = [];
+    for (let i = 0; i < 3; i++) {
+      const start = new Date(); start.setMonth(start.getMonth() + i, 1); start.setHours(0, 0, 0, 0);
+      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+      const future = bookings.filter(b => {
+        const td = new Date(b.date).getTime();
+        return td >= Math.max(start.getTime(), todayMs) && td < end.getTime() && b.status === "confirmed";
+      });
+      const booked = future.reduce((s, b) => s + (b.priceAtBooking || 0) - (b.discountAmount || 0), 0);
+      // For current month, blend already-confirmed-for-month + remaining run-rate share
+      let projected = booked;
+      if (i === 0) {
+        const daysInMonth = new Date(end.getTime() - 1).getDate();
+        const today = new Date(); const dayOfMonth = today.getDate();
+        const remainingFraction = Math.max(0, (daysInMonth - dayOfMonth + 1) / daysInMonth);
+        projected = booked + trailingAvgRevenue * remainingFraction * 0.6; // discount the projection
+      } else {
+        projected = Math.max(booked, trailingAvgRevenue * (i === 1 ? 0.85 : 0.7));
+      }
+      forecast.push({
+        label: start.toLocaleDateString("ar-EG", { month: "long" }),
+        booked, projected, bookings: future.length,
+      });
+    }
+    const forecastTotal = forecast.reduce((s, f) => s + f.projected, 0);
+
+    // YoY comparison (this month vs same month last year)
+    const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0, 0, 0, 0);
+    const thisMonthEnd = new Date(thisMonthStart.getFullYear(), thisMonthStart.getMonth() + 1, 1);
+    const lastYearStart = new Date(thisMonthStart.getFullYear() - 1, thisMonthStart.getMonth(), 1);
+    const lastYearEnd = new Date(thisMonthStart.getFullYear() - 1, thisMonthStart.getMonth() + 1, 1);
+    const sumRange = (start: Date, end: Date) => bookings.filter(b => {
+      const t = new Date(b.createdAt).getTime();
+      return t >= start.getTime() && t < end.getTime() && b.status === "confirmed";
+    }).reduce((s, b) => s + (b.priceAtBooking || 0) - (b.discountAmount || 0), 0);
+    const thisMonthRev = sumRange(thisMonthStart, thisMonthEnd);
+    const lastYearRev = sumRange(lastYearStart, lastYearEnd);
+    const yoyChange = lastYearRev > 0 ? ((thisMonthRev - lastYearRev) / lastYearRev) * 100 : null;
+
+    return { totalBookings: inRange.length, confirmed: confirmed.length, totalRevenue, totalGuests, avgValue, avgGroup, conversion, repeatCustomers, byMonth, topPackages, promoSavings, promoUsed, dow, forecast, forecastTotal, trailingAvgRevenue, trailingAvgCount, yoyChange, thisMonthRev, lastYearRev };
   }, [bookings, range]);
 
   if (loading) return <div style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>⏳ جار التحميل...</div>;
@@ -141,6 +189,38 @@ export default function AdminStatsPage() {
           </div>
         </Card>
       </div>
+
+      {/* Forecast */}
+      <Card title="🔮 توقعات الإيرادات (3 أشهر قادمة)">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: ".75rem", marginBottom: "1rem" }}>
+          {stats.forecast.map((f, i) => (
+            <div key={i} style={{ background: "var(--bg-page-2)", padding: ".85rem", borderRadius: 10, border: i === 0 ? "2px solid #00AAFF" : "1px solid var(--border)" }}>
+              <div style={{ fontSize: ".78rem", color: "var(--text-muted)", fontWeight: 700 }}>{f.label}{i === 0 && " (الحالي)"}</div>
+              <div style={{ fontSize: "1.3rem", fontWeight: 900, color: "var(--text-primary)", margin: ".25rem 0" }}>{fmt(f.projected)} <span style={{ fontSize: ".7rem", color: "var(--text-muted)" }}>ج.م</span></div>
+              <div style={{ fontSize: ".72rem", color: "#10B981", fontWeight: 700 }}>محجوز: {fmt(f.booked)} ج.م</div>
+              <div style={{ fontSize: ".7rem", color: "var(--text-muted)" }}>{f.bookings} حجز مستقبلي</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", paddingTop: ".75rem", borderTop: "1px solid var(--border)", fontSize: ".85rem" }}>
+          <div><strong style={{ color: "#00AAFF" }}>إجمالي متوقع: </strong>{fmt(stats.forecastTotal)} ج.م</div>
+          <div><strong>متوسط آخر 3 أشهر: </strong>{fmt(stats.trailingAvgRevenue)} ج.م</div>
+          {stats.yoyChange !== null && (
+            <div>
+              <strong>مقارنة بالعام الماضي: </strong>
+              <span style={{ color: stats.yoyChange >= 0 ? "#10B981" : "#EF4444", fontWeight: 800 }}>
+                {stats.yoyChange >= 0 ? "▲" : "▼"} {Math.abs(stats.yoyChange).toFixed(1)}%
+              </span>
+              <span style={{ color: "var(--text-muted)", fontSize: ".75rem" }}> ({fmt(stats.thisMonthRev)} مقابل {fmt(stats.lastYearRev)})</span>
+            </div>
+          )}
+        </div>
+        <div style={{ marginTop: ".75rem", padding: ".5rem .75rem", background: "rgba(0,170,255,.08)", borderRadius: 8, fontSize: ".75rem", color: "var(--text-muted)" }}>
+          💡 التوقعات مبنية على الحجوزات المستقبلية المؤكدة + متوسط آخر 3 أشهر. الشهر الحالي يخصم 40% من القيمة المتبقية للحذر.
+        </div>
+      </Card>
+
+      <div style={{ height: "1.25rem" }} />
 
       {/* Top packages */}
       <Card title="🏆 ترتيب الباقات حسب الإيراد">

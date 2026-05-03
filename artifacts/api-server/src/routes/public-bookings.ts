@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { createReferralRewardIfNeeded } from "./admin-rewards";
 import { ensureTicketToken } from "./tickets";
 import { consumePromoCode } from "./admin-promo-codes";
+import { markCartRecovered } from "./admin-abandoned-carts";
 import { checkCapacity } from "./admin-capacity";
 
 const router = Router();
@@ -68,6 +69,7 @@ router.post("/bookings", async (req, res) => {
     const currency = String(body.currency ?? "EGP").trim().slice(0, 8) || "EGP";
     const referralCode = String(body.referralCode ?? "").toUpperCase().trim().slice(0, 32);
     const promoCodeRaw = String(body.promoCode ?? "").toUpperCase().trim().slice(0, 32);
+    const sessionKey = String(body.sessionKey ?? "").trim().slice(0, 64);
 
     if (!name) return res.status(400).json({ error: "Name is required" });
     if (!isValidPhone(phoneRaw)) {
@@ -252,6 +254,15 @@ router.post("/bookings", async (req, res) => {
         } catch (err) {
           console.error("[public-bookings] ensureTicketToken failed:", err);
         }
+
+        // Mark any abandoned cart as recovered (fire-and-forget; don't block the response)
+        void markCartRecovered({
+          sessionKey: sessionKey || undefined,
+          phone,
+          packageId,
+          date,
+          bookingId: booking.id,
+        }).catch(err => console.error("[public-bookings] markCartRecovered failed:", err));
       }
 
       return booking.id;
