@@ -950,12 +950,6 @@ export default function BookingsPage() {
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b)} title="تذكرة الحجز">
                         🎫 تذكرة
                       </button>
-                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "whatsapp")} title="إرسال التذكرة على واتساب العميل مباشرة">
-                        📤 إرسال للعميل
-                      </button>
-                      <button className="bk-btn is-ticket" onClick={() => setLangChooser({ booking: b, action: "image" })} title="تحميل التذكرة كصورة (يختار اللغة)">
-                        🖼️ صورة
-                      </button>
                       <button className="bk-btn is-ticket"
                         onClick={() => {
                           // Pre-open popup synchronously inside the gesture so
@@ -965,8 +959,11 @@ export default function BookingsPage() {
                           }
                           setLangChooser({ booking: b, action: "image-send" });
                         }}
-                        title="إرسال صورة التذكرة على واتساب العميل مباشرة">
-                        📲 إرسال صورة
+                        title="فتح شات واتساب العميل مع الرسالة الجاهزة + صورة التذكرة">
+                        📤 إرسال للعميل
+                      </button>
+                      <button className="bk-btn is-ticket" onClick={() => setLangChooser({ booking: b, action: "image" })} title="تحميل التذكرة كصورة (يختار اللغة)">
+                        🖼️ صورة
                       </button>
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
                         ⬇️ تنزيل PDF
@@ -1126,17 +1123,13 @@ export default function BookingsPage() {
                 🖼️ {ticketDownloading ? "جاري التنزيل..." : `تنزيل صورة (${ticketLang === "ar" ? "AR" : "EN"})`}
               </button>
               <button onClick={sendTicketImageWhatsApp} disabled={!ticketData || !!ticketBusy || ticketDownloading}
-                title="إرسال صورة التذكرة في شات الواتساب الخاص بالعميل"
-                style={{ background: "#128C7E", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
-                📲 {ticketBusy === "image-send" ? "جاري التجهيز..." : `إرسال صورة (${ticketLang === "ar" ? "AR" : "EN"})`}
+                title="فتح شات واتساب العميل مع الرسالة الجاهزة + صورة التذكرة (يمكن تخصيص النص من الإعدادات)"
+                style={{ background: "#25D366", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                📤 {ticketBusy === "image-send" ? "جاري التجهيز..." : `إرسال للعميل (${ticketLang === "ar" ? "AR" : "EN"})`}
               </button>
               <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading || !!ticketBusy}
                 style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>
                 ⬇️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل PDF"}
-              </button>
-              <button onClick={sendTicketWhatsApp} disabled={!ticketData || !!ticketBusy || ticketDownloading}
-                style={{ background: "#25D366", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
-                💬 {ticketBusy === "whatsapp" ? "جاري التجهيز..." : "إرسال على واتساب"}
               </button>
               <button onClick={copyTicketLink} disabled={!ticketData || !!ticketBusy || ticketDownloading}
                 style={{ background: "var(--bg-surface-solid)", color: "var(--text-primary)", border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
