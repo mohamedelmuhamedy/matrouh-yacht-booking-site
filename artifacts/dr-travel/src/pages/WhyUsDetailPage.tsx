@@ -319,16 +319,16 @@ export default function WhyUsDetailPage() {
                 <div style={{ display: "inline-block", padding: "0.35rem 0.85rem", borderRadius: 999, background: accentSoft, color: accent, fontSize: "0.74rem", fontWeight: 700, marginBottom: "1rem" }}>
                   ✦ {isAr ? "حكايتنا" : "Our Story"}
                 </div>
-                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, lineHeight: 1.25, margin: "0 0 1.25rem", color: "white" }}>
+                <h2 style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)", fontWeight: 900, lineHeight: 1.25, margin: "0 0 1.25rem", color: "var(--text-primary)" }}>
                   {isAr ? "إيه اللي بيخلّينا مختلفين" : "What makes us different"}
                 </h2>
                 {intro && (
-                  <p style={{ fontSize: "1.05rem", lineHeight: 1.95, color: "#d6e0ea", marginBottom: "1rem" }}>
+                  <p style={{ fontSize: "1.05rem", lineHeight: 1.95, color: "var(--text-secondary)", marginBottom: "1rem" }}>
                     {intro}
                   </p>
                 )}
                 {body && (
-                  <p style={{ fontSize: "0.96rem", lineHeight: 1.95, color: "#a8b6c4", margin: 0 }}>
+                  <p style={{ fontSize: "0.96rem", lineHeight: 1.95, color: "var(--text-muted)", margin: 0 }}>
                     {body}
                   </p>
                 )}

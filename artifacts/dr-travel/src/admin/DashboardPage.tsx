@@ -474,7 +474,7 @@ export default function DashboardPage() {
                     style={{
                       display: "flex", alignItems: "center", gap: 10, padding: "0.55rem 0.7rem",
                       borderRadius: 10, cursor: "pointer", border: `1px solid ${used ? "#10B98130" : "var(--border)"}`,
-                      background: used ? "#f0fdf4" : "white",
+                      background: used ? "#f0fdf4" : "var(--bg-surface-solid)",
                     }}>
                     <div style={{
                       width: 34, height: 34, borderRadius: "50%",

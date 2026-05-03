@@ -445,7 +445,7 @@ export default function ServiceDetailPage() {
           overflow: "hidden",
           background: ctaImage
             ? `linear-gradient(135deg, rgba(13,27,42,0.85) 0%, rgba(13,27,42,0.7) 100%), url(${ctaImage}) center/cover`
-            : `linear-gradient(135deg, ${accent}22 0%, rgba(201,168,76,0.1) 100%)`,
+            : `linear-gradient(135deg, rgba(13,27,42,0.92) 0%, rgba(13,27,42,0.78) 100%)`,
           boxShadow: `0 12px 50px ${accent}20`,
         }}>
           <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, ${accent}12 0%, transparent 70%)`, pointerEvents: "none" }} />
