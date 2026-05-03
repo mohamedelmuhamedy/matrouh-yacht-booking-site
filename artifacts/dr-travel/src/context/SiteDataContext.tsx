@@ -157,7 +157,7 @@ const STATIC_PACKAGES = PACKAGES_DATA as unknown as DBPackage[];
 const PACKAGE_RETRY_INTERVAL_MS = 5_000;
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  whatsapp_number: "01205756024",
+  whatsapp_number: "201205756024",
   phone_number: "01205756024",
   site_title: "DR Travel",
   meta_description: "أفضل رحلات مرسى مطروح - ركوب بحر وسفاري وأكثر",
