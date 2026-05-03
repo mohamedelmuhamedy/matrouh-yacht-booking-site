@@ -231,8 +231,8 @@ export default function TripsPage() {
                         </span>
                       )}
                       {pkg.durationAr && (
-                        <span className="trip-card-tag" style={{ background: "rgba(0,170,255,0.08)", border: "1px solid rgba(0,170,255,0.18)", color: "#00AAFF" }}>
-                          {ar ? pkg.durationAr : pkg.durationEn}
+                        <span className="trip-card-tag" style={{ background: "rgba(0,170,255,0.16)", border: "1px solid rgba(0,170,255,0.36)", color: "#00AAFF", fontWeight: 800 }}>
+                          📅 {ar ? pkg.durationAr : pkg.durationEn}
                         </span>
                       )}
                     </div>

@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ycEdQKcYmJTLL2NzFKysU"
+uri = "file://screenshots/detail_desktop.jpg"
+type = "image"
+title = "صفحة تفاصيل الرحلة - عرض التاريخ الجديد"
