@@ -298,8 +298,8 @@ export default function AdminHeroSlidesPage() {
               style={{
                 display: "flex", alignItems: "center", gap: "0.65rem",
                 padding: "0.8rem 1rem", borderRadius: "10px", cursor: "pointer",
-                border: `2px solid ${transition === t.value ? "#00AAFF" : "#d0dce8"}`,
-                background: transition === t.value ? "rgba(0,170,255,0.06)" : "white",
+                border: `2px solid ${transition === t.value ? "#00AAFF" : "var(--border)"}`,
+                background: transition === t.value ? "rgba(0,170,255,0.06)" : "var(--bg-surface-solid)",
                 fontFamily: "Cairo, sans-serif", textAlign: "right", transition: "all 0.2s",
               }}
             >
