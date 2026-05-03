@@ -103,7 +103,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
     <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "all 0.3s", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 12px 40px rgba(0,170,255,0.15)" : "0 2px 12px rgba(0,0,0,0.3)" }}>
 
-      <div style={{ position: "relative", height: 200, background: "#0d1824", overflow: "hidden" }}>
+      <div style={{ position: "relative", height: 200, background: "var(--bg-surface-sunk)", overflow: "hidden" }}>
         {album.coverImage ? (
           <img src={album.coverImage} alt={ar ? album.titleAr : album.titleEn}
             style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s", transform: hovered ? "scale(1.06)" : "scale(1)" }}
@@ -111,7 +111,7 @@ function AlbumCard({ album, ar, onClick }: { album: Album; ar: boolean; onClick:
         ) : images.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100%", gap: 2 }}>
             {[0,1,2,3].map(i => (
-              <div key={i} style={{ background: "#0d1824", overflow: "hidden" }}>
+              <div key={i} style={{ background: "var(--bg-surface-sunk)", overflow: "hidden" }}>
                 {images[i] && <img src={images[i].url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />}
               </div>
             ))}

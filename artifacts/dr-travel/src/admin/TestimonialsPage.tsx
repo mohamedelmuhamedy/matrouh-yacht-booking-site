@@ -458,7 +458,7 @@ export default function TestimonialsPage() {
                   </div>
                 </div>
 
-                <p style={{ color: "#374151", fontSize: "0.875rem", lineHeight: 1.75, margin: "0 0 0.75rem", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.75, margin: "0 0 0.75rem", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                   {item.textAr}
                 </p>
 

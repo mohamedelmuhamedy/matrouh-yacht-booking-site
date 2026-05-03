@@ -49,11 +49,11 @@ export default function PushNotificationsPage() {
   };
 
   const card: React.CSSProperties = {
-    background: "#fff", borderRadius: 12, padding: "1.5rem",
+    background: "var(--bg-surface-solid)", borderRadius: 12, padding: "1.5rem",
     boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.25rem",
   };
   const label: React.CSSProperties = {
-    display: "block", fontWeight: 700, color: "#374151",
+    display: "block", fontWeight: 700, color: "var(--text-secondary)",
     fontSize: "0.85rem", marginBottom: "0.4rem",
   };
   const inputStyle: React.CSSProperties = {

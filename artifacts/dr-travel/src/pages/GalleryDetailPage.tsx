@@ -101,7 +101,7 @@ function Lightbox({ items, startIdx, ar, onClose }: { items: GalleryItem[]; star
         <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", padding: "0.6rem 1rem", flexShrink: 0, background: "linear-gradient(to top,rgba(0,0,0,0.8),transparent)", justifyContent: items.length <= 6 ? "center" : "flex-start", scrollbarWidth: "none" }}>
           {items.map((t, i) => (
             <div key={t.id} onClick={() => setIdx(i)}
-              style={{ flexShrink: 0, width: 54, height: 40, borderRadius: 6, overflow: "hidden", cursor: "pointer", border: i === idx ? "2px solid #00AAFF" : "2px solid transparent", opacity: i === idx ? 1 : 0.5, transition: "all 0.2s", background: "#0d1824" }}>
+              style={{ flexShrink: 0, width: 54, height: 40, borderRadius: 6, overflow: "hidden", cursor: "pointer", border: i === idx ? "2px solid #00AAFF" : "2px solid transparent", opacity: i === idx ? 1 : 0.5, transition: "all 0.2s", background: "var(--bg-surface-sunk)" }}>
               {t.type === "video" ? (
                 <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>▶</div>
               ) : (
@@ -127,7 +127,7 @@ function Lightbox({ items, startIdx, ar, onClose }: { items: GalleryItem[]; star
 function getItemStyle(size: string, hovered: boolean): React.CSSProperties {
   const base: React.CSSProperties = {
     position: "relative", overflow: "hidden", borderRadius: 12, cursor: "pointer",
-    background: "#0d1824", marginBottom: "0.75rem",
+    background: "var(--bg-surface-sunk)", marginBottom: "0.75rem",
     border: "1px solid var(--bg-surface-2)",
     boxShadow: hovered ? "0 10px 40px rgba(0,0,0,0.55)" : "0 2px 12px rgba(0,0,0,0.35)",
     transform: hovered ? "scale(1.012)" : "scale(1)",
@@ -161,7 +161,7 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
     <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={getItemStyle(size, hovered)}>
       {item.type === "video" ? (
-        <div style={{ position: "relative", aspectRatio: aspectStyle, background: "linear-gradient(135deg,#0d1824,#1a2535)", overflow: "hidden" }}>
+        <div style={{ position: "relative", aspectRatio: aspectStyle, background: "linear-gradient(135deg,var(--bg-surface-sunk),var(--bg-surface-2))", overflow: "hidden" }}>
           {/* YouTube: show thumbnail image */}
           {youtubeThumbnail && (
             <img src={youtubeThumbnail} alt={item.caption || `video-${idx + 1}`}
@@ -182,7 +182,7 @@ function GridItem({ item, idx, onClick }: { item: GalleryItem; idx: number; onCl
       ) : (
         <div style={{ position: "relative" }}>
           {!loaded && !errored && (
-            <div style={{ width: "100%", ...(size === "square" ? { aspectRatio: "1/1" } : size === "large" ? { height: 320 } : size === "wide" ? { height: 260 } : { aspectRatio: "4/3" }), background: "linear-gradient(135deg,#0d1824,#1a2535)" }} />
+            <div style={{ width: "100%", ...(size === "square" ? { aspectRatio: "1/1" } : size === "large" ? { height: 320 } : size === "wide" ? { height: 260 } : { aspectRatio: "4/3" }), background: "linear-gradient(135deg,var(--bg-surface-sunk),var(--bg-surface-2))" }} />
           )}
           <img src={item.url} alt={item.caption || `photo-${idx + 1}`}
             style={{ ...getImgStyle(size), opacity: loaded ? 1 : 0, transition: "opacity 0.35s ease", display: errored ? "none" : undefined }}

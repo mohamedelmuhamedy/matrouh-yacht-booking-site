@@ -22,7 +22,7 @@ interface HeroSliderProps {
   overlayOpacity?: number;
 }
 
-const OVERLAY = "linear-gradient(135deg, rgba(13,27,42,0.88) 0%, rgba(13,27,42,0.42) 50%, rgba(13,27,42,0.88) 100%)";
+const OVERLAY = "linear-gradient(135deg, var(--hero-overlay-strong) 0%, var(--hero-overlay-mid) 50%, var(--hero-overlay-strong) 100%)";
 // How long to wait before force-showing the video if canplay never fires
 const BUFFER_TIMEOUT_MS = 10_000;
 

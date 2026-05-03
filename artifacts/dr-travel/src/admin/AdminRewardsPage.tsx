@@ -41,7 +41,7 @@ const S = {
   card: { background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "1.5rem" },
   h3: { color: "var(--text-primary)", fontWeight: 900, fontSize: "1.05rem", margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" } as React.CSSProperties,
   input: { width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1.5px solid var(--border)", outline: "none", fontSize: "0.9rem", fontFamily: "Cairo, sans-serif", boxSizing: "border-box", color: "var(--text-primary)" } as React.CSSProperties,
-  label: { display: "block", color: "#374151", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem" } as React.CSSProperties,
+  label: { display: "block", color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem" } as React.CSSProperties,
   btn: (color: string, bg: string) => ({ padding: "0.5rem 1rem", border: "none", borderRadius: "8px", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontWeight: 700, fontSize: "0.82rem", background: bg, color }) as React.CSSProperties,
 };
 
@@ -248,7 +248,7 @@ export default function AdminRewardsPage() {
                   <input type="checkbox" id="rewards-enabled" checked={settings.rewards_enabled === "true"}
                     onChange={e => setSettings(s => ({ ...s, rewards_enabled: e.target.checked ? "true" : "false" }))}
                     style={{ width: 20, height: 20, accentColor: "#10B981", cursor: "pointer" }} />
-                  <label htmlFor="rewards-enabled" style={{ color: settings.rewards_enabled === "true" ? "#065F46" : "#374151", fontWeight: 800, cursor: "pointer", fontSize: "1rem" }}>
+                  <label htmlFor="rewards-enabled" style={{ color: settings.rewards_enabled === "true" ? "#065F46" : "var(--text-secondary)", fontWeight: 800, cursor: "pointer", fontSize: "1rem" }}>
                     {settings.rewards_enabled === "true" ? "✅ نظام المكافآت مُفعَّل" : "⭕ نظام المكافآت معطَّل"}
                   </label>
                   <span style={{ marginRight: "auto", color: settings.rewards_enabled === "true" ? "#10B981" : "#9CA3AF", fontSize: "0.82rem" }}>
@@ -303,7 +303,7 @@ export default function AdminRewardsPage() {
 
                 <div style={{ background: "#EFF6FF", borderRadius: "12px", padding: "1rem 1.25rem", marginBottom: "1.5rem", border: "1px solid #BFDBFE" }}>
                   <div style={{ color: "#1D4ED8", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.5rem" }}>💡 كيف تعمل آلية الإحالة؟</div>
-                  <ol style={{ color: "#374151", fontSize: "0.83rem", lineHeight: 2, margin: 0, paddingRight: "1.25rem" }}>
+                  <ol style={{ color: "var(--text-secondary)", fontSize: "0.83rem", lineHeight: 2, margin: 0, paddingRight: "1.25rem" }}>
                     <li>تنشئ كوداً لكل شخص تريد منحه صلاحية الإحالة (من تبويب الأكواد)</li>
                     <li>يشارك الشخص كوده مع أصدقائه عند الحجز</li>
                     <li>عند الحجز يدخل العميل الكود في نموذج الحجز</li>
@@ -431,7 +431,7 @@ export default function AdminRewardsPage() {
                       {c.isActive ? "⏸ تعطيل" : "▶ تفعيل"}
                     </button>
                     <button onClick={() => openEditCode(c)} style={S.btn("#2563EB", "#EFF6FF")}>✏️ تعديل</button>
-                    <button onClick={() => copyCode(c.code)} style={S.btn("#374151", "#F1F5F9")}>📋 نسخ</button>
+                    <button onClick={() => copyCode(c.code)} style={S.btn("var(--text-primary)", "var(--bg-surface-2)")}>📋 نسخ</button>
                     <button onClick={() => setConfirmDelCode(c)} style={S.btn("#EF4444", "#FEE2E2")}>🗑️</button>
                   </div>
                 </div>
