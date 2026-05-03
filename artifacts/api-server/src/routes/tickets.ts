@@ -60,6 +60,9 @@ const PUBLIC_SETTING_KEYS = new Set([
   "logo_url", "phone_number", "whatsapp_number", "instagram_url", "facebook_url",
   "address_ar", "address_en", "maps_url",
   "card_display_name_ar", "card_display_name_en",
+  // Admin-customizable WhatsApp templates for the "send ticket image" flow
+  // on the bookings admin page (BookingsPage.tsx -> sendTicketImageWhatsApp).
+  "wa_image_message_ar", "wa_image_message_en",
 ]);
 
 // ── Public verify endpoint (lightweight, signature-checked) ──────────────

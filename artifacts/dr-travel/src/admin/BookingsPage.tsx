@@ -119,7 +119,9 @@ export default function BookingsPage() {
   const [ticketBusy, setTicketBusy] = useState<string>("");
   const [ticketFields, setTicketFields] = useState<TicketFieldsForm>(EMPTY_TICKET_FIELDS);
   const [ticketFieldsDirty, setTicketFieldsDirty] = useState(false);
-  const [autoTicketAction, setAutoTicketAction] = useState<"whatsapp" | "download" | "image" | null>(null);
+  const [autoTicketAction, setAutoTicketAction] = useState<"whatsapp" | "download" | "image" | "image-send" | null>(null);
+  // Small lang-picker dialog state for row shortcuts that need an AR/EN choice.
+  const [langChooser, setLangChooser] = useState<{ booking: Booking; action: "image" | "image-send" } | null>(null);
   const pendingWhatsAppPopupRef = useRef<Window | null>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
   const { success, error: toastError } = useToast();
@@ -150,6 +152,7 @@ export default function BookingsPage() {
       try {
         if (action === "download") await downloadTicketPdf();
         else if (action === "image") await downloadTicketImage();
+        else if (action === "image-send") await sendTicketImageWhatsApp();
         else if (action === "whatsapp") await sendTicketWhatsApp();
       } finally {
         // Auto-close the modal so the row-shortcut feels like a one-click op.
@@ -273,20 +276,25 @@ export default function BookingsPage() {
     return data;
   };
 
-  const openTicket = async (booking: Booking, autoAction?: "whatsapp" | "download" | "image") => {
+  const openTicket = async (
+    booking: Booking,
+    autoAction?: "whatsapp" | "download" | "image" | "image-send",
+    forcedLang?: "ar" | "en",
+  ) => {
     // For auto-WhatsApp from a row click we must open the popup synchronously
     // inside the gesture so popup-blockers do not swallow it after the async
     // ticket-load + PDF upload chain.
-    if (autoAction === "whatsapp") {
+    if (autoAction === "whatsapp" || autoAction === "image-send") {
       // Do NOT pass "noopener" here — we need to keep the popup reference so
-      // we can redirect it to wa.me after the async upload finishes.
+      // we can redirect it to wa.me after the async upload/capture finishes.
       pendingWhatsAppPopupRef.current = window.open("about:blank", "_blank");
     }
     setTicketBooking(booking);
     setAutoTicketAction(autoAction || null);
     setTicketData(null);
     setTicketLoading(true);
-    const initialLang: "ar" | "en" = booking.packageNameAr && booking.packageNameAr.length > 0 ? "ar" : "en";
+    const initialLang: "ar" | "en" = forcedLang
+      || (booking.packageNameAr && booking.packageNameAr.length > 0 ? "ar" : "en");
     setTicketLang(initialLang);
     try {
       const tr = await adminFetch(`/admin/bookings/${booking.id}/issue-ticket`, { method: "POST" });
@@ -458,53 +466,54 @@ export default function BookingsPage() {
     return pdf.output("blob");
   };
 
-  // Fast PNG download using html-to-image (SVG foreignObject) — preserves
-  // gradients, radial backgrounds and SVG-data-URL patterns natively, so the
-  // ticket looks exactly like it does on screen (no sanitization needed).
+  // Capture the off-screen ticket as a high-fidelity PNG blob using
+  // html-to-image (SVG foreignObject — preserves gradients & SVG patterns).
+  const generateTicketImageBlob = async (): Promise<Blob | null> => {
+    if (!ticketData || !ticketRef.current) return null;
+    const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
+    if (!node) return null;
+    try {
+      const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
+      if (fonts?.ready) await fonts.ready;
+    } catch { /* ignore */ }
+    const imgs = Array.from(node.querySelectorAll("img"));
+    await Promise.all(imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise<void>(resolve => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+        setTimeout(done, 4000);
+      });
+    }));
+    await new Promise(r => setTimeout(r, 150));
+    const w = Math.ceil(node.offsetWidth || 800);
+    const h = Math.ceil(node.offsetHeight || 1130);
+    return await htmlToImage.toBlob(node, {
+      pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff",
+      width: w, height: h, style: { transform: "none", margin: "0" },
+    });
+  };
+
+  const ticketImageFilename = (): string => {
+    const safeName = (ticketData?.name || "ticket").replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "ticket";
+    return `dr-travel-ticket-${ticketBooking?.id || ""}-${safeName}.png`;
+  };
+
   const downloadTicketImage = async () => {
     if (!ticketData) return;
-    if (!ticketRef.current) { toastError("فشل تجهيز الصورة"); return; }
     setTicketDownloading(true);
     try {
       if (ticketFieldsDirty) {
         const ok = await saveTicketFields();
         if (!ok) return;
       }
-      const node = ticketRef.current.querySelector("[data-ticket-root]") as HTMLElement | null;
-      if (!node) { toastError("فشل تجهيز الصورة"); return; }
-      // Wait for fonts + images so we don't capture a half-rendered ticket.
-      try {
-        const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
-        if (fonts?.ready) await fonts.ready;
-      } catch { /* ignore */ }
-      const imgs = Array.from(node.querySelectorAll("img"));
-      await Promise.all(imgs.map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise<void>(resolve => {
-          const done = () => resolve();
-          img.addEventListener("load", done, { once: true });
-          img.addEventListener("error", done, { once: true });
-          setTimeout(done, 4000);
-        });
-      }));
-      await new Promise(r => setTimeout(r, 150));
-      const w = Math.ceil(node.offsetWidth || 800);
-      const h = Math.ceil(node.offsetHeight || 1130);
-      // pixelRatio 3 = retina-quality crisp text; cacheBust avoids stale image fetches.
-      const blob = await htmlToImage.toBlob(node, {
-        pixelRatio: 3,
-        cacheBust: true,
-        backgroundColor: "#ffffff",
-        width: w,
-        height: h,
-        style: { transform: "none", margin: "0" },
-      });
+      const blob = await generateTicketImageBlob();
       if (!blob) { toastError("فشل تجهيز الصورة"); return; }
-      const safeName = (ticketData.name || "ticket").replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "ticket";
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `dr-travel-ticket-${ticketBooking?.id || ""}-${safeName}.png`;
+      a.download = ticketImageFilename();
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -515,6 +524,115 @@ export default function BookingsPage() {
       toastError("فشل تنزيل صورة التذكرة");
     } finally {
       setTicketDownloading(false);
+    }
+  };
+
+  // Build the customizable WhatsApp message text from the admin-defined
+  // template stored in site settings (fallback to a sensible default).
+  const buildTicketImageMessage = (lang: "ar" | "en"): string => {
+    if (!ticketData) return "";
+    const s = ticketData.settings || {};
+    const ticketNo = ticketData.ticketNumber || `DRT-${String(ticketData.id).padStart(5, "0")}`;
+    const pkg = lang === "ar"
+      ? (ticketData.packageNameAr || ticketData.packageName || "")
+      : (ticketData.packageName || ticketData.packageNameAr || "");
+    const sig = ticketData.ticketSignature ? `?sig=${encodeURIComponent(ticketData.ticketSignature)}` : "";
+    const verifyUrl = ticketData.ticketToken
+      ? `${window.location.origin}/verify/${ticketData.ticketToken}${sig}`
+      : "";
+    const defaultAr = `أهلاً {name} 🌟\nمعاك صورة تذكرتك مع DR Travel.\n\n📌 الباقة: {package}\n📅 التاريخ: {date}\n🎫 رقم التذكرة: {ticket_no}\n\n🔗 صفحة التحقق:\n{verify_url}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`;
+    const defaultEn = `Hi {name} 🌟\nHere is your DR Travel ticket image.\n\n📌 Package: {package}\n📅 Date: {date}\n🎫 Ticket No.: {ticket_no}\n\n🔗 Verify page:\n{verify_url}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
+    const tpl = (lang === "ar" ? s.wa_image_message_ar : s.wa_image_message_en)
+      || (lang === "ar" ? defaultAr : defaultEn);
+    return tpl
+      .replace(/\{name\}/g, ticketData.name || "")
+      .replace(/\{package\}/g, pkg)
+      .replace(/\{date\}/g, ticketData.date || "")
+      .replace(/\{ticket_no\}/g, ticketNo)
+      .replace(/\{verify_url\}/g, verifyUrl);
+  };
+
+  // Send the ticket as an image directly into the customer's WhatsApp chat.
+  // Strategy:
+  //   1. Web Share API (level 2 — supports files): on mobile this opens the
+  //      native share sheet pre-filled with the PNG + admin's text; the admin
+  //      taps WhatsApp → contact, image is attached.
+  //   2. Desktop fallback: copy the PNG to clipboard via ClipboardItem +
+  //      open wa.me/<phone>?text=... for the customer; admin pastes (Ctrl+V).
+  const sendTicketImageWhatsApp = async () => {
+    if (!ticketData) return;
+    // Reuse a popup that was opened earlier inside a click gesture.
+    const popup = pendingWhatsAppPopupRef.current
+      || window.open("about:blank", "_blank");
+    pendingWhatsAppPopupRef.current = null;
+    setTicketBusy("image-send");
+    try {
+      if (ticketFieldsDirty) {
+        const ok = await saveTicketFields();
+        if (!ok) { popup?.close(); return; }
+      }
+      const blob = await generateTicketImageBlob();
+      if (!blob) { popup?.close(); toastError("فشل تجهيز الصورة"); return; }
+      const filename = ticketImageFilename();
+      const file = new File([blob], filename, { type: "image/png" });
+      const text = buildTicketImageMessage(ticketLang);
+      const intl = formatPhoneIntl(ticketData.phone);
+
+      // 1) Web Share API with files (best UX — image attaches directly to WA).
+      type ShareData = { files?: File[]; text?: string; title?: string };
+      const nav = navigator as Navigator & {
+        canShare?: (d: ShareData) => boolean;
+        share?: (d: ShareData) => Promise<void>;
+      };
+      if (nav.canShare && nav.share && nav.canShare({ files: [file] })) {
+        // Close the placeholder popup — we'll use the native share sheet.
+        popup?.close();
+        try {
+          await nav.share({ files: [file], text, title: filename });
+          success("تم فتح قائمة المشاركة");
+          return;
+        } catch (err) {
+          // User aborted or share failed — fall through to clipboard fallback.
+          console.warn("[sendTicketImageWhatsApp] navigator.share aborted/failed:", err);
+        }
+      }
+
+      // 2) Fallback: copy image to clipboard, open wa.me chat, instruct admin.
+      let clipboardOk = false;
+      try {
+        const ClipItem = (window as Window & { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
+        if (navigator.clipboard && ClipItem) {
+          await navigator.clipboard.write([new ClipItem({ "image/png": blob })]);
+          clipboardOk = true;
+        }
+      } catch (err) {
+        console.warn("[sendTicketImageWhatsApp] clipboard image write failed:", err);
+      }
+      // Always also save the image so the admin has a copy if paste fails.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+      if (popup && !popup.closed) {
+        try { (popup as Window & { opener: Window | null }).opener = null; } catch { /* ignore */ }
+        popup.location.href = waUrl;
+      } else {
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+      }
+      if (clipboardOk) {
+        success("الصورة في الحافظة — افتح شات العميل والصق (Ctrl+V) ثم أرسل");
+      } else {
+        success("تم فتح شات العميل — أرفق الصورة المُنزَّلة يدويًا");
+      }
+    } catch (err) {
+      console.error("[sendTicketImageWhatsApp]", err);
+      popup?.close();
+      toastError("فشل إرسال صورة الواتساب");
+    } finally {
+      setTicketBusy("");
     }
   };
 
@@ -835,8 +953,20 @@ export default function BookingsPage() {
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b, "whatsapp")} title="إرسال التذكرة على واتساب العميل مباشرة">
                         📤 إرسال للعميل
                       </button>
-                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "image")} title="تحميل التذكرة كصورة (سريع)">
+                      <button className="bk-btn is-ticket" onClick={() => setLangChooser({ booking: b, action: "image" })} title="تحميل التذكرة كصورة (يختار اللغة)">
                         🖼️ صورة
+                      </button>
+                      <button className="bk-btn is-ticket"
+                        onClick={() => {
+                          // Pre-open popup synchronously inside the gesture so
+                          // popup-blockers won't swallow it after the lang pick.
+                          if (!pendingWhatsAppPopupRef.current) {
+                            pendingWhatsAppPopupRef.current = window.open("about:blank", "_blank");
+                          }
+                          setLangChooser({ booking: b, action: "image-send" });
+                        }}
+                        title="إرسال صورة التذكرة على واتساب العميل مباشرة">
+                        📲 إرسال صورة
                       </button>
                       <button className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
                         ⬇️ تنزيل PDF
@@ -889,6 +1019,60 @@ export default function BookingsPage() {
         </div>
       )}
 
+      {/* Language chooser for image / image-send row shortcuts */}
+      {langChooser && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+          onClick={() => {
+            // Cancel: close any popup we pre-opened for image-send.
+            if (pendingWhatsAppPopupRef.current && !pendingWhatsAppPopupRef.current.closed) {
+              pendingWhatsAppPopupRef.current.close();
+            }
+            pendingWhatsAppPopupRef.current = null;
+            setLangChooser(null);
+          }}>
+          <div style={{ background: "var(--bg-surface-solid)", borderRadius: 16, padding: "1.5rem", maxWidth: 380, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "1.05rem", fontWeight: 800, textAlign: "center" }}>
+              {langChooser.action === "image" ? "اختر لغة الصورة" : "اختر لغة صورة الإرسال"}
+            </h3>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", textAlign: "center" }}>
+              {langChooser.booking.name} — {langChooser.booking.phone}
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                onClick={() => {
+                  const { booking, action } = langChooser;
+                  setLangChooser(null);
+                  openTicket(booking, action, "ar");
+                }}
+                style={{ flex: 1, background: "linear-gradient(135deg,#0D1B2A,#14253a)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "1rem", fontWeight: 800 }}>
+                🇪🇬 عربي
+              </button>
+              <button
+                onClick={() => {
+                  const { booking, action } = langChooser;
+                  setLangChooser(null);
+                  openTicket(booking, action, "en");
+                }}
+                style={{ flex: 1, background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "1rem", fontWeight: 800 }}>
+                🇬🇧 English
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                if (pendingWhatsAppPopupRef.current && !pendingWhatsAppPopupRef.current.closed) {
+                  pendingWhatsAppPopupRef.current.close();
+                }
+                pendingWhatsAppPopupRef.current = null;
+                setLangChooser(null);
+              }}
+              style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.5rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem" }}>
+              إلغاء
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Ticket modal */}
       {ticketBooking && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "1.5rem 0.75rem", overflowY: "auto" }}
@@ -937,9 +1121,14 @@ export default function BookingsPage() {
             {/* Action bar */}
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               <button onClick={downloadTicketImage} disabled={!ticketData || ticketDownloading || !!ticketBusy}
-                title="تحميل التذكرة كصورة (أسرع — ثوانٍ)"
+                title={`تحميل التذكرة كصورة بالـ${ticketLang === "ar" ? "عربي" : "إنجليزي"} (أسرع — ثوانٍ)`}
                 style={{ background: "#7c3aed", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>
-                🖼️ {ticketDownloading ? "جاري التنزيل..." : "تنزيل صورة"}
+                🖼️ {ticketDownloading ? "جاري التنزيل..." : `تنزيل صورة (${ticketLang === "ar" ? "AR" : "EN"})`}
+              </button>
+              <button onClick={sendTicketImageWhatsApp} disabled={!ticketData || !!ticketBusy || ticketDownloading}
+                title="إرسال صورة التذكرة في شات الواتساب الخاص بالعميل"
+                style={{ background: "#128C7E", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketBusy && !ticketDownloading ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || !!ticketBusy || ticketDownloading ? 0.6 : 1 }}>
+                📲 {ticketBusy === "image-send" ? "جاري التجهيز..." : `إرسال صورة (${ticketLang === "ar" ? "AR" : "EN"})`}
               </button>
               <button onClick={downloadTicketPdf} disabled={!ticketData || ticketDownloading || !!ticketBusy}
                 style={{ background: "#00AAFF", color: "white", border: "none", borderRadius: 10, padding: "0.55rem 1rem", cursor: ticketData && !ticketDownloading && !ticketBusy ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.85rem", fontWeight: 700, opacity: !ticketData || ticketDownloading || !!ticketBusy ? 0.6 : 1 }}>

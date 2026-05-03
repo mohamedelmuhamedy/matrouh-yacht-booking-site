@@ -59,6 +59,8 @@ const DEFAULTS: Record<string, string> = {
   ai_temperature: "0.4",
   ai_max_tokens: "600",
   ai_system_prompt_extras: "",
+  wa_image_message_ar: "أهلاً {name} 🌟\nمعاك صورة تذكرتك مع DR Travel.\n\n📌 الباقة: {package}\n📅 التاريخ: {date}\n🎫 رقم التذكرة: {ticket_no}\n\n🔗 صفحة التحقق:\n{verify_url}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.",
+  wa_image_message_en: "Hi {name} 🌟\nHere is your DR Travel ticket image.\n\n📌 Package: {package}\n📅 Date: {date}\n🎫 Ticket No.: {ticket_no}\n\n🔗 Verify page:\n{verify_url}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.",
 };
 
 const AI_MODEL_OPTIONS: { value: string; label: string }[] = [
@@ -212,6 +214,27 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
         type: "textarea",
         placeholder: "مثال: استخدم لهجة مصرية ودودة وبسيطة. ركّز على العائلات والأطفال. اذكر دائماً وجود مرشد عربي.",
         hint: "نص حر يُضاف لتعليمات النظام لتعديل أسلوب أو شخصية المساعد. اتركه فارغاً للسلوك الافتراضي",
+      },
+    ],
+  },
+  {
+    title: "رسائل الواتساب — إرسال صورة التذكرة",
+    icon: "💬",
+    section: "wa_image",
+    keys: [
+      {
+        key: "wa_image_message_ar",
+        label: "نص رسالة الواتساب — عربي",
+        type: "textarea",
+        placeholder: "أهلاً {name}...",
+        hint: "النص اللي بيتبعت مع صورة التذكرة لما تضغط 'إرسال صورة' من صفحة الحجوزات. متغيرات متاحة: {name} اسم العميل، {package} اسم الباقة، {date} تاريخ الرحلة، {ticket_no} رقم التذكرة، {verify_url} رابط صفحة التحقق",
+      },
+      {
+        key: "wa_image_message_en",
+        label: "WhatsApp message text — English",
+        type: "textarea",
+        placeholder: "Hi {name}...",
+        hint: "Text sent alongside the ticket image. Placeholders: {name}, {package}, {date}, {ticket_no}, {verify_url}",
       },
     ],
   },
