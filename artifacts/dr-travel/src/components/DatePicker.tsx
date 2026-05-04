@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   value: string;
@@ -43,6 +43,7 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
   const selected = parseYmd(value);
   const [view, setView] = useState<Date>(selected || today);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const [popupPos, setPopupPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     if (selected) setView(new Date(selected.getFullYear(), selected.getMonth(), 1));
@@ -84,8 +85,44 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
   const fmtDay = (n: number) => ar ? toArabicNum(n) : String(n);
   const fmtYear = (n: number) => ar ? toArabicNum(n) : String(n);
 
+  const updatePopupPosition = useCallback(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const margin = 12;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const width = Math.min(360, Math.max(296, viewportW - margin * 2));
+    const estimatedHeight = Math.min(500, viewportH - margin * 2);
+    const preferredLeft = ar ? rect.right - width : rect.left;
+    const left = Math.max(margin, Math.min(preferredLeft, viewportW - width - margin));
+    const belowTop = rect.bottom + 8;
+    const aboveTop = rect.top - estimatedHeight - 8;
+    const hasRoomBelow = belowTop + estimatedHeight <= viewportH - margin;
+    const top = hasRoomBelow || aboveTop < margin
+      ? Math.min(belowTop, viewportH - estimatedHeight - margin)
+      : aboveTop;
+    setPopupPos({ top: Math.max(margin, top), left, width });
+  }, [ar]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePopupPosition();
+  }, [open, view, updatePopupPosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMove = () => updatePopupPosition();
+    window.addEventListener("resize", onMove);
+    window.addEventListener("scroll", onMove, true);
+    return () => {
+      window.removeEventListener("resize", onMove);
+      window.removeEventListener("scroll", onMove, true);
+    };
+  }, [open, updatePopupPosition]);
+
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
+    <div ref={wrapRef} style={{ position: "relative", minWidth: 0 }}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -99,7 +136,8 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
           color: selected ? "var(--input-text)" : "var(--input-placeholder)",
           border: `1.5px solid ${hasError ? "#ef4444" : open ? "#00AAFF" : "var(--input-border)"}`,
           borderRadius: 12,
-          padding: "0.85rem 1rem",
+          minHeight: 50,
+          padding: "0.78rem 1rem",
           fontFamily: "Cairo, sans-serif",
           fontSize: "0.92rem",
           fontWeight: 600,
@@ -112,9 +150,9 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
           boxShadow: open ? "0 0 0 3px rgba(0,170,255,0.18)" : "none",
         }}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          <span aria-hidden style={{ fontSize: "1.1rem" }}>📅</span>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{display}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0, overflow: "hidden" }}>
+          <span aria-hidden style={{ fontSize: "1.1rem", flexShrink: 0 }}>📅</span>
+          <span style={{ overflowWrap: "anywhere", whiteSpace: "normal", lineHeight: 1.35 }}>{display}</span>
         </span>
         <span aria-hidden style={{ color: "var(--text-muted)", fontSize: "0.85rem", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
       </button>
@@ -124,11 +162,11 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
           role="dialog"
           aria-label={ar ? "اختر التاريخ" : "Pick a date"}
           style={{
-            position: "absolute",
-            zIndex: 100,
-            top: "calc(100% + 8px)",
-            insetInlineStart: 0,
-            insetInlineEnd: 0,
+            position: "fixed",
+            zIndex: 10001,
+            top: popupPos?.top ?? 12,
+            left: popupPos?.left ?? 12,
+            width: popupPos?.width ?? "min(360px, calc(100vw - 24px))",
             background: "var(--bg-surface-solid)",
             border: "1.5px solid var(--border-strong)",
             borderRadius: 16,
@@ -136,7 +174,10 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
             padding: "0",
             fontFamily: "Cairo, sans-serif",
             animation: "dr-dp-in 0.18s cubic-bezier(.2,.7,.2,1)",
-            overflow: "hidden",
+            overflowX: "hidden",
+            overflowY: "auto",
+            maxHeight: "calc(100dvh - 24px)",
+            direction: ar ? "rtl" : "ltr",
           }}
         >
           <style>{`@keyframes dr-dp-in { from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:translateY(0)} }
@@ -236,7 +277,7 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
   );
 }
 
-const navBtn: React.CSSProperties = {
+const navBtn: CSSProperties = {
   width: 32, height: 32, borderRadius: 10,
   background: "var(--bg-surface-2)", border: "1px solid var(--border)",
   color: "var(--text-primary)", cursor: "pointer", fontSize: "1.15rem", fontWeight: 800,
@@ -244,7 +285,7 @@ const navBtn: React.CSSProperties = {
   fontFamily: "inherit", transition: "all 0.15s",
 };
 
-const footerBtn: React.CSSProperties = {
+const footerBtn: CSSProperties = {
   flex: 1, padding: "0.55rem 0.75rem", borderRadius: 10,
   background: "var(--bg-surface-2)", border: "1px solid var(--border)",
   color: "var(--text-primary)", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem",

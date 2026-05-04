@@ -21,7 +21,7 @@ const DEFAULTS: Record<string, string> = {
   brand_short_name: "DR Travel",
   brand_tagline_ar: "يخت سياحة وسفاري · مرسى مطروح",
   brand_tagline_en: "Yacht Tourism & Safari",
-  dev_name: "Yousef Mostafa",
+  dev_name: "Mohamed El-Muhamedy",
   dev_contact_url: "https://wa.me/201007752842",
   business_name_ar: "DR Travel",
   business_name_en: "DR Travel",
@@ -55,7 +55,7 @@ const DEFAULTS: Record<string, string> = {
   booking_skip_confirmation: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
-  ai_model: "openai/gpt-4o-mini",
+  ai_model: "google/gemini-2.0-flash-exp:free",
   ai_temperature: "0.4",
   ai_max_tokens: "600",
   ai_system_prompt_extras: "",
@@ -91,6 +91,12 @@ const AI_MODEL_OPTIONS: { value: string; label: string }[] = [
   { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Free) — مجاني" },
 ];
 
+const FALLBACK_AI_MODEL_OPTIONS: { value: string; label: string }[] = [
+  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash Exp (free)" },
+  { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B Instruct (free)" },
+  { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B Instruct (free)" },
+];
+
 type FieldDef = {
   key: string;
   label: string;
@@ -113,7 +119,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "brand_short_name", label: "الاسم القصير (يستخدم في النصوص والرسائل)", placeholder: "DR Travel", hint: "ده الاسم اللي بيظهر داخل الجمل، مثل 'ليه DR Travel؟' أو في رسائل الواتساب. غيّره وكل المواضع تتحدّث تلقائيًا" },
       { key: "brand_tagline_ar", label: "الشعار النصي تحت اسم العلامة (عربي)", placeholder: "يخت سياحة وسفاري · مرسى مطروح" },
       { key: "brand_tagline_en", label: "Brand tagline (English)", placeholder: "Yacht Tourism & Safari" },
-      { key: "dev_name", label: "اسم المطوّر (يظهر تحت اسم العلامة في الهيدر و في شريط الفوتر)", placeholder: "Yousef Mostafa", hint: "اسم اللي طوّر الموقع — هيظهر في الهيدر تحت اسم العلامة وفي شريط 'تواصل مع المطور' أسفل الفوتر" },
+      { key: "dev_name", label: "اسم المطوّر (يظهر تحت اسم العلامة في الهيدر و في شريط الفوتر)", placeholder: "Mohamed El-Muhamedy", hint: "اسم اللي طوّر الموقع — هيظهر في الهيدر تحت اسم العلامة وفي شريط 'تواصل مع المطور' أسفل الفوتر" },
       { key: "dev_contact_url", label: "رابط تواصل المطوّر", placeholder: "https://wa.me/201007752842", hint: "رابط الواتساب أو الموقع اللي زر 'تواصل مع المطور' بيوّدّي عليه" },
     ],
   },
@@ -202,7 +208,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
         label: "نموذج الذكاء الاصطناعي (AI Model)",
         type: "select",
         hint: "اختر النموذج المستخدم في المساعد الذكي. الموديلات الأرخص أسرع، والـ Premium بتدّي إجابات أدق",
-        options: AI_MODEL_OPTIONS,
+        options: FALLBACK_AI_MODEL_OPTIONS,
       },
       {
         key: "ai_temperature",
@@ -343,6 +349,10 @@ export default function SettingsPage() {
   const [heroBgError, setHeroBgError] = useState("");
   const heroBgFileRef = useRef<HTMLInputElement>(null);
 
+  const [aiModelOptions, setAiModelOptions] = useState(FALLBACK_AI_MODEL_OPTIONS);
+  const [aiModelsLoading, setAiModelsLoading] = useState(false);
+  const [aiModelsError, setAiModelsError] = useState("");
+
   const settingsRef = useRef<Record<string, string>>({});
 
   const loadSettings = () => {
@@ -366,7 +376,38 @@ export default function SettingsPage() {
       .finally(() => setLoading(false));
   };
 
+  const loadAiModels = () => {
+    setAiModelsLoading(true);
+    setAiModelsError("");
+    adminFetch("/admin/ai/free-models")
+      .then(async r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        const models = Array.isArray(data?.models) ? data.models : [];
+        const options = models
+          .map((model: any) => ({
+            value: String(model.id ?? "").trim(),
+            label: `${String(model.name || model.id || "").trim() || "OpenRouter free model"} (${String(model.id ?? "").trim()})`,
+          }))
+          .filter((model: { value: string; label: string }) => model.value.length > 0);
+        if (options.length > 0) setAiModelOptions(options);
+      })
+      .catch(e => setAiModelsError(e.message || "Failed to load free AI models"))
+      .finally(() => setAiModelsLoading(false));
+  };
+
   useEffect(() => { loadSettings(); }, []);
+  useEffect(() => { loadAiModels(); }, []);
+  useEffect(() => {
+    if (aiModelOptions.length === 0) return;
+    const current = settingsRef.current.ai_model || DEFAULTS.ai_model;
+    if (aiModelOptions.some(option => option.value === current)) return;
+    const next = { ...settingsRef.current, ai_model: aiModelOptions[0].value };
+    settingsRef.current = next;
+    setSettings(next);
+  }, [aiModelOptions]);
   useEffect(() => {
     loadGoogleFonts([
       ...ARABIC_FONT_OPTIONS.map(font => font.value),
@@ -860,6 +901,7 @@ export default function SettingsPage() {
                     const val = settings[key] ?? "";
                     const hasValue = val.trim().length > 0;
                     const isAccent = key.includes("accent");
+                    const effectiveOptions = key === "ai_model" ? aiModelOptions : options;
                     const fullWidth = fieldType === "select" || fieldType === "textarea";
                     return (
                       <div key={key} style={fullWidth ? { gridColumn: "1 / -1" } : {}}>
@@ -875,20 +917,31 @@ export default function SettingsPage() {
                             {hint}
                           </div>
                         )}
-                        {fieldType === "select" && options ? (
-                          options.length > 6 ? (
+                        {key === "ai_model" && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
+                            <span style={{ color: aiModelsError ? "#EF4444" : "var(--text-muted)", fontSize: "0.72rem", fontWeight: 700 }}>
+                              {aiModelsLoading ? "Loading free OpenRouter models..." : aiModelsError ? `Using fallback free models: ${aiModelsError}` : `${aiModelOptions.length} free models loaded from OpenRouter`}
+                            </span>
+                            <button type="button" onClick={loadAiModels} disabled={aiModelsLoading}
+                              style={{ background: "var(--bg-surface-sunk)", border: "1px solid var(--border)", color: "var(--text-muted)", borderRadius: 8, padding: "0.25rem 0.65rem", cursor: aiModelsLoading ? "wait" : "pointer", fontFamily: "Cairo, sans-serif", fontSize: "0.72rem", fontWeight: 700 }}>
+                              Refresh
+                            </button>
+                          </div>
+                        )}
+                        {fieldType === "select" && effectiveOptions ? (
+                          effectiveOptions.length > 6 ? (
                             <select
                               value={val || DEFAULTS[key] || ""}
                               onChange={e => update(key, e.target.value)}
                               style={{ ...inputBase, cursor: "pointer", direction: "ltr" }}
                             >
-                              {options.map(opt => (
+                              {effectiveOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                               ))}
                             </select>
                           ) : (
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                              {options.map(opt => {
+                              {effectiveOptions.map(opt => {
                                 const active = (val || DEFAULTS[key]) === opt.value;
                                 return (
                                   <button key={opt.value} onClick={() => update(key, opt.value)}

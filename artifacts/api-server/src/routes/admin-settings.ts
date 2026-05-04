@@ -5,6 +5,7 @@ import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { invalidateAiContextCache } from "./ai-chat";
 import { recordAudit } from "../lib/audit";
+import { clearOpenRouterWorkingModelCache, fetchFreeOpenRouterModels } from "../lib/openrouter-models";
 
 const router = Router();
 
@@ -25,6 +26,15 @@ router.get("/admin/settings", authMiddleware, async (_req, res) => {
     return res.json(obj);
   } catch {
     return res.status(500).json({ error: "Failed to fetch settings" });
+  }
+});
+
+router.get("/admin/ai/free-models", authMiddleware, requireRole("admin"), async (_req, res) => {
+  try {
+    const models = await fetchFreeOpenRouterModels(process.env.OPENROUTER_API_KEY);
+    return res.json({ models });
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch free AI models" });
   }
 });
 
@@ -60,7 +70,10 @@ router.put("/admin/settings", authMiddleware, requireRole("admin"), async (req, 
         if (AI_SETTING_KEYS.has(key)) aiSettingsTouched = true;
       }
     });
-    if (aiSettingsTouched) invalidateAiContextCache();
+    if (aiSettingsTouched) {
+      invalidateAiContextCache();
+      clearOpenRouterWorkingModelCache();
+    }
     await recordAudit(req, {
       action: "settings.update",
       entity: "settings",

@@ -43,7 +43,7 @@ export default function ThemeSwitch({
         padding: 0,
         outline: "none",
         boxSizing: "border-box",
-        transition: "background 0.3s ease, border-color 0.25s ease, box-shadow 0.25s ease",
+        transition: "background 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
         flexShrink: 0,
         display: "inline-block",
         verticalAlign: "middle",
@@ -66,7 +66,7 @@ export default function ThemeSwitch({
             ? "0 2px 8px rgba(0,0,0,0.45), inset 0 -1px 2px rgba(0,0,0,0.15)"
             : "0 2px 6px rgba(13,27,42,0.18), inset 0 -1px 2px rgba(13,27,42,0.08)",
           transform: "translateY(-50%)",
-          transition: "inset-inline-start 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease",
+          transition: "inset-inline-start 180ms cubic-bezier(0.4, 0, 0.2, 1), background 180ms ease, color 180ms ease, box-shadow 180ms ease",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

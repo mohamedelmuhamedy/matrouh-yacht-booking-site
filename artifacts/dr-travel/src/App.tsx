@@ -62,6 +62,13 @@ interface DisplayPkg {
   images?: string[];
 }
 
+const DEFAULT_DEV_NAME = "Mohamed El-Muhamedy";
+
+function displayDevName(value?: string | null): string {
+  const clean = (value || "").trim();
+  return clean && clean !== "Yousef Mostafa" ? clean : DEFAULT_DEV_NAME;
+}
+
 interface DeferredInstallPrompt extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
@@ -176,10 +183,22 @@ const GlobeIcon = () => (
 );
 
 // ===== HOOKS =====
+const MOBILE_MOTION_QUERY = "(max-width: 768px)";
+
+function mobileMotionDisabled() {
+  return typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia(MOBILE_MOTION_QUERY).matches;
+}
+
 function useIntersectionObserver() {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => mobileMotionDisabled());
   useEffect(() => {
+    if (mobileMotionDisabled() || typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); }, { threshold: 0.1 });
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -220,6 +239,7 @@ function FadeInSection({ children, delay = 0, fillHeight = false }: { children: 
 function ScrollProgress() {
   const barRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (mobileMotionDisabled()) return;
     let rafId = 0;
     const onScroll = () => {
       cancelAnimationFrame(rafId);
@@ -378,7 +398,7 @@ function Navbar() {
         <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => { if (location === "/" || location === "") { scrollTo("#hero"); } else { navigate("/"); } }}>
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 900, fontSize: "0.95rem", color: "#00AAFF", letterSpacing: "1.5px", lineHeight: 1.1 }}>{settings.brand_name || "DR TRAVEL"}</div>
-            <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", letterSpacing: "0.5px" }}>{settings.dev_name || "Yousef Mostafa"}</div>
+            <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", letterSpacing: "0.5px" }}>{displayDevName(settings.dev_name)}</div>
           </div>
         </div>
 
@@ -980,11 +1000,22 @@ function PackagesAndBooking() {
     return () => clearTimeout(t);
   }, [form.name, form.phone, form.date, form.adults, form.children, selectedPkg?.id, estimatedPrice]);
 
+  useEffect(() => {
+    if (!selectedPkg) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, [selectedPkg]);
+
 
   const selectPkg = (pkg: DisplayPkg) => {
     if (selectedPkg?.id === pkg.id) { setSelectedPkg(null); return; }
     setSelectedPkg(pkg);
-    setTimeout(() => bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 350);
   };
 
   const validate = () => {
@@ -1182,9 +1213,10 @@ function PackagesAndBooking() {
         </div>
 
         {/* Booking panel */}
-        <div id="booking" ref={bookingRef} className={`booking-panel ${selectedPkg ? "open" : "closed"}`}>
-          <div style={{ marginTop: "2rem", background: "rgba(0,170,255,0.04)", border: "1px solid rgba(0,170,255,0.15)", borderRadius: "20px", padding: isMobile ? "1.25rem" : "2.5rem" }}>
-            {selectedPkg && (
+        <div id="booking" ref={bookingRef} className="booking-panel-anchor" />
+        {selectedPkg && (
+          <div className="book-modal-backdrop home-book-modal-backdrop" onClick={() => setSelectedPkg(null)}>
+            <div className="book-modal-card home-book-modal-card" dir={lang === "ar" ? "rtl" : "ltr"} onClick={e => e.stopPropagation()}>
               <>
                 {/* Panel header */}
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid var(--bg-surface-2)" }}>
@@ -1353,9 +1385,9 @@ function PackagesAndBooking() {
                   </div>
                 </div>
               </>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Compare bar */}
@@ -1981,7 +2013,7 @@ function Footer() {
       {/* Developer strip */}
       <div className="dev-strip">
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-          <span className="dev-strip-label">{f.devLabel}{settings.dev_name ? ` — ${settings.dev_name}` : ""}</span>
+          <span className="dev-strip-label">{f.devLabel} — {displayDevName(settings.dev_name)}</span>
           <a href={devContactHref} target="_blank" rel="noreferrer" className="dev-strip-btn"
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.04)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>

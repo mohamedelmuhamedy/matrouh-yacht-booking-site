@@ -155,8 +155,15 @@ html[dir="ltr"] {
     overflow-x: hidden;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 180ms ease, color 180ms ease;
   }
+}
+
+:root.theme-changing *,
+:root.theme-changing *::before,
+:root.theme-changing *::after {
+  transition-duration: 180ms !important;
+  transition-delay: 0ms !important;
 }
 
 .site-font-scope,
@@ -185,7 +192,7 @@ html[dir="ltr"] {
   inset-inline-start: 0;
   height: 3px;
   background: linear-gradient(90deg, #00AAFF, #C9A84C);
-  z-index: 9999;
+  z-index: 10002;
   will-change: width;
 }
 
@@ -515,11 +522,14 @@ html[dir="ltr"] {
 /* ===== MODAL ===== */
 .modal-overlay {
   position: fixed; inset: 0;
+  min-height: 100dvh;
   background: var(--modal-backdrop);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
   backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  animation: fadeIn 0.18s ease;
 }
 .modal-content {
   background: var(--bg-surface-solid);
@@ -529,7 +539,9 @@ html[dir="ltr"] {
   max-width: 500px;
   width: 90%;
   text-align: center;
-  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  animation: slideUp 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-modal);
   color: var(--text-primary);
 }
@@ -605,7 +617,33 @@ html[dir="ltr"] {
   section { padding-left: 1rem !important; padding-right: 1rem !important; }
 
   /* Package cards: full width on small mobile */
-  .pkg-card { min-width: 0; }
+  .pkg-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+    gap: 1rem;
+  }
+  .pkg-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1.25rem;
+    border-radius: 18px;
+  }
+  .pkg-card__footer > div:first-child {
+    flex-wrap: wrap;
+    align-items: stretch !important;
+    gap: 0.75rem;
+  }
+  .pkg-card__footer > div:first-child > div {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+  .pkg-card__footer > div:first-child > button {
+    flex: 1 1 130px;
+    min-width: 0 !important;
+  }
+  .pkg-card__footer > div:last-child {
+    flex-wrap: wrap;
+  }
 
   /* Footer grid: single column */
   .footer-grid {
@@ -666,6 +704,51 @@ html[dir="ltr"] {
     background: rgba(255,255,255,0.03) !important;
   }
   .show-pkg-btn:hover {
+    transform: none !important;
+  }
+
+  .scroll-progress {
+    display: none !important;
+  }
+
+  .fade-in-up,
+  .fade-in-up.visible,
+  .wu-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    transition-delay: 0ms !important;
+    will-change: auto !important;
+  }
+
+  .pkg-grid-wrap,
+  .pkg-grid-wrap.pkg-visible .pkg-card-anim,
+  .reviews-inner,
+  .reviews-track,
+  .animate-float,
+  .animate-pulse-green {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  .service-detail-hero {
+    background-attachment: scroll !important;
+  }
+
+  .service-detail-page .dr-feature-card,
+  .service-detail-page .dr-feature-card *,
+  .why-us-detail-page *,
+  .why-card {
+    animation: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+
+  .service-detail-page .dr-feature-card,
+  .service-detail-page .dr-feat-img,
+  .why-us-detail-page .wu-parallax-bg {
     transform: none !important;
   }
 
@@ -920,15 +1003,18 @@ html[dir="ltr"] {
 .book-modal-backdrop {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 9998;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  animation: backdropFadeIn 0.22s ease;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  animation: backdropFadeIn 0.18s ease;
 }
 .book-modal-card {
   background: var(--bg-surface-solid);
@@ -937,13 +1023,20 @@ html[dir="ltr"] {
   border-radius: 24px;
   width: 100%;
   max-width: 480px;
-  max-height: 90vh;
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   padding: 2rem 1.75rem;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  animation: bookModalIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: bookModalIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 170, 255, 0.25) transparent;
+  overscroll-behavior: contain;
+}
+.booking-panel-anchor {
+  scroll-margin-top: 90px;
+}
+.home-book-modal-card {
+  max-width: 960px;
 }
 .book-field {
   width: 100%;
@@ -972,7 +1065,12 @@ html[dir="ltr"] {
   margin-bottom: 0.4rem;
 }
 @media (max-width: 520px) {
+  .pkg-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .book-modal-backdrop { padding: 0.75rem; }
   .book-modal-card { padding: 1.5rem 1.25rem; border-radius: 20px; }
+  .home-book-modal-card { padding: 1.25rem; }
 }
 
 /* Keyboard focus visibility for service detail page CTAs */
@@ -1071,6 +1169,20 @@ main a:focus-visible {
 }
 [dir="ltr"] .trip-card:hover .trip-card-cta-arrow {
   transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .trip-card {
+    width: 100%;
+    min-width: 0;
+    border-radius: 14px;
+  }
+  .trip-card-img-wrap {
+    height: clamp(150px, 46vw, 190px);
+  }
+  .trip-card-cta {
+    min-height: 42px;
+  }
 }
 
 /* ─── Booking modal: success screen polish ─── */

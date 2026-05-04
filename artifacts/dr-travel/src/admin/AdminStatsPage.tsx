@@ -137,7 +137,7 @@ export default function AdminStatsPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
         <h2 style={{ margin: 0, color: "var(--text-primary)" }}>📊 الإحصائيات</h2>
-        <div style={{ display: "flex", gap: "0.4rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
           {(["30d", "90d", "ytd", "all"] as const).map(r => (
             <button key={r} onClick={() => setRange(r)} style={{ background: range === r ? "#00AAFF" : "var(--bg-surface-2)", color: range === r ? "white" : "var(--text-primary)", border: "1px solid var(--border)", padding: "0.4rem 0.85rem", borderRadius: 8, cursor: "pointer", fontFamily: "Cairo,sans-serif", fontWeight: 700, fontSize: "0.8rem" }}>
               {r === "30d" ? "30 يوم" : r === "90d" ? "90 يوم" : r === "ytd" ? "هذا العام" : "الكل"}

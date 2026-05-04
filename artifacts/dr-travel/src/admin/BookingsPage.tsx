@@ -140,6 +140,25 @@ export default function BookingsPage() {
   const { success, error: toastError } = useToast();
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const prepareWhatsAppPopup = (): Window | null => {
+    let popup = pendingWhatsAppPopupRef.current;
+    if (!popup || popup.closed) {
+      popup = window.open("about:blank", "_blank");
+      pendingWhatsAppPopupRef.current = popup;
+    }
+    if (popup && !popup.closed) {
+      try {
+        popup.document.title = "Preparing ticket";
+        popup.document.body.dir = "rtl";
+        popup.document.body.style.cssText = "margin:0;font-family:Cairo,Arial,sans-serif;background:#0D1B2A;color:#fff;display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px;";
+        popup.document.body.innerHTML = '<div><div style="font-size:32px;margin-bottom:12px">...</div><strong>جاري تجهيز التذكرة</strong><p style="opacity:.75;margin:.5rem 0 0">سيتم فتح واتساب تلقائيا بعد ثوان.</p></div>';
+      } catch {
+        /* Cross-browser popup documents may be inaccessible; redirect still works. */
+      }
+    }
+    return popup;
+  };
+
   const load = (q?: string) => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -300,7 +319,7 @@ export default function BookingsPage() {
     if (autoAction === "whatsapp" || autoAction === "image-send") {
       // Do NOT pass "noopener" here — we need to keep the popup reference so
       // we can redirect it to wa.me after the async upload/capture finishes.
-      pendingWhatsAppPopupRef.current = window.open("about:blank", "_blank");
+      prepareWhatsAppPopup();
     }
     setTicketBooking(booking);
     setAutoTicketAction(autoAction || null);
@@ -505,10 +524,17 @@ export default function BookingsPage() {
     const w = Math.ceil(node.offsetWidth || 800);
     const h = Math.ceil(node.offsetHeight || 1130);
     const htmlToImage = await loadHtmlToImage();
-    return await htmlToImage.toBlob(node, {
-      pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff",
-      width: w, height: h, style: { transform: "none", margin: "0" },
-    });
+    try {
+      return await htmlToImage.toBlob(node, {
+        pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff",
+        width: w, height: h, style: { transform: "none", margin: "0" },
+      });
+    } catch (err) {
+      console.warn("[generateTicketImageBlob] html-to-image failed, retrying with html2canvas:", err);
+      const canvas = await generateTicketCanvas();
+      if (!canvas) return null;
+      return await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+    }
   };
 
   const ticketImageFilename = (): string => {
@@ -578,8 +604,7 @@ export default function BookingsPage() {
   const sendTicketImageWhatsApp = async () => {
     if (!ticketData) return;
     // Reuse a popup that was opened earlier inside a click gesture.
-    const popup = pendingWhatsAppPopupRef.current
-      || window.open("about:blank", "_blank");
+    const popup = pendingWhatsAppPopupRef.current || prepareWhatsAppPopup();
     pendingWhatsAppPopupRef.current = null;
     setTicketBusy("image-send");
     try {
@@ -601,10 +626,10 @@ export default function BookingsPage() {
         share?: (d: ShareData) => Promise<void>;
       };
       if (nav.canShare && nav.share && nav.canShare({ files: [file] })) {
-        // Close the placeholder popup — we'll use the native share sheet.
-        popup?.close();
+        // Keep the placeholder popup until share succeeds; fallback can reuse it.
         try {
           await nav.share({ files: [file], text, title: filename });
+          popup?.close();
           success("تم فتح قائمة المشاركة");
           return;
         } catch (err) {
@@ -710,8 +735,7 @@ export default function BookingsPage() {
     if (!ticketData || !ticketData.ticketToken) return;
     // Reuse a popup that was opened earlier inside a click gesture (e.g. from
     // the row "إرسال للعميل" button); otherwise open one now.
-    const popup = pendingWhatsAppPopupRef.current
-      || window.open("about:blank", "_blank");
+    const popup = pendingWhatsAppPopupRef.current || prepareWhatsAppPopup();
     pendingWhatsAppPopupRef.current = null;
     setTicketBusy("whatsapp");
     try {
@@ -980,11 +1004,6 @@ export default function BookingsPage() {
                       </button>
                       <button className="bk-btn is-ticket"
                         onClick={() => {
-                          // Pre-open popup synchronously inside the gesture so
-                          // popup-blockers won't swallow it after the lang pick.
-                          if (!pendingWhatsAppPopupRef.current) {
-                            pendingWhatsAppPopupRef.current = window.open("about:blank", "_blank");
-                          }
                           setLangChooser({ booking: b, action: "image-send" });
                         }}
                         title="فتح شات واتساب العميل مع الرسالة الجاهزة + صورة التذكرة">
@@ -1068,6 +1087,7 @@ export default function BookingsPage() {
                 onClick={() => {
                   const { booking, action } = langChooser;
                   setLangChooser(null);
+                  if (action === "image-send") prepareWhatsAppPopup();
                   openTicket(booking, action, "ar");
                 }}
                 style={{ flex: 1, background: "linear-gradient(135deg,#0D1B2A,#14253a)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "1rem", fontWeight: 800 }}>
@@ -1077,6 +1097,7 @@ export default function BookingsPage() {
                 onClick={() => {
                   const { booking, action } = langChooser;
                   setLangChooser(null);
+                  if (action === "image-send") prepareWhatsAppPopup();
                   openTicket(booking, action, "en");
                 }}
                 style={{ flex: 1, background: "linear-gradient(135deg,#00AAFF,#0066cc)", color: "white", border: "none", borderRadius: 12, padding: "0.85rem", cursor: "pointer", fontFamily: "Cairo, sans-serif", fontSize: "1rem", fontWeight: 800 }}>
@@ -1100,9 +1121,9 @@ export default function BookingsPage() {
 
       {/* Ticket modal */}
       {ticketBooking && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "1.5rem 0.75rem", overflowY: "auto" }}
+        <div className="admin-ticket-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "1.5rem 0.75rem", overflowY: "auto" }}
           onClick={closeTicket}>
-          <div style={{ background: "var(--bg-surface-sunk)", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
+          <div className="admin-ticket-modal" style={{ background: "var(--bg-surface-sunk)", borderRadius: 18, padding: "1.25rem", maxWidth: 880, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
               <h3 style={{ margin: 0, color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", fontSize: "1.1rem", fontWeight: 800 }}>
                 🎫 تذكرة #{ticketBooking.id} — {ticketBooking.name}
@@ -1188,11 +1209,11 @@ export default function BookingsPage() {
             </div>
 
             {/* Preview */}
-            <div ref={ticketRef} style={{ background: "var(--border)", borderRadius: 14, padding: "1rem", display: "flex", justifyContent: "center", overflow: "auto" }}>
+            <div ref={ticketRef} className="admin-ticket-preview" style={{ background: "var(--border)", borderRadius: 14, padding: "1rem", display: "flex", justifyContent: "center", overflow: "auto" }}>
               {ticketLoading || !ticketData ? (
                 <div style={{ padding: "3rem", color: "var(--text-secondary)", fontFamily: "Cairo, sans-serif" }}>⏳ جاري تجهيز التذكرة...</div>
               ) : (
-                <div style={{ transform: "scale(0.78)", transformOrigin: "top center", width: 800 }}>
+                <div className="admin-ticket-preview-scale" style={{ transform: "scale(0.78)", transformOrigin: "top center", width: 800 }}>
                   <Ticket
                     data={ticketData}
                     lang={ticketLang}

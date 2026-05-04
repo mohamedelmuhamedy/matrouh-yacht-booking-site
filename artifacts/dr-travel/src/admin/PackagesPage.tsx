@@ -32,6 +32,23 @@ interface Package {
   reviewCount?: number;
 }
 
+function resolveCssColor(value: string | undefined, fallback: string): string {
+  const raw = (value || "").trim();
+  if (!raw) return fallback;
+  if (raw.startsWith("var(")) {
+    const name = raw.match(/var\(\s*(--[^),\s]+)/)?.[1];
+    if (name) {
+      const resolved = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      if (resolved) return resolveCssColor(resolved, fallback);
+    }
+    return fallback;
+  }
+  const probe = document.createElement("span");
+  probe.style.color = "";
+  probe.style.color = raw;
+  return probe.style.color ? raw : fallback;
+}
+
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,8 +80,8 @@ export default function PackagesPage() {
     setQrBusy(pkg.id);
     try {
       const url = `${window.location.origin}/packages/${pkg.slug}`;
-      const fg = settings.card_qr_fg || "#0D1B2A";
-      const bg = settings.card_qr_bg || "var(--bg-surface-solid)";
+      const fg = resolveCssColor(settings.card_qr_fg, "#0D1B2A");
+      const bg = resolveCssColor(settings.card_qr_bg, "#ffffff");
       const logoSrc = resolveApiAssetUrl(settings.logo_url) || logoFallback;
       const baseName = (settings.brand_short_name || settings.brand_name || "dr-travel")
         .replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
@@ -167,16 +184,17 @@ export default function PackagesPage() {
           {packages.map(pkg => {
             const statusBadge = STATUS_BADGES[pkg.status] || STATUS_BADGES.draft;
             return (
-              <div key={pkg.id} style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
-                <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div key={pkg.id} className="admin-package-card" style={{ background: "var(--bg-surface-solid)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", borderRight: `4px solid ${pkg.color || "#00AAFF"}`, opacity: pkg.status === "archived" ? 0.55 : 1, transition: "opacity 0.2s" }}>
+                <div className="admin-package-card__body" style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                   {pkg.images?.[0] ? (
                     <img
                       src={storageObjectUrl(pkg.images[0])}
                       alt={pkg.titleAr}
+                      className="admin-package-card__media"
                       style={{ width: 80, height: 60, objectFit: "cover", borderRadius: "10px", flexShrink: 0 }}
                       onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
-                    <div style={{ width: 80, height: 60, borderRadius: "10px", background: `${pkg.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>
+                    <div className="admin-package-card__media" style={{ width: 80, height: 60, borderRadius: "10px", background: `${pkg.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>
                       {pkg.icon}
                     </div>
                   )}

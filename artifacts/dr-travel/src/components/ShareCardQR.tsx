@@ -39,6 +39,26 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function resolveQrColor(value: string, fallback: string): string {
+  const raw = (value || "").trim();
+  if (!raw) return fallback;
+
+  if (raw.startsWith("var(") && typeof window !== "undefined") {
+    const name = raw.match(/var\(\s*(--[^),\s]+)/)?.[1];
+    if (name) {
+      const resolved = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      if (resolved) return resolveQrColor(resolved, fallback);
+    }
+    return fallback;
+  }
+
+  if (typeof document === "undefined") return raw;
+  const probe = document.createElement("span");
+  probe.style.color = "";
+  probe.style.color = raw;
+  return probe.style.color ? raw : fallback;
+}
+
 async function fetchAsDataUrl(src: string): Promise<string | null> {
   try {
     const res = await fetch(src, { mode: "cors" });
@@ -71,12 +91,14 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 export async function generatePngDataUrl(opts: QRBaseProps): Promise<string> {
   const { url, fg, bg, size, margin = 2, logoSrc } = opts;
+  const dark = resolveQrColor(fg, "#0D1B2A");
+  const light = resolveQrColor(bg, "#ffffff");
   const canvas = document.createElement("canvas");
   await QRCode.toCanvas(canvas, url || " ", {
     errorCorrectionLevel: "H",
     margin,
     width: size,
-    color: { dark: fg, light: bg },
+    color: { dark, light },
   });
   if (logoSrc) {
     try {
@@ -90,7 +112,7 @@ export async function generatePngDataUrl(opts: QRBaseProps): Promise<string> {
         const bgSize = logoSize + pad * 2;
         const bx = Math.round((w - bgSize) / 2);
         const radius = Math.round(bgSize * 0.18);
-        ctx.fillStyle = bg;
+        ctx.fillStyle = light;
         roundRect(ctx, bx, bx, bgSize, bgSize, radius);
         ctx.fill();
         ctx.save();
@@ -114,12 +136,14 @@ function escapeXml(value: string): string {
 
 export async function generateSvg(opts: QRBaseProps): Promise<string> {
   const { url, fg, bg, size, margin = 2, logoSrc } = opts;
+  const dark = resolveQrColor(fg, "#0D1B2A");
+  const light = resolveQrColor(bg, "#ffffff");
   const baseSvg = await QRCode.toString(url || " ", {
     type: "svg",
     errorCorrectionLevel: "H",
     margin,
     width: size,
-    color: { dark: fg, light: bg },
+    color: { dark, light },
   });
 
   if (!logoSrc) return baseSvg;
@@ -151,7 +175,7 @@ export async function generateSvg(opts: QRBaseProps): Promise<string> {
     `<defs><clipPath id="${clipId}">` +
     `<rect x="${lx}" y="${ly}" width="${logoSize}" height="${logoSize}" rx="${lgRadius}" ry="${lgRadius}"/>` +
     `</clipPath></defs>` +
-    `<rect x="${bxs}" y="${bys}" width="${bgSize}" height="${bgSize}" rx="${bgRadius}" ry="${bgRadius}" fill="${escapeXml(bg)}"/>` +
+    `<rect x="${bxs}" y="${bys}" width="${bgSize}" height="${bgSize}" rx="${bgRadius}" ry="${bgRadius}" fill="${escapeXml(light)}"/>` +
     `<image x="${lx}" y="${ly}" width="${logoSize}" height="${logoSize}" ` +
     `clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice" ` +
     `href="${escapeXml(logoDataUrl)}" xlink:href="${escapeXml(logoDataUrl)}"/>`;

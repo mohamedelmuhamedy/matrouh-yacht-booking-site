@@ -3,7 +3,8 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 export type Theme = "light" | "dark";
 export type ThemePreference = Theme | "system";
 
-const STORAGE_KEY = "dr-theme";
+const PUBLIC_STORAGE_KEY = "dr-theme";
+const ADMIN_STORAGE_KEY = "dr-admin-theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -13,14 +14,27 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+let themeTransitionTimer: number | undefined;
+
+function isAdminPath(): boolean {
+  return typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+}
+
+function storageKey(): string {
+  return isAdminPath() ? ADMIN_STORAGE_KEY : PUBLIC_STORAGE_KEY;
+}
+
+function defaultPreference(): ThemePreference {
+  return isAdminPath() ? "light" : "system";
+}
 
 function readStoredPreference(): ThemePreference {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "system";
   try {
-    const v = localStorage.getItem(STORAGE_KEY);
+    const v = localStorage.getItem(storageKey());
     if (v === "light" || v === "dark" || v === "system") return v;
   } catch {}
-  return "system";
+  return defaultPreference();
 }
 
 function systemTheme(): Theme {
@@ -32,8 +46,17 @@ function resolveTheme(p: ThemePreference): Theme {
   return p === "system" ? systemTheme() : p;
 }
 
-function applyTheme(t: Theme) {
+function applyTheme(t: Theme, animate = false) {
   const root = document.documentElement;
+  const changed = root.getAttribute("data-theme") !== t;
+  if (animate && changed) {
+    root.classList.add("theme-changing");
+    if (themeTransitionTimer) window.clearTimeout(themeTransitionTimer);
+    themeTransitionTimer = window.setTimeout(() => {
+      root.classList.remove("theme-changing");
+      themeTransitionTimer = undefined;
+    }, 210);
+  }
   root.setAttribute("data-theme", t);
   // Update <meta name="theme-color"> dynamically so the mobile chrome bar follows the theme.
   const meta = document.querySelector('meta[name="theme-color"]');
@@ -52,16 +75,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (preference !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: light)");
-    const onChange = () => setTheme(mq.matches ? "light" : "dark");
+    const onChange = () => {
+      const next = mq.matches ? "light" : "dark";
+      setTheme(next);
+      applyTheme(next, true);
+    };
     onChange();
     mq.addEventListener?.("change", onChange);
     return () => mq.removeEventListener?.("change", onChange);
   }, [preference]);
 
   const setPreference = useCallback((p: ThemePreference) => {
+    const next = resolveTheme(p);
     setPreferenceState(p);
-    try { localStorage.setItem(STORAGE_KEY, p); } catch {}
-    setTheme(resolveTheme(p));
+    try { localStorage.setItem(storageKey(), p); } catch {}
+    setTheme(next);
+    applyTheme(next, true);
   }, []);
 
   const toggleTheme = useCallback(() => {

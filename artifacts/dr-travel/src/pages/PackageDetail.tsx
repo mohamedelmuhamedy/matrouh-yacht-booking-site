@@ -219,13 +219,23 @@ export default function PackageDetail() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Sync ref and body scroll lock with lightbox state
+  // Sync refs with lightbox state
   useEffect(() => {
     lightboxOpenRef.current = lightboxOpen;
     lightboxIdxRef.current = lightboxIdx;
-    document.body.style.overflow = lightboxOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
   }, [lightboxOpen, lightboxIdx]);
+
+  useEffect(() => {
+    if (!lightboxOpen && !showBook) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, [lightboxOpen, showBook]);
 
   const openLightbox = (idx: number) => { setLightboxIdx(idx); lightboxIdxRef.current = idx; setLightboxOpen(true); };
   const closeLightbox = () => { setLightboxOpen(false); lightboxOpenRef.current = false; };
@@ -786,7 +796,7 @@ export default function PackageDetail() {
                 </div>
 
                 {/* People + Date */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "0.85fr 1.15fr", gap: "0.75rem" }}>
                   <div>
                     <label className="book-label">{ar ? "عدد الأفراد *" : "No. of People *"}</label>
                     <input className={`book-field${bookErrors.people ? " book-error" : ""}`}

@@ -48,10 +48,11 @@ async function consumeVisitorQuota(key: string, day: string): Promise<{ ok: bool
 import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
+import { DEFAULT_FREE_OPENROUTER_MODEL, fetchOpenRouterChatWithFallback } from "../lib/openrouter-models";
 
 const router = Router();
 
-const DEFAULT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_MODEL = DEFAULT_FREE_OPENROUTER_MODEL;
 const DEFAULT_TEMPERATURE = 0.4;
 const DEFAULT_MAX_TOKENS = 600;
 const CONTEXT_TTL_MS = 30_000;
@@ -554,28 +555,25 @@ ${ctx.text}${visitorBlock}
     const wantsStream = String(req.headers.accept ?? "").toLowerCase().includes("text/event-stream");
 
     if (wantsStream) {
-      const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": referer,
-          "X-Title": "DR Travel Assistant",
-          Accept: "text/event-stream",
-        },
-        body: JSON.stringify({
-          model: ctx.model,
-          messages: upstreamMessages,
-          temperature: ctx.temperature,
-          max_tokens: ctx.maxTokens,
+      let upstream: Response;
+      let activeModel = ctx.model;
+      try {
+        const resolved = await fetchOpenRouterChatWithFallback({
+          apiKey,
+          preferredModel: ctx.model,
+          referer,
           stream: true,
-        }),
-      });
-
-      if (!upstream.ok || !upstream.body) {
-        const errText = await upstream.text().catch(() => "");
-        console.error("OpenRouter stream error:", upstream.status, errText.slice(0, 300));
-        return res.status(502).json({ error: "AI upstream error", status: upstream.status });
+          body: {
+            messages: upstreamMessages,
+            temperature: ctx.temperature,
+            max_tokens: ctx.maxTokens,
+          },
+        });
+        upstream = resolved.response;
+        activeModel = resolved.model;
+      } catch (err) {
+        console.error("OpenRouter stream model fallback exhausted:", err instanceof Error ? err.message : String(err));
+        return res.status(503).json({ error: "No working free AI model is currently available" });
       }
 
       res.status(200);
@@ -681,32 +679,30 @@ ${ctx.text}${visitorBlock}
         type: "done",
         reply: cleaned || rawReply,
         suggestedPackageSlugs: slugs,
-        model: ctx.model,
+        model: activeModel,
       });
       res.end();
       return;
     }
 
-    const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": referer,
-        "X-Title": "DR Travel Assistant",
-      },
-      body: JSON.stringify({
-        model: ctx.model,
-        messages: upstreamMessages,
-        temperature: ctx.temperature,
-        max_tokens: ctx.maxTokens,
-      }),
-    });
-
-    if (!upstream.ok) {
-      const errText = await upstream.text().catch(() => "");
-      console.error("OpenRouter error:", upstream.status, errText.slice(0, 300));
-      return res.status(502).json({ error: "AI upstream error", status: upstream.status });
+    let upstream: Response;
+    let activeModel = ctx.model;
+    try {
+      const resolved = await fetchOpenRouterChatWithFallback({
+        apiKey,
+        preferredModel: ctx.model,
+        referer,
+        body: {
+          messages: upstreamMessages,
+          temperature: ctx.temperature,
+          max_tokens: ctx.maxTokens,
+        },
+      });
+      upstream = resolved.response;
+      activeModel = resolved.model;
+    } catch (err) {
+      console.error("OpenRouter model fallback exhausted:", err instanceof Error ? err.message : String(err));
+      return res.status(503).json({ error: "No working free AI model is currently available" });
     }
 
     const data = (await upstream.json()) as OpenRouterResponse;
@@ -718,7 +714,7 @@ ${ctx.text}${visitorBlock}
     return res.json({
       reply: cleaned || rawReply,
       suggestedPackageSlugs: slugs,
-      model: ctx.model,
+      model: activeModel,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

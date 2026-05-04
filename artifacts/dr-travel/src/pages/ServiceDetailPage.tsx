@@ -183,7 +183,7 @@ export default function ServiceDetailPage() {
   );
 
   return (
-    <main dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "var(--text-primary)" }}>
+    <main className="service-detail-page" dir={ar ? "rtl" : "ltr"} style={{ fontFamily: "var(--app-font-sans, Cairo, sans-serif)", background: "var(--bg-page)", minHeight: "100vh", color: "var(--text-primary)" }}>
       <SeoHead
         title={`${title} | DR Travel`}
         description={String(desc || "").slice(0, 160)}
@@ -234,7 +234,7 @@ export default function ServiceDetailPage() {
       </button>
 
       {/* HERO — full-width parallax with deep gradient overlay */}
-      <section style={{
+      <section className="service-detail-hero" style={{
         position: "relative",
         minHeight: "62vh",
         display: "flex", alignItems: "center", justifyContent: "center",

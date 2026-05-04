@@ -7,6 +7,13 @@ import SeoHead from "../components/SeoHead";
 
 type Bullet = { icon: string; titleAr: string; titleEn: string; descAr: string; descEn: string };
 type Stat = { icon: string; value: string; labelAr: string; labelEn: string };
+const MOBILE_MOTION_QUERY = "(max-width: 768px)";
+
+function mobileMotionDisabled() {
+  return typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia(MOBILE_MOTION_QUERY).matches;
+}
 
 interface WhyUsCard {
   id: number;
@@ -38,8 +45,12 @@ function hexToRgba(hex: string, a: number) {
 
 function useInView<T extends HTMLElement>(threshold = 0.18): [React.RefObject<T | null>, boolean] {
   const ref = useRef<T>(null);
-  const [seen, setSeen] = useState(false);
+  const [seen, setSeen] = useState(() => mobileMotionDisabled());
   useEffect(() => {
+    if (mobileMotionDisabled() || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
     if (!ref.current || seen) return;
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { setSeen(true); obs.disconnect(); } });
@@ -59,7 +70,7 @@ function Reveal({ children, delay = 0, from = "up" }: { children: React.ReactNod
     scale: "scale(0.92)",
   };
   return (
-    <div ref={ref} style={{
+    <div ref={ref} className="wu-reveal" style={{
       opacity: inView ? 1 : 0,
       transform: inView ? "none" : transforms[from],
       transition: `opacity 0.85s cubic-bezier(.2,.8,.2,1) ${delay}ms, transform 0.85s cubic-bezier(.2,.8,.2,1) ${delay}ms`,
@@ -69,9 +80,13 @@ function Reveal({ children, delay = 0, from = "up" }: { children: React.ReactNod
 }
 
 function CountUp({ target, duration = 1400 }: { target: string; duration?: number }) {
-  const [val, setVal] = useState("0");
+  const [val, setVal] = useState(() => mobileMotionDisabled() ? target : "0");
   const [ref, inView] = useInView<HTMLSpanElement>();
   useEffect(() => {
+    if (mobileMotionDisabled()) {
+      setVal(target);
+      return;
+    }
     if (!inView) return;
     // Parse digits
     const m = target.match(/^([\d.,]+)(.*)$/);
@@ -129,6 +144,10 @@ export default function WhyUsDetailPage() {
   }, [slug]);
 
   useEffect(() => {
+    if (mobileMotionDisabled()) {
+      setScrollY(0);
+      return;
+    }
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -172,6 +191,7 @@ export default function WhyUsDetailPage() {
   const heroImg = card.heroImageUrl || "";
   const accentImg = card.accentImageUrl || card.heroImageUrl || "";
   const whatsapp = settings.whatsapp_number || "01205756024";
+  const disableMobileMotion = mobileMotionDisabled();
 
   const ctaHref = card.ctaLink?.startsWith("/") ? card.ctaLink : (card.ctaLink || "/trips");
   const goCta = () => {
@@ -180,7 +200,7 @@ export default function WhyUsDetailPage() {
   };
 
   return (
-    <div style={{ background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
+    <div className="why-us-detail-page" style={{ background: "var(--bg-page)", color: "var(--text-primary)", fontFamily: "Cairo, sans-serif", direction: isAr ? "rtl" : "ltr", minHeight: "100vh", overflowX: "hidden" }}>
       <SeoHead
         title={`${title} | DR Travel`}
         description={String(shortDesc || intro || "").slice(0, 160)}
@@ -202,12 +222,12 @@ export default function WhyUsDetailPage() {
       <section style={{ position: "relative", minHeight: "92vh", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", isolation: "isolate" }} className="wu-grain">
         {/* Background image with parallax */}
         {heroImg && (
-          <div style={{
+          <div className="wu-parallax-bg" style={{
             position: "absolute", inset: 0,
             backgroundImage: `url(${heroImg})`,
             backgroundSize: "cover", backgroundPosition: "center",
-            transform: `translateY(${scrollY * 0.4}px) scale(${1 + scrollY * 0.0003})`,
-            transition: "transform 0.05s linear",
+            transform: disableMobileMotion ? "none" : `translateY(${scrollY * 0.4}px) scale(${1 + scrollY * 0.0003})`,
+            transition: disableMobileMotion ? "none" : "transform 0.05s linear",
             filter: "saturate(1.05)",
           }} />
         )}
