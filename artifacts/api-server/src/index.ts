@@ -45,6 +45,9 @@ async function start(): Promise<void> {
   await pool.query("select 1");
   console.log("[db] PostgreSQL connection verified");
 
+  const { seedAdminFromStartup } = await import("./lib/seedAdmin");
+  await seedAdminFromStartup();
+
   const { default: app } = await import("./app");
   const { startTripReminderScheduler } = await import("./lib/tripReminders");
   const { getVapidConfig } = await import("./routes/push");

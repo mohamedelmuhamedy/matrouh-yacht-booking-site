@@ -7,6 +7,7 @@ import {
   StorageUploadError,
 } from "../lib/objectStorage";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -46,7 +47,7 @@ function copyProxyHeaders(source: globalThis.Response, res: Response): void {
   }
 }
 
-router.post("/storage/uploads/request-url", authMiddleware, async (req: Request, res: Response) => {
+router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), async (req: Request, res: Response) => {
   const { name, size, contentType } = req.body as {
     name?: string;
     size?: number;
@@ -130,6 +131,7 @@ router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
       contentType: payload.contentType,
       stream: req,
       contentLength,
+      maxBytes: payload.size,
     });
 
     res.status(200).end();

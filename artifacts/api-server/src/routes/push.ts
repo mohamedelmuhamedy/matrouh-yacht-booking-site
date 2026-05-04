@@ -4,6 +4,7 @@ import webpush from "web-push";
 import { db, pushSubscriptions, appSecrets, bookings } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 async function resolveBookingIdFromTicketToken(token: unknown): Promise<number | null> {
   if (typeof token !== "string") return null;
@@ -193,7 +194,7 @@ router.post("/push/unsubscribe", async (req: Request, res: Response) => {
 });
 
 // POST /api/admin/push/trigger-reminders — manually run reminder sweep (admin only)
-router.post("/admin/push/trigger-reminders", authMiddleware, async (_req: Request, res: Response) => {
+router.post("/admin/push/trigger-reminders", authMiddleware, requireRole("admin"), async (_req: Request, res: Response) => {
   try {
     const { runReminderSweep } = await import("../lib/tripReminders");
     const result = await runReminderSweep(getVapidConfig);
@@ -215,7 +216,7 @@ router.get("/admin/push/stats", authMiddleware, async (_req: Request, res: Respo
 });
 
 // POST /api/admin/push/send — broadcast a push notification (admin only)
-router.post("/admin/push/send", authMiddleware, async (req: Request, res: Response) => {
+router.post("/admin/push/send", authMiddleware, requireRole("admin"), async (req: Request, res: Response) => {
   if (!(await getVapidConfig())) {
     return res.status(503).json({ error: "Push not configured — VAPID keys missing" });
   }

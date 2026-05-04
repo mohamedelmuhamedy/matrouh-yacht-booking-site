@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, whyUsCards, type WhyUsBullet, type WhyUsStat } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = Router();
 const HEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -130,7 +131,7 @@ router.get("/admin/why-us/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/admin/why-us", authMiddleware, async (req, res) => {
+router.post("/admin/why-us", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const b = req.body || {};
     const slug = cleanSlug(String(b.slug || ""));
@@ -146,7 +147,7 @@ router.post("/admin/why-us", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/why-us/:id", authMiddleware, async (req, res) => {
+router.put("/admin/why-us/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
@@ -165,7 +166,7 @@ router.put("/admin/why-us/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/admin/why-us/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/why-us/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });

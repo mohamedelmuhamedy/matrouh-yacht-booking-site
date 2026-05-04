@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, galleryAlbums, galleryItems } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { ObjectStorageService } from "../lib/objectStorage";
 
 const objectStorageService = new ObjectStorageService();
@@ -38,7 +39,7 @@ router.get("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/admin/gallery/albums", authMiddleware, async (req, res) => {
+router.post("/admin/gallery/albums", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const { titleAr, titleEn, slug, descriptionAr, descriptionEn, coverImage, isVisible, sortOrder } = req.body;
     if (!titleAr?.trim()) return res.status(400).json({ error: "Arabic title is required" });
@@ -62,7 +63,7 @@ router.post("/admin/gallery/albums", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
+router.put("/admin/gallery/albums/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -89,7 +90,7 @@ router.put("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/admin/gallery/albums/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/gallery/albums/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -116,7 +117,7 @@ router.get("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, r
   }
 });
 
-router.post("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, res) => {
+router.post("/admin/gallery/albums/:albumId/items", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const albumId = Number(req.params.albumId);
     if (isNaN(albumId)) return res.status(400).json({ error: "Invalid album ID" });
@@ -137,7 +138,7 @@ router.post("/admin/gallery/albums/:albumId/items", authMiddleware, async (req, 
   }
 });
 
-router.put("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
+router.put("/admin/gallery/items/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -155,7 +156,7 @@ router.put("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/admin/gallery/items/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/gallery/items/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });

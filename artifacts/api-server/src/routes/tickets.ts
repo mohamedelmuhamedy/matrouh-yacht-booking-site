@@ -7,6 +7,7 @@ import path from "path";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { recordAudit } from "../lib/audit";
 import {
   generateTicketNumber,
@@ -21,7 +22,7 @@ function isAdminRequest(req: express.Request): boolean {
   try {
     const decoded = jwt.verify(h.slice(7), getJwtSecret()) as Record<string, unknown>;
     if (!decoded || typeof decoded !== "object") return false;
-    if ("kind" in decoded && decoded.kind !== "admin") return false;
+    if (decoded.kind !== "admin") return false;
     return typeof decoded.userId === "number" && typeof decoded.username === "string";
   } catch {
     return false;
@@ -302,7 +303,7 @@ router.get("/tickets/:token", async (req, res) => {
   }
 });
 
-router.post("/admin/tickets/:token/use", authMiddleware, async (req, res) => {
+router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
@@ -410,6 +411,7 @@ router.get("/admin/tickets/:token/image.svg", authMiddleware, async (req, res) =
 router.post(
   "/admin/bookings/:id/ticket-pdf",
   authMiddleware,
+  requireRole("operator"),
   express.raw({ type: "application/pdf", limit: "30mb" }),
   async (req, res) => {
     try {

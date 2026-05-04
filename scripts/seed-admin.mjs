@@ -18,11 +18,17 @@ if (fs.existsSync(rootEnvPath)) {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const username = process.env.ADMIN_USERNAME || 'admin';
-const password = process.env.ADMIN_PASSWORD || 'drtravel2024';
+const password = process.env.ADMIN_PASSWORD;
+const role = process.env.ADMIN_ROLE || 'super';
 const displayName = process.env.ADMIN_DISPLAY_NAME || 'مدير النظام';
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL not set');
+  process.exit(1);
+}
+
+if (!password || password.length < 8) {
+  console.error('ADMIN_PASSWORD must be set and at least 8 characters long');
   process.exit(1);
 }
 
@@ -33,14 +39,14 @@ try {
   
   if (existing.rows.length > 0) {
     await pool.query(
-      'UPDATE admin_users SET password_hash = $1, display_name = $2, is_active = true, updated_at = NOW() WHERE username = $3',
-      [passwordHash, displayName, username]
+      'UPDATE admin_users SET password_hash = $1, display_name = $2, role = $3, is_active = true, updated_at = NOW() WHERE username = $4',
+      [passwordHash, displayName, role, username]
     );
     console.log(`✅ Admin '${username}' updated`);
   } else {
     await pool.query(
-      'INSERT INTO admin_users (username, password_hash, display_name, email, is_active) VALUES ($1, $2, $3, $4, true)',
-      [username, passwordHash, displayName, '']
+      'INSERT INTO admin_users (username, password_hash, display_name, email, role, is_active) VALUES ($1, $2, $3, $4, $5, true)',
+      [username, passwordHash, displayName, '', role]
     );
     console.log(`✅ Admin '${username}' created`);
   }

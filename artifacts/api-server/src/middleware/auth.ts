@@ -26,9 +26,9 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     if (
       !decoded ||
       typeof decoded !== "object" ||
+      decoded.kind !== "admin" ||
       typeof decoded.userId !== "number" ||
-      typeof decoded.username !== "string" ||
-      ("kind" in decoded && decoded.kind !== "admin")
+      typeof decoded.username !== "string"
     ) {
       res.status(401).json({ error: "Invalid or expired token", code: "INVALID_TOKEN" });
       return;

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, bookings } from "@workspace/db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { ensureTicketToken } from "./tickets";
 import { recordAudit } from "../lib/audit";
 
@@ -42,7 +43,7 @@ router.get("/admin/bookings", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
+router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -82,7 +83,7 @@ router.put("/admin/bookings/:id/status", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/bookings/:id/ticket-fields", authMiddleware, async (req, res) => {
+router.put("/admin/bookings/:id/ticket-fields", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -110,7 +111,7 @@ router.put("/admin/bookings/:id/ticket-fields", authMiddleware, async (req, res)
   }
 });
 
-router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res) => {
+router.post("/admin/bookings/:id/issue-ticket", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -131,7 +132,7 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, async (req, res)
   }
 });
 
-router.put("/admin/bookings/:id/notes", authMiddleware, async (req, res) => {
+router.put("/admin/bookings/:id/notes", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -178,7 +179,7 @@ router.get("/admin/bookings/export/csv", authMiddleware, async (_req, res) => {
   }
 });
 
-router.delete("/admin/bookings/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/bookings/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });

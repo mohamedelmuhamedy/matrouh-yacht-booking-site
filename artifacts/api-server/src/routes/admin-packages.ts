@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, packages } from "@workspace/db";
 import { eq, asc, ne } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = Router();
 
@@ -44,7 +45,7 @@ router.get("/admin/packages/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/admin/packages", authMiddleware, async (req, res) => {
+router.post("/admin/packages", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const data = req.body;
     const errors = validatePackage(data);
@@ -66,7 +67,7 @@ router.post("/admin/packages", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/packages/:id", authMiddleware, async (req, res) => {
+router.put("/admin/packages/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -93,7 +94,7 @@ router.put("/admin/packages/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/admin/packages/:id/duplicate", authMiddleware, async (req, res) => {
+router.post("/admin/packages/:id/duplicate", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -126,7 +127,7 @@ router.post("/admin/packages/:id/duplicate", authMiddleware, async (req, res) =>
   }
 });
 
-router.delete("/admin/packages/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/packages/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });

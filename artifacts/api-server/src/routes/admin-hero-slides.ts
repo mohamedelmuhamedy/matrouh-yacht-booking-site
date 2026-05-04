@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { heroSlides } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { ObjectStorageService } from "../lib/objectStorage";
 
 const objectStorageService = new ObjectStorageService();
@@ -47,15 +48,6 @@ router.get("/hero-slides", async (_req, res) => {
     })));
     const valid = reachability.filter(({ reachable }) => reachable).map(({ row }) => row);
 
-    // Auto-clean broken records so they don't accumulate
-    const broken = reachability.filter(({ reachable }) => !reachable).map(({ row }) => row);
-    if (broken.length > 0) {
-      console.warn(`[hero-slides] removing ${broken.length} slide(s) with missing files:`, broken.map(r => r.url));
-      for (const b of broken) {
-        await db.delete(heroSlides).where(eq(heroSlides.id, b.id)).catch(() => {});
-      }
-    }
-
     return res.json(valid);
   } catch {
     return res.status(500).json({ error: "Failed to fetch hero slides" });
@@ -76,7 +68,7 @@ router.get("/admin/hero-slides", authMiddleware, async (_req, res) => {
 });
 
 // Admin: create a slide
-router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
+router.post("/admin/hero-slides", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const { url, type = "image", duration = 6, sortOrder = 0, videoStart, videoEnd } = req.body;
     if (!url) return res.status(400).json({ error: "url is required" });
@@ -94,7 +86,7 @@ router.post("/admin/hero-slides", authMiddleware, async (req, res) => {
 });
 
 // Admin: restore default slides (must be before /:id route)
-router.post("/admin/hero-slides/restore-defaults", authMiddleware, async (_req, res) => {
+router.post("/admin/hero-slides/restore-defaults", authMiddleware, requireRole("admin"), async (_req, res) => {
   try {
     const row = await db.transaction(async (tx) => {
       await tx.delete(heroSlides);
@@ -114,7 +106,7 @@ router.post("/admin/hero-slides/restore-defaults", authMiddleware, async (_req, 
 });
 
 // Admin: reorder slides (must be before /:id route)
-router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
+router.put("/admin/hero-slides/reorder", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const { order }: { order: { id: number; sortOrder: number }[] } = req.body;
     for (const { id, sortOrder } of order) {
@@ -127,7 +119,7 @@ router.put("/admin/hero-slides/reorder", authMiddleware, async (req, res) => {
 });
 
 // Admin: update a slide (duration, sortOrder, isActive, videoStart, videoEnd)
-router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
+router.put("/admin/hero-slides/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { duration, sortOrder, isActive, videoStart, videoEnd } = req.body;
@@ -145,7 +137,7 @@ router.put("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
 });
 
 // Admin: delete a slide
-router.delete("/admin/hero-slides/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/hero-slides/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const [slide] = await db.select().from(heroSlides).where(eq(heroSlides.id, id));

@@ -18,6 +18,7 @@ async function setupAdmin() {
   const password = process.env.ADMIN_PASSWORD;
   const displayName = process.env.ADMIN_DISPLAY_NAME || "";
   const email = process.env.ADMIN_EMAIL || "";
+  const role = process.env.ADMIN_ROLE || "super";
 
   if (!username || !password) {
     console.error("ERROR: ADMIN_USERNAME and ADMIN_PASSWORD environment variables are required.");
@@ -38,11 +39,11 @@ async function setupAdmin() {
 
     if (existing) {
       await db.update(adminUsers)
-        .set({ passwordHash, displayName, email, isActive: true, updatedAt: new Date() })
+        .set({ passwordHash, displayName, email, role, isActive: true, updatedAt: new Date() })
         .where(eq(adminUsers.id, existing.id));
       console.log(`✅ Admin user '${username}' updated successfully.`);
     } else {
-      await db.insert(adminUsers).values({ username, passwordHash, displayName, email, isActive: true });
+      await db.insert(adminUsers).values({ username, passwordHash, displayName, email, role, isActive: true });
       console.log(`✅ Admin user '${username}' created successfully.`);
     }
 

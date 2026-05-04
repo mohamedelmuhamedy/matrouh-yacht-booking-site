@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, testimonials } from "@workspace/db";
 import { eq, asc, desc, and, sql } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.get("/admin/testimonials/pending-count", authMiddleware, async (_req, res
   }
 });
 
-router.post("/admin/testimonials", authMiddleware, async (req, res) => {
+router.post("/admin/testimonials", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const body = { ...req.body };
     const payload = {
@@ -50,7 +51,7 @@ router.post("/admin/testimonials", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/testimonials/:id", authMiddleware, async (req, res) => {
+router.put("/admin/testimonials/:id", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const data = { ...req.body };
@@ -65,7 +66,7 @@ router.put("/admin/testimonials/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/admin/testimonials/:id/approve", authMiddleware, async (req, res) => {
+router.post("/admin/testimonials/:id/approve", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const [updated] = await db.update(testimonials)
@@ -79,7 +80,7 @@ router.post("/admin/testimonials/:id/approve", authMiddleware, async (req, res) 
   }
 });
 
-router.post("/admin/testimonials/:id/reject", authMiddleware, async (req, res) => {
+router.post("/admin/testimonials/:id/reject", authMiddleware, requireRole("operator"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const [updated] = await db.update(testimonials)
@@ -93,7 +94,7 @@ router.post("/admin/testimonials/:id/reject", authMiddleware, async (req, res) =
   }
 });
 
-router.delete("/admin/testimonials/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/testimonials/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const [deleted] = await db.delete(testimonials).where(eq(testimonials.id, id)).returning();

@@ -47,6 +47,7 @@ async function consumeVisitorQuota(key: string, day: string): Promise<{ ok: bool
 }
 import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = Router();
 
@@ -345,7 +346,7 @@ function readClientIp(req: Request): string {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
-router.post("/ai/refresh-context", authMiddleware, (_req, res) => {
+router.post("/ai/refresh-context", authMiddleware, requireRole("admin"), (_req, res) => {
   cachedContext = null;
   return res.json({ ok: true });
 });

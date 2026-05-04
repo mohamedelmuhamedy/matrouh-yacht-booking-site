@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
-import { Readable } from "node:stream";
+import { Readable, Transform } from "node:stream";
 import jwt from "jsonwebtoken";
 import { pool } from "@workspace/db";
 
@@ -206,6 +206,7 @@ export class ObjectStorageService {
     contentType: string;
     stream: NodeJS.ReadableStream;
     contentLength?: number;
+    maxBytes?: number;
     cacheControl?: string;
   }): Promise<{ objectPath: string; publicUrl: string }> {
     await this.ensureBucketExists();
@@ -231,13 +232,22 @@ export class ObjectStorageService {
       headers["Content-Length"] = String(input.contentLength);
     }
 
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      headers,
-      body: Readable.toWeb(input.stream as Readable) as any,
-      duplex: "half",
-      signal: AbortSignal.timeout(10 * 60_000),
-    } as RequestInit & { duplex: "half" });
+    const uploadStream = this.withByteLimit(input.stream, input.maxBytes);
+    let response: Response;
+    try {
+      response = await fetch(uploadUrl, {
+        method: "POST",
+        headers,
+        body: Readable.toWeb(uploadStream as Readable) as any,
+        duplex: "half",
+        signal: AbortSignal.timeout(10 * 60_000),
+      } as RequestInit & { duplex: "half" });
+    } catch (error) {
+      if (error instanceof StorageUploadError) throw error;
+      const cause = error instanceof Error ? error.cause : undefined;
+      if (cause instanceof StorageUploadError) throw cause;
+      throw error;
+    }
 
     if (!response.ok) {
       const details = await response.text().catch(() => "");
@@ -341,6 +351,24 @@ export class ObjectStorageService {
 
   private sanitizeSegment(value: string): string {
     return value.replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "");
+  }
+
+  private withByteLimit(stream: NodeJS.ReadableStream, maxBytes?: number): NodeJS.ReadableStream {
+    if (!maxBytes || !Number.isFinite(maxBytes) || maxBytes <= 0) return stream;
+
+    let seen = 0;
+    const limiter = new Transform({
+      transform(chunk, _encoding, callback) {
+        seen += Buffer.byteLength(chunk);
+        if (seen > maxBytes) {
+          callback(new StorageUploadError("Uploaded file exceeded the approved size limit", 413));
+          return;
+        }
+        callback(null, chunk);
+      },
+    });
+
+    return stream.pipe(limiter);
   }
 
   private sanitizeExtension(fileName?: string): string {

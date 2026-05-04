@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { referralCodes, referralRewards, siteSettings, bookings } from "@workspace/db/schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = Router();
 
@@ -50,7 +51,7 @@ router.get("/admin/reward-settings", authMiddleware, async (_req, res) => {
   }
 });
 
-router.put("/admin/reward-settings", authMiddleware, async (req, res) => {
+router.put("/admin/reward-settings", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const { rewards_enabled, reward_type, reward_value, reward_after_x, reward_description_ar, reward_description_en } = req.body;
     const updates = [
@@ -82,7 +83,7 @@ router.get("/admin/referral-codes", authMiddleware, async (_req, res) => {
   }
 });
 
-router.post("/admin/referral-codes", authMiddleware, async (req, res) => {
+router.post("/admin/referral-codes", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const { nameAr, nameEn, phone, email, notes, code: customCode } = req.body;
     if (!nameAr?.trim()) return res.status(400).json({ error: "الاسم (عربي) مطلوب" });
@@ -100,7 +101,7 @@ router.post("/admin/referral-codes", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
+router.put("/admin/referral-codes/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -117,7 +118,7 @@ router.put("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/admin/referral-codes/:id", authMiddleware, async (req, res) => {
+router.delete("/admin/referral-codes/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -139,7 +140,7 @@ router.get("/admin/referral-rewards", authMiddleware, async (_req, res) => {
   }
 });
 
-router.put("/admin/referral-rewards/:id/approve", authMiddleware, async (req, res) => {
+router.put("/admin/referral-rewards/:id/approve", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
@@ -157,7 +158,7 @@ router.put("/admin/referral-rewards/:id/approve", authMiddleware, async (req, re
   }
 });
 
-router.put("/admin/referral-rewards/:id/reject", authMiddleware, async (req, res) => {
+router.put("/admin/referral-rewards/:id/reject", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });

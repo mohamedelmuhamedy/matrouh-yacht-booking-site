@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, siteSettings } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { invalidateAiContextCache } from "./ai-chat";
 import { recordAudit } from "../lib/audit";
 
@@ -27,7 +28,7 @@ router.get("/admin/settings", authMiddleware, async (_req, res) => {
   }
 });
 
-router.put("/admin/settings", authMiddleware, async (req, res) => {
+router.put("/admin/settings", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const updates = req.body;
     if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
