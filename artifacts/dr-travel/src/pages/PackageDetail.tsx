@@ -78,7 +78,11 @@ export default function PackageDetail() {
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.overflow = 'hidden';
+    // ESC to close
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowBook(false); };
+    document.addEventListener('keydown', onKey);
     return () => {
+      document.removeEventListener('keydown', onKey);
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.left = '';
@@ -87,6 +91,17 @@ export default function PackageDetail() {
       window.scrollTo(0, scrollY);
     };
   }, [showBook]);
+
+  // Safety net: if this component unmounts while modal is open, unlock scroll
+  useEffect(() => {
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   /* ── Referral code debounced verify ── */
   useEffect(() => {
@@ -137,11 +152,27 @@ export default function PackageDetail() {
   const closeBookModal = () => {
     if (bookSubmitting) return;
     setShowBook(false);
+    // Defensive: always force-clear body scroll lock styles immediately.
+    // The useEffect cleanup should handle this too, but if React batches
+    // the state update or the cleanup races, this guarantees no freeze.
+    const savedTop = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.overflow = '';
+    if (savedTop) {
+      window.scrollTo(0, -parseInt(savedTop, 10) || 0);
+    }
     setTimeout(() => {
       setBookDone(false);
       setBookForm({ name: "", phone: "", people: "1", date: "", notes: "", referralCode: "", promoCode: "" });
       setBookErrors({});
       setBookSubmitError("");
+      setReferralStatus("idle");
+      setReferralName("");
+      setPromoStatus("idle");
+      setPromoInfo(null);
     }, 300);
   };
 

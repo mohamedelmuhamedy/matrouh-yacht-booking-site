@@ -52,14 +52,25 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
 
   useEffect(() => {
     if (!open) return;
-    const onClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    // Delay attaching the outside-click handler by one frame so that the
+    // touch/click event that opened the picker doesn't immediately close it.
+    let active = true;
+    const onClick = (e: MouseEvent | TouchEvent) => {
+      if (!active) return;
+      const target = (e as TouchEvent).touches?.[0]?.target ?? e.target;
+      if (wrapRef.current && !wrapRef.current.contains(target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
+    const raf = requestAnimationFrame(() => {
+      document.addEventListener("mousedown", onClick);
+      document.addEventListener("touchstart", onClick as EventListener);
+      document.addEventListener("keydown", onKey);
+    });
     return () => {
+      active = false;
+      cancelAnimationFrame(raf);
       document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("touchstart", onClick as EventListener);
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
