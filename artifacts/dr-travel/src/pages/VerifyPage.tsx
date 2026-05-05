@@ -4,7 +4,7 @@ import { useLanguage } from "../LanguageContext";
 import { apiFetch } from "../lib/api";
 import SeoHead from "../components/SeoHead";
 
-type VerifyStatus = "valid" | "used" | "cancelled" | "invalid" | "loading";
+type VerifyStatus = "valid" | "used" | "cancelled" | "completed" | "invalid" | "loading";
 
 interface VerifyResponse {
   status: Exclude<VerifyStatus, "loading">;
@@ -96,6 +96,7 @@ export default function VerifyPage() {
       case "valid": return { color: "#10B981", icon: "✅", label: T.valid, desc: T.descValid };
       case "used": return { color: "#F59E0B", icon: "🟡", label: T.used, desc: T.descUsed };
       case "cancelled": return { color: "#EF4444", icon: "🚫", label: T.cancelled, desc: T.descCancelled };
+      case "completed": return { color: "#64748B", icon: "✅", label: T.completed || (ar ? "مكتملة" : "Completed"), desc: T.descCompleted || (ar ? "تم اكتمال هذه الرحلة." : "This trip has been completed.") };
       case "invalid": return { color: "#EF4444", icon: "❌", label: T.invalid, desc: T.descInvalid };
       default: return { color: "rgba(255,255,255,0.55)", icon: "⏳", label: T.loading, desc: "" };
     }
@@ -103,6 +104,10 @@ export default function VerifyPage() {
 
   const t = data?.ticket;
   const pkgName = ar ? (t?.packageNameAr || t?.packageName) : (t?.packageName || t?.packageNameAr);
+  const statusLabels: Record<string, string> = ar
+    ? { new: "جديد", contacted: "تم التواصل", confirmed: "مؤكد", client_confirmed: "مؤكد عن طريق العميل", completed: "مكتمل", cancelled: "ملغي" }
+    : { new: "New", contacted: "Contacted", confirmed: "Confirmed", client_confirmed: "Confirmed by client", completed: "Completed", cancelled: "Cancelled" };
+  const bookingStatusLabel = t ? (statusLabels[t.bookingStatus] || t.bookingStatus) : "";
   const customerName = t?.name || t?.firstName || "—";
   const pickup = ar ? (t?.pickupLocationAr || t?.pickupLocation) : (t?.pickupLocation || t?.pickupLocationAr);
   const supervisor = t?.supervisorName
@@ -151,7 +156,7 @@ export default function VerifyPage() {
               <Row label={T.ticketNo} value={<code style={{ direction: "ltr", display: "inline-block", color: NAVY, fontWeight: 800 }}>{t.ticketNumber}</code>} />
               <Row label={T.customer} value={customerName} />
               {t.phone && <Row label={ar ? "الهاتف" : "Phone"} value={<span style={{ direction: "ltr", display: "inline-block" }}>{t.phone}</span>} />}
-              <Row label={ar ? "حالة الحجز" : "Booking status"} value={t.bookingStatus} />
+              <Row label={ar ? "حالة الحجز" : "Booking status"} value={bookingStatusLabel} />
               <Row label={T.pkg} value={pkgName || "—"} />
               <Row label={T.date} value={t.date} />
               <Row label={T.group} value={`${t.adults + t.children + t.infants}`} />

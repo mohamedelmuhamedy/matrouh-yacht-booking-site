@@ -104,6 +104,7 @@ const STATUS_OPTIONS = [
   { value: "new", label: "جديد", color: "#3B82F6" },
   { value: "contacted", label: "تم التواصل", color: "#F59E0B" },
   { value: "confirmed", label: "مؤكد", color: "#10B981" },
+  { value: "client_confirmed", label: "مؤكد عن طريق العميل", color: "#14B8A6" },
   { value: "completed", label: "مكتمل", color: "var(--text-secondary)" },
   { value: "cancelled", label: "ملغي", color: "#EF4444" },
 ];

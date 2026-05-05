@@ -4,7 +4,7 @@ import { useLanguage } from "../LanguageContext";
 import { apiFetch } from "../lib/api";
 import { useAdmin } from "./AdminContext";
 
-type ScanStatus = "valid" | "used" | "cancelled" | "invalid";
+type ScanStatus = "valid" | "used" | "cancelled" | "completed" | "invalid";
 
 interface VerifyResponse {
   status: ScanStatus;
@@ -210,6 +210,7 @@ export default function AdminScannerPage() {
       case "valid": return { color: "#10B981", icon: "✅", label: T.valid, desc: T.descValid };
       case "used": return { color: "#F59E0B", icon: "🟡", label: T.used, desc: T.descUsed };
       case "cancelled": return { color: "#EF4444", icon: "🚫", label: T.cancelled, desc: T.descCancelled };
+      case "completed": return { color: "#64748B", icon: "✅", label: T.completed || (ar ? "مكتملة" : "Completed"), desc: T.descCompleted || (ar ? "تم اكتمال هذه الرحلة." : "This trip has been completed.") };
       case "invalid": return { color: "#EF4444", icon: "❌", label: T.invalid, desc: T.descInvalid };
       case "loading": return { color: "var(--text-muted)", icon: "⏳", label: T.loading, desc: "" };
       default: return null;
@@ -219,6 +220,10 @@ export default function AdminScannerPage() {
   const t = data?.ticket;
   const pkgName = ar ? (t?.packageNameAr || t?.packageName) : (t?.packageName || t?.packageNameAr);
   const groupCount = t ? t.adults + t.children + t.infants : 0;
+  const statusLabels: Record<string, string> = ar
+    ? { new: "جديد", contacted: "تم التواصل", confirmed: "مؤكد", client_confirmed: "مؤكد عن طريق العميل", completed: "مكتمل", cancelled: "ملغي" }
+    : { new: "New", contacted: "Contacted", confirmed: "Confirmed", client_confirmed: "Confirmed by client", completed: "Completed", cancelled: "Cancelled" };
+  const bookingStatusLabel = t ? (statusLabels[t.bookingStatus] || t.bookingStatus) : "";
   const customerName = t?.name || t?.firstName || "—";
   const pickup = ar ? (t?.pickupLocationAr || t?.pickupLocation) : (t?.pickupLocation || t?.pickupLocationAr);
   const supervisor = t?.supervisorName
@@ -328,7 +333,7 @@ export default function AdminScannerPage() {
               </div>
               <Row label={T.ticketNo} value={<code style={{ direction: "ltr", display: "inline-block", color: NAVY, fontWeight: 800 }}>{t.ticketNumber}</code>} />
               {t.phone && <Row label={ar ? "الهاتف" : "Phone"} value={<span style={{ direction: "ltr", display: "inline-block" }}>{t.phone}</span>} />}
-              <Row label={ar ? "حالة الحجز" : "Booking status"} value={t.bookingStatus} />
+              <Row label={ar ? "حالة الحجز" : "Booking status"} value={bookingStatusLabel} />
               <Row label={T.pkg} value={pkgName || "—"} />
               <Row label={T.date} value={t.date} />
               {t.meetingTime && <Row label={ar ? "وقت الانطلاق" : "Departure time"} value={t.meetingTime} />}

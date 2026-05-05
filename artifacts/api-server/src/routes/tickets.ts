@@ -133,8 +133,9 @@ router.get("/tickets/verify/:token", async (req, res) => {
       return res.json({ status: "invalid", reason: "bad_signature" });
     }
 
-    let derivedStatus: "valid" | "used" | "cancelled" | "invalid" = "valid";
-    if (b.status === "cancelled" || b.status === "completed") derivedStatus = "cancelled";
+    let derivedStatus: "valid" | "used" | "cancelled" | "completed" | "invalid" = "valid";
+    if (b.status === "cancelled") derivedStatus = "cancelled";
+    else if (b.status === "completed") derivedStatus = "completed";
 
     return res.json({
       status: derivedStatus,
@@ -327,16 +328,17 @@ router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator")
         .for("update");
       if (!row) return { error: "not_found" as const };
       if (row.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
-      if (row.status !== "confirmed") return { error: "not_confirmed" as const, status: row.status };
+      if (row.status === "completed") return { error: "completed" as const, status: "completed" };
       if (row.ticketUsedAt) {
-        return { already: true, ticketUsedAt: row.ticketUsedAt };
+        return { already: true, ticketUsedAt: row.ticketUsedAt, status: row.status };
       }
       const adminUser = (req as unknown as { admin?: { username?: string } }).admin?.username || "admin";
       const usedAt = new Date();
+      const nextStatus = row.status === "confirmed" ? "confirmed" : "client_confirmed";
       await tx.update(bookings)
-        .set({ ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
+        .set({ status: nextStatus, ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
         .where(eq(bookings.id, row.id));
-      return { id: row.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser };
+      return { id: row.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser, status: nextStatus };
     });
 
     if ("error" in result) {
@@ -344,13 +346,14 @@ router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator")
       if (result.error === "cancelled") {
         return res.status(409).json({ error: "Booking is cancelled", status: "cancelled" });
       }
-      return res.status(409).json({ error: "Booking not confirmed", status: result.status });
+      return res.status(409).json({ error: "Booking is completed", status: "completed" });
     }
     if ("already" in result && result.already) {
       return res.json({
         ok: true,
         already: true,
         status: "used",
+        bookingStatus: result.status,
         ticketUsedAt: result.ticketUsedAt,
       });
     }
@@ -363,6 +366,7 @@ router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator")
       ok: true,
       already: false,
       status: "used",
+      bookingStatus: result.status,
       ticketUsedAt: result.ticketUsedAt,
       ticketUsedBy: result.ticketUsedBy,
     });

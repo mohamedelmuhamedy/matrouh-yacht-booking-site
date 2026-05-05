@@ -48,7 +48,7 @@ router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator")
     const id = Number(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const { status } = req.body;
-    const validStatuses = ["new", "contacted", "confirmed", "completed", "cancelled"];
+    const validStatuses = ["new", "contacted", "confirmed", "client_confirmed", "completed", "cancelled"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
@@ -61,7 +61,7 @@ router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator")
         .where(eq(bookings.id, id))
         .returning();
       if (!updated) return null;
-      if (status === "confirmed" && (!updated.ticketToken || !updated.ticketNumber)) {
+      if ((status === "confirmed" || status === "client_confirmed") && (!updated.ticketToken || !updated.ticketNumber)) {
         const issued = await ensureTicketToken(id, tx);
         if (issued) {
           updated.ticketToken = issued.token;
