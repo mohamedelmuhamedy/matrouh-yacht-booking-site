@@ -320,12 +320,19 @@ async function buildContext(): Promise<ContextSnapshot> {
   return cachedContext;
 }
 
+function stripThinkingTags(text: string): string {
+  return text
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .replace(/<scratchpad[\s\S]*?<\/scratchpad>/gi, "")
+    .replace(/<internal[\s\S]*?<\/internal>/gi, "");
+}
+
 function extractSlugs(reply: string, ctx: ContextSnapshot): { cleaned: string; slugs: string[] } {
   const slugs: string[] = [];
-  let cleaned = reply;
-  const tag = /\[\[\s*slugs?\s*:\s*([^\]]*)\]\]/i.exec(reply);
+  let cleaned = stripThinkingTags(reply);
+  const tag = /\[\[\s*slugs?\s*:\s*([^\]]*)\]\]/i.exec(cleaned);
   if (tag) {
-    cleaned = reply.replace(tag[0], "").trim();
+    cleaned = cleaned.replace(tag[0], "").trim();
     for (const raw of tag[1].split(/[,\s]+/)) {
       const s = raw.trim().toLowerCase();
       if (ctx.validSlugs.has(s) && !slugs.includes(s)) slugs.push(s);
@@ -563,6 +570,7 @@ ${ctx.text}${visitorBlock}
           preferredModel: ctx.model,
           referer,
           stream: true,
+          autoSelect: ctx.settings.ai_auto_model_selection !== "false",
           body: {
             messages: upstreamMessages,
             temperature: ctx.temperature,
@@ -599,10 +607,8 @@ ${ctx.text}${visitorBlock}
       let buffer = "";
       let full = "";
       // Tail buffer: hold back text that *might* be the start of a
-      // `[[slugs:...]]` control tag so users never see it flash mid-stream.
-      // Once we see `[[` we swallow everything after it (the tag must be
-      // last per the system prompt). Without `[[`, we keep the last few
-      // chars buffered until we can prove they aren't `[[`.
+      // `[[slugs:...]]` control tag or `<thinking>` tag so users never see it.
+      // Once we see `[[` or `<thinking` we buffer until we find the closing tags.
       let pending = "";
       const TAIL_HOLD = 4; // longer than "[[" so partial brackets aren't emitted
       let tagSeen = false;
@@ -610,15 +616,18 @@ ${ctx.text}${visitorBlock}
       const emitFromBuffer = (final = false) => {
         if (tagSeen) { pending = ""; return; }
         const idx = pending.indexOf("[[");
-        if (idx !== -1) {
-          const safe = pending.slice(0, idx);
+        const thinkIdx = pending.toLowerCase().indexOf("<thinking");
+        const controlIdx = idx !== -1 && thinkIdx !== -1 ? Math.min(idx, thinkIdx) : (idx !== -1 ? idx : thinkIdx);
+
+        if (controlIdx !== -1) {
+          const safe = pending.slice(0, controlIdx);
           if (safe) sendEvent({ type: "delta", text: safe });
           pending = "";
           tagSeen = true;
           return;
         }
         if (final) {
-          if (pending) sendEvent({ type: "delta", text: pending });
+          if (pending) sendEvent({ type: "delta", text: stripThinkingTags(pending) });
           pending = "";
           return;
         }
@@ -677,7 +686,7 @@ ${ctx.text}${visitorBlock}
       const { cleaned, slugs } = extractSlugs(rawReply, ctx);
       sendEvent({
         type: "done",
-        reply: cleaned || rawReply,
+        reply: cleaned || stripThinkingTags(rawReply),
         suggestedPackageSlugs: slugs,
         model: activeModel,
       });
@@ -692,6 +701,7 @@ ${ctx.text}${visitorBlock}
         apiKey,
         preferredModel: ctx.model,
         referer,
+        autoSelect: ctx.settings.ai_auto_model_selection !== "false",
         body: {
           messages: upstreamMessages,
           temperature: ctx.temperature,

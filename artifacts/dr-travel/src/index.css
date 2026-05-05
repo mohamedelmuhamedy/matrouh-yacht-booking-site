@@ -90,6 +90,14 @@
   --section-subtitle:  #334155;
 }
 
+/* Smooth theme transition — only active for ~210ms while class is present */
+:root.theme-changing,
+:root.theme-changing *,
+:root.theme-changing *::before,
+:root.theme-changing *::after {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, fill 200ms ease !important;
+}
+
 /* ── Light mode: bolder, higher-contrast typography across the whole site ── */
 :root[data-theme="light"] body {
   font-weight: 600;
@@ -1003,7 +1011,8 @@ html[dir="ltr"] {
 .book-modal-backdrop {
   position: fixed;
   inset: 0;
-  min-height: 100dvh;
+  height: 100dvh;
+  height: 100vh; /* fallback for older browsers */
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -1012,7 +1021,8 @@ html[dir="ltr"] {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   animation: backdropFadeIn 0.18s ease;
 }

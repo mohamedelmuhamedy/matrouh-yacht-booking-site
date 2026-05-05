@@ -63,10 +63,10 @@ interface DisplayPkg {
 }
 
 const DEFAULT_DEV_NAME = "Mohamed El-Muhamedy";
+const NAVBAR_SUBTITLE = "Yousef Mostafa";
 
-function displayDevName(value?: string | null): string {
-  const clean = (value || "").trim();
-  return clean && clean !== "Yousef Mostafa" ? clean : DEFAULT_DEV_NAME;
+function displayDevName(_value?: string | null): string {
+  return NAVBAR_SUBTITLE;
 }
 
 interface DeferredInstallPrompt extends Event {

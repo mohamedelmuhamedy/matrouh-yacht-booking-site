@@ -257,7 +257,7 @@ export default function BookingsPage() {
     const msg = encodeURIComponent(`أهلاً ${name}، شكراً لتواصلك مع DR Travel. نحن سعداء بخدمتك 😊`);
     const num = phone.replace(/\D/g, "");
     const intl = num.startsWith("0") ? "2" + num : num.startsWith("20") ? num : "20" + num;
-    return `https://wa.me/${intl}?text=${msg}`;
+    return `https://api.whatsapp.com/send?phone=${intl}&text=${msg}`;
   };
 
   const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
@@ -591,6 +591,7 @@ export default function BookingsPage() {
       .replace(/\{package\}/g, pkg)
       .replace(/\{date\}/g, ticketData.date || "")
       .replace(/\{ticket_no\}/g, ticketNo)
+      .replace(/\{price\}/g, ticketData.priceAtBooking ? `${ticketData.priceAtBooking} ${ticketData.currency || "EGP"}` : "—")
       .replace(/\{verify_url\}/g, verifyUrl);
   };
 
@@ -656,7 +657,7 @@ export default function BookingsPage() {
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+      const waUrl = `https://api.whatsapp.com/send?phone=${intl}&text=${encodeURIComponent(text)}`;
       if (popup && !popup.closed) {
         try { (popup as Window & { opener: Window | null }).opener = null; } catch { /* ignore */ }
         popup.location.href = waUrl;
@@ -747,10 +748,11 @@ export default function BookingsPage() {
       const ar = ticketLang === "ar";
       const pkg = ar ? ticketData.packageNameAr || ticketData.packageName : ticketData.packageName || ticketData.packageNameAr;
       const ticketNo = ticketData.ticketNumber || `DRT-${String(ticketData.id).padStart(5, "0")}`;
+      const priceStr = ticketData.priceAtBooking ? `${ticketData.priceAtBooking} ${ticketData.currency || "EGP"}` : "—";
       const msg = ar
-        ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
-        : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
-      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
+        ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n💰 إجمالي السعر: ${priceStr}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
+        : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n💰 Total Price: ${priceStr}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
+      const waUrl = `https://api.whatsapp.com/send?phone=${intl}&text=${encodeURIComponent(msg)}`;
       if (popup && !popup.closed) {
         // Sever opener BEFORE navigating cross-origin to prevent reverse-tabnabbing.
         try { (popup as Window & { opener: Window | null }).opener = null; } catch { /* ignore */ }

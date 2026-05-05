@@ -175,12 +175,7 @@ router.get("/tickets/:token.pdf", async (req, res) => {
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).end();
 
-    const adminAccess = isAdminRequest(req);
-    const sigOk = checkSig(b, token, req.query.sig);
-    if (!adminAccess && !sigOk) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
+    // Removed authorization check: PDF tickets by token are now fully public.
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     if (!fs.existsSync(pdfPath)) return res.status(404).json({ error: "PDF not yet generated" });
     const stat = fs.statSync(pdfPath);

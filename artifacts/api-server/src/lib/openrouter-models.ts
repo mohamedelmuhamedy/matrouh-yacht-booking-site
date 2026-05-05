@@ -126,9 +126,16 @@ export async function fetchOpenRouterChatWithFallback(args: {
   referer: string;
   body: Record<string, unknown>;
   stream?: boolean;
+  autoSelect?: boolean;
 }): Promise<{ response: Response; model: string }> {
-  const models = await fetchFreeOpenRouterModels(args.apiKey);
-  const candidates = orderedCandidates(models, args.preferredModel);
+  let candidates: FreeOpenRouterModel[];
+  if (args.autoSelect === false) {
+    const pref = args.preferredModel || DEFAULT_FREE_OPENROUTER_MODEL;
+    candidates = [{ id: pref, name: pref }];
+  } else {
+    const models = await fetchFreeOpenRouterModels(args.apiKey);
+    candidates = orderedCandidates(models, args.preferredModel);
+  }
   let lastError = "No free models returned by OpenRouter.";
 
   for (const candidate of candidates) {

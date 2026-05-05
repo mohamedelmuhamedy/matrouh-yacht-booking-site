@@ -55,6 +55,7 @@ const DEFAULTS: Record<string, string> = {
   booking_skip_confirmation: "false",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
+  ai_auto_model_selection: "true",
   ai_model: "google/gemini-2.0-flash-exp:free",
   ai_temperature: "0.4",
   ai_max_tokens: "600",
@@ -204,8 +205,18 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
     section: "ai",
     keys: [
       {
+        key: "ai_auto_model_selection",
+        label: "اختيار النموذج التلقائي (Auto Model Selection)",
+        type: "select",
+        options: [
+          { value: "true", label: "مفعّل (تشغيل تلقائي للنماذج المجانية)" },
+          { value: "false", label: "معطّل (استخدام النموذج المحدد فقط)" }
+        ],
+        hint: "إذا كان مفعلاً، سيقوم النظام تلقائياً بالبحث عن أفضل النماذج المجانية المتاحة عبر OpenRouter. إذا كان معطلاً، سيتم استخدام النموذج المحدد أدناه فقط.",
+      },
+      {
         key: "ai_model",
-        label: "نموذج الذكاء الاصطناعي (AI Model)",
+        label: "نموذج الذكاء الاصطناعي المفضل (Preferred AI Model)",
         type: "select",
         hint: "اختر النموذج المستخدم في المساعد الذكي. الموديلات الأرخص أسرع، والـ Premium بتدّي إجابات أدق",
         options: FALLBACK_AI_MODEL_OPTIONS,

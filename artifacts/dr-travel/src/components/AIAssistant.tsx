@@ -24,8 +24,22 @@ function normalizeWhatsApp(raw: string): string {
   return digits;
 }
 
+/** Strip internal reasoning blocks the model may leak (defense-in-depth). */
+function stripThinking(text: string): string {
+  return text
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .replace(/<scratchpad[\s\S]*?<\/scratchpad>/gi, "")
+    .replace(/<internal[\s\S]*?<\/internal>/gi, "")
+    .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, "")
+    .replace(/<reflection>[\s\S]*?<\/reflection>/gi, "")
+    .replace(/\[\[slugs?:[^\]]*\]\]/gi, "")
+    .replace(/^\s*\n/gm, "\n")
+    .trim();
+}
+
 function renderMarkdown(text: string): React.ReactNode {
-  const lines = text.split("\n");
+  const cleaned = stripThinking(text);
+  const lines = cleaned.split("\n");
   const out: React.ReactNode[] = [];
   let listBuffer: React.ReactNode[] = [];
   const flushList = () => {
