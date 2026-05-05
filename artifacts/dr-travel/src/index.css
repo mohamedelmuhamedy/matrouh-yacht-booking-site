@@ -731,8 +731,6 @@ html[dir="ltr"] {
 
   .pkg-grid-wrap,
   .pkg-grid-wrap.pkg-visible .pkg-card-anim,
-  .reviews-inner,
-  .reviews-track,
   .animate-float,
   .animate-pulse-green {
     animation: none !important;

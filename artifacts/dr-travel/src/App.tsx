@@ -1215,8 +1215,8 @@ function PackagesAndBooking() {
         {/* Booking panel */}
         <div id="booking" ref={bookingRef} className="booking-panel-anchor" />
         {selectedPkg && (
-          <div className="book-modal-backdrop home-book-modal-backdrop" onClick={() => setSelectedPkg(null)}>
-            <div className="book-modal-card home-book-modal-card" dir={lang === "ar" ? "rtl" : "ltr"} onClick={e => e.stopPropagation()}>
+          <div className="home-inline-booking-wrap" style={{ margin: "2rem auto", maxWidth: "960px", padding: "0 1rem" }}>
+            <div className="home-inline-booking-card" dir={lang === "ar" ? "rtl" : "ltr"} style={{ background: "var(--bg-surface-solid)", borderRadius: "24px", padding: isMobile ? "1.5rem 1.25rem" : "2rem 1.75rem", border: "1px solid rgba(0, 170, 255, 0.22)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.4)", position: "relative", animation: "bookModalIn 0.3s cubic-bezier(0.22, 1, 0.36, 1)" }}>
               <>
                 {/* Panel header */}
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid var(--bg-surface-2)" }}>
