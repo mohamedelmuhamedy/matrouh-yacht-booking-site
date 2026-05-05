@@ -584,7 +584,7 @@ html[dir="ltr"] {
   transform: translateY(40px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
-.fade-in-up.visible { opacity: 1; transform: translateY(0); }
+.fade-in-up.visible { opacity: 1; transform: none; }
 
 /* ===== REVIEWS ===== */
 .reviews-row { overflow: hidden; padding: 0.75rem 0; direction: ltr; }

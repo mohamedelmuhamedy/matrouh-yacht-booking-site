@@ -78,6 +78,7 @@ export default function PackageDetail() {
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     // ESC to close
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowBook(false); };
     document.addEventListener('keydown', onKey);
@@ -88,6 +89,7 @@ export default function PackageDetail() {
       document.body.style.left = '';
       document.body.style.right = '';
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       window.scrollTo(0, scrollY);
     };
   }, [showBook]);
@@ -100,6 +102,7 @@ export default function PackageDetail() {
       document.body.style.left = '';
       document.body.style.right = '';
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, []);
 
@@ -161,6 +164,7 @@ export default function PackageDetail() {
     document.body.style.left = '';
     document.body.style.right = '';
     document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
     if (savedTop) {
       window.scrollTo(0, -parseInt(savedTop, 10) || 0);
     }
@@ -334,7 +338,7 @@ export default function PackageDetail() {
   }, [lightboxOpen, lightboxIdx]);
 
   useEffect(() => {
-    if (!lightboxOpen && !showBook) return;
+    if (!lightboxOpen) return;
     const prevBody = document.body.style.overflow;
     const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
@@ -343,7 +347,7 @@ export default function PackageDetail() {
       document.body.style.overflow = prevBody;
       document.documentElement.style.overflow = prevHtml;
     };
-  }, [lightboxOpen, showBook]);
+  }, [lightboxOpen]);
 
   const openLightbox = (idx: number) => { setLightboxIdx(idx); lightboxIdxRef.current = idx; setLightboxOpen(true); };
   const closeLightbox = () => { setLightboxOpen(false); lightboxOpenRef.current = false; };
