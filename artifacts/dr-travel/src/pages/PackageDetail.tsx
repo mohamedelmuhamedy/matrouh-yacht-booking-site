@@ -73,38 +73,50 @@ export default function PackageDetail() {
   useEffect(() => {
     if (!showBook) return;
     const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
+    
+    if (isMobile) {
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+    }
+    
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
+    
     // ESC to close
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowBook(false); };
     document.addEventListener('keydown', onKey);
+    
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
+      if (isMobile) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+      }
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
-      window.scrollTo(0, scrollY);
+      if (isMobile) {
+        window.scrollTo(0, scrollY);
+      }
     };
-  }, [showBook]);
+  }, [showBook, isMobile]);
 
   // Safety net: if this component unmounts while modal is open, unlock scroll
   useEffect(() => {
     return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
+      if (isMobile) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+      }
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
-  }, []);
+  }, [isMobile]);
 
   /* ── Referral code debounced verify ── */
   useEffect(() => {
@@ -159,13 +171,15 @@ export default function PackageDetail() {
     // The useEffect cleanup should handle this too, but if React batches
     // the state update or the cleanup races, this guarantees no freeze.
     const savedTop = document.body.style.top;
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
+    if (isMobile) {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+    }
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
-    if (savedTop) {
+    if (isMobile && savedTop) {
       window.scrollTo(0, -parseInt(savedTop, 10) || 0);
     }
     setTimeout(() => {

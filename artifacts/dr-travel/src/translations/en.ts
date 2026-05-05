@@ -268,7 +268,7 @@ export const en: Translations = {
     children: "Children",
     infants: "Infants",
     total: "Total",
-    price: "Total Price",
+    price: "Remaining Balance",
     notesLbl: "Notes",
     notice: "Please arrive 30 minutes before departure",
     verify: "Scan to verify this ticket",

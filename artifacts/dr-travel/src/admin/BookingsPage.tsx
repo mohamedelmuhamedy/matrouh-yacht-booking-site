@@ -50,6 +50,7 @@ interface Booking {
   pickupLocationAr?: string;
   supervisorName?: string;
   supervisorPhone?: string;
+  remainingBalance?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,10 +61,11 @@ interface TicketFieldsForm {
   pickupLocationAr: string;
   supervisorName: string;
   supervisorPhone: string;
+  remainingBalance: string;
 }
 
 const EMPTY_TICKET_FIELDS: TicketFieldsForm = {
-  meetingTime: "", pickupLocation: "", pickupLocationAr: "", supervisorName: "", supervisorPhone: "",
+  meetingTime: "", pickupLocation: "", pickupLocationAr: "", supervisorName: "", supervisorPhone: "", remainingBalance: "",
 };
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -303,6 +305,7 @@ export default function BookingsPage() {
       pickupLocationAr: data.pickupLocationAr || "",
       supervisorName: data.supervisorName || "",
       supervisorPhone: data.supervisorPhone || "",
+      remainingBalance: data.remainingBalance || "",
     });
     setTicketFieldsDirty(false);
     return data;
@@ -592,6 +595,7 @@ export default function BookingsPage() {
       .replace(/\{date\}/g, ticketData.date || "")
       .replace(/\{ticket_no\}/g, ticketNo)
       .replace(/\{price\}/g, ticketData.priceAtBooking ? `${ticketData.priceAtBooking} ${ticketData.currency || "EGP"}` : "—")
+      .replace(/\{remaining_balance\}/g, ticketData.remainingBalance || "—")
       .replace(/\{verify_url\}/g, verifyUrl);
   };
 
@@ -1158,6 +1162,8 @@ export default function BookingsPage() {
                 onChange={v => { setTicketFields(p => ({ ...p, supervisorName: v })); setTicketFieldsDirty(true); }} />
               <FieldInput label="هاتف المشرف" placeholder="01XXXXXXXXX" value={ticketFields.supervisorPhone}
                 onChange={v => { setTicketFields(p => ({ ...p, supervisorPhone: v })); setTicketFieldsDirty(true); }} />
+              <FieldInput label="المبلغ المتبقي" placeholder="مثال: 500 EGP" value={ticketFields.remainingBalance}
+                onChange={v => { setTicketFields(p => ({ ...p, remainingBalance: v })); setTicketFieldsDirty(true); }} />
               <div style={{ display: "flex", alignItems: "flex-end" }}>
                 <button onClick={saveTicketFields} disabled={!ticketFieldsDirty}
                   style={{ background: ticketFieldsDirty ? "linear-gradient(135deg,#00AAFF,#0066cc)" : "var(--text-secondary)", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>

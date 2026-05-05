@@ -93,6 +93,7 @@ router.put("/admin/bookings/:id/ticket-fields", authMiddleware, requireRole("ope
       pickupLocationAr?: string;
       supervisorName?: string;
       supervisorPhone?: string;
+      remainingBalance?: string;
     };
     const cap = (s: unknown, n: number) => String(s ?? "").slice(0, n);
     const [updated] = await db.update(bookings).set({
@@ -101,6 +102,7 @@ router.put("/admin/bookings/:id/ticket-fields", authMiddleware, requireRole("ope
       pickupLocationAr: cap(body.pickupLocationAr, 256),
       supervisorName: cap(body.supervisorName, 128),
       supervisorPhone: cap(body.supervisorPhone, 32),
+      remainingBalance: cap(body.remainingBalance, 64),
       updatedAt: new Date(),
     }).where(eq(bookings.id, id)).returning();
     if (!updated) return res.status(404).json({ error: "Booking not found" });

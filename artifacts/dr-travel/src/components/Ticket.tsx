@@ -34,6 +34,7 @@ export interface TicketData {
   pdfAvailable?: boolean;
   pdfUrl?: string | null;
   settings: Record<string, string>;
+  remainingBalance?: string | null;
 }
 
 const BRAND_DEFAULTS = {
@@ -180,7 +181,9 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
     year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit",
   });
   const totalGuests = (data.adults || 0) + (data.children || 0) + (data.infants || 0);
-  const priceLabel = data.priceAtBooking
+  const priceLabel = data.remainingBalance
+    ? data.remainingBalance
+    : data.priceAtBooking
     ? `${data.priceAtBooking.toLocaleString(ar ? "ar-EG" : "en-US")} ${data.currency || "EGP"}`
     : "—";
 
@@ -349,15 +352,7 @@ export default function Ticket({ data, lang, publicUrl }: TicketProps) {
             padding: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
             position: "relative",
           }}>
-            {/* gold seal corner ribbon */}
-            <div style={{
-              position: "absolute", top: -10, insetInlineStart: -10, width: 56, height: 56, borderRadius: "50%",
-              background: `radial-gradient(circle at 30% 30%, #f5d57a, ${accentColor} 60%, #8b6f1e)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: textColor, fontWeight: 900, fontSize: 20,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-              border: "2px solid white",
-            }}>✦</div>
+            {/* removed decorative seal */}
             {qrUrl ? <img src={qrUrl} alt="QR" style={{ width: 170, height: 170 }} /> : <div style={{ width: 170, height: 170, background: "var(--bg-surface-2)", borderRadius: 8 }} />}
             <div style={{ fontSize: 10, color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>{T.verify}</div>
           </div>

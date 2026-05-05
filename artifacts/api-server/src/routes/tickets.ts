@@ -132,7 +132,7 @@ router.get("/tickets/verify/:token", async (req, res) => {
     }
 
     let derivedStatus: "valid" | "used" | "cancelled" | "invalid" = "valid";
-    if (b.status === "cancelled") derivedStatus = "cancelled";
+    if (b.status === "cancelled" || b.status === "completed") derivedStatus = "cancelled";
     else if (b.ticketUsedAt) derivedStatus = "used";
 
     return res.json({

@@ -32,6 +32,7 @@ export const bookings = pgTable("bookings", {
   pickupLocationAr: text("pickup_location_ar").notNull().default(""),
   supervisorName: text("supervisor_name").notNull().default(""),
   supervisorPhone: text("supervisor_phone").notNull().default(""),
+  remainingBalance: text("remaining_balance").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
