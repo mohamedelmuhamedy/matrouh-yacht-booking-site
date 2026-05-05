@@ -56,12 +56,16 @@ export default function PackageDetail() {
 
   // ── Booking modal state ──
   const [showBook, setShowBook] = useState(false);
-  const [bookForm, setBookForm] = useState({ name: "", phone: "", people: "1", date: "", notes: "" });
+  const [bookForm, setBookForm] = useState({ name: "", phone: "", people: "1", date: "", notes: "", referralCode: "", promoCode: "" });
   const [bookErrors, setBookErrors] = useState<Record<string, string>>({});
   const [bookSubmitting, setBookSubmitting] = useState(false);
   const [bookDone, setBookDone] = useState(false);
   const [bookWaUrl, setBookWaUrl] = useState("");
   const [bookSubmitError, setBookSubmitError] = useState("");
+  const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [referralName, setReferralName] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [promoInfo, setPromoInfo] = useState<{ discount: number; finalAmount: number; error?: string } | null>(null);
 
   // Lock body scroll when modal is open — robust mobile handling.
   // On iOS, `overflow: hidden` alone doesn't prevent momentum scroll;
@@ -84,12 +88,58 @@ export default function PackageDetail() {
     };
   }, [showBook]);
 
+  /* ── Referral code debounced verify ── */
+  useEffect(() => {
+    const code = bookForm.referralCode.trim().toUpperCase();
+    if (!code) { setReferralStatus("idle"); setReferralName(""); return; }
+    if (code.length < 4) return;
+    setReferralStatus("checking");
+    const t = setTimeout(async () => {
+      try {
+        const r = await apiFetch(`/api/referral/verify?code=${encodeURIComponent(code)}`);
+        if (r.ok) {
+          const data = await r.json();
+          setReferralStatus("valid");
+          setReferralName(ar ? data.nameAr : (data.nameEn || data.nameAr));
+        } else { setReferralStatus("invalid"); setReferralName(""); }
+      } catch { setReferralStatus("invalid"); setReferralName(""); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [bookForm.referralCode, ar]);
+
+  /* ── Promo code debounced verify ── */
+  useEffect(() => {
+    const code = bookForm.promoCode.trim().toUpperCase();
+    if (!code) { setPromoStatus("idle"); setPromoInfo(null); return; }
+    if (code.length < 3) return;
+    const baseAmount = pkg ? pkg.priceEGP * (parseInt(bookForm.people) || 1) : 0;
+    setPromoStatus("checking");
+    const tm = setTimeout(async () => {
+      try {
+        const r = await apiFetch("/api/promo-codes/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, packageId: pkg?.id, baseAmount }),
+        });
+        const data = await r.json();
+        if (data.valid) {
+          setPromoStatus("valid");
+          setPromoInfo({ discount: data.discount, finalAmount: data.finalAmount });
+        } else {
+          setPromoStatus("invalid");
+          setPromoInfo({ discount: 0, finalAmount: baseAmount, error: data.error });
+        }
+      } catch { setPromoStatus("invalid"); setPromoInfo(null); }
+    }, 500);
+    return () => clearTimeout(tm);
+  }, [bookForm.promoCode, pkg?.id, bookForm.people]);
+
   const closeBookModal = () => {
     if (bookSubmitting) return;
     setShowBook(false);
     setTimeout(() => {
       setBookDone(false);
-      setBookForm({ name: "", phone: "", people: "1", date: "", notes: "" });
+      setBookForm({ name: "", phone: "", people: "1", date: "", notes: "", referralCode: "", promoCode: "" });
       setBookErrors({});
       setBookSubmitError("");
     }, 300);
@@ -113,6 +163,10 @@ export default function PackageDetail() {
     if (Object.keys(errs).length > 0) return;
     setBookSubmitting(true);
     const pkgName = ar ? (pkg?.titleAr ?? "") : (pkg?.titleEn ?? "");
+    const estimatedPrice = promoStatus === "valid" && promoInfo
+      ? promoInfo.finalAmount
+      : pkg ? pkg.priceEGP * (parseInt(bookForm.people) || 1) : 0;
+
     try {
       const response = await apiFetch("/api/bookings", {
         method: "POST",
@@ -127,7 +181,9 @@ export default function PackageDetail() {
           children: "0", infants: "0",
           notes: bookForm.notes,
           currency,
-          priceAtBooking: pkg ? pkg.priceEGP * (parseInt(bookForm.people) || 1) : null,
+          priceAtBooking: estimatedPrice || null,
+          referralCode: referralStatus === "valid" ? bookForm.referralCode.trim().toUpperCase() : undefined,
+          promoCode: promoStatus === "valid" ? bookForm.promoCode.trim().toUpperCase() : undefined,
         }),
       });
       if (!response.ok) {
@@ -158,9 +214,9 @@ export default function PackageDetail() {
       bookForm.people, "0", "0", bookForm.notes
     );
     const peopleNum = parseInt(bookForm.people) || 1;
-    const estimatedPrice = pkg ? formatPkgPrice(pkg.priceEGP * peopleNum) : "";
-    const priceLine = estimatedPrice
-      ? (ar ? `\n💰 السعر التقديري: ${estimatedPrice}` : `\n💰 Estimated Price: ${estimatedPrice}`)
+    const displayEstimatedPrice = pkg ? formatPkgPrice(pkg.priceEGP * peopleNum) : "";
+    const priceLine = displayEstimatedPrice
+      ? (ar ? `\n💰 السعر التقديري: ${displayEstimatedPrice}` : `\n💰 Estimated Price: ${displayEstimatedPrice}`)
       : "";
     const waMsg = baseMsg + priceLine;
     const waNum = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
@@ -846,6 +902,78 @@ export default function PackageDetail() {
                     placeholder={ar ? "أي طلبات خاصة أو ملاحظات..." : "Any special requests or notes..."}
                     value={bookForm.notes}
                     onChange={e => { setBookForm(f => ({ ...f, notes: e.target.value })); setBookSubmitError(""); }} />
+                </div>
+
+                {/* Referral code */}
+                <div>
+                  <label className="book-label">{ar ? "كود الإحالة (اختياري)" : "Referral Code (optional)"}</label>
+                  <div style={{ position: "relative" }}>
+                    <input className="book-field"
+                      style={{ fontFamily: "Montserrat, monospace", letterSpacing: "2px", fontWeight: 700, fontSize: "0.95rem",
+                        borderColor: referralStatus === "valid" ? "#10B981" : referralStatus === "invalid" ? "#EF4444" : undefined,
+                        color: referralStatus === "valid" ? "#10B981" : undefined,
+                        paddingInlineEnd: referralStatus !== "idle" ? "2.5rem" : undefined }}
+                      placeholder="DRT-XXXXXX"
+                      value={bookForm.referralCode}
+                      onChange={e => { setBookForm(f => ({ ...f, referralCode: e.target.value })); }} />
+                    {referralStatus === "checking" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)" }}>
+                        <span style={{ display: "inline-block", width: "14px", height: "14px", border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "var(--text-primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                      </span>
+                    )}
+                    {referralStatus === "valid" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#10B981", fontSize: "1rem" }}>✓</span>
+                    )}
+                    {referralStatus === "invalid" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#EF4444", fontSize: "1rem" }}>✗</span>
+                    )}
+                  </div>
+                  {referralStatus === "valid" && referralName && (
+                    <p style={{ color: "#10B981", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                      ✅ {ar ? `كود صحيح — إحالة ${referralName}` : `Valid code — ${referralName}'s referral`}
+                    </p>
+                  )}
+                  {referralStatus === "invalid" && (
+                    <p style={{ color: "#EF4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                      {ar ? "كود غير صحيح أو غير مفعّل" : "Invalid or inactive code"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Promo / discount code */}
+                <div>
+                  <label className="book-label">{ar ? "كود خصم (اختياري)" : "Promo Code (optional)"}</label>
+                  <div style={{ position: "relative" }}>
+                    <input className="book-field"
+                      style={{ fontFamily: "Montserrat, monospace", letterSpacing: "2px", fontWeight: 700, fontSize: "0.95rem",
+                        borderColor: promoStatus === "valid" ? "#10B981" : promoStatus === "invalid" ? "#EF4444" : undefined,
+                        color: promoStatus === "valid" ? "#10B981" : undefined,
+                        paddingInlineEnd: promoStatus !== "idle" ? "2.5rem" : undefined }}
+                      placeholder="SUMMER20"
+                      value={bookForm.promoCode}
+                      onChange={e => { setBookForm(f => ({ ...f, promoCode: e.target.value })); }} />
+                    {promoStatus === "checking" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)" }}>
+                        <span style={{ display: "inline-block", width: "14px", height: "14px", border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "var(--text-primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                      </span>
+                    )}
+                    {promoStatus === "valid" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#10B981", fontSize: "1rem" }}>✓</span>
+                    )}
+                    {promoStatus === "invalid" && (
+                      <span style={{ position: "absolute", insetInlineEnd: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#EF4444", fontSize: "1rem" }}>✗</span>
+                    )}
+                  </div>
+                  {promoStatus === "valid" && promoInfo && (
+                    <p style={{ color: "#10B981", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                      ✅ {ar ? `تم تطبيق خصم ${promoInfo.discount} جنيه` : `Discount applied: ${promoInfo.discount} EGP`}
+                    </p>
+                  )}
+                  {promoStatus === "invalid" && promoInfo?.error && (
+                    <p style={{ color: "#EF4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                      {promoInfo.error}
+                    </p>
+                  )}
                 </div>
 
                 {bookSubmitError && (

@@ -1006,6 +1006,9 @@ function PackagesAndBooking() {
   const selectPkg = (pkg: DisplayPkg) => {
     if (selectedPkg?.id === pkg.id) { setSelectedPkg(null); return; }
     setSelectedPkg(pkg);
+    setTimeout(() => {
+      bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
   };
 
   const validate = () => {
