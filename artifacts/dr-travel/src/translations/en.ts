@@ -28,9 +28,9 @@ export const en: Translations = {
   },
 
   stats: [
-    { icon: "🚤", count: 200, label: "+ Yacht Trips" },
-    { icon: "🏜️", count: 150, label: "+ Safaris" },
-    { icon: "😊", count: 5000, label: "+ Happy Clients" },
+    { icon: "🚤", count: 4000, label: "+ Yacht Trips" },
+    { icon: "🏜️", count: 3000, label: "+ Safaris" },
+    { icon: "😊", count: 10000, label: "+ Happy Clients" },
     { icon: "⭐", count: 5, label: " Stars" },
   ],
 
@@ -146,7 +146,7 @@ export const en: Translations = {
   reviews: {
     sectionLabel: "✦ Real Reviews",
     sectionTitle: "Our Clients Speak",
-    sectionSubtitle: "Over 5,000 happy clients — read their real experiences with us",
+    sectionSubtitle: "Over 10,000 happy clients — read their real experiences with us",
     items: [
       { name: "Ahmed El-Sheikh", initials: "AE", review: "An amazing experience! The safari was incredible and the DR Travel team was very professional. We'll definitely be back 💯", stars: 5 },
       { name: "Fatma Samir", initials: "FS", review: "The yacht was truly a dream! The view from the sea was unlike anything I've seen. Great service and very reasonable prices. Thank you DR Travel!", stars: 5 },

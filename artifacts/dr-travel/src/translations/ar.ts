@@ -26,9 +26,9 @@ export const ar = {
   },
 
   stats: [
-    { icon: "🚤", count: 200, label: "+ رحلة يخت" },
-    { icon: "🏜️", count: 150, label: "+ سفاري" },
-    { icon: "😊", count: 5000, label: "+ عميل سعيد" },
+    { icon: "🚤", count: 4000, label: "+ رحلة يخت" },
+    { icon: "🏜️", count: 3000, label: "+ سفاري" },
+    { icon: "😊", count: 10000, label: "+ عميل سعيد" },
     { icon: "⭐", count: 5, label: " نجوم" },
   ],
 
@@ -144,7 +144,7 @@ export const ar = {
   reviews: {
     sectionLabel: "✦ آراء حقيقية",
     sectionTitle: "عملاؤنا يتكلموا",
-    sectionSubtitle: "أكثر من ٥٠٠٠ عميل سعيد — اقرأ تجاربهم الحقيقية معنا",
+    sectionSubtitle: "أكثر من ١٠,٠٠٠ عميل سعيد — اقرأ تجاربهم الحقيقية معنا",
     items: [
       { name: "أحمد الشيخ", initials: "أش", review: "والله تجربة من التحفة! السفاري كانت خيال وناس DR Travel محترمين جداً وشاطرين. هنرجع تاني متأكد 💯", stars: 5 },
       { name: "فاطمة سمير", initials: "فس", review: "اليخت كان حلم بجد! المنظر من البحر ماشفتوش في حياتي. الخدمة تمام والأسعار معقولة جداً. شكراً يا DR Travel!", stars: 5 },
