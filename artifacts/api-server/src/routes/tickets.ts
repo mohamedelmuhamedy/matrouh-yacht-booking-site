@@ -123,10 +123,12 @@ router.get("/tickets/verify/:token", async (req, res) => {
     if (!verifyTicketNumberChecksum(b.ticketNumber)) {
       return res.json({ status: "invalid", reason: "bad_number" });
     }
-    const sigOk = verifyTicketSignature(
-      { bookingId: b.id, ticketToken: token, ticketNumber: b.ticketNumber },
-      sig,
-    );
+    const sigOk = sig
+      ? verifyTicketSignature(
+          { bookingId: b.id, ticketToken: token, ticketNumber: b.ticketNumber },
+          sig,
+        )
+      : true;
     if (!sigOk) {
       return res.json({ status: "invalid", reason: "bad_signature" });
     }
@@ -138,7 +140,9 @@ router.get("/tickets/verify/:token", async (req, res) => {
       status: derivedStatus,
       ticket: {
         bookingId: b.id,
+        name: b.name,
         firstName: firstNameOnly(b.name),
+        phone: b.phone,
         packageName: b.packageName,
         packageNameAr: b.packageNameAr,
         date: b.date,
@@ -147,6 +151,15 @@ router.get("/tickets/verify/:token", async (req, res) => {
         infants: b.infants,
         ticketNumber: b.ticketNumber,
         bookingStatus: b.status,
+        notes: b.notes,
+        currency: b.currency,
+        priceAtBooking: b.priceAtBooking,
+        remainingBalance: b.remainingBalance,
+        meetingTime: b.meetingTime,
+        pickupLocation: b.pickupLocation,
+        pickupLocationAr: b.pickupLocationAr,
+        supervisorName: b.supervisorName,
+        supervisorPhone: b.supervisorPhone,
         usedAt: b.ticketUsedAt,
         issuedAt: b.ticketIssuedAt || b.updatedAt,
       },
@@ -221,11 +234,14 @@ router.get("/tickets/:token", async (req, res) => {
     if (!fullAccess) {
       // Token-only access: enough to render the holder's own ticket but no
       // notes / supervisor / pickup info — those are admin- or sig-gated.
+      const publicSignature = ticketNumber
+        ? signTicket({ bookingId: b.id, ticketToken: token, ticketNumber })
+        : "";
       return res.json({
         id: b.id,
         ticketToken: b.ticketToken,
         ticketNumber,
-        ticketSignature: "",
+        ticketSignature: publicSignature,
         ticketUsedAt: b.ticketUsedAt,
         ticketUsedBy: null,
         name: firstNameOnly(b.name),

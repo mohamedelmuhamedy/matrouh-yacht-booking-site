@@ -11,7 +11,9 @@ interface VerifyResponse {
   reason?: string;
   ticket?: {
     bookingId: number;
+    name?: string;
     firstName: string;
+    phone?: string;
     packageName: string;
     packageNameAr: string;
     date: string;
@@ -20,6 +22,15 @@ interface VerifyResponse {
     infants: number;
     ticketNumber: string;
     bookingStatus: string;
+    notes?: string | null;
+    currency?: string;
+    priceAtBooking?: number | null;
+    remainingBalance?: string | null;
+    meetingTime?: string | null;
+    pickupLocation?: string | null;
+    pickupLocationAr?: string | null;
+    supervisorName?: string | null;
+    supervisorPhone?: string | null;
     usedAt: string | null;
     issuedAt: string | null;
   };
@@ -92,6 +103,13 @@ export default function VerifyPage() {
 
   const t = data?.ticket;
   const pkgName = ar ? (t?.packageNameAr || t?.packageName) : (t?.packageName || t?.packageNameAr);
+  const customerName = t?.name || t?.firstName || "—";
+  const pickup = ar ? (t?.pickupLocationAr || t?.pickupLocation) : (t?.pickupLocation || t?.pickupLocationAr);
+  const supervisor = t?.supervisorName
+    ? (t.supervisorPhone ? `${t.supervisorName} · ${t.supervisorPhone}` : t.supervisorName)
+    : "";
+  const price = t?.remainingBalance
+    || (t?.priceAtBooking ? `${t.priceAtBooking.toLocaleString(ar ? "ar-EG" : "en-US")} ${t.currency || "EGP"}` : "");
 
   return (
     <div dir={dir} style={{
@@ -131,10 +149,17 @@ export default function VerifyPage() {
               display: "flex", flexDirection: "column", gap: 8,
             }}>
               <Row label={T.ticketNo} value={<code style={{ direction: "ltr", display: "inline-block", color: NAVY, fontWeight: 800 }}>{t.ticketNumber}</code>} />
-              <Row label={T.customer} value={t.firstName} />
+              <Row label={T.customer} value={customerName} />
+              {t.phone && <Row label={ar ? "الهاتف" : "Phone"} value={<span style={{ direction: "ltr", display: "inline-block" }}>{t.phone}</span>} />}
+              <Row label={ar ? "حالة الحجز" : "Booking status"} value={t.bookingStatus} />
               <Row label={T.pkg} value={pkgName || "—"} />
               <Row label={T.date} value={t.date} />
               <Row label={T.group} value={`${t.adults + t.children + t.infants}`} />
+              {t.meetingTime && <Row label={ar ? "وقت الانطلاق" : "Departure time"} value={t.meetingTime} />}
+              {pickup && <Row label={ar ? "نقطة التجمع" : "Pickup point"} value={pickup} />}
+              {supervisor && <Row label={ar ? "المشرف" : "Supervisor"} value={supervisor} />}
+              {price && <Row label={ar ? "المبلغ المتبقي" : "Remaining balance"} value={price} />}
+              {t.notes && <Row label={ar ? "ملاحظات" : "Notes"} value={t.notes} />}
               {t.issuedAt && <Row label={T.issued} value={new Date(t.issuedAt).toLocaleString(ar ? "ar-EG" : "en-GB")} />}
               {t.usedAt && <Row label={T.usedAt} value={new Date(t.usedAt).toLocaleString(ar ? "ar-EG" : "en-GB")} />}
             </div>

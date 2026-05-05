@@ -965,6 +965,15 @@ function PackagesAndBooking() {
   const today = new Date().toISOString().split("T")[0];
   const bk = t.booking;
   const estimatedPrice = selectedPkg ? selectedPkg.priceNum * (parseInt(form.adults) || 1) : 0;
+  const waNum = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
+  const waMessage = encodeURIComponent(
+    bk.waMessage(
+      selectedPkg?.name ?? "",
+      form.name, form.phone, form.date,
+      form.adults, form.children, form.infants, form.notes
+    )
+  );
+  const bookingWaUrl = `https://wa.me/${waNum}?text=${waMessage}`;
 
   // Abandoned-cart tracking: stable session key + debounced POST when form has phone or name
   const sessionKeyRef = useRef<string>("");
@@ -1027,6 +1036,8 @@ function PackagesAndBooking() {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
+      const skipConfirmation = settings.booking_skip_confirmation === "true";
+      const waPopup = skipConfirmation ? window.open("about:blank", "_blank") : null;
       try {
         const r = await apiFetch("/api/bookings", {
           method: "POST",
@@ -1068,23 +1079,26 @@ function PackagesAndBooking() {
                 ? (lang === "ar" ? "✅ تم تسجيلك في قائمة الانتظار. سنتواصل معك قريباً." : "✅ You've been added to the waitlist. We'll contact you soon.")
                 : (lang === "ar" ? "حدث خطأ، يرجى المحاولة مرة أخرى." : "Error, please try again."));
             }
+            if (waPopup && !waPopup.closed) waPopup.close();
             return;
           }
         }
+        if (!r.ok) throw new Error("booking_failed");
+        if (skipConfirmation) {
+          if (waPopup && !waPopup.closed) {
+            waPopup.location.href = bookingWaUrl;
+          } else {
+            window.location.href = bookingWaUrl;
+          }
+          return;
+        }
         setShowModal(true);
       } catch {
+        if (waPopup && !waPopup.closed) waPopup.close();
         setShowModal(true);
       }
     }
   };
-
-  const waMessage = encodeURIComponent(
-    bk.waMessage(
-      selectedPkg?.name ?? "",
-      form.name, form.phone, form.date,
-      form.adults, form.children, form.infants, form.notes
-    )
-  );
 
   const inp = (field: string) => ({ className: `form-input${errors[field] ? " error" : ""}` });
   const labelStyle = { display: "block" as const, color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" };
@@ -1403,7 +1417,7 @@ function PackagesAndBooking() {
               {bk.modal.msg} <strong style={{ color: "#00AAFF" }}>{form.phone}</strong> {bk.modal.within}
             </p>
             <div style={{ display: "flex", gap: "0.75rem", flexDirection: "column" }}>
-              <a href={`https://wa.me/201205756024?text=${waMessage}`} target="_blank" rel="noreferrer"
+              <a href={bookingWaUrl} target="_blank" rel="noreferrer"
                 style={{ background: "linear-gradient(135deg,#25D366,#128C4E)", color: "white", padding: "1rem", borderRadius: "14px", fontWeight: 700, textDecoration: "none", fontSize: "1rem", fontFamily: "Cairo, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                 <WhatsAppIcon /> {bk.modal.confirmBtn}
               </a>

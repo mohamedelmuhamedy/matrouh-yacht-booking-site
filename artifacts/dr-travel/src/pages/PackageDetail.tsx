@@ -200,6 +200,8 @@ export default function PackageDetail() {
     setBookSubmitError("");
     if (Object.keys(errs).length > 0) return;
     setBookSubmitting(true);
+    const skipConfirmation = settings.booking_skip_confirmation === "true";
+    const waPopup = skipConfirmation ? window.open("about:blank", "_blank") : null;
     const pkgName = ar ? (pkg?.titleAr ?? "") : (pkg?.titleEn ?? "");
     const estimatedPrice = promoStatus === "valid" && promoInfo
       ? promoInfo.finalAmount
@@ -236,6 +238,7 @@ export default function PackageDetail() {
         throw new Error(ar ? fallbackMessage : serverMessage || fallbackMessage);
       }
     } catch (error) {
+      if (waPopup && !waPopup.closed) waPopup.close();
       setBookSubmitting(false);
       setBookSubmitError(
         error instanceof Error && error.message
@@ -260,8 +263,12 @@ export default function PackageDetail() {
     const waNum = (settings.whatsapp_number || "201205756024").replace(/\D/g, "") || "201205756024";
     const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(waMsg)}`;
     setBookSubmitting(false);
-    if (settings.booking_skip_confirmation === "true") {
-      window.location.href = waUrl;
+    if (skipConfirmation) {
+      if (waPopup && !waPopup.closed) {
+        waPopup.location.href = waUrl;
+      } else {
+        window.location.href = waUrl;
+      }
       return;
     }
     setBookWaUrl(waUrl);

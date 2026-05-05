@@ -262,14 +262,15 @@ export default function BookingsPage() {
     return `https://api.whatsapp.com/send?phone=${intl}&text=${msg}`;
   };
 
-  const ticketPublicUrl = (token: string) => `${window.location.origin}/ticket/${token}`;
+  const ticketPublicUrl = (token: string, signature?: string | null) =>
+    `${window.location.origin}/verify/${token}${signature ? `?sig=${encodeURIComponent(signature)}` : ""}`;
 
   const downloadTicketQr = async () => {
     if (!ticketData || !ticketData.ticketToken) return;
     setTicketBusy("qr");
     try {
       const s = ticketData.settings || {};
-      const url = ticketPublicUrl(ticketData.ticketToken);
+      const url = ticketPublicUrl(ticketData.ticketToken, ticketData.ticketSignature);
       const fg = s.card_qr_fg || "#0D1B2A";
       const bg = s.card_qr_bg || "#ffffff";
       const logoSrc = resolveApiAssetUrl(s.logo_url) || logoFallback;

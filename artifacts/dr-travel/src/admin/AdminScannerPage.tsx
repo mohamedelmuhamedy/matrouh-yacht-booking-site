@@ -11,7 +11,9 @@ interface VerifyResponse {
   reason?: string;
   ticket?: {
     bookingId: number;
+    name?: string;
     firstName: string;
+    phone?: string;
     packageName: string;
     packageNameAr: string;
     date: string;
@@ -20,6 +22,15 @@ interface VerifyResponse {
     infants: number;
     ticketNumber: string;
     bookingStatus: string;
+    notes?: string | null;
+    currency?: string;
+    priceAtBooking?: number | null;
+    remainingBalance?: string | null;
+    meetingTime?: string | null;
+    pickupLocation?: string | null;
+    pickupLocationAr?: string | null;
+    supervisorName?: string | null;
+    supervisorPhone?: string | null;
     usedAt: string | null;
     issuedAt: string | null;
   };
@@ -32,12 +43,12 @@ const SCANNER_ID = "dr-ticket-scanner";
 function parseScanned(text: string): { token: string; sig: string } | null {
   try {
     const url = text.startsWith("http") ? new URL(text) : new URL(text, window.location.origin);
-    const m = url.pathname.match(/\/verify\/([A-Za-z0-9]+)/);
+    const m = url.pathname.match(/\/(?:verify|ticket)\/([A-Za-z0-9]+)/);
     if (!m) return null;
     const sig = url.searchParams.get("sig") || "";
     return { token: m[1], sig };
   } catch {
-    const m = text.match(/verify\/([A-Za-z0-9]+)(?:\?sig=([A-Za-z0-9]+))?/);
+    const m = text.match(/(?:verify|ticket)\/([A-Za-z0-9]+)(?:\?sig=([A-Za-z0-9]+))?/);
     if (!m) return null;
     return { token: m[1], sig: m[2] || "" };
   }
@@ -208,6 +219,13 @@ export default function AdminScannerPage() {
   const t = data?.ticket;
   const pkgName = ar ? (t?.packageNameAr || t?.packageName) : (t?.packageName || t?.packageNameAr);
   const groupCount = t ? t.adults + t.children + t.infants : 0;
+  const customerName = t?.name || t?.firstName || "—";
+  const pickup = ar ? (t?.pickupLocationAr || t?.pickupLocation) : (t?.pickupLocation || t?.pickupLocationAr);
+  const supervisor = t?.supervisorName
+    ? (t.supervisorPhone ? `${t.supervisorName} · ${t.supervisorPhone}` : t.supervisorName)
+    : "";
+  const price = t?.remainingBalance
+    || (t?.priceAtBooking ? `${t.priceAtBooking.toLocaleString(ar ? "ar-EG" : "en-US")} ${t.currency || "EGP"}` : "");
 
   if (!user || !adminToken) {
     return (
@@ -297,7 +315,7 @@ export default function AdminScannerPage() {
                 textAlign: "center", padding: "8px 4px 12px", borderBottom: "1px dashed #cbd5e1", marginBottom: 4,
               }}>
                 <div style={{ fontSize: 28, fontWeight: 900, color: NAVY, lineHeight: 1.2 }}>
-                  {t.firstName}
+                  {customerName}
                 </div>
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
@@ -309,8 +327,15 @@ export default function AdminScannerPage() {
                 </div>
               </div>
               <Row label={T.ticketNo} value={<code style={{ direction: "ltr", display: "inline-block", color: NAVY, fontWeight: 800 }}>{t.ticketNumber}</code>} />
+              {t.phone && <Row label={ar ? "الهاتف" : "Phone"} value={<span style={{ direction: "ltr", display: "inline-block" }}>{t.phone}</span>} />}
+              <Row label={ar ? "حالة الحجز" : "Booking status"} value={t.bookingStatus} />
               <Row label={T.pkg} value={pkgName || "—"} />
               <Row label={T.date} value={t.date} />
+              {t.meetingTime && <Row label={ar ? "وقت الانطلاق" : "Departure time"} value={t.meetingTime} />}
+              {pickup && <Row label={ar ? "نقطة التجمع" : "Pickup point"} value={pickup} />}
+              {supervisor && <Row label={ar ? "المشرف" : "Supervisor"} value={supervisor} />}
+              {price && <Row label={ar ? "المبلغ المتبقي" : "Remaining balance"} value={price} />}
+              {t.notes && <Row label={ar ? "ملاحظات" : "Notes"} value={t.notes} />}
               {t.usedAt && <Row label={T.usedAt} value={new Date(t.usedAt).toLocaleString(ar ? "ar-EG" : "en-GB")} />}
             </div>
           )}
