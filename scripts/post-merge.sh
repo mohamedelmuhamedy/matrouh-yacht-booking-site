@@ -18,8 +18,15 @@ apply_ticket_columns() {
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_issued_at timestamp');
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_used_at timestamp');
         await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticket_used_by text');
+        await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reminder_sent_at timestamp');
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS meeting_time text NOT NULL DEFAULT ''\");
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS pickup_location text NOT NULL DEFAULT ''\");
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS pickup_location_ar text NOT NULL DEFAULT ''\");
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS supervisor_name text NOT NULL DEFAULT ''\");
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS supervisor_phone text NOT NULL DEFAULT ''\");
+        await pool.query(\"ALTER TABLE bookings ADD COLUMN IF NOT EXISTS remaining_balance text NOT NULL DEFAULT ''\");
         await pool.query(\`DO \$\$ BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bookings_ticket_number_unique') THEN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bookings_ticket_number_unique' AND conrelid = 'bookings'::regclass) THEN
             ALTER TABLE bookings ADD CONSTRAINT bookings_ticket_number_unique UNIQUE (ticket_number);
           END IF;
         END \$\$;\`);

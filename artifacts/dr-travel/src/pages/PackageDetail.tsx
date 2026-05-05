@@ -67,19 +67,16 @@ export default function PackageDetail() {
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoInfo, setPromoInfo] = useState<{ discount: number; finalAmount: number; error?: string } | null>(null);
 
-  // Lock body scroll when modal is open — robust mobile handling.
-  // On iOS, `overflow: hidden` alone doesn't prevent momentum scroll;
-  // we also need `position: fixed` + `top: -scrollY` to freeze the viewport.
+  // Lock body scroll when modal is open on every viewport.
+  // `position: fixed` + `top: -scrollY` avoids leaked locks on iOS and desktop.
   useEffect(() => {
     if (!showBook) return;
     const scrollY = window.scrollY;
     
-    if (isMobile) {
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-    }
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
     
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
@@ -90,33 +87,27 @@ export default function PackageDetail() {
     
     return () => {
       document.removeEventListener('keydown', onKey);
-      if (isMobile) {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-      }
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
-      if (isMobile) {
-        window.scrollTo(0, scrollY);
-      }
+      window.scrollTo(0, scrollY);
     };
-  }, [showBook, isMobile]);
+  }, [showBook]);
 
   // Safety net: if this component unmounts while modal is open, unlock scroll
   useEffect(() => {
     return () => {
-      if (isMobile) {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-      }
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
-  }, [isMobile]);
+  }, []);
 
   /* ── Referral code debounced verify ── */
   useEffect(() => {
@@ -171,15 +162,13 @@ export default function PackageDetail() {
     // The useEffect cleanup should handle this too, but if React batches
     // the state update or the cleanup races, this guarantees no freeze.
     const savedTop = document.body.style.top;
-    if (isMobile) {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-    }
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
-    if (isMobile && savedTop) {
+    if (savedTop) {
       window.scrollTo(0, -parseInt(savedTop, 10) || 0);
     }
     setTimeout(() => {

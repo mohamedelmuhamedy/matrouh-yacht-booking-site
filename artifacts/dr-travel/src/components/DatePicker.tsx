@@ -1,4 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   value: string;
@@ -43,6 +44,7 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
   const selected = parseYmd(value);
   const [view, setView] = useState<Date>(selected || today);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const [popupPos, setPopupPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
@@ -58,7 +60,10 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
     const onClick = (e: MouseEvent | TouchEvent) => {
       if (!active) return;
       const target = (e as TouchEvent).touches?.[0]?.target ?? e.target;
-      if (wrapRef.current && !wrapRef.current.contains(target as Node)) setOpen(false);
+      const node = target as Node;
+      const insideTrigger = !!wrapRef.current?.contains(node);
+      const insidePopup = !!popupRef.current?.contains(node);
+      if (!insideTrigger && !insidePopup) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     const raf = requestAnimationFrame(() => {
@@ -168,8 +173,9 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
         <span aria-hidden style={{ color: "var(--text-muted)", fontSize: "0.85rem", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }}>▾</span>
       </button>
 
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <div
+          ref={popupRef}
           role="dialog"
           aria-label={ar ? "اختر التاريخ" : "Pick a date"}
           style={{
@@ -282,7 +288,8 @@ export default function DatePicker({ value, onChange, min, lang = "ar", placehol
                 style={{ ...footerBtn, color: "var(--text-muted)" }}>{ar ? "مسح" : "Clear"}</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

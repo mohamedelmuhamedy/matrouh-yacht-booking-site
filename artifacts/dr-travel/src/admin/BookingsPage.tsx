@@ -386,6 +386,12 @@ export default function BookingsPage() {
     }
   };
 
+  const updateTicketField = <K extends keyof TicketFieldsForm>(key: K, value: TicketFieldsForm[K]) => {
+    setTicketFields(prev => ({ ...prev, [key]: value }));
+    setTicketFieldsDirty(true);
+    setTicketData(prev => prev ? { ...prev, [key]: value } : prev);
+  };
+
   // Capture the off-screen ticket node to a canvas. Shared by PDF + image flows.
   const generateTicketCanvas = async (): Promise<HTMLCanvasElement | null> => {
     if (!ticketRef.current || !ticketData) {
@@ -753,9 +759,10 @@ export default function BookingsPage() {
       const pkg = ar ? ticketData.packageNameAr || ticketData.packageName : ticketData.packageName || ticketData.packageNameAr;
       const ticketNo = ticketData.ticketNumber || `DRT-${String(ticketData.id).padStart(5, "0")}`;
       const priceStr = ticketData.priceAtBooking ? `${ticketData.priceAtBooking} ${ticketData.currency || "EGP"}` : "—";
+      const remainingBalanceStr = ticketData.remainingBalance || priceStr;
       const msg = ar
-        ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n💰 إجمالي السعر: ${priceStr}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
-        : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n💰 Total Price: ${priceStr}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
+        ? `أهلاً ${ticketData.name} 🌟\nتم تأكيد حجزك مع DR Travel.\n\n📌 الباقة: ${pkg}\n📅 التاريخ: ${ticketData.date}\n🎫 رقم التذكرة: ${ticketNo}\n💰 المبلغ المتبقي: ${remainingBalanceStr}\n\n📄 تذكرتك (PDF):\n${pdfUrl}\n\n🔗 صفحة التحقق:\n${verifyUrl}\n\nبرجاء التواجد قبل ٣٠ دقيقة من موعد الانطلاق. لأي استفسار راسلنا هنا.`
+        : `Hi ${ticketData.name} 🌟\nYour DR Travel booking is confirmed.\n\n📌 Package: ${pkg}\n📅 Date: ${ticketData.date}\n🎫 Ticket No.: ${ticketNo}\n💰 Remaining Balance: ${remainingBalanceStr}\n\n📄 Your ticket (PDF):\n${pdfUrl}\n\n🔗 Verify page:\n${verifyUrl}\n\nPlease arrive 30 minutes before departure. Reply here for any questions.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${intl}&text=${encodeURIComponent(msg)}`;
       if (popup && !popup.closed) {
         // Sever opener BEFORE navigating cross-origin to prevent reverse-tabnabbing.
@@ -1153,17 +1160,17 @@ export default function BookingsPage() {
             {/* Editable trip operations */}
             <div style={{ background: "var(--bg-surface-solid)", borderRadius: 12, padding: "0.85rem 1rem", border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.6rem" }}>
               <FieldInput label="وقت الانطلاق" placeholder="مثال: 8:00 صباحاً" value={ticketFields.meetingTime}
-                onChange={v => { setTicketFields(p => ({ ...p, meetingTime: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("meetingTime", v)} />
               <FieldInput label="نقطة التجمع (عربي)" placeholder="مثال: مرسى مطروح، أمام الفندق" value={ticketFields.pickupLocationAr}
-                onChange={v => { setTicketFields(p => ({ ...p, pickupLocationAr: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("pickupLocationAr", v)} />
               <FieldInput label="Pickup (English)" placeholder="ex: Marsa Matruh, hotel lobby" value={ticketFields.pickupLocation}
-                onChange={v => { setTicketFields(p => ({ ...p, pickupLocation: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("pickupLocation", v)} />
               <FieldInput label="اسم المشرف" placeholder="مثال: أحمد سيد" value={ticketFields.supervisorName}
-                onChange={v => { setTicketFields(p => ({ ...p, supervisorName: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("supervisorName", v)} />
               <FieldInput label="هاتف المشرف" placeholder="01XXXXXXXXX" value={ticketFields.supervisorPhone}
-                onChange={v => { setTicketFields(p => ({ ...p, supervisorPhone: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("supervisorPhone", v)} />
               <FieldInput label="المبلغ المتبقي" placeholder="مثال: 500 EGP" value={ticketFields.remainingBalance}
-                onChange={v => { setTicketFields(p => ({ ...p, remainingBalance: v })); setTicketFieldsDirty(true); }} />
+                onChange={v => updateTicketField("remainingBalance", v)} />
               <div style={{ display: "flex", alignItems: "flex-end" }}>
                 <button onClick={saveTicketFields} disabled={!ticketFieldsDirty}
                   style={{ background: ticketFieldsDirty ? "linear-gradient(135deg,#00AAFF,#0066cc)" : "var(--text-secondary)", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 0.9rem", cursor: ticketFieldsDirty ? "pointer" : "not-allowed", fontFamily: "Cairo, sans-serif", fontSize: "0.8rem", fontWeight: 700, width: "100%" }}>

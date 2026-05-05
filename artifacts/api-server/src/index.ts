@@ -45,6 +45,9 @@ async function start(): Promise<void> {
   await pool.query("select 1");
   console.log("[db] PostgreSQL connection verified");
 
+  const { ensureBookingSchema } = await import("./lib/bookingSchemaMaintenance");
+  await ensureBookingSchema(pool);
+
   const { seedAdminFromStartup } = await import("./lib/seedAdmin");
   await seedAdminFromStartup();
 

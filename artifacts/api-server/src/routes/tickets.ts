@@ -32,7 +32,7 @@ function isAdminRequest(req: express.Request): boolean {
 function maskPhone(phone: string | null | undefined): string {
   const p = String(phone ?? "");
   if (p.length < 4) return p;
-  return p.slice(0, 2) + "*".repeat(Math.max(0, p.length - 4)) + p.slice(-2);
+  return p.slice(0, 2) + "•".repeat(Math.max(0, p.length - 4)) + p.slice(-2);
 }
 
 function firstNameOnly(name: string | null | undefined): string {
@@ -133,7 +133,6 @@ router.get("/tickets/verify/:token", async (req, res) => {
 
     let derivedStatus: "valid" | "used" | "cancelled" | "invalid" = "valid";
     if (b.status === "cancelled" || b.status === "completed") derivedStatus = "cancelled";
-    else if (b.ticketUsedAt) derivedStatus = "used";
 
     return res.json({
       status: derivedStatus,
@@ -241,6 +240,7 @@ router.get("/tickets/:token", async (req, res) => {
         notes: "",
         currency: b.currency,
         priceAtBooking: b.priceAtBooking,
+        remainingBalance: b.remainingBalance,
         status: b.status,
         meetingTime: b.meetingTime,
         pickupLocation: "",
@@ -278,6 +278,7 @@ router.get("/tickets/:token", async (req, res) => {
       notes: b.notes,
       currency: b.currency,
       priceAtBooking: b.priceAtBooking,
+      remainingBalance: b.remainingBalance,
       status: b.status,
       meetingTime: b.meetingTime,
       pickupLocation: b.pickupLocation,
