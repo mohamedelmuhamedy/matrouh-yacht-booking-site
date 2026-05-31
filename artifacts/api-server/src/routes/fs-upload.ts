@@ -2,6 +2,7 @@ import { Readable } from "node:stream";
 import { Router, type IRouter } from "express";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
+import { requirePermission } from "../lib/adminPermissions";
 import {
   ObjectNotFoundError,
   ObjectStorageService,
@@ -25,7 +26,7 @@ const MIME_TO_EXT: Record<string, string> = {
   "video/x-msvideo": ".avi",
 };
 
-router.post("/admin/storage/upload", authMiddleware, requireRole("operator"), async (req, res) => {
+router.post("/admin/storage/upload", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (req, res) => {
   const contentType =
     (req.headers["x-content-type"] as string) ||
     (req.headers["content-type"] as string) ||

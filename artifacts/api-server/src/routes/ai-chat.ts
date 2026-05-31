@@ -49,6 +49,7 @@ import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { DEFAULT_FREE_OPENROUTER_MODEL, fetchOpenRouterChatWithFallback } from "../lib/openrouter-models";
+import { requirePermission } from "../lib/adminPermissions";
 
 const router = Router();
 
@@ -354,7 +355,7 @@ function readClientIp(req: Request): string {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
-router.post("/ai/refresh-context", authMiddleware, requireRole("admin"), (_req, res) => {
+router.post("/ai/refresh-context", authMiddleware, requireRole("admin"), requirePermission("settings.manage"), (_req, res) => {
   cachedContext = null;
   return res.json({ ok: true });
 });

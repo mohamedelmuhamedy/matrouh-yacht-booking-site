@@ -20,6 +20,7 @@ export const bookings = pgTable("bookings", {
   promoCode: text("promo_code").notNull().default(""),
   discountAmount: integer("discount_amount").notNull().default(0),
   status: text("status").notNull().default("new"),
+  source: text("source").notNull().default("website"),
   referralCode: text("referral_code").notNull().default(""),
   ticketToken: text("ticket_token").unique(),
   ticketNumber: text("ticket_number").unique(),

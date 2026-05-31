@@ -32,9 +32,20 @@ import AdminCalendarPage from "./AdminCalendarPage";
 import AdminStatsPage from "./AdminStatsPage";
 import AdminAbandonedCartsPage from "./AdminAbandonedCartsPage";
 import AdminCustomerPhotosPage from "./AdminCustomerPhotosPage";
+import AdminManualTicketsPage from "./AdminManualTicketsPage";
+import type { AdminPermission } from "./permissions";
 
-function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAdmin();
+const FIRST_PATH_BY_PERMISSION: { path: string; permission: AdminPermission }[] = [
+  { path: "/admin/dashboard", permission: "dashboard.view" },
+  { path: "/admin/bookings", permission: "bookings.view" },
+  { path: "/admin/manual-tickets", permission: "manual_tickets.view" },
+  { path: "/admin/stats", permission: "stats.view" },
+  { path: "/admin/packages", permission: "trips.manage" },
+  { path: "/admin/settings", permission: "settings.manage" },
+];
+
+function AdminGuard({ children, permission }: { children: React.ReactNode; permission?: AdminPermission }) {
+  const { user, isLoading, hasPermission } = useAdmin();
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -53,114 +64,127 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return null;
+  if (!hasPermission(permission)) {
+    return (
+      <AdminLayout>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#EF4444", fontWeight: 800 }}>
+          لا تملك صلاحية الوصول لهذه الصفحة
+        </div>
+      </AdminLayout>
+    );
+  }
   return <AdminLayout>{children}</AdminLayout>;
 }
 
 function AdminRoutes() {
-  const { user, isLoading } = useAdmin();
+  const { user, isLoading, hasPermission } = useAdmin();
   const [location, navigate] = useLocation();
 
   useEffect(() => {
     if (!isLoading && user && (location === "/admin" || location === "/admin/login")) {
-      navigate("/admin/dashboard");
+      const first = FIRST_PATH_BY_PERMISSION.find(item => hasPermission(item.permission));
+      navigate(first?.path || "/admin/dashboard");
     }
-  }, [user, isLoading, location]);
+  }, [user, isLoading, location, hasPermission]);
 
   return (
     <Switch>
       <Route path="/admin/login" component={LoginPage} />
       <Route path="/admin/dashboard">
-        <AdminGuard><DashboardPage /></AdminGuard>
+        <AdminGuard permission="dashboard.view"><DashboardPage /></AdminGuard>
       </Route>
       <Route path="/admin/packages/new">
-        <AdminGuard><PackageFormPage /></AdminGuard>
+        <AdminGuard permission="trips.manage"><PackageFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/packages/:id/edit">
-        <AdminGuard><PackageFormPage /></AdminGuard>
+        <AdminGuard permission="trips.manage"><PackageFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/packages">
-        <AdminGuard><PackagesPage /></AdminGuard>
+        <AdminGuard permission="trips.manage"><PackagesPage /></AdminGuard>
       </Route>
       <Route path="/admin/bookings">
-        <AdminGuard><BookingsPage /></AdminGuard>
+        <AdminGuard permission="bookings.view"><BookingsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/manual-tickets">
+        <AdminGuard permission="manual_tickets.view"><AdminManualTicketsPage /></AdminGuard>
       </Route>
       <Route path="/admin/testimonials">
-        <AdminGuard><TestimonialsPage /></AdminGuard>
+        <AdminGuard permission="testimonials.manage"><TestimonialsPage /></AdminGuard>
       </Route>
       <Route path="/admin/settings">
-        <AdminGuard><SettingsPage /></AdminGuard>
+        <AdminGuard permission="settings.manage"><SettingsPage /></AdminGuard>
       </Route>
       <Route path="/admin/rewards">
-        <AdminGuard><AdminRewardsPage /></AdminGuard>
+        <AdminGuard permission="rewards.manage"><AdminRewardsPage /></AdminGuard>
       </Route>
       <Route path="/admin/gallery">
-        <AdminGuard><AdminGalleryPage /></AdminGuard>
+        <AdminGuard permission="gallery.manage"><AdminGalleryPage /></AdminGuard>
       </Route>
       <Route path="/admin/categories">
-        <AdminGuard><AdminCategoriesPage /></AdminGuard>
+        <AdminGuard permission="categories.manage"><AdminCategoriesPage /></AdminGuard>
       </Route>
       <Route path="/admin/services/new">
-        <AdminGuard><AdminServiceFormPage /></AdminGuard>
+        <AdminGuard permission="services.manage"><AdminServiceFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/services/:id/edit">
-        <AdminGuard><AdminServiceFormPage /></AdminGuard>
+        <AdminGuard permission="services.manage"><AdminServiceFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/services">
-        <AdminGuard><AdminServicesPage /></AdminGuard>
+        <AdminGuard permission="services.manage"><AdminServicesPage /></AdminGuard>
       </Route>
       <Route path="/admin/why-us/new">
-        <AdminGuard><AdminWhyUsFormPage /></AdminGuard>
+        <AdminGuard permission="why_us.manage"><AdminWhyUsFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/why-us/:id/edit">
-        <AdminGuard><AdminWhyUsFormPage /></AdminGuard>
+        <AdminGuard permission="why_us.manage"><AdminWhyUsFormPage /></AdminGuard>
       </Route>
       <Route path="/admin/why-us">
-        <AdminGuard><AdminWhyUsPage /></AdminGuard>
+        <AdminGuard permission="why_us.manage"><AdminWhyUsPage /></AdminGuard>
       </Route>
       <Route path="/admin/hero-slides">
-        <AdminGuard><AdminHeroSlidesPage /></AdminGuard>
+        <AdminGuard permission="hero_slides.manage"><AdminHeroSlidesPage /></AdminGuard>
       </Route>
       <Route path="/admin/push">
-        <AdminGuard><PushNotificationsPage /></AdminGuard>
+        <AdminGuard permission="push.manage"><PushNotificationsPage /></AdminGuard>
       </Route>
       <Route path="/admin/share-card">
-        <AdminGuard><AdminShareCardPage /></AdminGuard>
+        <AdminGuard permission="share_card.manage"><AdminShareCardPage /></AdminGuard>
       </Route>
       <Route path="/admin/scanner">
-        <AdminGuard><AdminScannerPage /></AdminGuard>
+        <AdminGuard permission="scanner.use"><AdminScannerPage /></AdminGuard>
       </Route>
       <Route path="/admin/audit">
-        <AdminGuard><AdminAuditPage /></AdminGuard>
+        <AdminGuard permission="audit.view"><AdminAuditPage /></AdminGuard>
       </Route>
       <Route path="/admin/promo-codes">
-        <AdminGuard><AdminPromoCodesPage /></AdminGuard>
+        <AdminGuard permission="promo_codes.manage"><AdminPromoCodesPage /></AdminGuard>
       </Route>
       <Route path="/admin/reviews">
-        <AdminGuard><AdminReviewsPage /></AdminGuard>
+        <AdminGuard permission="reviews.manage"><AdminReviewsPage /></AdminGuard>
       </Route>
       <Route path="/admin/waitlist">
-        <AdminGuard><AdminWaitlistPage /></AdminGuard>
+        <AdminGuard permission="waiting_list.manage"><AdminWaitlistPage /></AdminGuard>
       </Route>
       <Route path="/admin/capacity">
-        <AdminGuard><AdminCapacityPage /></AdminGuard>
+        <AdminGuard permission="capacity.manage"><AdminCapacityPage /></AdminGuard>
       </Route>
       <Route path="/admin/users">
-        <AdminGuard><AdminUsersPage /></AdminGuard>
+        <AdminGuard permission="users.manage"><AdminUsersPage /></AdminGuard>
       </Route>
       <Route path="/admin/calendar">
-        <AdminGuard><AdminCalendarPage /></AdminGuard>
+        <AdminGuard permission="calendar.view"><AdminCalendarPage /></AdminGuard>
       </Route>
       <Route path="/admin/stats">
-        <AdminGuard><AdminStatsPage /></AdminGuard>
+        <AdminGuard permission="stats.view"><AdminStatsPage /></AdminGuard>
       </Route>
       <Route path="/admin/abandoned-carts">
-        <AdminGuard><AdminAbandonedCartsPage /></AdminGuard>
+        <AdminGuard permission="abandoned_carts.manage"><AdminAbandonedCartsPage /></AdminGuard>
       </Route>
       <Route path="/admin/customer-photos">
-        <AdminGuard><AdminCustomerPhotosPage /></AdminGuard>
+        <AdminGuard permission="customer_photos.manage"><AdminCustomerPhotosPage /></AdminGuard>
       </Route>
       <Route path="/admin">
-        <AdminGuard><DashboardPage /></AdminGuard>
+        <AdminGuard permission="dashboard.view"><DashboardPage /></AdminGuard>
       </Route>
     </Switch>
   );

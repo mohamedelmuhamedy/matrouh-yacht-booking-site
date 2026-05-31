@@ -1,12 +1,21 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { apiFetch } from "../lib/api";
+import { hasPermission as checkPermission, type AdminPermission } from "./permissions";
 
-interface AdminUser { username: string; displayName: string; }
+interface AdminUser {
+  username: string;
+  displayName: string;
+  email?: string;
+  role?: string;
+  isSuperAdmin?: boolean;
+  permissions: string[];
+}
 interface AdminContextType {
   user: AdminUser | null;
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  hasPermission: (permission?: AdminPermission) => boolean;
   isLoading: boolean;
 }
 
@@ -37,7 +46,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         .then(data => {
           if (data?.username) {
             setToken(saved);
-            setUser({ username: data.username, displayName: data.displayName || data.username });
+            setUser({
+              username: data.username,
+              displayName: data.displayName || data.username,
+              email: data.email || "",
+              role: data.role || "admin",
+              isSuperAdmin: !!data.isSuperAdmin,
+              permissions: Array.isArray(data.permissions) ? data.permissions : [],
+            });
           } else {
             localStorage.removeItem("admin_token");
           }
@@ -61,14 +77,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
     const data = await r.json();
     setToken(data.token);
-    setUser({ username: data.username, displayName: data.displayName || data.username });
+    setUser({
+      username: data.username,
+      displayName: data.displayName || data.username,
+      email: data.email || "",
+      role: data.role || "admin",
+      isSuperAdmin: !!data.isSuperAdmin,
+      permissions: Array.isArray(data.permissions) ? data.permissions : [],
+    });
     localStorage.setItem("admin_token", data.token);
   };
 
   const logout = () => { doLogout(); };
+  const hasPermission = useCallback((permission?: AdminPermission) => checkPermission(user, permission), [user]);
 
   return (
-    <AdminContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AdminContext.Provider value={{ user, token, login, logout, hasPermission, isLoading }}>
       {children}
     </AdminContext.Provider>
   );

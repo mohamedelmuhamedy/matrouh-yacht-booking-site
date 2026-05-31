@@ -6,6 +6,7 @@ import { adminUsers } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { getJwtSecret } from "../middleware/auth";
 import { authMiddleware } from "../middleware/auth";
+import { getAdminAccess } from "../lib/adminPermissions";
 
 const router = Router();
 
@@ -39,10 +40,16 @@ router.post("/admin/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    const access = await getAdminAccess(adminUser.id);
+
     return res.json({
       token,
       username: adminUser.username,
       displayName: adminUser.displayName || adminUser.username,
+      email: adminUser.email,
+      role: adminUser.role,
+      isSuperAdmin: access?.isSuperAdmin ?? adminUser.role === "super",
+      permissions: access?.permissions ?? [],
     });
   } catch (err: any) {
     console.error("Login error:", err);
@@ -58,10 +65,14 @@ router.get("/admin/me", authMiddleware, async (req, res) => {
     if (!adminUser || !adminUser.isActive) {
       return res.status(401).json({ error: "Unauthorized" });
     }
+    const access = await getAdminAccess(adminUser.id);
     return res.json({
       username: adminUser.username,
       displayName: adminUser.displayName || adminUser.username,
       email: adminUser.email,
+      role: adminUser.role,
+      isSuperAdmin: access?.isSuperAdmin ?? false,
+      permissions: access?.permissions ?? [],
     });
   } catch (err: any) {
     return res.status(500).json({ error: "Server error" });

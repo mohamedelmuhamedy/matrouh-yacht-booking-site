@@ -8,6 +8,7 @@ import {
 } from "../lib/objectStorage";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
+import { requirePermission } from "../lib/adminPermissions";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -47,7 +48,7 @@ function copyProxyHeaders(source: globalThis.Response, res: Response): void {
   }
 }
 
-router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), async (req: Request, res: Response) => {
+router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (req: Request, res: Response) => {
   const { name, size, contentType } = req.body as {
     name?: string;
     size?: number;

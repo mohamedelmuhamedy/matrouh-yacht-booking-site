@@ -23,6 +23,7 @@ import {
   Sparkles,
   Star,
   Tags,
+  Ticket,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +31,7 @@ import { useLocation } from "wouter";
 import { useAdmin, adminFetch } from "./AdminContext";
 import { apiUrl } from "../lib/api";
 import ThemeSwitch from "../components/ThemeSwitch";
+import type { AdminPermission } from "./permissions";
 import "./admin-mobile.css";
 
 function useAdminBrandName() {
@@ -50,32 +52,33 @@ function useAdminBrandName() {
   return brand;
 }
 
-type NavItem = { path: string; icon: string; label: string; badge?: "bookings" | "testimonials" };
+type NavItem = { path: string; icon: string; label: string; permission: AdminPermission; badge?: "bookings" | "testimonials" };
 const NAV: NavItem[] = [
-  { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم" },
-  { path: "/admin/stats",        icon: "📈", label: "الإحصائيات" },
-  { path: "/admin/calendar",     icon: "🗓️", label: "تقويم الحجوزات" },
-  { path: "/admin/packages",     icon: "🏖️", label: "الباقات" },
-  { path: "/admin/categories",   icon: "🏷️", label: "الفئات" },
-  { path: "/admin/services",     icon: "🎯", label: "الخدمات" },
-  { path: "/admin/why-us",       icon: "✨", label: "مميزاتنا" },
-  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", badge: "bookings" },
-  { path: "/admin/capacity",     icon: "🪑", label: "السعة" },
-  { path: "/admin/waitlist",     icon: "📋", label: "قائمة الانتظار" },
-  { path: "/admin/abandoned-carts", icon: "🛒", label: "العربات المتروكة" },
-  { path: "/admin/customer-photos", icon: "📸", label: "صور العملاء" },
-  { path: "/admin/scanner",      icon: "📷", label: "ماسح التذاكر" },
-  { path: "/admin/promo-codes",  icon: "🎟️", label: "أكواد الخصم" },
-  { path: "/admin/rewards",      icon: "🎁", label: "المكافآت" },
-  { path: "/admin/gallery",      icon: "🖼️", label: "المعرض" },
-  { path: "/admin/reviews",      icon: "🌟", label: "تقييمات الرحلات" },
-  { path: "/admin/testimonials", icon: "⭐", label: "آراء العملاء", badge: "testimonials" },
-  { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو" },
-  { path: "/admin/share-card",   icon: "🪪", label: "بطاقة المشاركة" },
-  { path: "/admin/push",         icon: "🔔", label: "الإشعارات" },
-  { path: "/admin/users",        icon: "👥", label: "المستخدمون" },
-  { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات" },
-  { path: "/admin/audit",        icon: "📜", label: "سجل التدقيق" },
+  { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم", permission: "dashboard.view" },
+  { path: "/admin/stats",        icon: "📈", label: "الإحصائيات", permission: "stats.view" },
+  { path: "/admin/calendar",     icon: "🗓️", label: "تقويم الحجوزات", permission: "calendar.view" },
+  { path: "/admin/packages",     icon: "🏖️", label: "الباقات", permission: "trips.manage" },
+  { path: "/admin/categories",   icon: "🏷️", label: "الفئات", permission: "categories.manage" },
+  { path: "/admin/services",     icon: "🎯", label: "الخدمات", permission: "services.manage" },
+  { path: "/admin/why-us",       icon: "✨", label: "مميزاتنا", permission: "why_us.manage" },
+  { path: "/admin/bookings",     icon: "📅", label: "الحجوزات", permission: "bookings.view", badge: "bookings" },
+  { path: "/admin/manual-tickets", icon: "🎫", label: "تذاكر يدوية", permission: "manual_tickets.view" },
+  { path: "/admin/capacity",     icon: "🪑", label: "السعة", permission: "capacity.manage" },
+  { path: "/admin/waitlist",     icon: "📋", label: "قائمة الانتظار", permission: "waiting_list.manage" },
+  { path: "/admin/abandoned-carts", icon: "🛒", label: "العربات المتروكة", permission: "abandoned_carts.manage" },
+  { path: "/admin/customer-photos", icon: "📸", label: "صور العملاء", permission: "customer_photos.manage" },
+  { path: "/admin/scanner",      icon: "📷", label: "ماسح التذاكر", permission: "scanner.use" },
+  { path: "/admin/promo-codes",  icon: "🎟️", label: "أكواد الخصم", permission: "promo_codes.manage" },
+  { path: "/admin/rewards",      icon: "🎁", label: "المكافآت", permission: "rewards.manage" },
+  { path: "/admin/gallery",      icon: "🖼️", label: "المعرض", permission: "gallery.manage" },
+  { path: "/admin/reviews",      icon: "🌟", label: "تقييمات الرحلات", permission: "reviews.manage" },
+  { path: "/admin/testimonials", icon: "⭐", label: "آراء العملاء", permission: "testimonials.manage", badge: "testimonials" },
+  { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو", permission: "hero_slides.manage" },
+  { path: "/admin/share-card",   icon: "🪪", label: "بطاقة المشاركة", permission: "share_card.manage" },
+  { path: "/admin/push",         icon: "🔔", label: "الإشعارات", permission: "push.manage" },
+  { path: "/admin/users",        icon: "👥", label: "المستخدمون", permission: "users.manage" },
+  { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات", permission: "settings.manage" },
+  { path: "/admin/audit",        icon: "📜", label: "سجل التدقيق", permission: "audit.view" },
 ];
 const BOTTOM_NAV = NAV.filter(n =>
   n.path !== "/admin/testimonials" &&
@@ -93,6 +96,7 @@ const NAV_META: Record<string, { Icon: LucideIcon; tone: string }> = {
   "/admin/services": { Icon: Compass, tone: "#14B8A6" },
   "/admin/why-us": { Icon: Sparkles, tone: "#A855F7" },
   "/admin/bookings": { Icon: ClipboardList, tone: "#00AAFF" },
+  "/admin/manual-tickets": { Icon: Ticket, tone: "#22C55E" },
   "/admin/capacity": { Icon: Armchair, tone: "#F97316" },
   "/admin/waitlist": { Icon: ListChecks, tone: "#84CC16" },
   "/admin/abandoned-carts": { Icon: ShoppingCart, tone: "#FB7185" },
@@ -174,7 +178,7 @@ function playBookingBeep() {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const brandName = useAdminBrandName();
-  const { user, logout } = useAdmin();
+  const { user, logout, hasPermission } = useAdmin();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -182,6 +186,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
   const badgeFor = (b?: "bookings" | "testimonials") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : 0;
+  const visibleNav = NAV.filter(item => hasPermission(item.permission));
+  const bottomNav = BOTTOM_NAV.filter(item => hasPermission(item.permission));
   const seenIds = useRef<Set<number>>(new Set());
   const initialized = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -193,6 +199,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchCount = () => {
+    if (!hasPermission("bookings.view")) {
+      setNewCount(0);
+      return;
+    }
     adminFetch("/admin/bookings/new-count")
       .then(r => r.ok ? r.json() : { count: 0, ids: [] })
       .then(d => {
@@ -218,6 +228,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   };
 
   const fetchPendingTestimonials = () => {
+    if (!hasPermission("testimonials.manage")) {
+      setPendingTestimonials(0);
+      return;
+    }
     adminFetch("/admin/testimonials/pending-count")
       .then(r => r.ok ? r.json() : { count: 0 })
       .then(d => setPendingTestimonials(d.count ?? 0))
@@ -310,7 +324,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
               {/* Nav items */}
               <nav style={{ flex: 1, minHeight: 0, padding: "0.75rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
-                {NAV.map(item => {
+                {visibleNav.map(item => {
                   const active = location.startsWith(item.path);
                   const count = badgeFor(item.badge);
                   const showBadge = count > 0;
@@ -353,7 +367,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         {/* Bottom nav bar (horizontally scrollable when many items) */}
         <nav style={{ position: "fixed", bottom: 0, right: 0, left: 0, zIndex: 200, background: "linear-gradient(0deg,#06111f 0%,#0b2c42 100%)", borderTop: "1px solid rgba(201,168,76,0.24)", display: "flex", alignItems: "stretch", height: 64, boxShadow: "0 -4px 20px rgba(0,0,0,0.3)", overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
-          {BOTTOM_NAV.map(item => {
+          {bottomNav.map(item => {
             const active = location.startsWith(item.path);
             const count = badgeFor(item.badge);
             const showBadge = count > 0;
@@ -400,7 +414,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
 
         <nav style={{ flex: 1, minHeight: 0, padding: "0.75rem 0", overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
-          {NAV.map(item => {
+          {visibleNav.map(item => {
             const active = location.startsWith(item.path);
             const count = badgeFor(item.badge);
             const showBadge = count > 0;
@@ -442,7 +456,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main style={{ flex: 1, marginRight: drawerOpen ? 224 : 68, transition: "margin-right 0.3s ease", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         <header style={{ background: "var(--bg-surface-solid)", padding: "1rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 99 }}>
           <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            {NAV.find(n => location.startsWith(n.path))?.label || "Admin"}
+            {visibleNav.find(n => location.startsWith(n.path))?.label || "Admin"}
             {location.startsWith("/admin/bookings") && newCount > 0 && (
               <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 8px", fontFamily: "Cairo, sans-serif" }}>
                 {newCount} جديد

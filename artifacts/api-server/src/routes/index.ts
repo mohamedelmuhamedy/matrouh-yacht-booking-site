@@ -30,14 +30,19 @@ import adminUsersRouter from "./admin-users";
 import adminAbandonedCartsRouter from "./admin-abandoned-carts";
 import customerPhotosRouter from "./customer-photos";
 import aiQuizRouter from "./ai-quiz";
+import adminManualTicketsRouter from "./admin-manual-tickets";
+import { authMiddleware } from "../middleware/auth";
+import { requireAdminApiPermission } from "../lib/adminPermissions";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(adminAuthRouter);
+router.use("/admin", authMiddleware, requireAdminApiPermission);
 router.use(adminPackagesRouter);
 router.use(adminTestimonialsRouter);
 router.use(adminBookingsRouter);
+router.use(adminManualTicketsRouter);
 router.use(adminSettingsRouter);
 router.use(adminRewardsRouter);
 router.use(publicPackagesRouter);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, bookings, siteSettings } from "@workspace/db";
+import { db, bookings, siteSettings, manualTickets } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 import fs from "fs";
@@ -55,6 +55,111 @@ export interface IssuedTicket {
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+interface TicketRecord {
+  kind: "booking" | "manual";
+  id: number;
+  ticketToken: string | null;
+  ticketNumber: string | null;
+  ticketIssuedAt: Date | null;
+  ticketUsedAt: Date | null;
+  ticketUsedBy: string | null;
+  status: string;
+  name: string;
+  phone: string;
+  packageId: number | null;
+  packageName: string;
+  packageNameAr: string;
+  date: string;
+  adults: number;
+  children: number;
+  infants: number;
+  notes: string;
+  currency: string;
+  priceAtBooking: number | null;
+  remainingBalance: string;
+  meetingTime: string;
+  pickupLocation: string;
+  pickupLocationAr: string;
+  supervisorName: string;
+  supervisorPhone: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+function bookingTicketRecord(b: typeof bookings.$inferSelect): TicketRecord {
+  return {
+    kind: "booking",
+    id: b.id,
+    ticketToken: b.ticketToken,
+    ticketNumber: b.ticketNumber,
+    ticketIssuedAt: b.ticketIssuedAt,
+    ticketUsedAt: b.ticketUsedAt,
+    ticketUsedBy: b.ticketUsedBy,
+    status: b.status,
+    name: b.name,
+    phone: b.phone,
+    packageId: b.packageId,
+    packageName: b.packageName,
+    packageNameAr: b.packageNameAr,
+    date: b.date,
+    adults: b.adults,
+    children: b.children,
+    infants: b.infants,
+    notes: b.notes,
+    currency: b.currency,
+    priceAtBooking: b.priceAtBooking,
+    remainingBalance: b.remainingBalance,
+    meetingTime: b.meetingTime,
+    pickupLocation: b.pickupLocation,
+    pickupLocationAr: b.pickupLocationAr,
+    supervisorName: b.supervisorName,
+    supervisorPhone: b.supervisorPhone,
+    createdAt: b.createdAt,
+    updatedAt: b.updatedAt,
+  };
+}
+
+function manualTicketRecord(t: typeof manualTickets.$inferSelect): TicketRecord {
+  return {
+    kind: "manual",
+    id: t.id,
+    ticketToken: t.ticketToken,
+    ticketNumber: t.ticketNumber,
+    ticketIssuedAt: t.ticketIssuedAt,
+    ticketUsedAt: t.ticketUsedAt,
+    ticketUsedBy: t.ticketUsedBy,
+    status: t.status,
+    name: t.name,
+    phone: t.phone,
+    packageId: t.packageId,
+    packageName: t.packageName,
+    packageNameAr: t.packageNameAr,
+    date: t.date,
+    adults: t.passengerCount,
+    children: 0,
+    infants: 0,
+    notes: t.notes,
+    currency: "EGP",
+    priceAtBooking: null,
+    remainingBalance: t.remainingBalance,
+    meetingTime: t.meetingTime,
+    pickupLocation: t.pickupLocation,
+    pickupLocationAr: t.pickupLocationAr,
+    supervisorName: t.supervisorName,
+    supervisorPhone: t.supervisorPhone,
+    createdAt: t.createdAt,
+    updatedAt: t.updatedAt,
+  };
+}
+
+async function findTicketByToken(token: string): Promise<TicketRecord | null> {
+  const [booking] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+  if (booking) return bookingTicketRecord(booking);
+  const [manual] = await db.select().from(manualTickets).where(eq(manualTickets.ticketToken, token));
+  if (manual) return manualTicketRecord(manual);
+  return null;
+}
+
 async function ensureTicketTokenInTx(tx: Tx, bookingId: number): Promise<IssuedTicket | null> {
   const [row] = await tx
     .select({
@@ -101,6 +206,50 @@ export async function ensureTicketToken(
   return db.transaction((tx) => ensureTicketTokenInTx(tx, bookingId));
 }
 
+async function ensureManualTicketTokenInTx(tx: Tx, manualTicketId: number): Promise<IssuedTicket | null> {
+  const [row] = await tx
+    .select({
+      id: manualTickets.id,
+      ticketToken: manualTickets.ticketToken,
+      ticketNumber: manualTickets.ticketNumber,
+      ticketIssuedAt: manualTickets.ticketIssuedAt,
+    })
+    .from(manualTickets)
+    .where(eq(manualTickets.id, manualTicketId))
+    .for("update");
+  if (!row) return null;
+
+  let token = row.ticketToken && row.ticketToken.length >= 16 ? row.ticketToken : null;
+  let ticketNumber = row.ticketNumber && row.ticketNumber.length > 0 ? row.ticketNumber : null;
+  const updates: Record<string, unknown> = {};
+  if (!token) {
+    token = crypto.randomBytes(16).toString("hex");
+    updates.ticketToken = token;
+  }
+  if (!ticketNumber) {
+    ticketNumber = generateTicketNumber(manualTicketId, token);
+    updates.ticketNumber = ticketNumber;
+  }
+  if (!row.ticketIssuedAt && (updates.ticketToken || updates.ticketNumber)) {
+    updates.ticketIssuedAt = new Date();
+  }
+  if (Object.keys(updates).length > 0) {
+    updates.updatedAt = new Date();
+    await tx.update(manualTickets).set(updates).where(eq(manualTickets.id, manualTicketId));
+  }
+
+  const signature = signTicket({ bookingId: manualTicketId, ticketToken: token, ticketNumber });
+  return { token, ticketNumber, signature };
+}
+
+export async function ensureManualTicketToken(
+  manualTicketId: number,
+  txArg?: Tx,
+): Promise<IssuedTicket | null> {
+  if (txArg) return ensureManualTicketTokenInTx(txArg, manualTicketId);
+  return db.transaction((tx) => ensureManualTicketTokenInTx(tx, manualTicketId));
+}
+
 const PUBLIC_SETTING_KEYS = new Set([
   "brand_name", "brand_short_name", "brand_tagline_ar", "brand_tagline_en",
   "logo_url", "phone_number", "whatsapp_number", "instagram_url", "facebook_url",
@@ -116,7 +265,7 @@ router.get("/tickets/verify/:token", async (req, res) => {
     if (!token || token.length < 16) {
       return res.json({ status: "invalid", reason: "bad_token" });
     }
-    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+    const b = await findTicketByToken(token);
     if (!b || !b.ticketNumber) {
       return res.json({ status: "invalid", reason: "not_found" });
     }
@@ -185,7 +334,7 @@ router.get("/tickets/:token.pdf", async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(404).end();
-    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+    const b = await findTicketByToken(token);
     if (!b) return res.status(404).end();
 
     // Removed authorization check: PDF tickets by token are now fully public.
@@ -211,14 +360,19 @@ router.get("/tickets/:token", async (req, res) => {
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(404).json({ error: "Not found" });
-    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+    let b = await findTicketByToken(token);
     if (!b) return res.status(404).json({ error: "Not found" });
 
     const adminAccess = isAdminRequest(req);
     let ticketNumber = b.ticketNumber || "";
     if (!ticketNumber) {
-      const issued = await ensureTicketToken(b.id);
-      if (issued) ticketNumber = issued.ticketNumber;
+      const issued = b.kind === "booking"
+        ? await ensureTicketToken(b.id)
+        : await ensureManualTicketToken(b.id);
+      if (issued) {
+        ticketNumber = issued.ticketNumber;
+        b = { ...b, ticketNumber: issued.ticketNumber, ticketToken: issued.token };
+      }
     }
 
     const sigOk = checkSig({ id: b.id, ticketNumber }, token, req.query.sig);
@@ -321,24 +475,44 @@ router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator")
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
     const result = await db.transaction(async (tx) => {
-      const [row] = await tx
+      const [bookingRow] = await tx
         .select({ id: bookings.id, status: bookings.status, ticketUsedAt: bookings.ticketUsedAt })
         .from(bookings)
         .where(eq(bookings.ticketToken, token))
         .for("update");
-      if (!row) return { error: "not_found" as const };
-      if (row.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
-      if (row.status === "completed") return { error: "completed" as const, status: "completed" };
-      if (row.ticketUsedAt) {
-        return { already: true, ticketUsedAt: row.ticketUsedAt, status: row.status };
+      if (bookingRow) {
+        if (bookingRow.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
+        if (bookingRow.status === "completed") return { error: "completed" as const, status: "completed" };
+        if (bookingRow.ticketUsedAt) {
+          return { already: true, ticketUsedAt: bookingRow.ticketUsedAt, status: bookingRow.status, kind: "booking" as const };
+        }
+        const adminUser = (req as unknown as { admin?: { username?: string } }).admin?.username || "admin";
+        const usedAt = new Date();
+        const nextStatus = bookingRow.status === "confirmed" ? "confirmed" : "client_confirmed";
+        await tx.update(bookings)
+          .set({ status: nextStatus, ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
+          .where(eq(bookings.id, bookingRow.id));
+        return { id: bookingRow.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser, status: nextStatus, kind: "booking" as const };
+      }
+
+      const [manualRow] = await tx
+        .select({ id: manualTickets.id, status: manualTickets.status, ticketUsedAt: manualTickets.ticketUsedAt })
+        .from(manualTickets)
+        .where(eq(manualTickets.ticketToken, token))
+        .for("update");
+      if (!manualRow) return { error: "not_found" as const };
+      if (manualRow.status === "cancelled") return { error: "cancelled" as const, status: "cancelled" };
+      if (manualRow.status === "completed") return { error: "completed" as const, status: "completed" };
+      if (manualRow.ticketUsedAt) {
+        return { already: true, ticketUsedAt: manualRow.ticketUsedAt, status: manualRow.status, kind: "manual" as const };
       }
       const adminUser = (req as unknown as { admin?: { username?: string } }).admin?.username || "admin";
       const usedAt = new Date();
-      const nextStatus = row.status === "confirmed" ? "confirmed" : "client_confirmed";
-      await tx.update(bookings)
+      const nextStatus = manualRow.status === "confirmed" ? "confirmed" : "client_confirmed";
+      await tx.update(manualTickets)
         .set({ status: nextStatus, ticketUsedAt: usedAt, ticketUsedBy: adminUser, updatedAt: usedAt })
-        .where(eq(bookings.id, row.id));
-      return { id: row.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser, status: nextStatus };
+        .where(eq(manualTickets.id, manualRow.id));
+      return { id: manualRow.id, ticketUsedAt: usedAt, ticketUsedBy: adminUser, status: nextStatus, kind: "manual" as const };
     });
 
     if ("error" in result) {
@@ -359,7 +533,7 @@ router.post("/admin/tickets/:token/use", authMiddleware, requireRole("operator")
     }
     await recordAudit(req, {
       action: "ticket.mark_used",
-      entity: "booking",
+      entity: result.kind === "manual" ? "manual_ticket" : "booking",
       entityId: result.id,
     });
     return res.json({
@@ -384,7 +558,7 @@ router.get("/admin/tickets/:token/image.svg", authMiddleware, async (req, res) =
   try {
     const token = String(req.params.token || "").trim();
     if (!token || token.length < 16) return res.status(400).json({ error: "Invalid token" });
-    const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
+    const b = await findTicketByToken(token);
     if (!b) return res.status(404).json({ error: "Not found" });
     const ticketNumber = b.ticketNumber || "";
     const verifyUrl = `${(req.headers["x-forwarded-proto"] as string)?.split(",")[0] || req.protocol}://${(req.headers["x-forwarded-host"] as string) || req.headers.host || ""}/verify/${token}`;

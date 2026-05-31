@@ -53,6 +53,7 @@ const DEFAULTS: Record<string, string> = {
   uniform_home_cards: "false",
   show_footer_map: "false",
   booking_skip_confirmation: "false",
+  convert_manual_tickets_to_bookings: "true",
   font_arabic: DEFAULT_ARABIC_FONT,
   font_en: DEFAULT_ENGLISH_FONT,
   ai_auto_model_selection: "true",
@@ -299,6 +300,7 @@ const SETTING_GROUPS: { title: string; icon: string; keys: FieldDef[]; section: 
       { key: "uniform_home_cards", label: "توحيد حجم البطاقات (خدماتنا و'ليه DR Travel')", type: "boolean", hint: "لما يتفعّل، كل البطاقات في قسم 'خدماتنا' وقسم 'ليه DR Travel' هتبقى بنفس الارتفاع بالظبط مهما كان طول النص جوّاها" },
       { key: "show_footer_map", label: "إظهار خريطة الموقع في الفوتر", type: "boolean", hint: "لما يتفعّل، بتظهر خريطة جوجل صغيرة على شمال الفوتر، والباقي بيتزحزح يمين شوية. الضغط على الخريطة بيفتح المكان على Google Maps. لو معطّل، الفوتر يفضل زي ما هو" },
       { key: "booking_skip_confirmation", label: "تخطي شاشة تأكيد الحجز والتوجيه المباشر للواتساب (Skip Booking Confirmation → Direct to WhatsApp)", type: "boolean", hint: "لما يتفعّل، بعد ما العميل يبعت طلب الحجز بينتقل فوراً لمحادثة الواتساب برسالة جاهزة فيها كل تفاصيل الحجز (بدون شاشة 'تم استلام طلبك'). الحجز بيتسجّل عند الإدارة في الحالتين. لو معطّل، شاشة التأكيد الحالية بتفضل زي ما هي. — When ON, after a successful booking the customer is redirected straight to WhatsApp with a prefilled message; when OFF (default), the current success screen is preserved. Booking is saved server-side in both modes." },
+      { key: "convert_manual_tickets_to_bookings", label: "تحويل التذاكر اليدوية إلى حجوزات", type: "boolean", hint: "لما يتفعّل، أي تذكرة يدوية جديدة تتحول لحجز عادي وتظهر في الحجوزات والإحصائيات. لو معطّل، تحفظ التذاكر اليدوية في جدول مستقل وتظهر فقط داخل قسم التذاكر اليدوية." },
     ],
   },
 ];
