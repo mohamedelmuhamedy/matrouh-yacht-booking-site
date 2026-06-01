@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
-const STATIC_PATHS = ["/", "/trips", "/gallery", "/rewards", "/share"];
+const STATIC_PATHS = ["/", "/reviews", "/card", "/share", "/trips", "/gallery", "/rewards", "/quiz"];
 
 function escapeXml(s: string): string {
   return s
@@ -23,7 +23,7 @@ router.get("/sitemap.xml", async (req, res) => {
     const today = new Date().toISOString().slice(0, 10);
 
     const [pkgRows, svcRows] = await Promise.all([
-      db.select({ id: packages.id, updatedAt: packages.updatedAt }).from(packages).where(eq(packages.active, true)),
+      db.select({ slug: packages.slug, updatedAt: packages.updatedAt }).from(packages).where(eq(packages.active, true)),
       db.select({ slug: services.slug, updatedAt: services.updatedAt }).from(services).where(eq(services.isActive, true)),
     ]);
 
@@ -33,7 +33,7 @@ router.get("/sitemap.xml", async (req, res) => {
     }
     for (const r of pkgRows) {
       urls.push({
-        loc: `${origin}/package/${r.id}`,
+        loc: `${origin}/packages/${encodeURIComponent(r.slug)}`,
         lastmod: (r.updatedAt instanceof Date ? r.updatedAt : new Date()).toISOString().slice(0, 10),
         priority: 0.8,
       });
@@ -85,10 +85,9 @@ router.get("/robots.txt", (req, res) => {
   return res.send(
     [
       "User-agent: *",
+      "Allow: /",
       "Disallow: /admin",
-      "Disallow: /ticket/",
-      "Disallow: /verify/",
-      "Disallow: /api/",
+      "Disallow: /api",
       "",
       `Sitemap: ${origin}/sitemap.xml`,
       "",

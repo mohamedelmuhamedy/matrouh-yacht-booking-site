@@ -12,6 +12,7 @@ export const reviews = pgTable(
     customerName: text("customer_name").notNull(),
     rating: integer("rating").notNull(),
     reviewText: text("review_text").notNull(),
+    avatarUrl: text("avatar_url"),
     photos: text("photos").array().notNull().default(sql`ARRAY[]::text[]`),
     status: reviewStatus("status").notNull().default("pending"),
     createdAt: timestamp("created_at").notNull().defaultNow(),

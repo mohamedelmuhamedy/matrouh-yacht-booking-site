@@ -8,13 +8,14 @@ export interface SeoHeadProps {
   lang?: "ar" | "en";
   type?: "website" | "article" | "product";
   noindex?: boolean;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 function origin(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
-  return "";
+  return "https://www.drtravel-matrouh.com";
 }
 
 export default function SeoHead({
@@ -25,6 +26,7 @@ export default function SeoHead({
   lang = "ar",
   type = "website",
   noindex = false,
+  structuredData,
 }: SeoHeadProps) {
   const base = origin();
   const cleanPath = path
@@ -33,6 +35,9 @@ export default function SeoHead({
   const canonical = `${base}${cleanPath}`;
   const arHref = `${base}${cleanPath}${cleanPath.includes("?") ? "&" : "?"}lang=ar`;
   const enHref = `${base}${cleanPath}${cleanPath.includes("?") ? "&" : "?"}lang=en`;
+  const shareImage = image
+    ? (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(image) ? image : `${base}${image.startsWith("/") ? image : `/${image}`}`)
+    : `${base}/icon-512.png`;
 
   return (
     <Helmet>
@@ -49,11 +54,16 @@ export default function SeoHead({
       {description ? <meta property="og:description" content={description} /> : null}
       <meta property="og:url" content={canonical} />
       <meta property="og:locale" content={lang === "ar" ? "ar_EG" : "en_US"} />
-      {image ? <meta property="og:image" content={image} /> : null}
-      <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+      <meta property="og:image" content={shareImage} />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       {description ? <meta name="twitter:description" content={description} /> : null}
-      {image ? <meta name="twitter:image" content={image} /> : null}
+      <meta name="twitter:image" content={shareImage} />
+      {structuredData ? (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      ) : null}
     </Helmet>
   );
 }

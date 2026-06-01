@@ -97,11 +97,13 @@ const BOOKING_COLUMN_MIGRATIONS = [
      customer_name text NOT NULL,
      rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
      review_text text NOT NULL,
+     avatar_url text,
      photos text[] NOT NULL DEFAULT ARRAY[]::text[],
      status review_status NOT NULL DEFAULT 'pending',
      created_at timestamp NOT NULL DEFAULT now(),
      updated_at timestamp NOT NULL DEFAULT now()
    )`,
+  `ALTER TABLE reviews ADD COLUMN IF NOT EXISTS avatar_url text`,
   `CREATE INDEX IF NOT EXISTS reviews_status_idx ON reviews (status)`,
   `CREATE INDEX IF NOT EXISTS reviews_created_at_idx ON reviews (created_at)`,
 ];

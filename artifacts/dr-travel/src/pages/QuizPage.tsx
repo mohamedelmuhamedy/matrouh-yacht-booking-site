@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { apiUrl } from "../lib/api";
+import SeoHead from "../components/SeoHead";
 
 interface QuizMatch {
   id: number; slug: string; titleAr: string; titleEn: string;
@@ -74,6 +75,12 @@ export default function QuizPage() {
       minHeight: "100vh", background: "linear-gradient(135deg, #0D1B2A, #1B263B)",
       fontFamily: "Cairo, sans-serif", padding: "2rem 1rem",
     }}>
+      <SeoHead
+        title="اختبار اختيار الرحلة | DR Travel"
+        description="جاوب على أسئلة بسيطة واختر أفضل رحلة يخت أو سفاري مناسبة لك في مرسى مطروح مع DR Travel."
+        path="/quiz"
+        lang="ar"
+      />
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <button onClick={() => navigate("/")} style={{
           background: "transparent", color: "white", border: "1px solid rgba(255,255,255,.3)",

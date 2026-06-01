@@ -51,7 +51,7 @@ router.get("/testimonials", async (_req, res) => {
       textEn: row.reviewText,
       rating: row.rating,
       packageName: "",
-      avatar: "",
+      avatar: row.avatarUrl || "",
       imageUrl: row.photos?.[0] || "",
       status: row.status,
       source: "reviews_page",

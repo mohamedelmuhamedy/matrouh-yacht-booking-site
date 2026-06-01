@@ -20,6 +20,7 @@ const REVIEW_IMAGE_TYPES: Record<string, string> = {
 };
 const MAX_REVIEW_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_REVIEW_PHOTOS = 5;
+const REVIEW_UPLOAD_FOLDERS = new Set(["reviews", "review-avatars"]);
 const REVIEW_RATE_WINDOW_MS = 60 * 60 * 1000;
 const REVIEW_RATE_MAX = 8;
 const reviewSubmissions = new Map<string, number[]>();
@@ -75,12 +76,25 @@ function sanitizePhotos(input: unknown): string[] {
   return out;
 }
 
+function sanitizeOptionalImageUrl(input: unknown): string | null {
+  const url = clean(input, 700);
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 function publicReview(row: typeof reviews.$inferSelect) {
   return {
     id: row.id,
     customerName: row.customerName,
     rating: row.rating,
     reviewText: row.reviewText,
+    avatarUrl: row.avatarUrl || "",
     photos: row.photos || [],
     status: row.status,
     createdAt: row.createdAt,
@@ -115,7 +129,9 @@ router.post("/reviews/upload", async (req, res) => {
   }
 
   try {
-    const objectPath = objectStorageService.createObjectPath(`review${REVIEW_IMAGE_TYPES[contentType]}`, "reviews");
+    const requestedFolder = clean(req.query.folder, 64);
+    const folder = REVIEW_UPLOAD_FOLDERS.has(requestedFolder) ? requestedFolder : "reviews";
+    const objectPath = objectStorageService.createObjectPath(`review${REVIEW_IMAGE_TYPES[contentType]}`, folder);
     await objectStorageService.uploadRequestStream({
       objectPath,
       contentType,
@@ -145,6 +161,7 @@ router.post("/reviews", async (req, res) => {
     const reviewText = clean(req.body?.reviewText, 1500);
     const rating = clampInt(req.body?.rating, 1, 5, 0);
     const photos = sanitizePhotos(req.body?.photos);
+    const avatarUrl = sanitizeOptionalImageUrl(req.body?.avatarUrl);
 
     if (!customerName) return res.status(400).json({ error: "اسم العميل مطلوب" });
     if (!rating) return res.status(400).json({ error: "التقييم مطلوب" });
@@ -155,6 +172,7 @@ router.post("/reviews", async (req, res) => {
       customerName,
       rating,
       reviewText,
+      avatarUrl,
       photos,
       status: "pending",
     }).returning();
@@ -302,6 +320,7 @@ router.post("/reviews/submit", async (req, res) => {
     const comment = clean(req.body?.comment, 1500);
     const customerName = clean(req.body?.customerName, 120) || clean(b.name, 120);
     const photoUrls = sanitizePhotos(req.body?.photoUrls);
+    const avatarUrl = sanitizeOptionalImageUrl(req.body?.avatarUrl);
 
     const [legacy] = await db.insert(bookingReviews).values({
       bookingId: b.id,
@@ -317,6 +336,7 @@ router.post("/reviews/submit", async (req, res) => {
         customerName,
         rating,
         reviewText: comment,
+        avatarUrl,
         photos: photoUrls,
         status: "pending",
       });

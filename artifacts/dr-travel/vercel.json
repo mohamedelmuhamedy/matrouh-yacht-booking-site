@@ -6,6 +6,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/googleaebab8491e2a6175.html", "destination": "/googleaebab8491e2a6175.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

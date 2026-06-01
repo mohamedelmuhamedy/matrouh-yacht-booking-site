@@ -2071,6 +2071,43 @@ function HomePage() {
     tryScroll();
   }, []);
   const ar = t.lang === "ar";
+  const siteUrl = "https://www.drtravel-matrouh.com";
+  const logoUrl = settings.logo_url || `${siteUrl}/icon-512.png`;
+  const phone = settings.whatsapp_number || "201205756024";
+  const sameAs = [settings.instagram_url, settings.tiktok_url].filter(Boolean);
+  const homeStructuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: settings.brand_name || "DR Travel",
+      url: siteUrl,
+      logo: logoUrl,
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: `+${phone}`,
+        contactType: "customer service",
+        areaServed: "EG",
+        availableLanguage: ["Arabic", "English"],
+      },
+      sameAs,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: settings.brand_name || "DR Travel",
+      image: logoUrl,
+      url: siteUrl,
+      telephone: `+${phone}`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Marsa Matrouh",
+        addressCountry: "EG",
+        streetAddress: settings.location_en || settings.location_ar || "Marsa Matrouh",
+      },
+      openingHours: "Mo-Su 09:00-23:00",
+      priceRange: "$$",
+    },
+  ];
   return (
     <div dir={t.dir} lang={t.lang} style={{ fontFamily: "var(--app-font-sans)" }}>
       <SeoHead
@@ -2079,6 +2116,7 @@ function HomePage() {
         path="/"
         lang={ar ? "ar" : "en"}
         image={settings.logo_url || undefined}
+        structuredData={homeStructuredData}
       />
       <ScrollProgress />
       <Navbar />

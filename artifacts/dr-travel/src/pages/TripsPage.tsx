@@ -89,10 +89,20 @@ export default function TripsPage() {
   }, [allPackages, activeCategory, search, sortBy]);
 
   const curr = currency as CurrencyCode;
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: packages.map((pkg, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: ar ? pkg.titleAr : pkg.titleEn,
+      url: `https://www.drtravel-matrouh.com/packages/${pkg.slug}`,
+    })),
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "Cairo, sans-serif", direction: ar ? "rtl" : "ltr" }}>
-      <SeoHead title={seoTitle} description={seoDesc} lang={ar ? "ar" : "en"} path="/trips" />
+      <SeoHead title={seoTitle} description={seoDesc} lang={ar ? "ar" : "en"} path="/trips" structuredData={itemListSchema} />
 
       {/* Header */}
       <div style={{ background: "linear-gradient(180deg, var(--bg-page) 0%, var(--bg-page-2) 100%)", borderBottom: "1px solid var(--border)", paddingTop: isMobile ? "4.5rem" : "5.5rem", paddingBottom: "2rem", paddingInline: isMobile ? "1rem" : "2rem" }}>

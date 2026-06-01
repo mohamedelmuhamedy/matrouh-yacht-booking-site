@@ -48,6 +48,10 @@ export default function SharePage() {
   }, [ar, settings]);
 
   useEffect(() => {
+    document.title = "DR Travel | مرسى مطروح - يخت سياحة وسفاري";
+  }, []);
+
+  useEffect(() => {
     // Defer scan recording to next tick so it never blocks paint.
     const handle = window.setTimeout(() => {
       recordScan(readSourceFromUrl());
@@ -59,14 +63,29 @@ export default function SharePage() {
 
   const cardName = (ar ? settings.card_display_name_ar : settings.card_display_name_en) || settings.brand_name || "DR Travel";
   const cardTagline = (ar ? settings.card_tagline_ar : settings.card_tagline_en) || (ar ? settings.brand_tagline_ar : settings.brand_tagline_en) || "";
+  const siteUrl = "https://www.drtravel-matrouh.com";
+  const logoUrl = settings.logo_url || `${siteUrl}/icon-512.png`;
+  const phone = settings.whatsapp_number || "201205756024";
+  const cardStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: cardName,
+    url: `${siteUrl}/card`,
+    logo: logoUrl,
+    image: logoUrl,
+    telephone: `+${phone}`,
+    description: "DR Travel في مرسى مطروح: رحلات يخت سياحة وسفاري وتجارب بحرية مناسبة للحجز السريع عبر QR.",
+    sameAs: [settings.instagram_url, settings.tiktok_url].filter(Boolean),
+  };
   return (
     <>
       <SeoHead
-        title={cardTagline ? `${cardName} — ${cardTagline}` : cardName}
-        description={cardTagline || (ar ? "بطاقة المشاركة الرسمية" : "Official share card")}
+        title="DR Travel | مرسى مطروح - يخت سياحة وسفاري"
+        description={cardTagline || "بطاقة DR Travel الرقمية للحجز السريع في مرسى مطروح: رحلات يخت سياحة وسفاري وتجارب بحرية مع روابط التواصل والموقع."}
         path="/card"
         lang={ar ? "ar" : "en"}
-        image={settings.logo_url || undefined}
+        image={logoUrl}
+        structuredData={cardStructuredData}
       />
       <ShareCard settings={settings} />
     </>
