@@ -85,6 +85,25 @@ const BOOKING_COLUMN_MIGRATIONS = [
   `INSERT INTO site_settings (key, value, updated_at)
    VALUES ('convert_manual_tickets_to_bookings', 'true', now())
    ON CONFLICT (key) DO NOTHING`,
+  `CREATE EXTENSION IF NOT EXISTS pgcrypto`,
+  `DO $$
+   BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'review_status') THEN
+       CREATE TYPE review_status AS ENUM ('pending', 'approved', 'rejected');
+     END IF;
+   END $$`,
+  `CREATE TABLE IF NOT EXISTS reviews (
+     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     customer_name text NOT NULL,
+     rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+     review_text text NOT NULL,
+     photos text[] NOT NULL DEFAULT ARRAY[]::text[],
+     status review_status NOT NULL DEFAULT 'pending',
+     created_at timestamp NOT NULL DEFAULT now(),
+     updated_at timestamp NOT NULL DEFAULT now()
+   )`,
+  `CREATE INDEX IF NOT EXISTS reviews_status_idx ON reviews (status)`,
+  `CREATE INDEX IF NOT EXISTS reviews_created_at_idx ON reviews (created_at)`,
 ];
 
 export async function ensureBookingSchema(pool: QueryablePool): Promise<void> {

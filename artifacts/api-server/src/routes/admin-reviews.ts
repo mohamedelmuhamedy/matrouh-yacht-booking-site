@@ -1,10 +1,28 @@
 import { Router } from "express";
-import { db, bookingReviews, bookings, testimonials } from "@workspace/db";
-import { and, desc, eq } from "drizzle-orm";
+import { db, bookingReviews, bookings, reviews } from "@workspace/db";
+import { desc, eq, sql } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
+import {
+  ObjectNotFoundError,
+  ObjectStorageService,
+  StorageUploadError,
+} from "../lib/objectStorage";
 
 const router = Router();
+const objectStorageService = new ObjectStorageService();
+
+const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
+const REVIEW_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+const MAX_REVIEW_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_REVIEW_PHOTOS = 5;
+const REVIEW_RATE_WINDOW_MS = 60 * 60 * 1000;
+const REVIEW_RATE_MAX = 8;
+const reviewSubmissions = new Map<string, number[]>();
 
 function clampInt(v: unknown, min: number, max: number, fallback: number): number {
   const n = Number.parseInt(String(v ?? ""), 10);
@@ -12,82 +30,250 @@ function clampInt(v: unknown, min: number, max: number, fallback: number): numbe
   return Math.max(min, Math.min(max, n));
 }
 
-router.get("/admin/reviews", authMiddleware, async (_req, res) => {
+function clean(value: unknown, max: number): string {
+  return String(value ?? "").replace(/\u0000/g, "").trim().slice(0, max);
+}
+
+function ipKey(req: any): string {
+  return (
+    req.ip ||
+    req.socket?.remoteAddress ||
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+function checkPublicRateLimit(req: any): boolean {
+  const key = ipKey(req);
+  const now = Date.now();
+  const arr = (reviewSubmissions.get(key) || []).filter((t) => now - t < REVIEW_RATE_WINDOW_MS);
+  if (arr.length >= REVIEW_RATE_MAX) return false;
+  arr.push(now);
+  reviewSubmissions.set(key, arr);
+  if (reviewSubmissions.size > 5000) {
+    const first = reviewSubmissions.keys().next().value;
+    if (first) reviewSubmissions.delete(first);
+  }
+  return true;
+}
+
+function sanitizePhotos(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  const out: string[] = [];
+  for (const raw of input) {
+    const url = clean(raw, 700);
+    if (!url) continue;
+    try {
+      const u = new URL(url);
+      if (u.protocol !== "http:" && u.protocol !== "https:") continue;
+    } catch {
+      continue;
+    }
+    out.push(url);
+    if (out.length >= MAX_REVIEW_PHOTOS) break;
+  }
+  return out;
+}
+
+function publicReview(row: typeof reviews.$inferSelect) {
+  return {
+    id: row.id,
+    customerName: row.customerName,
+    rating: row.rating,
+    reviewText: row.reviewText,
+    photos: row.photos || [],
+    status: row.status,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+// Public: upload one review photo using the same ObjectStorageService flow as the existing site uploads.
+router.post("/reviews/upload", async (req, res) => {
+  const contentType =
+    (req.headers["x-content-type"] as string) ||
+    (req.headers["content-type"] as string) ||
+    "";
+  if (!REVIEW_IMAGE_TYPES[contentType]) {
+    return res.status(400).json({ error: "صور JPG / PNG / WEBP فقط" });
+  }
+  const contentLengthHeader = req.headers["content-length"];
+  const contentLength = contentLengthHeader ? Number(contentLengthHeader) : undefined;
+  if (
+    typeof contentLength === "number" &&
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_REVIEW_IMAGE_BYTES
+  ) {
+    return res.status(413).json({ error: "حجم الصورة كبير جداً. الحد الأقصى: 8 MB" });
+  }
+  if (!checkPublicRateLimit(req)) {
+    return res.status(429).json({ error: "تم تجاوز الحد. حاول مرة أخرى لاحقاً." });
+  }
+
   try {
-    const rows = await db.select().from(bookingReviews).orderBy(desc(bookingReviews.createdAt));
-    return res.json(rows);
+    const objectPath = objectStorageService.createObjectPath(`review${REVIEW_IMAGE_TYPES[contentType]}`, "reviews");
+    await objectStorageService.uploadRequestStream({
+      objectPath,
+      contentType,
+      stream: req,
+      contentLength,
+      maxBytes: MAX_REVIEW_IMAGE_BYTES,
+    });
+    return res.json({
+      url: objectStorageService.getPublicUrl(objectPath),
+      objectPath,
+      proxyUrl: objectStorageService.toApiObjectUrl(objectPath),
+    });
+  } catch (error) {
+    console.error("[reviews] public upload:", error);
+    if (error instanceof StorageUploadError) return res.status(error.statusCode).json({ error: error.message });
+    if (error instanceof ObjectNotFoundError) return res.status(404).json({ error: "الملف غير موجود" });
+    return res.status(500).json({ error: "فشل رفع الصورة" });
+  }
+});
+
+router.post("/reviews", async (req, res) => {
+  if (!checkPublicRateLimit(req)) {
+    return res.status(429).json({ error: "تم تجاوز الحد. حاول مرة أخرى لاحقاً." });
+  }
+  try {
+    const customerName = clean(req.body?.customerName, 120);
+    const reviewText = clean(req.body?.reviewText, 1500);
+    const rating = clampInt(req.body?.rating, 1, 5, 0);
+    const photos = sanitizePhotos(req.body?.photos);
+
+    if (!customerName) return res.status(400).json({ error: "اسم العميل مطلوب" });
+    if (!rating) return res.status(400).json({ error: "التقييم مطلوب" });
+    if (!reviewText) return res.status(400).json({ error: "نص الرأي مطلوب" });
+    if (reviewText.length < 8) return res.status(400).json({ error: "نص الرأي قصير جداً" });
+
+    const [row] = await db.insert(reviews).values({
+      customerName,
+      rating,
+      reviewText,
+      photos,
+      status: "pending",
+    }).returning();
+
+    return res.status(201).json({ success: true, review: publicReview(row) });
   } catch (err) {
-    console.error("[reviews] list:", err);
+    console.error("[reviews] public submit:", err);
+    return res.status(500).json({ error: "فشل إرسال الرأي" });
+  }
+});
+
+router.get("/reviews/approved", async (_req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.status, "approved"))
+      .orderBy(desc(reviews.createdAt))
+      .limit(300);
+    return res.json(rows.map(publicReview));
+  } catch (err) {
+    console.error("[reviews] approved:", err);
     return res.status(500).json({ error: "Failed to list reviews" });
   }
 });
 
-router.put("/admin/reviews/:id", authMiddleware, requireRole("operator"), async (req, res) => {
+router.get("/admin/reviews/pending-count", authMiddleware, async (_req, res) => {
   try {
-    const id = Number.parseInt(String(req.params.id), 10);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
-    const b = req.body ?? {};
-    const patch: Record<string, unknown> = { updatedAt: new Date() };
-    if (typeof b.status === "string" && ["pending", "approved", "rejected"].includes(b.status)) patch.status = b.status;
-    if (typeof b.adminNotes === "string") patch.adminNotes = b.adminNotes.slice(0, 500);
-    const [row] = await db.update(bookingReviews).set(patch).where(eq(bookingReviews.id, id)).returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
-    return res.json(row);
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(reviews)
+      .where(eq(reviews.status, "pending"));
+    return res.json({ count: row?.count ?? 0 });
   } catch (err) {
-    console.error("[reviews] update:", err);
-    return res.status(500).json({ error: "Failed to update" });
+    console.error("[reviews] pending-count:", err);
+    return res.status(500).json({ error: "Failed" });
   }
 });
 
-// Promote approved review to public testimonial
-router.post("/admin/reviews/:id/publish", authMiddleware, requireRole("admin"), async (req, res) => {
+router.get("/admin/reviews", authMiddleware, async (req, res) => {
   try {
-    const id = Number.parseInt(String(req.params.id), 10);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
-    const [r] = await db.select().from(bookingReviews).where(eq(bookingReviews.id, id));
-    if (!r) return res.status(404).json({ error: "Not found" });
-    if (r.status !== "approved") return res.status(400).json({ error: "Approve review first" });
-    if (r.publishedAsTestimonial) return res.json({ success: true, testimonialId: r.publishedAsTestimonial });
-
-    const name = r.customerName || "ضيف";
-    const [t] = await db.insert(testimonials).values({
-      name,
-      message: r.comment,
-      rating: r.rating,
-      status: "approved",
-    } as any).returning();
-
-    await db.update(bookingReviews).set({ publishedAsTestimonial: t.id, updatedAt: new Date() }).where(eq(bookingReviews.id, id));
-    return res.json({ success: true, testimonialId: t.id });
+    const status = clean(req.query.status, 32);
+    const query = db
+      .select()
+      .from(reviews)
+      .where(REVIEW_STATUSES.has(status) ? eq(reviews.status, status as "pending" | "approved" | "rejected") : undefined)
+      .orderBy(desc(reviews.createdAt))
+      .limit(500);
+    const rows = await query;
+    return res.json(rows.map(publicReview));
   } catch (err) {
-    console.error("[reviews] publish:", err);
-    return res.status(500).json({ error: "Failed to publish" });
+    console.error("[reviews] admin list:", err);
+    return res.status(500).json({ error: "Failed to list reviews" });
+  }
+});
+
+async function setReviewStatus(id: string, status: "approved" | "rejected" | "pending", res: any) {
+  if (!isUuid(id)) return res.status(400).json({ error: "Invalid id" });
+  const [row] = await db
+    .update(reviews)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(reviews.id, id))
+    .returning();
+  if (!row) return res.status(404).json({ error: "Not found" });
+  return res.json(publicReview(row));
+}
+
+router.patch("/admin/reviews/:id/approve", authMiddleware, requireRole("operator"), async (req, res) => {
+  try {
+    return await setReviewStatus(String(req.params.id), "approved", res);
+  } catch (err) {
+    console.error("[reviews] approve:", err);
+    return res.status(500).json({ error: "Failed to approve" });
+  }
+});
+
+router.patch("/admin/reviews/:id/reject", authMiddleware, requireRole("operator"), async (req, res) => {
+  try {
+    return await setReviewStatus(String(req.params.id), "rejected", res);
+  } catch (err) {
+    console.error("[reviews] reject:", err);
+    return res.status(500).json({ error: "Failed to reject" });
+  }
+});
+
+router.patch("/admin/reviews/:id", authMiddleware, requireRole("operator"), async (req, res) => {
+  try {
+    const status = clean(req.body?.status, 32);
+    if (!REVIEW_STATUSES.has(status)) return res.status(400).json({ error: "Invalid status" });
+    return await setReviewStatus(String(req.params.id), status as "approved" | "rejected" | "pending", res);
+  } catch (err) {
+    console.error("[reviews] patch:", err);
+    return res.status(500).json({ error: "Failed to update" });
   }
 });
 
 router.delete("/admin/reviews/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
-    const id = Number.parseInt(String(req.params.id), 10);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
-    await db.delete(bookingReviews).where(eq(bookingReviews.id, id));
+    const id = String(req.params.id);
+    if (!isUuid(id)) return res.status(400).json({ error: "Invalid id" });
+    await db.delete(reviews).where(eq(reviews.id, id));
     return res.json({ success: true });
   } catch (err) {
+    console.error("[reviews] delete:", err);
     return res.status(500).json({ error: "Failed to delete" });
   }
 });
 
-// Public: lookup booking by token (so user knows what they're reviewing)
+// Existing ticket-token review flow remains available for old QR/ticket links.
 router.get("/reviews/by-token/:token", async (req, res) => {
   try {
-    const token = String(req.params.token || "").trim().slice(0, 200);
+    const token = clean(req.params.token, 200);
     if (!token) return res.status(400).json({ error: "Token required" });
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Booking not found" });
     const [existing] = await db.select().from(bookingReviews).where(eq(bookingReviews.bookingId, b.id));
-    // Mask PII: only return first name initial + first letter, not full name
     const fullName = b.name || "";
     const firstName = fullName.trim().split(/\s+/)[0] || "";
-    const maskedName = firstName ? firstName[0] + "***" : "";
+    const maskedName = firstName ? `${firstName[0]}***` : "";
     return res.json({
       bookingId: b.id,
       customerName: maskedName,
@@ -102,10 +288,9 @@ router.get("/reviews/by-token/:token", async (req, res) => {
   }
 });
 
-// Public: submit review using ticket token
 router.post("/reviews/submit", async (req, res) => {
   try {
-    const token = String(req.body?.token || "").trim().slice(0, 200);
+    const token = clean(req.body?.token, 200);
     if (!token) return res.status(400).json({ error: "Token required" });
     const [b] = await db.select().from(bookings).where(eq(bookings.ticketToken, token));
     if (!b) return res.status(404).json({ error: "Booking not found" });
@@ -114,16 +299,11 @@ router.post("/reviews/submit", async (req, res) => {
     if (existing.length > 0) return res.status(409).json({ error: "تم تقييم هذا الحجز بالفعل" });
 
     const rating = clampInt(req.body?.rating, 1, 5, 5);
-    const comment = String(req.body?.comment ?? "").trim().slice(0, 2000);
-    const customerName = String(req.body?.customerName ?? b.name).trim().slice(0, 200);
-    const photoUrls = Array.isArray(req.body?.photoUrls)
-      ? (req.body.photoUrls as unknown[])
-          .filter(u => typeof u === "string")
-          .slice(0, 6)
-          .map(u => String(u).slice(0, 500))
-      : [];
+    const comment = clean(req.body?.comment, 1500);
+    const customerName = clean(req.body?.customerName, 120) || clean(b.name, 120);
+    const photoUrls = sanitizePhotos(req.body?.photoUrls);
 
-    const [row] = await db.insert(bookingReviews).values({
+    const [legacy] = await db.insert(bookingReviews).values({
       bookingId: b.id,
       rating,
       comment,
@@ -132,7 +312,17 @@ router.post("/reviews/submit", async (req, res) => {
       status: "pending",
     }).returning();
 
-    return res.status(201).json({ success: true, review: row });
+    if (comment) {
+      await db.insert(reviews).values({
+        customerName,
+        rating,
+        reviewText: comment,
+        photos: photoUrls,
+        status: "pending",
+      });
+    }
+
+    return res.status(201).json({ success: true, review: legacy });
   } catch (err) {
     console.error("[reviews] submit:", err);
     return res.status(500).json({ error: "Submit failed" });

@@ -19,6 +19,7 @@ export * from "./admin_audit_log";
 export * from "./ai_quota";
 export * from "./promo_codes";
 export * from "./booking_reviews";
+export * from "./reviews";
 export * from "./waitlist";
 export * from "./package_capacity";
 export * from "./abandoned_carts";

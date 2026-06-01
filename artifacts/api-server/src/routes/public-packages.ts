@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, packages, testimonials, siteSettings } from "@workspace/db";
-import { eq, asc, and } from "drizzle-orm";
+import { db, packages, testimonials, siteSettings, reviews } from "@workspace/db";
+import { eq, asc, desc, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -31,13 +31,35 @@ router.get("/packages/:slug", async (req, res) => {
 
 router.get("/testimonials", async (_req, res) => {
   try {
-    const rows = await db.select().from(testimonials)
-      .where(and(
-        eq(testimonials.isVisible, true),
-        eq(testimonials.status, "approved"),
-      ))
-      .orderBy(asc(testimonials.sortOrder));
-    return res.json(rows);
+    const [testimonialRows, reviewRows] = await Promise.all([
+      db.select().from(testimonials)
+        .where(and(
+          eq(testimonials.isVisible, true),
+          eq(testimonials.status, "approved"),
+        ))
+        .orderBy(asc(testimonials.sortOrder)),
+      db.select().from(reviews)
+        .where(eq(reviews.status, "approved"))
+        .orderBy(desc(reviews.createdAt))
+        .limit(80),
+    ]);
+    const mappedReviews = reviewRows.map((row) => ({
+      id: row.id,
+      nameAr: row.customerName,
+      nameEn: row.customerName,
+      textAr: row.reviewText,
+      textEn: row.reviewText,
+      rating: row.rating,
+      packageName: "",
+      avatar: "",
+      imageUrl: row.photos?.[0] || "",
+      status: row.status,
+      source: "reviews_page",
+      isVisible: true,
+      sortOrder: 10_000,
+      createdAt: row.createdAt,
+    }));
+    return res.json([...testimonialRows, ...mappedReviews]);
   } catch (err: any) {
     console.error("GET /testimonials failed:", err);
     return res.status(500).json({ error: "Failed to fetch testimonials" });

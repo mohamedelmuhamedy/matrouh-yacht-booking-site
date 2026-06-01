@@ -60,7 +60,7 @@ export const FALLBACK_PERMISSION_DEFS: PermissionDefinition[] = [
   { key: "promo_codes.manage", label: "أكواد الخصم", group: "التسويق" },
   { key: "rewards.manage", label: "المكافآت والإحالات", group: "التسويق" },
   { key: "gallery.manage", label: "المعرض", group: "المحتوى" },
-  { key: "reviews.manage", label: "تقييمات الرحلات", group: "المحتوى" },
+  { key: "reviews.manage", label: "الآراء والتقييمات", group: "المحتوى" },
   { key: "testimonials.manage", label: "آراء العملاء", group: "المحتوى" },
   { key: "hero_slides.manage", label: "خلفية الهيرو", group: "المحتوى" },
   { key: "share_card.manage", label: "بطاقة المشاركة", group: "التسويق" },

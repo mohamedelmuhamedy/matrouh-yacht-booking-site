@@ -52,7 +52,7 @@ function useAdminBrandName() {
   return brand;
 }
 
-type NavItem = { path: string; icon: string; label: string; permission: AdminPermission; badge?: "bookings" | "testimonials" };
+type NavItem = { path: string; icon: string; label: string; permission: AdminPermission; badge?: "bookings" | "testimonials" | "reviews" };
 const NAV: NavItem[] = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم", permission: "dashboard.view" },
   { path: "/admin/stats",        icon: "📈", label: "الإحصائيات", permission: "stats.view" },
@@ -71,7 +71,7 @@ const NAV: NavItem[] = [
   { path: "/admin/promo-codes",  icon: "🎟️", label: "أكواد الخصم", permission: "promo_codes.manage" },
   { path: "/admin/rewards",      icon: "🎁", label: "المكافآت", permission: "rewards.manage" },
   { path: "/admin/gallery",      icon: "🖼️", label: "المعرض", permission: "gallery.manage" },
-  { path: "/admin/reviews",      icon: "🌟", label: "تقييمات الرحلات", permission: "reviews.manage" },
+  { path: "/admin/reviews",      icon: "🌟", label: "الآراء والتقييمات", permission: "reviews.manage", badge: "reviews" },
   { path: "/admin/testimonials", icon: "⭐", label: "آراء العملاء", permission: "testimonials.manage", badge: "testimonials" },
   { path: "/admin/hero-slides",  icon: "🎬", label: "خلفية الهيرو", permission: "hero_slides.manage" },
   { path: "/admin/share-card",   icon: "🪪", label: "بطاقة المشاركة", permission: "share_card.manage" },
@@ -184,8 +184,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [newCount, setNewCount] = useState(0);
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
+  const [pendingReviews, setPendingReviews] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
-  const badgeFor = (b?: "bookings" | "testimonials") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : 0;
+  const badgeFor = (b?: "bookings" | "testimonials" | "reviews") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : b === "reviews" ? pendingReviews : 0;
   const visibleNav = NAV.filter(item => hasPermission(item.permission));
   const bottomNav = BOTTOM_NAV.filter(item => hasPermission(item.permission));
   const seenIds = useRef<Set<number>>(new Set());
@@ -238,10 +239,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       .catch(() => {});
   };
 
+  const fetchPendingReviews = () => {
+    if (!hasPermission("reviews.manage")) {
+      setPendingReviews(0);
+      return;
+    }
+    adminFetch("/admin/reviews/pending-count")
+      .then(r => r.ok ? r.json() : { count: 0 })
+      .then(d => setPendingReviews(d.count ?? 0))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchCount();
     fetchPendingTestimonials();
-    pollRef.current = setInterval(() => { fetchCount(); fetchPendingTestimonials(); }, 60_000);
+    fetchPendingReviews();
+    pollRef.current = setInterval(() => { fetchCount(); fetchPendingTestimonials(); fetchPendingReviews(); }, 60_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
@@ -249,6 +262,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchCount();
     fetchPendingTestimonials();
+    fetchPendingReviews();
   }, [location]);
 
   const navTo = (path: string) => {
@@ -338,7 +352,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       <span style={{ flex: 1 }}>{item.label}</span>
                       {showBadge && (
                         <span style={{ background: "#EF4444", color: "white", fontSize: "0.7rem", fontWeight: 900, borderRadius: 9, padding: "2px 7px", fontFamily: "Cairo, sans-serif" }}>
-                          {count > 99 ? "99+" : count} {item.badge === "testimonials" ? "قيد الانتظار" : "جديد"}
+                          {count > 99 ? "99+" : count} {item.badge === "bookings" ? "جديد" : "قيد الانتظار"}
                         </span>
                       )}
                     </button>
