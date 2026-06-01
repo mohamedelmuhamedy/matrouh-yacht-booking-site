@@ -1652,15 +1652,15 @@ function ReviewSubmitForm() {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap", marginTop: "2rem", paddingInline: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "clamp(0.5rem, 2vw, 0.75rem)", flexWrap: "nowrap", marginTop: "2rem", paddingInline: "clamp(0.5rem, 3vw, 1.5rem)" }}>
         <button onClick={() => setOpen(true)}
-          style={{ background: "linear-gradient(135deg,#C9A84C,#a8842c)", color: "#0D1B2A", border: "none", borderRadius: "999px", padding: "0.85rem 2rem", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 8px 24px rgba(201,168,76,0.35)", transition: "transform 0.2s" }}
+          style={{ background: "linear-gradient(135deg,#C9A84C,#a8842c)", color: "#0D1B2A", border: "none", borderRadius: "999px", padding: "0.85rem clamp(0.65rem, 3vw, 2rem)", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 8px 24px rgba(201,168,76,0.35)", transition: "transform 0.2s", whiteSpace: "nowrap" }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
           ✍️ {ar ? "اكتب رأيك" : "Write a review"}
         </button>
         <button onClick={() => { window.location.href = "/reviews"; }}
-          style={{ background: "transparent", color: "#C9A84C", border: "1.5px solid rgba(201,168,76,0.75)", borderRadius: "999px", padding: "0.85rem 2rem", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: "none", transition: "transform 0.2s, background 0.2s" }}
+          style={{ background: "transparent", color: "#C9A84C", border: "1.5px solid rgba(201,168,76,0.75)", borderRadius: "999px", padding: "0.85rem clamp(0.65rem, 3vw, 2rem)", fontFamily: "Cairo, sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: "none", transition: "transform 0.2s, background 0.2s", whiteSpace: "nowrap" }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.background = "rgba(201,168,76,0.1)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
           {ar ? "آراء عملائنا ✨" : "Customer reviews ✨"}
