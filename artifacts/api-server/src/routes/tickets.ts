@@ -64,6 +64,8 @@ interface TicketRecord {
   ticketIssuedAt: Date | null;
   ticketUsedAt: Date | null;
   ticketUsedBy: string | null;
+  paymentRequired: boolean;
+  paymentStatus: string;
   status: string;
   name: string;
   phone: string;
@@ -96,6 +98,8 @@ function bookingTicketRecord(b: typeof bookings.$inferSelect): TicketRecord {
     ticketIssuedAt: b.ticketIssuedAt,
     ticketUsedAt: b.ticketUsedAt,
     ticketUsedBy: b.ticketUsedBy,
+    paymentRequired: b.paymentRequired,
+    paymentStatus: b.paymentStatus,
     status: b.status,
     name: b.name,
     phone: b.phone,
@@ -129,6 +133,8 @@ function manualTicketRecord(t: typeof manualTickets.$inferSelect): TicketRecord 
     ticketIssuedAt: t.ticketIssuedAt,
     ticketUsedAt: t.ticketUsedAt,
     ticketUsedBy: t.ticketUsedBy,
+    paymentRequired: false,
+    paymentStatus: "not_required",
     status: t.status,
     name: t.name,
     phone: t.phone,
@@ -342,6 +348,10 @@ router.get("/tickets/:token.pdf", async (req, res) => {
     if (!token || token.length < 16) return res.status(404).end();
     const b = await findTicketByToken(token);
     if (!b) return res.status(404).end();
+    if (b.kind === "booking") {
+      const guard = canIssueTicketForBooking(b);
+      if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
+    }
 
     // Removed authorization check: PDF tickets by token are now fully public.
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
@@ -372,6 +382,10 @@ router.get("/tickets/:token", async (req, res) => {
     const adminAccess = isAdminRequest(req);
     let ticketNumber = b.ticketNumber || "";
     if (!ticketNumber) {
+      if (b.kind === "booking") {
+        const guard = canIssueTicketForBooking(b);
+        if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
+      }
       const issued = b.kind === "booking"
         ? await ensureTicketToken(b.id)
         : await ensureManualTicketToken(b.id);

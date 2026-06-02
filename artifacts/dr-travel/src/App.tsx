@@ -2264,7 +2264,9 @@ function InitialSplashScreen({
 
 function PublicAppShell() {
   const { isInitializing, settings } = useSiteData();
+  const [location] = useLocation();
   useSiteFonts(settings);
+  const fastSplashRoutes = location.startsWith("/payment/");
 
   return (
     <>
@@ -2292,7 +2294,7 @@ function PublicAppShell() {
           <PushPrompt />
         </div>
       )}
-      <InitialSplashScreen isInitializing={isInitializing} />
+      <InitialSplashScreen isInitializing={isInitializing} settleDelayMs={fastSplashRoutes ? 0 : undefined} />
     </>
   );
 }

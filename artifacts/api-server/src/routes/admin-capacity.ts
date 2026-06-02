@@ -84,7 +84,7 @@ router.get("/availability", async (req, res) => {
       .where(and(
         eq(bookings.packageId, packageId),
         eq(bookings.date, date),
-        sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
+        sql`${bookings.status} NOT IN ('cancelled', 'payment_expired', 'payment_rejected')`,
       ));
     const booked = Number(result[0]?.total ?? 0);
     const remaining = Math.max(0, cap.maxSeats - booked);
@@ -114,7 +114,7 @@ export async function checkCapacity(packageId: number, date: string, requested: 
     .where(and(
       eq(bookings.packageId, packageId),
       eq(bookings.date, date),
-      sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
+      sql`${bookings.status} NOT IN ('cancelled', 'payment_expired', 'payment_rejected')`,
     ));
   const booked = Number(result[0]?.total ?? 0);
   const remaining = Math.max(0, cap.maxSeats - booked);

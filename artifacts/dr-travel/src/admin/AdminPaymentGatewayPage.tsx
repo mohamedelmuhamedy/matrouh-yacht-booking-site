@@ -286,6 +286,9 @@ export default function AdminPaymentGatewayPage() {
             {requests.length === 0 ? <div style={emptyStyle}>لا توجد طلبات دفع حالياً</div> : requests.map((req) => {
               const badge = statusLabels[req.status] || { label: req.status, bg: "#E2E8F0", color: "#334155" };
               const passengers = (req.booking?.adults || 0) + (req.booking?.children || 0) + (req.booking?.infants || 0);
+              const canApprove = canReview && req.status === "submitted";
+              const canRequestReupload = canReview && req.status === "submitted";
+              const canReject = canReview && ["pending", "submitted", "reupload_requested"].includes(req.status);
               return (
                 <article key={req.id} style={cardStyle}>
                   <div style={{ display: "grid", gap: "0.6rem" }}>
@@ -307,9 +310,9 @@ export default function AdminPaymentGatewayPage() {
                       {req.attachments.map((a) => <AttachmentPreview key={a.id} attachment={a} />)}
                     </div>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <button disabled={!canReview} onClick={() => review(req.id, "approve")} style={successBtn}>قبول</button>
-                      <button disabled={!canReview} onClick={() => review(req.id, "reject")} style={dangerBtn}>رفض</button>
-                      <button disabled={!canReview} onClick={() => review(req.id, "request-reupload")} style={secondaryBtn}>طلب إعادة رفع</button>
+                      <button disabled={!canApprove} onClick={() => review(req.id, "approve")} style={successBtn}>قبول</button>
+                      <button disabled={!canReject} onClick={() => review(req.id, "reject")} style={dangerBtn}>رفض</button>
+                      <button disabled={!canRequestReupload} onClick={() => review(req.id, "request-reupload")} style={secondaryBtn}>طلب إعادة رفع</button>
                       {canOverride && (
                         <>
                           <button onClick={() => override(req.id, "offline_paid")} style={secondaryBtn}>مدفوع خارجيًا</button>

@@ -195,7 +195,7 @@ router.post("/bookings", async (req, res) => {
               .where(and(
                 eq(bookings.packageId, packageId),
                 eq(bookings.date, date),
-                sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
+                sql`${bookings.status} NOT IN ('cancelled', 'payment_expired', 'payment_rejected')`,
               ));
             const booked = Number(sumRes[0]?.total ?? 0);
             const remaining = Math.max(0, maxSeats - booked);
@@ -216,6 +216,7 @@ router.post("/bookings", async (req, res) => {
               eq(bookings.phone, phone),
               eq(bookings.date, date),
               gte(bookings.createdAt, since),
+              sql`${bookings.status} NOT IN ('cancelled', 'payment_expired', 'payment_rejected')`,
               packageId !== null
                 ? eq(bookings.packageId, packageId)
                 : eq(bookings.packageName, packageName),

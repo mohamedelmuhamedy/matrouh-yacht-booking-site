@@ -137,15 +137,12 @@ router.get("/payments/portal/:token", async (req, res) => {
 
 router.post("/payments/portal/:token/upload-url", async (req, res) => {
   try {
+    await expireOverduePayments();
     const token = String(req.params.token || "").trim();
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
     if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED, PAYMENT_STATUSES.SUBMITTED].includes(portal.payment.status as any)) {
       return res.status(409).json({ error: "Payment request is not accepting uploads" });
-    }
-    if (portal.payment.expiresAt && new Date(portal.payment.expiresAt).getTime() <= Date.now()) {
-      await expireOverduePayments();
-      return res.status(409).json({ error: "Payment request expired" });
     }
     const body = req.body as { name?: string; size?: number; contentType?: string };
     const name = String(body.name || "").trim().slice(0, 200);
@@ -167,12 +164,12 @@ router.post("/payments/portal/:token/upload-url", async (req, res) => {
 
 router.post("/payments/portal/:token/proof", async (req, res) => {
   try {
+    await expireOverduePayments();
     const token = String(req.params.token || "").trim();
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
-    if (portal.payment.expiresAt && new Date(portal.payment.expiresAt).getTime() <= Date.now()) {
-      await expireOverduePayments();
-      return res.status(409).json({ error: "Payment request expired" });
+    if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED, PAYMENT_STATUSES.SUBMITTED].includes(portal.payment.status as any)) {
+      return res.status(409).json({ error: "Payment request is not accepting proof submissions" });
     }
     const methodKey = String(req.body?.methodKey || "").trim();
     const customerNote = String(req.body?.customerNote || "").trim().slice(0, 1000);
@@ -453,6 +450,18 @@ async function reviewPayment(req: Request, res: Response, action: "approve" | "r
   if (payment.status === PAYMENT_STATUSES.EXPIRED && action === "approve") {
     return res.status(409).json({ error: "Expired payments require restore/override first" });
   }
+  if (action === "approve" && payment.status !== PAYMENT_STATUSES.SUBMITTED) {
+    return res.status(409).json({ error: "Only submitted payment requests can be approved" });
+  }
+  if (action === "request-reupload" && payment.status !== PAYMENT_STATUSES.SUBMITTED) {
+    return res.status(409).json({ error: "Only submitted payment requests can request re-upload" });
+  }
+  if (
+    action === "reject" &&
+    ![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.SUBMITTED, PAYMENT_STATUSES.REUPLOAD_REQUESTED].includes(payment.status as any)
+  ) {
+    return res.status(409).json({ error: "This payment request cannot be rejected from its current status" });
+  }
   if ((action === "reject" || action === "request-reupload") && !note) {
     return res.status(400).json({ error: "Admin note is required" });
   }
@@ -551,7 +560,8 @@ router.patch("/admin/payment-requests/:id/override", authMiddleware, requireRole
     if (!payment) return res.status(404).json({ error: "Payment request not found" });
     const [booking] = await db.select().from(bookings).where(eq(bookings.id, payment.bookingId));
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    if (mode === "restore_expired") {
+    const capacityMustBeRestored = ["payment_expired", "payment_rejected"].includes(booking.status);
+    if (mode === "restore_expired" || (capacityMustBeRestored && mode !== "restore_expired")) {
       const requested = (booking.adults || 0) + (booking.children || 0);
       if (booking.packageId) {
         const cap = await checkCapacity(booking.packageId, booking.date, requested);
@@ -564,9 +574,13 @@ router.patch("/admin/payment-requests/:id/override", authMiddleware, requireRole
         : mode === "restore_expired" ? PAYMENT_STATUSES.PENDING
           : PAYMENT_STATUSES.APPROVED;
     const bookingStatus = status === PAYMENT_STATUSES.PENDING ? "payment_pending" : "payment_approved";
+    const nextExpiresAt = mode === "restore_expired"
+      ? sql`localtimestamp + (${(await getPackagePaymentRule(booking.packageId)).expirationHours}::int * interval '1 hour')`
+      : payment.expiresAt;
     await db.transaction(async (tx) => {
       await tx.update(paymentRequests).set({
         status,
+        expiresAt: nextExpiresAt,
         reviewedAt: now,
         reviewedByAdminId: admin.id,
         reviewedByAdminUsername: admin.username,
@@ -576,6 +590,7 @@ router.patch("/admin/payment-requests/:id/override", authMiddleware, requireRole
       await tx.update(bookings).set({
         status: bookingStatus,
         paymentStatus: status,
+        paymentExpiresAt: nextExpiresAt,
         paymentApprovedAt: status === PAYMENT_STATUSES.PENDING ? booking.paymentApprovedAt : now,
         updatedAt: now,
       }).where(eq(bookings.id, booking.id));

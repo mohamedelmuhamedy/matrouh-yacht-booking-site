@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { and, eq, inArray, isNotNull, lte, ne, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import {
   bookings,
   db,
@@ -32,7 +32,7 @@ export const PAYMENT_BOOKING_STATUSES = new Set([
   "payment_expired",
 ]);
 
-export const RELEASED_BOOKING_STATUSES = new Set(["cancelled", "payment_expired"]);
+export const RELEASED_BOOKING_STATUSES = new Set(["cancelled", "payment_expired", "payment_rejected"]);
 
 export type TicketIssuanceMode = "manual" | "automatic";
 
@@ -149,7 +149,7 @@ export async function createPaymentRequestForBooking(input: {
   rule: Awaited<ReturnType<typeof getPackagePaymentRule>>;
 }): Promise<{ id: string; token: string; expiresAt: Date; expectedDepositAmount: number }> {
   const token = createPaymentPortalToken();
-  const expiresAt = new Date(Date.now() + input.rule.expirationHours * 60 * 60 * 1000);
+  const expiresAt = sql`localtimestamp + (${input.rule.expirationHours}::int * interval '1 hour')`;
   const expectedDepositAmount = calculateExpectedDeposit(input.finalAmountSnapshot, input.rule.depositPercent);
   const instructions = await snapshotInstructions(input.rule.methodKeys, input.rule.instructionsAr, input.rule.instructionsEn);
   const [row] = await input.tx
@@ -183,7 +183,7 @@ export async function createPaymentRequestForBooking(input: {
     channel: "internal",
     status: "pending",
   });
-  return { id: row.id, token, expiresAt, expectedDepositAmount };
+  return { id: row.id, token, expiresAt: row.expiresAt, expectedDepositAmount };
 }
 
 export function canIssueTicketForBooking(b: {
@@ -212,11 +212,10 @@ export async function expireOverduePayments(): Promise<{ expired: number; bookin
       and(
         inArray(paymentRequests.status, [
           PAYMENT_STATUSES.PENDING,
-          PAYMENT_STATUSES.SUBMITTED,
           PAYMENT_STATUSES.REUPLOAD_REQUESTED,
         ]),
         isNotNull(paymentRequests.expiresAt),
-        lte(paymentRequests.expiresAt, now),
+        sql`${paymentRequests.expiresAt} <= localtimestamp`,
       ),
     );
   if (rows.length === 0) return { expired: 0, bookingIds: [] };
@@ -260,6 +259,6 @@ export function activeCapacityWhere(packageId: number, date: string) {
   return and(
     eq(bookings.packageId, packageId),
     eq(bookings.date, date),
-    sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
+    sql`${bookings.status} NOT IN ('cancelled', 'payment_expired', 'payment_rejected')`,
   );
 }
