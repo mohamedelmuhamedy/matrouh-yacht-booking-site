@@ -21,6 +21,7 @@ import TicketPage from "./pages/TicketPage";
 import VerifyPage from "./pages/VerifyPage";
 import ReviewPage from "./pages/ReviewPage";
 import ReviewsPage from "./pages/ReviewsPage";
+import PaymentPortalPage from "./pages/PaymentPortalPage";
 import QuizPage from "./pages/QuizPage";
 import SeoHead from "./components/SeoHead";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -1085,6 +1086,12 @@ function PackagesAndBooking() {
           }
         }
         if (!r.ok) throw new Error("booking_failed");
+        const bookingResult = await r.json().catch(() => ({}));
+        if (bookingResult?.nextAction === "payment" && bookingResult.paymentPortalUrl) {
+          if (waPopup && !waPopup.closed) waPopup.close();
+          window.location.href = String(bookingResult.paymentPortalUrl);
+          return;
+        }
         if (skipConfirmation) {
           if (waPopup && !waPopup.closed) {
             waPopup.location.href = bookingWaUrl;
@@ -1096,7 +1103,7 @@ function PackagesAndBooking() {
         setShowModal(true);
       } catch {
         if (waPopup && !waPopup.closed) waPopup.close();
-        setShowModal(true);
+        alert(lang === "ar" ? "تعذر إرسال الحجز الآن. حاول مرة أخرى." : "We couldn't submit your booking right now. Please try again.");
       }
     }
   };
@@ -2277,6 +2284,7 @@ function PublicAppShell() {
             <Route path="/ticket/:token" component={TicketPage} />
             <Route path="/verify/:token" component={VerifyPage} />
             <Route path="/reviews" component={ReviewsPage} />
+            <Route path="/payment/:token" component={PaymentPortalPage} />
             <Route path="/review/:token" component={ReviewPage} />
             <Route path="/quiz" component={QuizPage} />
             <Route component={NotFoundPage} />

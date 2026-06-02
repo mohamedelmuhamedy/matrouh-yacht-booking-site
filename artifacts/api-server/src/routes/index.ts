@@ -31,6 +31,7 @@ import adminAbandonedCartsRouter from "./admin-abandoned-carts";
 import customerPhotosRouter from "./customer-photos";
 import aiQuizRouter from "./ai-quiz";
 import adminManualTicketsRouter from "./admin-manual-tickets";
+import paymentGatewayRouter from "./payment-gateway";
 import { authMiddleware } from "../middleware/auth";
 import { requireAdminApiPermission } from "../lib/adminPermissions";
 
@@ -43,6 +44,7 @@ router.use(adminPackagesRouter);
 router.use(adminTestimonialsRouter);
 router.use(adminBookingsRouter);
 router.use(adminManualTicketsRouter);
+router.use(paymentGatewayRouter);
 router.use(adminSettingsRouter);
 router.use(adminRewardsRouter);
 router.use(publicPackagesRouter);

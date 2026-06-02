@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { recordAudit } from "../lib/audit";
+import { canIssueTicketForBooking } from "../lib/payments";
 import {
   generateTicketNumber,
   signTicket,
@@ -167,11 +168,16 @@ async function ensureTicketTokenInTx(tx: Tx, bookingId: number): Promise<IssuedT
       ticketToken: bookings.ticketToken,
       ticketNumber: bookings.ticketNumber,
       ticketIssuedAt: bookings.ticketIssuedAt,
+      paymentRequired: bookings.paymentRequired,
+      paymentStatus: bookings.paymentStatus,
+      status: bookings.status,
     })
     .from(bookings)
     .where(eq(bookings.id, bookingId))
     .for("update");
   if (!row) return null;
+  const guard = canIssueTicketForBooking(row);
+  if (!guard.ok) return null;
 
   let token = row.ticketToken && row.ticketToken.length >= 16 ? row.ticketToken : null;
   let ticketNumber = row.ticketNumber && row.ticketNumber.length > 0 ? row.ticketNumber : null;
@@ -609,6 +615,8 @@ router.post(
       if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
       const [b] = await db.select().from(bookings).where(eq(bookings.id, id));
       if (!b) return res.status(404).json({ error: "Booking not found" });
+      const guard = canIssueTicketForBooking(b);
+      if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
       const issued = await ensureTicketToken(id);
       if (!issued) return res.status(500).json({ error: "Token issuance failed" });
       const body = req.body as Buffer;

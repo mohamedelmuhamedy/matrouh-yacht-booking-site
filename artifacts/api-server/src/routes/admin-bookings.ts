@@ -5,6 +5,7 @@ import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { ensureTicketToken } from "./tickets";
 import { recordAudit } from "../lib/audit";
+import { canIssueTicketForBooking } from "../lib/payments";
 
 const router = Router();
 
@@ -53,8 +54,12 @@ router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator")
       return res.status(400).json({ error: "Invalid status" });
     }
     const result = await db.transaction(async (tx) => {
-      const [existing] = await tx.select({ status: bookings.status }).from(bookings).where(eq(bookings.id, id));
+      const [existing] = await tx.select().from(bookings).where(eq(bookings.id, id));
       if (!existing) return null;
+      if (status === "confirmed" || status === "client_confirmed") {
+        const guard = canIssueTicketForBooking(existing);
+        if (!guard.ok) throw new Error(guard.reason);
+      }
       const [updated] = await tx
         .update(bookings)
         .set({ status, updatedAt: new Date() })
@@ -121,6 +126,8 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, requireRole("ope
     if (!b) return res.status(404).json({ error: "Booking not found" });
     // Tickets are now issued for every booking regardless of status — admin
     // can download / send the ticket right away after creation.
+    const guard = canIssueTicketForBooking(b);
+    if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
     const issued = await ensureTicketToken(id);
     if (!issued) return res.status(500).json({ error: "Token issuance failed" });
     return res.json({

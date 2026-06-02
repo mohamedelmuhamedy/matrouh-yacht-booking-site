@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, bookings, packages } from "@workspace/db";
+import { db, bookings, packages, paymentRequests } from "@workspace/db";
 import { and, eq, gte, ne, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { createReferralRewardIfNeeded } from "./admin-rewards";
@@ -7,6 +7,7 @@ import { ensureTicketToken } from "./tickets";
 import { consumePromoCode } from "./admin-promo-codes";
 import { markCartRecovered } from "./admin-abandoned-carts";
 import { checkCapacity } from "./admin-capacity";
+import { createPaymentRequestForBooking, getPackagePaymentRule, publicPaymentPortalUrl } from "../lib/payments";
 
 const router = Router();
 
@@ -31,7 +32,8 @@ function parseIntStrict(value: unknown, min: number, max: number): number | null
 
 const IDEMPOTENCY_TTL_MS = 5 * 60_000;
 const idempotencyCache = new Map<string, { id: number; at: number }>();
-const inFlight = new Map<string, Promise<number>>();
+type BookingResult = { id: number; paymentToken?: string };
+const inFlight = new Map<string, Promise<BookingResult>>();
 
 function idempotencyKey(phone: string, packageId: number | null, packageName: string, date: string): string {
   return crypto
@@ -96,6 +98,7 @@ router.post("/bookings", async (req, res) => {
     let packageName = "";
     let packageNameAr = "";
     let priceAtBooking: number | null = null;
+    let paymentRule = await getPackagePaymentRule(null);
 
     if (rawPackageId !== undefined && rawPackageId !== null && rawPackageId !== "") {
       const pid = Number.parseInt(String(rawPackageId), 10);
@@ -113,6 +116,7 @@ router.post("/bookings", async (req, res) => {
       packageName = pkg.titleEn;
       packageNameAr = pkg.titleAr;
       priceAtBooking = pkg.priceEGP;
+      paymentRule = await getPackagePaymentRule(pkg.id);
     } else {
       packageName = String(body.packageName ?? "").trim().slice(0, 200);
       packageNameAr = String(body.packageNameAr ?? "").trim().slice(0, 200);
@@ -135,22 +139,45 @@ router.post("/bookings", async (req, res) => {
     }
 
     const key = idempotencyKey(phone, packageId, packageName, date);
+    const sendBookingResponse = async (statusCode: number, id: number, deduplicated = false) => {
+      const [created] = await db.select({
+        id: bookings.id,
+        paymentRequired: bookings.paymentRequired,
+        paymentRequestId: bookings.paymentRequestId,
+      }).from(bookings).where(eq(bookings.id, id));
+      if (created?.paymentRequired && created.paymentRequestId) {
+        const [payment] = await db
+          .select({ token: paymentRequests.portalToken })
+          .from(paymentRequests)
+          .where(eq(paymentRequests.id, created.paymentRequestId));
+        if (payment?.token) {
+          return res.status(statusCode).json({
+            success: true,
+            id,
+            deduplicated,
+            nextAction: "payment",
+            paymentPortalUrl: publicPaymentPortalUrl(req, payment.token),
+          });
+        }
+      }
+      return res.status(statusCode).json({ success: true, id, deduplicated, nextAction: "whatsapp" });
+    };
     const recent = getRecentBooking(key);
     if (recent) {
-      return res.status(200).json({ success: true, id: recent, deduplicated: true });
+      return sendBookingResponse(200, recent, true);
     }
 
     const existingFlight = inFlight.get(key);
     if (existingFlight) {
       try {
-        const id = await existingFlight;
-        return res.status(200).json({ success: true, id, deduplicated: true });
+        const result = await existingFlight;
+        return sendBookingResponse(200, result.id, true);
       } catch {
         // fall through
       }
     }
 
-    const flight = (async (): Promise<number> => {
+    const flight = (async (): Promise<BookingResult> => {
       const since = new Date(Date.now() - IDEMPOTENCY_TTL_MS);
       const requested = (adults || 0) + (children || 0);
       const booking = await db.transaction(async (tx) => {
@@ -168,7 +195,7 @@ router.post("/bookings", async (req, res) => {
               .where(and(
                 eq(bookings.packageId, packageId),
                 eq(bookings.date, date),
-                ne(bookings.status, "cancelled"),
+                sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
               ));
             const booked = Number(sumRes[0]?.total ?? 0);
             const remaining = Math.max(0, maxSeats - booked);
@@ -209,6 +236,8 @@ router.post("/bookings", async (req, res) => {
           }
         }
 
+        const paymentRequired = paymentRule.required;
+        const baseAmount = priceAtBooking ? priceAtBooking * adults : 0;
         const [row] = await tx
           .insert(bookings)
           .values({
@@ -227,9 +256,37 @@ router.post("/bookings", async (req, res) => {
             promoCode: appliedPromoCode,
             discountAmount,
             referralCode,
-            status: "new",
+            status: paymentRequired ? "payment_pending" : "new",
+            paymentRequired,
+            paymentStatus: paymentRequired ? "pending" : "not_required",
           })
           .returning();
+        if (paymentRequired) {
+          const finalAmount = Math.max(0, baseAmount - discountAmount);
+          const payment = await createPaymentRequestForBooking({
+            tx,
+            bookingId: row.id,
+            packageId,
+            currency,
+            priceSnapshot: baseAmount,
+            discountSnapshot: discountAmount,
+            finalAmountSnapshot: finalAmount,
+            rule: paymentRule,
+          });
+          await tx
+            .update(bookings)
+            .set({
+              paymentRequestId: payment.id,
+              paymentExpiresAt: payment.expiresAt,
+              updatedAt: new Date(),
+            })
+            .where(eq(bookings.id, row.id));
+          return { id: row.id, deduped: false, paymentToken: payment.token } as {
+            id: number;
+            deduped: boolean;
+            paymentToken?: string;
+          };
+        }
         return { id: row.id, deduped: false } as { id: number; deduped: boolean };
       });
 
@@ -249,10 +306,13 @@ router.post("/bookings", async (req, res) => {
           }
         }
 
-        try {
-          await ensureTicketToken(booking.id);
-        } catch (err) {
-          console.error("[public-bookings] ensureTicketToken failed:", err);
+        const paymentToken = (booking as { paymentToken?: string }).paymentToken;
+        if (!paymentToken) {
+          try {
+            await ensureTicketToken(booking.id);
+          } catch (err) {
+            console.error("[public-bookings] ensureTicketToken failed:", err);
+          }
         }
 
         // Mark any abandoned cart as recovered (fire-and-forget; don't block the response)
@@ -265,18 +325,18 @@ router.post("/bookings", async (req, res) => {
         }).catch(err => console.error("[public-bookings] markCartRecovered failed:", err));
       }
 
-      return booking.id;
+      return { id: booking.id, paymentToken: (booking as { paymentToken?: string }).paymentToken };
     })();
 
     inFlight.set(key, flight);
-    let createdId: number;
+    let created: BookingResult;
     try {
-      createdId = await flight;
+      created = await flight;
     } finally {
       if (inFlight.get(key) === flight) inFlight.delete(key);
     }
 
-    return res.status(201).json({ success: true, id: createdId });
+    return sendBookingResponse(201, created.id, false);
   } catch (err: any) {
     if (err?.code === "CAPACITY_FULL") {
       return res.status(409).json({

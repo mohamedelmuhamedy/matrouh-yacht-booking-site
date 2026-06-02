@@ -53,12 +53,16 @@ async function start(): Promise<void> {
 
   const { default: app } = await import("./app");
   const { startTripReminderScheduler } = await import("./lib/tripReminders");
+  const { startPaymentExpirationScheduler } = await import("./lib/paymentExpirations");
   const { getVapidConfig } = await import("./routes/push");
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
     setInterval(() => pingHealthEndpoint(port), KEEP_ALIVE_INTERVAL_MS);
     startTripReminderScheduler(getVapidConfig).catch((err) => {
       console.error("[trip-reminders] failed to start:", err);
+    });
+    startPaymentExpirationScheduler().catch((err) => {
+      console.error("[payments] failed to start expiration scheduler:", err);
     });
   });
 }

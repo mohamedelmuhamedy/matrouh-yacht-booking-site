@@ -40,6 +40,10 @@ interface Booking {
   currency: string;
   priceAtBooking: number | null;
   status: string;
+  paymentRequired?: boolean;
+  paymentStatus?: string;
+  paymentExpiresAt?: string | null;
+  paymentApprovedAt?: string | null;
   referralCode: string;
   ticketToken: string | null;
   ticketNumber?: string | null;
@@ -108,6 +112,17 @@ const STATUS_OPTIONS = [
   { value: "completed", label: "مكتمل", color: "var(--text-secondary)" },
   { value: "cancelled", label: "ملغي", color: "#EF4444" },
 ];
+
+const STATUS_DISPLAY = [
+  ...STATUS_OPTIONS,
+  { value: "payment_pending", label: "في انتظار الدفع", color: "#F59E0B" },
+  { value: "payment_submitted", label: "دفع قيد المراجعة", color: "#3B82F6" },
+  { value: "payment_approved", label: "الدفع مقبول", color: "#10B981" },
+  { value: "payment_rejected", label: "الدفع مرفوض", color: "#EF4444" },
+  { value: "payment_reupload_requested", label: "إعادة رفع الدفع", color: "#F97316" },
+  { value: "payment_expired", label: "انتهت مهلة الدفع", color: "#64748B" },
+];
+const PAYMENT_TICKET_OK = new Set(["approved", "waived", "offline_paid"]);
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -890,9 +905,10 @@ export default function BookingsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           {bookings.map(b => {
-            const sObj = STATUS_OPTIONS.find(s => s.value === b.status) || STATUS_OPTIONS[0];
+            const sObj = STATUS_DISPLAY.find(s => s.value === b.status) || STATUS_OPTIONS[0];
             const isOpen = expanded.has(b.id);
             const isPulse = b.status === "new";
+            const canIssueTicket = !b.paymentRequired || PAYMENT_TICKET_OK.has(String(b.paymentStatus || ""));
             const partyTotal = (b.adults || 0) + (b.children || 0) + (b.infants || 0);
             const initials = b.name.trim().split(/\s+/).slice(0,2).map(s => s[0] || "").join("").toUpperCase() || "?";
             const created = new Date(b.createdAt);
@@ -1014,20 +1030,20 @@ export default function BookingsPage() {
                       <select value={b.status} disabled={updating === b.id} onChange={e => updateStatus(b.id, e.target.value)} className="bk-status-select">
                         {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
-                      <button className="bk-btn is-ticket" onClick={() => openTicket(b)} title="تذكرة الحجز">
+                      <button disabled={!canIssueTicket} className="bk-btn is-ticket" onClick={() => openTicket(b)} title={canIssueTicket ? "تذكرة الحجز" : "يلزم اعتماد الدفع أولاً"}>
                         🎫 تذكرة
                       </button>
-                      <button className="bk-btn is-ticket"
+                      <button disabled={!canIssueTicket} className="bk-btn is-ticket"
                         onClick={() => {
                           setLangChooser({ booking: b, action: "image-send" });
                         }}
                         title="فتح شات واتساب العميل مع الرسالة الجاهزة + صورة التذكرة">
                         📤 إرسال للعميل
                       </button>
-                      <button className="bk-btn is-ticket" onClick={() => setLangChooser({ booking: b, action: "image" })} title="تحميل التذكرة كصورة (يختار اللغة)">
+                      <button disabled={!canIssueTicket} className="bk-btn is-ticket" onClick={() => setLangChooser({ booking: b, action: "image" })} title="تحميل التذكرة كصورة (يختار اللغة)">
                         🖼️ صورة
                       </button>
-                      <button className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
+                      <button disabled={!canIssueTicket} className="bk-btn is-ticket" onClick={() => openTicket(b, "download")} title="تنزيل تذكرة PDF">
                         ⬇️ تنزيل PDF
                       </button>
                       <a href={whatsappLink(b.phone, b.name)} target="_blank" rel="noreferrer" className="bk-btn is-wa">

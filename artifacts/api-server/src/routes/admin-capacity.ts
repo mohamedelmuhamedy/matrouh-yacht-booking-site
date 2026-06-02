@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, packageCapacity, bookings } from "@workspace/db";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 
@@ -84,7 +84,7 @@ router.get("/availability", async (req, res) => {
       .where(and(
         eq(bookings.packageId, packageId),
         eq(bookings.date, date),
-        ne(bookings.status, "cancelled"),
+        sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
       ));
     const booked = Number(result[0]?.total ?? 0);
     const remaining = Math.max(0, cap.maxSeats - booked);
@@ -114,7 +114,7 @@ export async function checkCapacity(packageId: number, date: string, requested: 
     .where(and(
       eq(bookings.packageId, packageId),
       eq(bookings.date, date),
-      ne(bookings.status, "cancelled"),
+      sql`${bookings.status} NOT IN ('cancelled', 'payment_expired')`,
     ));
   const booked = Number(result[0]?.total ?? 0);
   const remaining = Math.max(0, cap.maxSeats - booked);

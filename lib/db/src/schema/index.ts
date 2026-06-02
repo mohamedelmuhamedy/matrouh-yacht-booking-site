@@ -25,3 +25,4 @@ export * from "./package_capacity";
 export * from "./abandoned_carts";
 export * from "./customer_photos";
 export * from "./manual_tickets";
+export * from "./payments";

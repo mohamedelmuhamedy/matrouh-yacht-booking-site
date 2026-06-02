@@ -226,16 +226,21 @@ export default function PackageDetail() {
           promoCode: promoStatus === "valid" ? bookForm.promoCode.trim().toUpperCase() : undefined,
         }),
       });
+      const bookingResult = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
         const fallbackMessage = ar
           ? "تعذر إرسال طلب الحجز الآن. برجاء مراجعة البيانات أو المحاولة مرة أخرى."
           : "We couldn't submit your booking right now. Please try again.";
         const serverMessage =
-          typeof errorBody?.error === "string" && errorBody.error.trim().length > 0
-            ? errorBody.error
+          typeof bookingResult?.error === "string" && bookingResult.error.trim().length > 0
+            ? bookingResult.error
             : "";
         throw new Error(ar ? fallbackMessage : serverMessage || fallbackMessage);
+      }
+      if (bookingResult?.nextAction === "payment" && bookingResult.paymentPortalUrl) {
+        if (waPopup && !waPopup.closed) waPopup.close();
+        window.location.href = String(bookingResult.paymentPortalUrl);
+        return;
       }
     } catch (error) {
       if (waPopup && !waPopup.closed) waPopup.close();

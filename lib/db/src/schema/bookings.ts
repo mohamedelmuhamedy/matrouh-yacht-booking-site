@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgTable, serial, text, integer, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -34,6 +34,11 @@ export const bookings = pgTable("bookings", {
   supervisorName: text("supervisor_name").notNull().default(""),
   supervisorPhone: text("supervisor_phone").notNull().default(""),
   remainingBalance: text("remaining_balance").notNull().default(""),
+  paymentRequired: boolean("payment_required").notNull().default(false),
+  paymentStatus: text("payment_status").notNull().default("not_required"),
+  paymentRequestId: uuid("payment_request_id"),
+  paymentExpiresAt: timestamp("payment_expires_at"),
+  paymentApprovedAt: timestamp("payment_approved_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

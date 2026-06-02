@@ -7,6 +7,7 @@ import {
   Camera,
   ClipboardList,
   Compass,
+  CreditCard,
   Film,
   Gift,
   Images,
@@ -52,7 +53,7 @@ function useAdminBrandName() {
   return brand;
 }
 
-type NavItem = { path: string; icon: string; label: string; permission: AdminPermission; badge?: "bookings" | "testimonials" | "reviews" };
+type NavItem = { path: string; icon: string; label: string; permission: AdminPermission; badge?: "bookings" | "testimonials" | "reviews" | "payments" };
 const NAV: NavItem[] = [
   { path: "/admin/dashboard",    icon: "📊", label: "لوحة التحكم", permission: "dashboard.view" },
   { path: "/admin/stats",        icon: "📈", label: "الإحصائيات", permission: "stats.view" },
@@ -80,6 +81,13 @@ const NAV: NavItem[] = [
   { path: "/admin/settings",     icon: "⚙️", label: "الإعدادات", permission: "settings.manage" },
   { path: "/admin/audit",        icon: "📜", label: "سجل التدقيق", permission: "audit.view" },
 ];
+NAV.splice(Math.max(0, NAV.findIndex(n => n.path === "/admin/manual-tickets")), 0, {
+  path: "/admin/payment-gateway",
+  icon: "💳",
+  label: "بوابة الدفع",
+  permission: "payment_gateway.view",
+  badge: "payments",
+});
 const BOTTOM_NAV = NAV.filter(n =>
   n.path !== "/admin/testimonials" &&
   n.path !== "/admin/settings" &&
@@ -114,6 +122,7 @@ const NAV_META: Record<string, { Icon: LucideIcon; tone: string }> = {
   "/admin/settings": { Icon: Settings, tone: "#CBD5E1" },
   "/admin/audit": { Icon: ScrollText, tone: "#A3E635" },
 };
+NAV_META["/admin/payment-gateway"] = { Icon: CreditCard, tone: "#38BDF8" };
 
 function NavIcon({ path, active, size = 18 }: { path: string; active: boolean; size?: number }) {
   const meta = NAV_META[path] || NAV_META["/admin/dashboard"];
@@ -185,8 +194,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [newCount, setNewCount] = useState(0);
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
   const [pendingReviews, setPendingReviews] = useState(0);
+  const [pendingPayments, setPendingPayments] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
-  const badgeFor = (b?: "bookings" | "testimonials" | "reviews") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : b === "reviews" ? pendingReviews : 0;
+  const badgeFor = (b?: "bookings" | "testimonials" | "reviews" | "payments") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : b === "reviews" ? pendingReviews : b === "payments" ? pendingPayments : 0;
   const visibleNav = NAV.filter(item => hasPermission(item.permission));
   const bottomNav = BOTTOM_NAV.filter(item => hasPermission(item.permission));
   const seenIds = useRef<Set<number>>(new Set());
@@ -250,11 +260,23 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       .catch(() => {});
   };
 
+  const fetchPendingPayments = () => {
+    if (!hasPermission("payment_gateway.view")) {
+      setPendingPayments(0);
+      return;
+    }
+    adminFetch("/admin/payment-requests/pending-count")
+      .then(r => r.ok ? r.json() : { count: 0 })
+      .then(d => setPendingPayments(d.count ?? 0))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchCount();
     fetchPendingTestimonials();
     fetchPendingReviews();
-    pollRef.current = setInterval(() => { fetchCount(); fetchPendingTestimonials(); fetchPendingReviews(); }, 60_000);
+    fetchPendingPayments();
+    pollRef.current = setInterval(() => { fetchCount(); fetchPendingTestimonials(); fetchPendingReviews(); fetchPendingPayments(); }, 60_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
@@ -263,6 +285,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     fetchCount();
     fetchPendingTestimonials();
     fetchPendingReviews();
+    fetchPendingPayments();
   }, [location]);
 
   const navTo = (path: string) => {

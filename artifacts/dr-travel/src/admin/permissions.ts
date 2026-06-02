@@ -9,6 +9,10 @@ export type AdminPermission =
   | "manual_tickets.create"
   | "manual_tickets.edit"
   | "manual_tickets.delete"
+  | "payment_gateway.view"
+  | "payment_gateway.manage_settings"
+  | "payment_gateway.review"
+  | "payment_gateway.override"
   | "trips.manage"
   | "categories.manage"
   | "services.manage"
@@ -48,6 +52,10 @@ export const FALLBACK_PERMISSION_DEFS: PermissionDefinition[] = [
   { key: "manual_tickets.create", label: "إنشاء تذاكر يدوية", group: "التذاكر اليدوية" },
   { key: "manual_tickets.edit", label: "تعديل التذاكر اليدوية", group: "التذاكر اليدوية" },
   { key: "manual_tickets.delete", label: "حذف التذاكر اليدوية", group: "التذاكر اليدوية" },
+  { key: "payment_gateway.view", label: "عرض بوابة الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.manage_settings", label: "إعدادات بوابة الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.review", label: "مراجعة طلبات الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.override", label: "تجاوزات الدفع اليدوية", group: "بوابة الدفع" },
   { key: "trips.manage", label: "الباقات / الرحلات", group: "المحتوى" },
   { key: "categories.manage", label: "الفئات", group: "المحتوى" },
   { key: "services.manage", label: "الخدمات", group: "المحتوى" },

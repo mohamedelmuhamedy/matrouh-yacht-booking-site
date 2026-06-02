@@ -113,6 +113,7 @@ const scanLimiter = rateLimit({
 app.use("/api", globalLimiter);
 app.use("/api/admin/login", loginLimiter);
 app.use("/api/bookings", writeLimiter);
+app.use("/api/payments/portal", writeLimiter);
 app.use("/api/push/subscribe", writeLimiter);
 app.use("/api/push/link-booking", writeLimiter);
 app.use("/api/ai/chat", aiLimiter);

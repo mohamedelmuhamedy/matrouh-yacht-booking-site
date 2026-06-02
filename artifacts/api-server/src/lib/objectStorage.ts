@@ -164,8 +164,9 @@ export class ObjectStorageService {
     name?: string;
     size: number;
     contentType: string;
+    prefix?: string;
   }): { uploadURL: string; objectPath: string; publicUrl: string } {
-    const objectPath = this.createObjectPath(input.name);
+    const objectPath = this.createObjectPath(input.name, input.prefix);
     const token = jwt.sign(
       {
         type: "storage-upload",

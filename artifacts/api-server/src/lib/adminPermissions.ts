@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+﻿import type { Request, Response, NextFunction } from "express";
 import { and, eq, ne } from "drizzle-orm";
 import { db, adminUserPermissions, adminUsers } from "@workspace/db";
 
@@ -13,6 +13,10 @@ export type AdminPermission =
   | "manual_tickets.create"
   | "manual_tickets.edit"
   | "manual_tickets.delete"
+  | "payment_gateway.view"
+  | "payment_gateway.manage_settings"
+  | "payment_gateway.review"
+  | "payment_gateway.override"
   | "trips.manage"
   | "categories.manage"
   | "services.manage"
@@ -42,37 +46,41 @@ export interface PermissionDefinition {
 }
 
 export const ADMIN_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
-  { key: "dashboard.view", label: "لوحة التحكم", group: "عام" },
-  { key: "stats.view", label: "الإحصائيات", group: "عام" },
-  { key: "calendar.view", label: "تقويم الحجوزات", group: "عام" },
-  { key: "bookings.view", label: "عرض الحجوزات", group: "الحجوزات" },
-  { key: "bookings.manage", label: "إدارة الحجوزات والتذاكر", group: "الحجوزات" },
-  { key: "bookings.delete", label: "حذف الحجوزات", group: "الحجوزات" },
-  { key: "manual_tickets.view", label: "عرض التذاكر اليدوية", group: "التذاكر اليدوية" },
-  { key: "manual_tickets.create", label: "إنشاء تذاكر يدوية", group: "التذاكر اليدوية" },
-  { key: "manual_tickets.edit", label: "تعديل التذاكر اليدوية", group: "التذاكر اليدوية" },
-  { key: "manual_tickets.delete", label: "حذف التذاكر اليدوية", group: "التذاكر اليدوية" },
-  { key: "trips.manage", label: "الباقات / الرحلات", group: "المحتوى" },
-  { key: "categories.manage", label: "الفئات", group: "المحتوى" },
-  { key: "services.manage", label: "الخدمات", group: "المحتوى" },
-  { key: "why_us.manage", label: "مميزاتنا", group: "المحتوى" },
-  { key: "capacity.manage", label: "السعة", group: "العمليات" },
-  { key: "waiting_list.manage", label: "قائمة الانتظار", group: "العمليات" },
-  { key: "abandoned_carts.manage", label: "العربات المتروكة", group: "العمليات" },
-  { key: "customer_photos.manage", label: "صور العملاء", group: "العمليات" },
-  { key: "scanner.use", label: "ماسح التذاكر", group: "العمليات" },
-  { key: "promo_codes.manage", label: "أكواد الخصم", group: "التسويق" },
-  { key: "rewards.manage", label: "المكافآت والإحالات", group: "التسويق" },
-  { key: "gallery.manage", label: "المعرض", group: "المحتوى" },
-  { key: "reviews.manage", label: "الآراء والتقييمات", group: "المحتوى" },
-  { key: "testimonials.manage", label: "آراء العملاء", group: "المحتوى" },
-  { key: "hero_slides.manage", label: "خلفية الهيرو", group: "المحتوى" },
-  { key: "share_card.manage", label: "بطاقة المشاركة", group: "التسويق" },
-  { key: "push.manage", label: "الإشعارات", group: "الإعدادات" },
-  { key: "settings.manage", label: "الإعدادات", group: "الإعدادات" },
-  { key: "users.manage", label: "إدارة المستخدمين والصلاحيات", group: "الإعدادات" },
-  { key: "audit.view", label: "سجل التدقيق", group: "الإعدادات" },
-  { key: "media.upload", label: "رفع الصور والملفات", group: "الإعدادات" },
+  { key: "dashboard.view", label: "Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…", group: "Ø¹Ø§Ù…" },
+  { key: "stats.view", label: "Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª", group: "Ø¹Ø§Ù…" },
+  { key: "calendar.view", label: "ØªÙ‚ÙˆÙŠÙ… Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª", group: "Ø¹Ø§Ù…" },
+  { key: "bookings.view", label: "Ø¹Ø±Ø¶ Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª", group: "Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª" },
+  { key: "bookings.manage", label: "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª ÙˆØ§Ù„ØªØ°Ø§ÙƒØ±", group: "Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª" },
+  { key: "bookings.delete", label: "Ø­Ø°Ù Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª", group: "Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª" },
+  { key: "manual_tickets.view", label: "Ø¹Ø±Ø¶ Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©", group: "Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©" },
+  { key: "manual_tickets.create", label: "Ø¥Ù†Ø´Ø§Ø¡ ØªØ°Ø§ÙƒØ± ÙŠØ¯ÙˆÙŠØ©", group: "Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©" },
+  { key: "manual_tickets.edit", label: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©", group: "Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©" },
+  { key: "manual_tickets.delete", label: "Ø­Ø°Ù Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©", group: "Ø§Ù„ØªØ°Ø§ÙƒØ± Ø§Ù„ÙŠØ¯ÙˆÙŠØ©" },
+  { key: "payment_gateway.view", label: "عرض بوابة الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.manage_settings", label: "إعدادات بوابة الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.review", label: "مراجعة طلبات الدفع", group: "بوابة الدفع" },
+  { key: "payment_gateway.override", label: "تجاوزات الدفع اليدوية", group: "بوابة الدفع" },
+  { key: "trips.manage", label: "Ø§Ù„Ø¨Ø§Ù‚Ø§Øª / Ø§Ù„Ø±Ø­Ù„Ø§Øª", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "categories.manage", label: "Ø§Ù„ÙØ¦Ø§Øª", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "services.manage", label: "Ø§Ù„Ø®Ø¯Ù…Ø§Øª", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "why_us.manage", label: "Ù…Ù…ÙŠØ²Ø§ØªÙ†Ø§", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "capacity.manage", label: "Ø§Ù„Ø³Ø¹Ø©", group: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª" },
+  { key: "waiting_list.manage", label: "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±", group: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª" },
+  { key: "abandoned_carts.manage", label: "Ø§Ù„Ø¹Ø±Ø¨Ø§Øª Ø§Ù„Ù…ØªØ±ÙˆÙƒØ©", group: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª" },
+  { key: "customer_photos.manage", label: "ØµÙˆØ± Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡", group: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª" },
+  { key: "scanner.use", label: "Ù…Ø§Ø³Ø­ Ø§Ù„ØªØ°Ø§ÙƒØ±", group: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª" },
+  { key: "promo_codes.manage", label: "Ø£ÙƒÙˆØ§Ø¯ Ø§Ù„Ø®ØµÙ…", group: "Ø§Ù„ØªØ³ÙˆÙŠÙ‚" },
+  { key: "rewards.manage", label: "Ø§Ù„Ù…ÙƒØ§ÙØ¢Øª ÙˆØ§Ù„Ø¥Ø­Ø§Ù„Ø§Øª", group: "Ø§Ù„ØªØ³ÙˆÙŠÙ‚" },
+  { key: "gallery.manage", label: "Ø§Ù„Ù…Ø¹Ø±Ø¶", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "reviews.manage", label: "Ø§Ù„Ø¢Ø±Ø§Ø¡ ÙˆØ§Ù„ØªÙ‚ÙŠÙŠÙ…Ø§Øª", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "testimonials.manage", label: "Ø¢Ø±Ø§Ø¡ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "hero_slides.manage", label: "Ø®Ù„ÙÙŠØ© Ø§Ù„Ù‡ÙŠØ±Ùˆ", group: "Ø§Ù„Ù…Ø­ØªÙˆÙ‰" },
+  { key: "share_card.manage", label: "Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©", group: "Ø§Ù„ØªØ³ÙˆÙŠÙ‚" },
+  { key: "push.manage", label: "Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª", group: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª" },
+  { key: "settings.manage", label: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª", group: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª" },
+  { key: "users.manage", label: "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙˆØ§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª", group: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª" },
+  { key: "audit.view", label: "Ø³Ø¬Ù„ Ø§Ù„ØªØ¯Ù‚ÙŠÙ‚", group: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª" },
+  { key: "media.upload", label: "Ø±ÙØ¹ Ø§Ù„ØµÙˆØ± ÙˆØ§Ù„Ù…Ù„ÙØ§Øª", group: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª" },
 ];
 
 export const ALL_ADMIN_PERMISSIONS = ADMIN_PERMISSION_DEFINITIONS.map((p) => p.key);
@@ -175,6 +183,14 @@ function permissionForAdminRequest(req: Request): AdminPermission | null {
     if (path === "/admin/manual-tickets" && method === "POST") return "manual_tickets.create";
     if (method === "DELETE" || path.endsWith("/delete")) return "manual_tickets.delete";
     return "manual_tickets.edit";
+  }
+  if (path.startsWith("/admin/payment-gateway/settings")) {
+    return method === "GET" ? "payment_gateway.view" : "payment_gateway.manage_settings";
+  }
+  if (path.startsWith("/admin/payment-requests")) {
+    if (path.endsWith("/pending-count") || method === "GET") return "payment_gateway.view";
+    if (path.endsWith("/override")) return "payment_gateway.override";
+    return "payment_gateway.review";
   }
   if (path.startsWith("/admin/tickets/")) return path.endsWith("/use") ? "scanner.use" : "bookings.manage";
   if (path.startsWith("/admin/packages")) return "trips.manage";

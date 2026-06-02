@@ -33,11 +33,13 @@ import AdminStatsPage from "./AdminStatsPage";
 import AdminAbandonedCartsPage from "./AdminAbandonedCartsPage";
 import AdminCustomerPhotosPage from "./AdminCustomerPhotosPage";
 import AdminManualTicketsPage from "./AdminManualTicketsPage";
+import AdminPaymentGatewayPage from "./AdminPaymentGatewayPage";
 import type { AdminPermission } from "./permissions";
 
 const FIRST_PATH_BY_PERMISSION: { path: string; permission: AdminPermission }[] = [
   { path: "/admin/dashboard", permission: "dashboard.view" },
   { path: "/admin/bookings", permission: "bookings.view" },
+  { path: "/admin/payment-gateway", permission: "payment_gateway.view" },
   { path: "/admin/manual-tickets", permission: "manual_tickets.view" },
   { path: "/admin/stats", permission: "stats.view" },
   { path: "/admin/packages", permission: "trips.manage" },
@@ -107,6 +109,9 @@ function AdminRoutes() {
       </Route>
       <Route path="/admin/manual-tickets">
         <AdminGuard permission="manual_tickets.view"><AdminManualTicketsPage /></AdminGuard>
+      </Route>
+      <Route path="/admin/payment-gateway">
+        <AdminGuard permission="payment_gateway.view"><AdminPaymentGatewayPage /></AdminGuard>
       </Route>
       <Route path="/admin/testimonials">
         <AdminGuard permission="testimonials.manage"><TestimonialsPage /></AdminGuard>
