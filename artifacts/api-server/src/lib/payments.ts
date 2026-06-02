@@ -114,9 +114,46 @@ export function calculateExpectedDeposit(finalAmount: number, depositPercent: nu
 }
 
 export function publicPaymentPortalUrl(req: { headers: Record<string, unknown>; protocol?: string }, token: string): string {
+  const configuredOrigin = getConfiguredPublicSiteOrigin();
+  if (configuredOrigin) return `${configuredOrigin}/payment/${token}`;
+
   const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
   const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0];
   return host ? `${proto}://${host}/payment/${token}` : `/payment/${token}`;
+}
+
+function normalizeOrigin(raw: unknown): string | null {
+  const value = String(raw || "").trim().replace(/\/+$/, "");
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function getConfiguredPublicSiteOrigin(): string | null {
+  for (const key of ["PUBLIC_SITE_URL", "PUBLIC_APP_URL", "FRONTEND_URL", "CLIENT_URL", "SITE_URL"]) {
+    const origin = normalizeOrigin(process.env[key]);
+    if (origin) return origin;
+  }
+
+  const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => !!origin);
+  const publicOrigins = allowedOrigins.filter((origin) => {
+    try {
+      const host = new URL(origin).hostname;
+      return host !== "localhost" && host !== "127.0.0.1" && !host.endsWith(".onrender.com");
+    } catch {
+      return false;
+    }
+  });
+
+  return publicOrigins.find((origin) => new URL(origin).hostname.startsWith("www.")) || publicOrigins[0] || null;
 }
 
 export async function snapshotInstructions(methodKeys: string[], overrideAr: string, overrideEn: string): Promise<string> {
