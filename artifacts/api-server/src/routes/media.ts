@@ -1,5 +1,7 @@
 import { Readable } from "node:stream";
 import { Router, type Response } from "express";
+import { eq } from "drizzle-orm";
+import { db, mediaAssets } from "@workspace/db";
 import { MediaStorageService } from "../lib/mediaStorage";
 import {
   ObjectNotFoundError,
@@ -60,6 +62,24 @@ router.get("/media/public", async (req, res) => {
     const status = error instanceof StorageUploadError ? error.statusCode : 500;
     console.error("[media.public] failed:", error);
     return res.status(status).json({ error: "Failed to resolve media" });
+  }
+});
+
+router.get("/media/assets/:id", async (req, res) => {
+  const id = String(req.params.id || "").trim();
+  if (!id) return res.status(400).json({ error: "id required" });
+
+  try {
+    const [asset] = await db.select().from(mediaAssets).where(eq(mediaAssets.id, id)).limit(1);
+    if (!asset || asset.visibility !== "public" || asset.status !== "active") {
+      return res.status(404).json({ error: "Not found" });
+    }
+    res.setHeader("Cache-Control", "public, max-age=60");
+    return res.redirect(302, mediaStorage.cloudinaryDeliveryUrl(asset));
+  } catch (error) {
+    const status = error instanceof StorageUploadError ? error.statusCode : 500;
+    console.error("[media.assets] failed:", error);
+    return res.status(status).json({ error: "Failed to resolve media asset" });
   }
 });
 
