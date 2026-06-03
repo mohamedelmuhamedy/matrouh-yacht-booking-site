@@ -33,6 +33,7 @@ import { useAdmin, adminFetch } from "./AdminContext";
 import { apiUrl } from "../lib/api";
 import ThemeSwitch from "../components/ThemeSwitch";
 import type { AdminPermission } from "./permissions";
+import { subscribeToAdminPush } from "../hooks/usePushNotifications";
 import "./admin-mobile.css";
 
 function useAdminBrandName() {
@@ -196,11 +197,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [pendingReviews, setPendingReviews] = useState(0);
   const [pendingPayments, setPendingPayments] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
+  const [toastTarget, setToastTarget] = useState("/admin/bookings");
   const badgeFor = (b?: "bookings" | "testimonials" | "reviews" | "payments") => b === "bookings" ? newCount : b === "testimonials" ? pendingTestimonials : b === "reviews" ? pendingReviews : b === "payments" ? pendingPayments : 0;
   const visibleNav = NAV.filter(item => hasPermission(item.permission));
   const bottomNav = BOTTOM_NAV.filter(item => hasPermission(item.permission));
   const seenIds = useRef<Set<number>>(new Set());
+  const seenPaymentIds = useRef<Set<number>>(new Set());
   const initialized = useRef(false);
+  const paymentsInitialized = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -231,6 +235,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         if (fresh.length > 0) {
           fresh.forEach(id => seenIds.current.add(id));
           playBookingBeep();
+          setToastTarget("/admin/bookings");
           setToastMsg(`🔔 ${fresh.length === 1 ? "حجز جديد" : `${fresh.length} حجوزات جديدة`} !`);
           setTimeout(() => setToastMsg(""), 5000);
         }
@@ -266,10 +271,40 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       return;
     }
     adminFetch("/admin/payment-requests/pending-count")
-      .then(r => r.ok ? r.json() : { count: 0 })
-      .then(d => setPendingPayments(d.count ?? 0))
+      .then(r => r.ok ? r.json() : { count: 0, ids: [] })
+      .then(d => {
+        const ids: number[] = Array.isArray(d.ids) ? d.ids : [];
+        setPendingPayments(Number(d.count ?? ids.length ?? 0));
+        if (!paymentsInitialized.current) {
+          ids.forEach(id => seenPaymentIds.current.add(id));
+          paymentsInitialized.current = true;
+          return;
+        }
+        const fresh = ids.filter(id => !seenPaymentIds.current.has(id));
+        if (fresh.length > 0) {
+          fresh.forEach(id => seenPaymentIds.current.add(id));
+          playBookingBeep();
+          setToastTarget("/admin/payment-gateway");
+          setToastMsg(`🔔 ${fresh.length === 1 ? "إثبات دفع جديد" : `${fresh.length} إثباتات دفع جديدة`} !`);
+          setTimeout(() => setToastMsg(""), 5000);
+        }
+      })
       .catch(() => {});
   };
+
+  useEffect(() => {
+    if (!hasPermission("payment_gateway.view")) return;
+    if (!("Notification" in window)) return;
+    const key = "dr-travel-admin-payment-push-asked-v1";
+    const alreadyAsked = localStorage.getItem(key) === "1";
+    if (Notification.permission === "denied") return;
+    if (Notification.permission === "default" && alreadyAsked) return;
+    localStorage.setItem(key, "1");
+    const t = setTimeout(() => {
+      subscribeToAdminPush().catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [hasPermission]);
 
   useEffect(() => {
     fetchCount();
@@ -303,7 +338,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       direction: "rtl", whiteSpace: "nowrap",
       animation: "fadeInDown 0.35s ease",
       cursor: "pointer",
-    }} onClick={() => { navigate("/admin/bookings"); setToastMsg(""); }}>
+    }} onClick={() => { navigate(toastTarget); setToastMsg(""); }}>
       <style>{`@keyframes fadeInDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
       {toastMsg}
       <span style={{ marginRight: "0.5rem", fontSize: "0.75rem", opacity: 0.7 }}>اضغط للعرض</span>

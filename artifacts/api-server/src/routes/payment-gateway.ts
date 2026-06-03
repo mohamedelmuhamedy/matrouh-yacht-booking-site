@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { Readable } from "node:stream";
 import { Router, type Request, type Response } from "express";
 import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
@@ -11,6 +13,7 @@ import {
   paymentRequestAttachments,
   paymentRequestEvents,
   paymentRequests,
+  pushSubscriptions,
   siteSettings,
 } from "@workspace/db";
 import { authMiddleware } from "../middleware/auth";
@@ -27,6 +30,8 @@ import {
 } from "../lib/payments";
 import { ensureTicketToken } from "./tickets";
 import { checkCapacity } from "./admin-capacity";
+import { signTicket } from "../lib/ticketSecurity";
+import { sendPushToAdmins, sendPushToBooking } from "./push";
 
 const router = Router();
 const storage = new ObjectStorageService();
@@ -51,6 +56,106 @@ function clampInt(value: unknown, min: number, max: number, fallback: number): n
   const n = Number.parseInt(String(value ?? ""), 10);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, n));
+}
+
+function ticketSnapshot(booking: typeof bookings.$inferSelect) {
+  if (!booking.ticketToken || !booking.ticketNumber) return null;
+  const signature = signTicket({
+    bookingId: booking.id,
+    ticketToken: booking.ticketToken,
+    ticketNumber: booking.ticketNumber,
+  });
+  const pdfPath = path.resolve(process.cwd(), "data", "tickets", `${booking.ticketToken}.pdf`);
+  const pdfAvailable = fs.existsSync(pdfPath);
+  return {
+    status: "issued",
+    token: booking.ticketToken,
+    ticketNumber: booking.ticketNumber,
+    ticketSignature: signature,
+    issuedAt: booking.ticketIssuedAt || booking.updatedAt,
+    ticketUrl: `/ticket/${booking.ticketToken}`,
+    verifyUrl: `/verify/${booking.ticketToken}?sig=${encodeURIComponent(signature)}`,
+    pdfAvailable,
+    pdfUrl: pdfAvailable ? `/api/tickets/${booking.ticketToken}.pdf?sig=${encodeURIComponent(signature)}` : null,
+  };
+}
+
+function portalState(payment: typeof paymentRequests.$inferSelect, booking: typeof bookings.$inferSelect) {
+  const ticket = ticketSnapshot(booking);
+  const paymentStatus = String(payment.status || "");
+  const ticketIssued = !!ticket;
+  const steps = [
+    {
+      key: "payment_created",
+      label: "تم إنشاء طلب الدفع",
+      status: "done",
+    },
+    {
+      key: "payment_proof",
+      label: paymentStatus === PAYMENT_STATUSES.REUPLOAD_REQUESTED ? "مطلوب إعادة رفع إثبات الدفع" : "رفع إثبات الدفع",
+      status: [
+        PAYMENT_STATUSES.SUBMITTED,
+        PAYMENT_STATUSES.APPROVED,
+        PAYMENT_STATUSES.REJECTED,
+        PAYMENT_STATUSES.REUPLOAD_REQUESTED,
+        PAYMENT_STATUSES.WAIVED,
+        PAYMENT_STATUSES.OFFLINE_PAID,
+      ].includes(paymentStatus as any)
+        ? "done"
+        : paymentStatus === PAYMENT_STATUSES.EXPIRED
+          ? "blocked"
+          : "current",
+    },
+    {
+      key: "payment_review",
+      label: "مراجعة الإدارة",
+      status: [
+        PAYMENT_STATUSES.APPROVED,
+        PAYMENT_STATUSES.REJECTED,
+        PAYMENT_STATUSES.REUPLOAD_REQUESTED,
+        PAYMENT_STATUSES.WAIVED,
+        PAYMENT_STATUSES.OFFLINE_PAID,
+      ].includes(paymentStatus as any)
+        ? "done"
+        : paymentStatus === PAYMENT_STATUSES.SUBMITTED
+          ? "current"
+          : paymentStatus === PAYMENT_STATUSES.EXPIRED
+            ? "blocked"
+            : "upcoming",
+    },
+    {
+      key: "ticket_issue",
+      label: "إصدار التذكرة",
+      status: ticketIssued
+        ? "done"
+        : [PAYMENT_STATUSES.APPROVED, PAYMENT_STATUSES.WAIVED, PAYMENT_STATUSES.OFFLINE_PAID].includes(paymentStatus as any)
+          ? "current"
+          : paymentStatus === PAYMENT_STATUSES.REJECTED || paymentStatus === PAYMENT_STATUSES.EXPIRED
+            ? "blocked"
+            : "upcoming",
+    },
+  ];
+
+  let action = "upload_proof";
+  let message = "ارفع إثبات الدفع قبل انتهاء المهلة ليتم مراجعة الحجز.";
+  if (paymentStatus === PAYMENT_STATUSES.SUBMITTED) {
+    action = "wait_review";
+    message = "تم استلام إثبات الدفع، وسيتم مراجعته قريبًا.";
+  } else if (paymentStatus === PAYMENT_STATUSES.REUPLOAD_REQUESTED) {
+    action = "reupload_proof";
+    message = payment.adminNote || "مطلوب رفع إثبات دفع جديد.";
+  } else if ([PAYMENT_STATUSES.APPROVED, PAYMENT_STATUSES.WAIVED, PAYMENT_STATUSES.OFFLINE_PAID].includes(paymentStatus as any)) {
+    action = ticketIssued ? "open_ticket" : "wait_ticket";
+    message = ticketIssued ? "تم إصدار التذكرة ويمكنك فتحها أو تحميلها." : "تم اعتماد الدفع، والتذكرة قيد التجهيز.";
+  } else if (paymentStatus === PAYMENT_STATUSES.REJECTED) {
+    action = "start_new_booking";
+    message = payment.adminNote || "تم رفض إثبات الدفع. يمكنك بدء حجز جديد أو التواصل معنا عند الحاجة.";
+  } else if (paymentStatus === PAYMENT_STATUSES.EXPIRED) {
+    action = "start_new_booking";
+    message = "انتهت مهلة الدفع وتم تحرير المقاعد. يمكنك بدء حجز جديد.";
+  }
+
+  return { action, message, timeline: steps, ticket };
 }
 
 function serializeMethod(row: typeof paymentMethods.$inferSelect) {
@@ -96,6 +201,7 @@ router.get("/payments/portal/:token", async (req, res) => {
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
     const { payment, booking, methods, attachments } = portal;
+    const state = portalState(payment, booking);
     return res.json({
       payment: {
         id: payment.id,
@@ -109,6 +215,7 @@ router.get("/payments/portal/:token", async (req, res) => {
         expiresAt: payment.expiresAt,
         submittedAt: payment.submittedAt,
         activeAttempt: payment.activeAttempt,
+        adminNote: payment.adminNote,
       },
       booking: {
         id: booking.id,
@@ -118,6 +225,8 @@ router.get("/payments/portal/:token", async (req, res) => {
         packageNameAr: booking.packageNameAr,
         date: booking.date,
         passengers: booking.adults + booking.children + booking.infants,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
       },
       methods: methods.map(serializeMethod),
       attachments: attachments.map((a) => ({
@@ -128,6 +237,10 @@ router.get("/payments/portal/:token", async (req, res) => {
         originalFilename: a.originalFilename,
         createdAt: a.createdAt,
       })),
+      action: state.action,
+      message: state.message,
+      timeline: state.timeline,
+      ticket: state.ticket,
     });
   } catch (err) {
     console.error("[payments.portal] load:", err);
@@ -141,7 +254,7 @@ router.post("/payments/portal/:token/upload-url", async (req, res) => {
     const token = String(req.params.token || "").trim();
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
-    if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED, PAYMENT_STATUSES.SUBMITTED].includes(portal.payment.status as any)) {
+    if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED].includes(portal.payment.status as any)) {
       return res.status(409).json({ error: "Payment request is not accepting uploads" });
     }
     const body = req.body as { name?: string; size?: number; contentType?: string };
@@ -168,7 +281,7 @@ router.post("/payments/portal/:token/proof", async (req, res) => {
     const token = String(req.params.token || "").trim();
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
-    if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED, PAYMENT_STATUSES.SUBMITTED].includes(portal.payment.status as any)) {
+    if (![PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.REUPLOAD_REQUESTED].includes(portal.payment.status as any)) {
       return res.status(409).json({ error: "Payment request is not accepting proof submissions" });
     }
     const methodKey = String(req.body?.methodKey || "").trim();
@@ -198,6 +311,7 @@ router.post("/payments/portal/:token/proof", async (req, res) => {
       if (!file.objectPath.startsWith(expectedPrefix)) return res.status(400).json({ error: "Invalid attachment path" });
       if (!PROOF_TYPES.has(file.mimeType)) return res.status(400).json({ error: "Unsupported attachment type" });
       if (file.sizeBytes <= 0 || file.sizeBytes > MAX_PROOF_BYTES) return res.status(400).json({ error: "Invalid attachment size" });
+      if (!(await storage.objectExists(file.objectPath))) return res.status(400).json({ error: "Uploaded attachment was not found" });
     }
 
     const now = new Date();
@@ -248,10 +362,51 @@ router.post("/payments/portal/:token/proof", async (req, res) => {
         recipient: portal.booking.phone,
       });
     });
+    void sendPushToAdmins({
+      title: "إثبات دفع جديد",
+      body: `${portal.booking.name} رفع إثبات دفع لحجز ${portal.booking.packageNameAr || portal.booking.packageName}`,
+      url: "/admin/payment-gateway",
+    }).catch((err) => console.error("[payments.portal] admin push:", err));
     return res.json({ success: true, status: PAYMENT_STATUSES.SUBMITTED });
   } catch (err) {
     console.error("[payments.portal] submit:", err);
     return res.status(500).json({ error: "Failed to submit payment proof" });
+  }
+});
+
+router.post("/payments/portal/:token/subscribe", async (req, res) => {
+  try {
+    const token = String(req.params.token || "").trim();
+    const portal = await loadPortal(token);
+    if (!portal) return res.status(404).json({ error: "Not found" });
+    const { endpoint, keys } = req.body ?? {};
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: "Missing subscription fields" });
+    }
+    await db
+      .insert(pushSubscriptions)
+      .values({
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        bookingId: portal.booking.id,
+        audience: "customer",
+        adminUserId: null,
+      })
+      .onConflictDoUpdate({
+        target: pushSubscriptions.endpoint,
+        set: {
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+          bookingId: portal.booking.id,
+          audience: "customer",
+          adminUserId: null,
+        },
+      });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[payments.portal] subscribe:", err);
+    return res.status(500).json({ error: "Failed to subscribe" });
   }
 });
 
@@ -402,12 +557,13 @@ router.get("/admin/payment-requests/pending-count", authMiddleware, async (_req,
   try {
     await expireOverduePayments();
     const rows = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ id: paymentRequests.bookingId })
       .from(paymentRequests)
       .where(eq(paymentRequests.status, PAYMENT_STATUSES.SUBMITTED));
-    return res.json({ count: Number(rows[0]?.count || 0) });
+    const ids = rows.map((row) => row.id);
+    return res.json({ count: ids.length, ids });
   } catch {
-    return res.json({ count: 0 });
+    return res.json({ count: 0, ids: [] });
   }
 });
 
@@ -512,11 +668,12 @@ async function reviewPayment(req: Request, res: Response, action: "approve" | "r
     });
   });
 
+  let issuedTicket = false;
   if (action === "approve") {
     const rule = await getPackagePaymentRule(booking.packageId);
     if (rule.ticketIssuanceMode === "automatic") {
       const guard = canIssueTicketForBooking({ ...booking, paymentRequired: true, paymentStatus: PAYMENT_STATUSES.APPROVED });
-      if (guard.ok) await ensureTicketToken(booking.id);
+      if (guard.ok) issuedTicket = !!(await ensureTicketToken(booking.id));
     }
   }
 
@@ -526,6 +683,19 @@ async function reviewPayment(req: Request, res: Response, action: "approve" | "r
     entityId: booking.id,
     metadata: { paymentRequestId: id, bookingId: booking.id, note },
   });
+  const customerPush =
+    action === "approve"
+      ? {
+          title: issuedTicket ? "الدفع مقبول والتذكرة جاهزة" : "تم اعتماد الدفع",
+          body: issuedTicket ? "تذكرتك جاهزة الآن داخل بوابة الدفع." : "تم اعتماد الدفع وسيتم تجهيز التذكرة قريبًا.",
+        }
+      : action === "reject"
+        ? { title: "تم رفض إثبات الدفع", body: note || "راجع بوابة الدفع لمعرفة التفاصيل." }
+        : { title: "مطلوب إعادة رفع إثبات الدفع", body: note || "راجع بوابة الدفع لمعرفة المطلوب." };
+  void sendPushToBooking(booking.id, {
+    ...customerPush,
+    url: payment.portalToken ? `/payment/${payment.portalToken}` : "/",
+  }).catch((err) => console.error("[payment.admin] customer push:", err));
   return res.json({ success: true });
 }
 
@@ -610,6 +780,13 @@ router.patch("/admin/payment-requests/:id/override", authMiddleware, requireRole
       entityId: booking.id,
       metadata: { paymentRequestId: id, bookingId: booking.id, note },
     });
+    const pushMessage = mode === "restore_expired"
+      ? { title: "تمت استعادة طلب الدفع", body: "يمكنك استكمال الدفع من بوابة الدفع." }
+      : { title: "تم تحديث حالة الدفع", body: "راجع بوابة الدفع لمعرفة حالة حجزك الحالية." };
+    void sendPushToBooking(booking.id, {
+      ...pushMessage,
+      url: payment.portalToken ? `/payment/${payment.portalToken}` : "/",
+    }).catch((err) => console.error("[payment.admin] override customer push:", err));
     return res.json({ success: true });
   } catch (err) {
     console.error("[payment.admin] override:", err);

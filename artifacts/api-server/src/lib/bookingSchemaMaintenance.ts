@@ -37,6 +37,18 @@ const BOOKING_COLUMN_MIGRATIONS = [
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_request_id uuid`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_expires_at timestamp`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_approved_at timestamp`,
+  `CREATE TABLE IF NOT EXISTS push_subscriptions (
+     id serial PRIMARY KEY,
+     endpoint text NOT NULL UNIQUE,
+     p256dh text NOT NULL,
+     auth text NOT NULL,
+     booking_id integer,
+     created_at timestamp NOT NULL DEFAULT now()
+   )`,
+  `ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS audience text NOT NULL DEFAULT 'customer'`,
+  `ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS admin_user_id integer`,
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_audience_idx ON push_subscriptions (audience)`,
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_admin_user_idx ON push_subscriptions (admin_user_id)`,
   `DO $$
    BEGIN
      IF NOT EXISTS (

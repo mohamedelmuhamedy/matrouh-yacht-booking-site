@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, FileText, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { ArrowLeft, Bell, CheckCircle2, Clock3, FileText, RotateCcw, Ticket as TicketIcon, UploadCloud, XCircle } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { apiFetch, apiUrl } from "../lib/api";
 import SeoHead from "../components/SeoHead";
+import TicketView, { type TicketData } from "../components/Ticket";
+import { rememberTicket } from "../lib/myTickets";
+import { subscribeToPaymentPortalUpdates } from "../hooks/usePushNotifications";
 
 type Method = {
   key: string;
@@ -24,6 +27,7 @@ type PortalData = {
     instructions: string;
     expiresAt: string | null;
     submittedAt: string | null;
+    adminNote?: string;
   };
   booking: {
     id: number;
@@ -33,8 +37,24 @@ type PortalData = {
     packageNameAr: string;
     date: string;
     passengers: number;
+    status?: string;
+    paymentStatus?: string;
   };
   methods: Method[];
+  action?: string;
+  message?: string;
+  timeline?: { key: string; label: string; status: "done" | "current" | "upcoming" | "blocked" }[];
+  ticket?: {
+    status: "issued";
+    token: string;
+    ticketNumber: string;
+    ticketSignature: string;
+    issuedAt: string;
+    ticketUrl: string;
+    verifyUrl: string;
+    pdfAvailable: boolean;
+    pdfUrl: string | null;
+  } | null;
 };
 
 type UploadItem = {
@@ -49,13 +69,31 @@ type UploadItem = {
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024;
+const PAYMENT_PORTALS_KEY = "dr-travel-payment-portals-v1";
 
 function formatMoney(value: number, currency: string) {
   return `${Math.max(0, Number(value || 0)).toLocaleString("ar-EG")} ${currency || "EGP"}`;
 }
 
-function isFinalStatus(status: string) {
-  return ["approved", "offline_paid", "waived", "expired", "rejected"].includes(status);
+function canUploadStatus(status: string) {
+  return ["pending", "reupload_requested"].includes(status);
+}
+
+function isWaitingForChange(status: string, ticket?: PortalData["ticket"]) {
+  return status === "submitted" || (["approved", "offline_paid", "waived"].includes(status) && !ticket?.token);
+}
+
+function rememberPaymentPortal(token: string) {
+  if (!token || token.length < 16) return;
+  try {
+    const raw = localStorage.getItem(PAYMENT_PORTALS_KEY);
+    const parsed = JSON.parse(raw || "[]");
+    const list = Array.isArray(parsed) ? parsed as Array<{ token: string; savedAt: number }> : [];
+    const next = [{ token, savedAt: Date.now() }, ...list.filter((item) => item?.token !== token)].slice(0, 10);
+    localStorage.setItem(PAYMENT_PORTALS_KEY, JSON.stringify(next));
+  } catch {
+    localStorage.setItem(PAYMENT_PORTALS_KEY, JSON.stringify([{ token, savedAt: Date.now() }]));
+  }
 }
 
 function uploadProof(token: string, item: UploadItem, onProgress: (value: number) => void): Promise<string> {
@@ -106,8 +144,10 @@ export default function PaymentPortalPage() {
   const [files, setFiles] = useState<UploadItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [ticketData, setTicketData] = useState<TicketData | null>(null);
+  const [notifyState, setNotifyState] = useState<"idle" | "loading" | "ok" | "error">("idle");
 
-  const canSubmit = data && !isFinalStatus(data.payment.status) && data.payment.status !== "submitted";
+  const canSubmit = !!data && canUploadStatus(data.payment.status);
   const expiresText = useMemo(() => {
     if (!data?.payment.expiresAt) return "";
     const end = new Date(data.payment.expiresAt).getTime();
@@ -118,9 +158,9 @@ export default function PaymentPortalPage() {
     return `${hours} ساعة و ${minutes} دقيقة متبقية`;
   }, [data?.payment.expiresAt]);
 
-  useEffect(() => {
+  const loadPortal = useCallback((silent = false) => {
     let alive = true;
-    setLoading(true);
+    if (!silent) setLoading(true);
     apiFetch(`/api/payments/portal/${encodeURIComponent(token)}`)
       .then(async (r) => {
         const body = await r.json().catch(() => ({}));
@@ -129,6 +169,7 @@ export default function PaymentPortalPage() {
       })
       .then((body) => {
         if (!alive) return;
+        setError("");
         setData(body);
         setMethodKey(body.payment.methodKey || body.methods[0]?.key || "");
       })
@@ -136,6 +177,36 @@ export default function PaymentPortalPage() {
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
   }, [token]);
+
+  useEffect(() => loadPortal(false), [loadPortal]);
+
+  useEffect(() => {
+    rememberPaymentPortal(token);
+  }, [token]);
+
+  useEffect(() => {
+    if (!data || !isWaitingForChange(data.payment.status, data.ticket)) return;
+    const t = setInterval(() => loadPortal(true), 15_000);
+    return () => clearInterval(t);
+  }, [data?.payment.status, data?.ticket?.token, loadPortal]);
+
+  useEffect(() => {
+    const token = data?.ticket?.token;
+    if (!token) {
+      setTicketData(null);
+      return;
+    }
+    rememberTicket(token);
+    let alive = true;
+    const sig = data.ticket?.ticketSignature ? `?sig=${encodeURIComponent(data.ticket.ticketSignature)}` : "";
+    apiFetch(`/api/tickets/${encodeURIComponent(token)}${sig}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((body) => {
+        if (alive && body) setTicketData(body as TicketData);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [data?.ticket?.token, data?.ticket?.ticketSignature]);
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;
@@ -191,11 +262,19 @@ export default function PaymentPortalPage() {
       const body = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(body.error || "تعذر إرسال إثبات الدفع");
       setDone(true);
+      setFiles([]);
+      loadPortal(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر إرسال إثبات الدفع");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const enableNotifications = async () => {
+    setNotifyState("loading");
+    const result = await subscribeToPaymentPortalUpdates(token);
+    setNotifyState(result.ok ? "ok" : "error");
   };
 
   return (
@@ -241,16 +320,54 @@ export default function PaymentPortalPage() {
               </div>
             </section>
 
-            <section style={{ marginTop: "1rem", background: "#fff", border: "1px solid #dbe8f4", borderRadius: 8, padding: "1rem" }}>
-              {done || data.payment.status === "submitted" ? (
-                <div style={{ background: "#ecfdf5", border: "1px solid #bbf7d0", color: "#047857", borderRadius: 8, padding: "1rem", fontWeight: 900, textAlign: "center" }}>
-                  تم إرسال إثبات الدفع بنجاح. سيتم مراجعته قريباً.
+            <section style={{ marginTop: "1rem", background: "#fff", border: "1px solid #dbe8f4", borderRadius: 8, padding: "1rem", display: "grid", gap: "1rem" }}>
+              <div style={{ display: "flex", gap: "0.8rem", alignItems: "flex-start", background: statusTone(data.payment.status).bg, border: `1px solid ${statusTone(data.payment.status).border}`, borderRadius: 8, padding: "0.9rem" }}>
+                <StatusIcon status={data.payment.status} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: statusTone(data.payment.status).color, fontWeight: 1000 }}>{statusTitle(data.payment.status, !!data.ticket?.token)}</div>
+                  <div style={{ color: "#425466", lineHeight: 1.8, marginTop: 4, fontWeight: 700 }}>
+                    {done && data.payment.status !== "submitted" ? "تم إرسال إثبات الدفع بنجاح." : data.message || "تابع حالة حجزك من هنا."}
+                  </div>
                 </div>
-              ) : isFinalStatus(data.payment.status) ? (
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155", borderRadius: 8, padding: "1rem", fontWeight: 900, textAlign: "center" }}>
-                  حالة الدفع الحالية: {data.payment.status}
+              </div>
+
+              <Timeline items={data.timeline || []} />
+
+              <button
+                onClick={enableNotifications}
+                disabled={notifyState === "loading" || notifyState === "ok"}
+                style={{ border: "1px solid #bae6fd", background: notifyState === "ok" ? "#ecfdf5" : "#f0f9ff", color: notifyState === "ok" ? "#047857" : "#0369a1", borderRadius: 8, minHeight: 44, padding: "0.65rem 0.8rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, fontWeight: 900, fontFamily: "Cairo, sans-serif", cursor: notifyState === "loading" || notifyState === "ok" ? "default" : "pointer" }}>
+                <Bell size={18} />
+                {notifyState === "loading" ? "جاري التفعيل..." : notifyState === "ok" ? "سيتم تنبيهك عند التحديث" : notifyState === "error" ? "تعذر تفعيل التنبيه - حاول مرة أخرى" : "نبهني عند تحديث الحالة"}
+              </button>
+            </section>
+
+            {data.ticket?.token && (
+              <section style={{ marginTop: "1rem", background: "#fff", border: "1px solid #bbf7d0", borderRadius: 8, padding: "1rem", display: "grid", gap: "0.85rem" }}>
+                <div style={{ display: "flex", gap: "0.7rem", alignItems: "center", color: "#047857", fontWeight: 1000 }}>
+                  <TicketIcon size={22} />
+                  <span>تذكرتك جاهزة</span>
                 </div>
-              ) : (
+                <div style={{ color: "#43566b", fontWeight: 800 }}>رقم التذكرة: {data.ticket.ticketNumber}</div>
+                <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                  <a href={data.ticket.ticketUrl} target="_blank" rel="noreferrer" style={linkBtn("#00aaff", "#fff")}>فتح التذكرة</a>
+                  <a href={data.ticket.verifyUrl} target="_blank" rel="noreferrer" style={linkBtn("#fff", "#075985")}>صفحة التحقق</a>
+                  {data.ticket.pdfAvailable && data.ticket.pdfUrl && (
+                    <a href={apiUrl(data.ticket.pdfUrl)} target="_blank" rel="noreferrer" style={linkBtn("#fff7ed", "#9a3412")}>تحميل PDF</a>
+                  )}
+                </div>
+                {ticketData && (
+                  <div style={{ overflow: "auto", borderRadius: 8, background: "#0D1B2A", padding: "0.75rem", display: "flex", justifyContent: "center" }}>
+                    <div style={{ transform: "scale(0.72)", transformOrigin: "top center", width: 800, height: 650 }}>
+                      <TicketView data={ticketData} lang="ar" publicUrl={typeof window !== "undefined" ? `${window.location.origin}/verify/${data.ticket.token}` : ""} />
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {canSubmit && (
+              <section style={{ marginTop: "1rem", background: "#fff", border: "1px solid #dbe8f4", borderRadius: 8, padding: "1rem" }}>
                 <div style={{ display: "grid", gap: "1rem" }}>
                   <div>
                     <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>طريقة الدفع</h2>
@@ -302,11 +419,78 @@ export default function PaymentPortalPage() {
                     {submitting ? "جاري الإرسال..." : "إرسال إثبات الدفع"}
                   </button>
                 </div>
-              )}
-            </section>
+              </section>
+            )}
           </>
         ) : null}
       </main>
     </div>
   );
+}
+
+function statusTone(status: string) {
+  if (status === "submitted") return { bg: "#eff6ff", border: "#bfdbfe", color: "#1d4ed8" };
+  if (["approved", "offline_paid", "waived"].includes(status)) return { bg: "#ecfdf5", border: "#bbf7d0", color: "#047857" };
+  if (status === "reupload_requested") return { bg: "#fff7ed", border: "#fed7aa", color: "#c2410c" };
+  if (status === "rejected") return { bg: "#fff1f2", border: "#fecdd3", color: "#be123c" };
+  if (status === "expired") return { bg: "#f8fafc", border: "#cbd5e1", color: "#475569" };
+  return { bg: "#f0f9ff", border: "#bae6fd", color: "#0369a1" };
+}
+
+function statusTitle(status: string, hasTicket: boolean) {
+  if (hasTicket) return "تم إصدار التذكرة";
+  if (status === "submitted") return "إثبات الدفع قيد المراجعة";
+  if (["approved", "offline_paid", "waived"].includes(status)) return "تم اعتماد الدفع";
+  if (status === "reupload_requested") return "مطلوب إعادة رفع الإثبات";
+  if (status === "rejected") return "تم رفض إثبات الدفع";
+  if (status === "expired") return "انتهت مهلة الدفع";
+  return "في انتظار إثبات الدفع";
+}
+
+function StatusIcon({ status }: { status: string }) {
+  if (["approved", "offline_paid", "waived"].includes(status)) return <CheckCircle2 size={24} color="#047857" />;
+  if (status === "rejected" || status === "expired") return <XCircle size={24} color={status === "expired" ? "#64748b" : "#be123c"} />;
+  if (status === "reupload_requested") return <RotateCcw size={24} color="#c2410c" />;
+  return <Clock3 size={24} color="#0369a1" />;
+}
+
+function Timeline({ items }: { items: NonNullable<PortalData["timeline"]> }) {
+  if (!items.length) return null;
+  const colors: Record<string, string> = {
+    done: "#10b981",
+    current: "#0ea5e9",
+    upcoming: "#cbd5e1",
+    blocked: "#ef4444",
+  };
+  return (
+    <div style={{ display: "grid", gap: "0.55rem" }}>
+      {items.map((item) => (
+        <div key={item.key} style={{ display: "grid", gridTemplateColumns: "22px 1fr", gap: "0.6rem", alignItems: "center" }}>
+          <span style={{ width: 18, height: 18, borderRadius: 999, background: colors[item.status] || "#cbd5e1", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.7rem", fontWeight: 1000 }}>
+            {item.status === "done" ? "✓" : item.status === "blocked" ? "!" : ""}
+          </span>
+          <span style={{ color: item.status === "upcoming" ? "#7a8aa0" : "#243447", fontWeight: item.status === "current" ? 1000 : 800 }}>
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function linkBtn(bg: string, color: string): CSSProperties {
+  return {
+    background: bg,
+    color,
+    border: "1px solid #bae6fd",
+    borderRadius: 8,
+    padding: "0.65rem 0.9rem",
+    textDecoration: "none",
+    fontWeight: 1000,
+    fontFamily: "Cairo, sans-serif",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
+  };
 }

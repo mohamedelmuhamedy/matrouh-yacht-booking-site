@@ -6,6 +6,8 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),
   bookingId: integer("booking_id"),
+  audience: text("audience").notNull().default("customer"),
+  adminUserId: integer("admin_user_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

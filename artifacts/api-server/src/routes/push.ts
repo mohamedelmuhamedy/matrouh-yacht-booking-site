@@ -2,9 +2,10 @@ import "../loadEnv";
 import { Router, Request, Response } from "express";
 import webpush from "web-push";
 import { db, pushSubscriptions, appSecrets, bookings } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
+import { userHasPermission } from "../lib/adminPermissions";
 
 async function resolveBookingIdFromTicketToken(token: unknown): Promise<number | null> {
   if (typeof token !== "string") return null;
@@ -20,6 +21,71 @@ async function resolveBookingIdFromTicketToken(token: unknown): Promise<number |
 }
 
 const router = Router();
+
+type PushPayload = { title: string; body: string; url?: string };
+
+function pushPayload(input: PushPayload): string {
+  return JSON.stringify({ title: input.title, body: input.body, url: input.url || "/" });
+}
+
+async function sendToSubscriptions(
+  subs: typeof pushSubscriptions.$inferSelect[],
+  payload: PushPayload,
+): Promise<{ sent: number; failed: number; total: number }> {
+  if (subs.length === 0) return { sent: 0, failed: 0, total: 0 };
+  if (!(await getVapidConfig())) return { sent: 0, failed: subs.length, total: subs.length };
+
+  let sent = 0;
+  let failed = 0;
+  const expired: string[] = [];
+  const body = pushPayload(payload);
+
+  await Promise.allSettled(
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          body,
+          { TTL: 86400, urgency: "high" },
+        );
+        sent++;
+      } catch (err: any) {
+        failed++;
+        if (err?.statusCode === 410 || err?.statusCode === 404) expired.push(sub.endpoint);
+      }
+    }),
+  );
+
+  for (const endpoint of expired) {
+    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+  }
+
+  return { sent, failed, total: subs.length };
+}
+
+export async function sendPushToAdmins(payload: PushPayload): Promise<{ sent: number; failed: number; total: number }> {
+  const subs = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.audience, "admin"));
+  const allowed: typeof pushSubscriptions.$inferSelect[] = [];
+  for (const sub of subs) {
+    if (!sub.adminUserId) continue;
+    if (await userHasPermission(sub.adminUserId, "payment_gateway.view")) allowed.push(sub);
+  }
+  return sendToSubscriptions(allowed, payload);
+}
+
+export async function sendPushToBooking(
+  bookingId: number,
+  payload: PushPayload,
+): Promise<{ sent: number; failed: number; total: number }> {
+  const subs = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(and(eq(pushSubscriptions.audience, "customer"), eq(pushSubscriptions.bookingId, bookingId)));
+  return sendToSubscriptions(subs, payload);
+}
 
 let configuredVapidPair = "";
 let warnedAboutMissingVapid = false;
@@ -141,16 +207,55 @@ router.post("/push/subscribe", async (req: Request, res: Response) => {
         p256dh: keys.p256dh,
         auth: keys.auth,
         bookingId: linkedBookingId ?? undefined,
+        audience: "customer",
+        adminUserId: null,
       })
       .onConflictDoUpdate({
         target: pushSubscriptions.endpoint,
-        set: updateSet,
+        set: { ...updateSet, audience: "customer", adminUserId: null },
       });
 
     return res.json({ ok: true, linked: linkedBookingId !== null });
   } catch (err) {
     console.error("[push] subscribe error:", err);
     return res.status(500).json({ error: "Failed to save subscription" });
+  }
+});
+
+router.post("/admin/push/subscribe-admin", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const admin = (req as unknown as { admin?: { userId?: number } }).admin;
+    if (!admin?.userId || !(await userHasPermission(admin.userId, "payment_gateway.view"))) {
+      return res.status(403).json({ error: "Insufficient permissions", requiredPermission: "payment_gateway.view" });
+    }
+    const { endpoint, keys } = req.body ?? {};
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: "Missing subscription fields" });
+    }
+    await db
+      .insert(pushSubscriptions)
+      .values({
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        bookingId: null,
+        audience: "admin",
+        adminUserId: admin.userId,
+      })
+      .onConflictDoUpdate({
+        target: pushSubscriptions.endpoint,
+        set: {
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+          bookingId: null,
+          audience: "admin",
+          adminUserId: admin.userId,
+        },
+      });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[push] admin subscribe error:", err);
+    return res.status(500).json({ error: "Failed to save admin subscription" });
   }
 });
 
@@ -226,10 +331,10 @@ router.post("/admin/push/send", authMiddleware, requireRole("admin"), async (req
     return res.status(400).json({ error: "title and body required" });
   }
 
-  const payload = JSON.stringify({ title, body, url: url || "/" });
+    const payload = JSON.stringify({ title, body, url: url || "/" });
 
   try {
-    const subs = await db.select().from(pushSubscriptions);
+    const subs = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.audience, "customer"));
     if (subs.length === 0) {
       return res.json({ sent: 0, failed: 0, total: 0, message: "No subscribers" });
     }

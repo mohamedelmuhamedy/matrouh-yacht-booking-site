@@ -157,6 +157,74 @@ export async function subscribeToPush(opts?: { ticketToken?: string }): Promise<
   }
 }
 
+async function ensureSubscriptionForChannel(): Promise<{ sub?: PushSubscription; errorCode?: string; error?: string }> {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { errorCode: "not_supported" };
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === "denied") return { errorCode: "permission_denied" };
+  if (perm !== "granted") return { errorCode: "permission_dismissed" };
+
+  const publicKey = await getVapidPublicKey();
+  if (!publicKey) return { errorCode: "server_error" };
+  const reg = await ensureSwActive();
+  if (!reg) return { errorCode: "sw_error" };
+
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    try {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    } catch (err) {
+      return { errorCode: friendlyError(err), error: errorMessage(err) };
+    }
+  }
+  return { sub };
+}
+
+async function postSubscription(path: string, sub: PushSubscription, headers?: Record<string, string>): Promise<void> {
+  const json = sub.toJSON();
+  const r = await apiFetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(headers || {}) },
+    body: JSON.stringify({
+      endpoint: sub.endpoint,
+      keys: { p256dh: json.keys?.p256dh ?? "", auth: json.keys?.auth ?? "" },
+    }),
+  });
+  if (!r.ok) throw new Error(`server_rejected:${r.status}`);
+}
+
+export async function subscribeToPaymentPortalUpdates(token: string): Promise<{ ok: boolean; errorCode?: string; error?: string }> {
+  if (!token || token.length < 16) return { ok: false, errorCode: "unknown" };
+  try {
+    const result = await ensureSubscriptionForChannel();
+    if (!result.sub) return { ok: false, errorCode: result.errorCode, error: result.error };
+    await postSubscription(`/api/payments/portal/${encodeURIComponent(token)}/subscribe`, result.sub);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, errorCode: friendlyError(err), error: errorMessage(err) };
+  }
+}
+
+export async function subscribeToAdminPush(): Promise<{ ok: boolean; errorCode?: string; error?: string }> {
+  try {
+    const result = await ensureSubscriptionForChannel();
+    if (!result.sub) return { ok: false, errorCode: result.errorCode, error: result.error };
+    const token = localStorage.getItem("admin_token") || "";
+    await postSubscription(
+      "/api/admin/push/subscribe-admin",
+      result.sub,
+      token ? { Authorization: `Bearer ${token}` } : undefined,
+    );
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, errorCode: friendlyError(err), error: errorMessage(err) };
+  }
+}
+
 // After a successful subscribe, link any tickets the user has previously
 // opened on this device so that pre-trip reminders can target this
 // subscription. Each call uses the ticket token as proof of ownership;

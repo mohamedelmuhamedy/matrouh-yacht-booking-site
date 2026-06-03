@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { db, bookings } from "@workspace/db";
+import { db, bookings, paymentRequests } from "@workspace/db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { ensureTicketToken } from "./tickets";
 import { recordAudit } from "../lib/audit";
 import { canIssueTicketForBooking } from "../lib/payments";
+import { sendPushToBooking } from "./push";
 
 const router = Router();
 
@@ -66,14 +67,16 @@ router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator")
         .where(eq(bookings.id, id))
         .returning();
       if (!updated) return null;
+      let issuedNow = false;
       if ((status === "confirmed" || status === "client_confirmed") && (!updated.ticketToken || !updated.ticketNumber)) {
         const issued = await ensureTicketToken(id, tx);
         if (issued) {
           updated.ticketToken = issued.token;
           updated.ticketNumber = issued.ticketNumber;
+          issuedNow = true;
         }
       }
-      return { updated, prevStatus: existing.status };
+      return { updated, prevStatus: existing.status, issuedNow };
     });
     if (!result) return res.status(404).json({ error: "Booking not found" });
     await recordAudit(req, {
@@ -82,6 +85,14 @@ router.put("/admin/bookings/:id/status", authMiddleware, requireRole("operator")
       entityId: id,
       metadata: { from: result.prevStatus, to: status },
     });
+    if (result.issuedNow && result.updated.paymentRequired) {
+      const [payment] = await db.select({ portalToken: paymentRequests.portalToken }).from(paymentRequests).where(eq(paymentRequests.bookingId, id));
+      void sendPushToBooking(id, {
+        title: "تم إصدار التذكرة",
+        body: "تذكرتك جاهزة الآن داخل بوابة الدفع.",
+        url: payment?.portalToken ? `/payment/${payment.portalToken}` : `/ticket/${result.updated.ticketToken}`,
+      }).catch((err) => console.error("[admin-bookings] ticket push:", err));
+    }
     return res.json(result.updated);
   } catch (err: unknown) {
     return res.status(500).json({ error: (err instanceof Error ? err.message : "") || "Failed to update" });
@@ -128,8 +139,17 @@ router.post("/admin/bookings/:id/issue-ticket", authMiddleware, requireRole("ope
     // can download / send the ticket right away after creation.
     const guard = canIssueTicketForBooking(b);
     if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
+    const willIssueNow = !b.ticketToken || !b.ticketNumber;
     const issued = await ensureTicketToken(id);
     if (!issued) return res.status(500).json({ error: "Token issuance failed" });
+    if (willIssueNow && b.paymentRequired) {
+      const [payment] = await db.select({ portalToken: paymentRequests.portalToken }).from(paymentRequests).where(eq(paymentRequests.bookingId, id));
+      void sendPushToBooking(id, {
+        title: "تم إصدار التذكرة",
+        body: "تذكرتك جاهزة الآن داخل بوابة الدفع.",
+        url: payment?.portalToken ? `/payment/${payment.portalToken}` : `/ticket/${issued.token}`,
+      }).catch((err) => console.error("[admin-bookings] issue-ticket push:", err));
+    }
     return res.json({
       token: issued.token,
       ticketNumber: issued.ticketNumber,
