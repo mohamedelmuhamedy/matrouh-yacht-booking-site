@@ -123,6 +123,7 @@ export default function AdminGalleryPage() {
       xhr.open("POST", apiUrl("/api/admin/storage/upload"));
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.setRequestHeader("X-Content-Type", file.type);
+      xhr.setRequestHeader("X-Media-Category", "gallery");
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
       };

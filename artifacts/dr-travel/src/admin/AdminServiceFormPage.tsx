@@ -101,6 +101,7 @@ function uploadFile(file: File): Promise<{ url: string } | { error: string }> {
     xhr.open("POST", apiUrl("/api/admin/storage/upload"));
     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.setRequestHeader("X-Content-Type", file.type);
+    xhr.setRequestHeader("X-Media-Category", "services");
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {

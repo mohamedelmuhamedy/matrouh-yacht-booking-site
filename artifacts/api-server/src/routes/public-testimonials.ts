@@ -2,12 +2,12 @@ import { Router } from "express";
 import { db, testimonials } from "@workspace/db";
 import {
   ObjectNotFoundError,
-  ObjectStorageService,
   StorageUploadError,
 } from "../lib/objectStorage";
+import { MediaStorageService } from "../lib/mediaStorage";
 
 const router = Router();
-const objectStorageService = new ObjectStorageService();
+const mediaStorage = new MediaStorageService();
 
 const MAX_REVIEW_IMAGE_BYTES = 8 * 1024 * 1024;
 const MIME_TO_EXT: Record<string, string> = {
@@ -86,17 +86,22 @@ router.post("/testimonials/upload", async (req, res) => {
     return res.status(429).json({ error: "تم تجاوز الحد. حاول مرة أخرى لاحقاً." });
   }
   try {
-    const objectPath = objectStorageService.createObjectPath(`review${MIME_TO_EXT[contentType]}`);
-    await objectStorageService.uploadRequestStream({
-      objectPath,
+    const uploaded = await mediaStorage.uploadPublic({
+      category: "testimonials",
+      originalFilename: `testimonial${MIME_TO_EXT[contentType]}`,
       contentType,
       stream: req,
       contentLength,
+      maxBytes: MAX_REVIEW_IMAGE_BYTES,
     });
     return res.json({
-      url: objectStorageService.getPublicUrl(objectPath),
-      objectPath,
-      proxyUrl: objectStorageService.toApiObjectUrl(objectPath),
+      url: uploaded.url,
+      objectPath: uploaded.objectPath,
+      proxyUrl: uploaded.proxyUrl,
+      publicUrl: uploaded.publicUrl,
+      deliveryUrl: uploaded.deliveryUrl,
+      provider: uploaded.provider,
+      mediaAssetId: uploaded.mediaAssetId,
     });
   } catch (error) {
     console.error("Public testimonial upload failed:", error);

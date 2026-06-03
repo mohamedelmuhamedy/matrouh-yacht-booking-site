@@ -6,6 +6,7 @@ import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import {
   bookings,
   db,
+  mediaAssets,
   packagePaymentSettings,
   packages,
   paymentMethods,
@@ -19,6 +20,7 @@ import {
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { ObjectNotFoundError, ObjectStorageService, StorageUploadError } from "../lib/objectStorage";
+import { MediaStorageService } from "../lib/mediaStorage";
 import { recordAudit } from "../lib/audit";
 import { userHasPermission } from "../lib/adminPermissions";
 import {
@@ -35,6 +37,7 @@ import { sendPushToAdmins, sendPushToBooking } from "./push";
 
 const router = Router();
 const storage = new ObjectStorageService();
+const mediaStorage = new MediaStorageService();
 
 const PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const MAX_PROOF_BYTES = 10 * 1024 * 1024;
@@ -58,15 +61,30 @@ function clampInt(value: unknown, min: number, max: number, fallback: number): n
   return Math.min(max, Math.max(min, n));
 }
 
-function ticketSnapshot(booking: typeof bookings.$inferSelect) {
+async function ticketPdfAvailable(token: string): Promise<boolean> {
+  const [asset] = await db
+    .select({ id: mediaAssets.id })
+    .from(mediaAssets)
+    .where(and(
+      eq(mediaAssets.ownerType, "ticket_pdf"),
+      eq(mediaAssets.ownerId, token),
+      eq(mediaAssets.visibility, "private"),
+      eq(mediaAssets.status, "active"),
+    ))
+    .orderBy(desc(mediaAssets.createdAt))
+    .limit(1);
+  if (asset) return true;
+  const pdfPath = path.resolve(process.cwd(), "data", "tickets", `${token}.pdf`);
+  return fs.existsSync(pdfPath);
+}
+
+function ticketSnapshot(booking: typeof bookings.$inferSelect, pdfAvailable: boolean) {
   if (!booking.ticketToken || !booking.ticketNumber) return null;
   const signature = signTicket({
     bookingId: booking.id,
     ticketToken: booking.ticketToken,
     ticketNumber: booking.ticketNumber,
   });
-  const pdfPath = path.resolve(process.cwd(), "data", "tickets", `${booking.ticketToken}.pdf`);
-  const pdfAvailable = fs.existsSync(pdfPath);
   return {
     status: "issued",
     token: booking.ticketToken,
@@ -80,8 +98,8 @@ function ticketSnapshot(booking: typeof bookings.$inferSelect) {
   };
 }
 
-function portalState(payment: typeof paymentRequests.$inferSelect, booking: typeof bookings.$inferSelect) {
-  const ticket = ticketSnapshot(booking);
+function portalState(payment: typeof paymentRequests.$inferSelect, booking: typeof bookings.$inferSelect, pdfAvailable: boolean) {
+  const ticket = ticketSnapshot(booking, pdfAvailable);
   const paymentStatus = String(payment.status || "");
   const ticketIssued = !!ticket;
   const steps = [
@@ -201,7 +219,8 @@ router.get("/payments/portal/:token", async (req, res) => {
     const portal = await loadPortal(token);
     if (!portal) return res.status(404).json({ error: "Not found" });
     const { payment, booking, methods, attachments } = portal;
-    const state = portalState(payment, booking);
+    const pdfAvailable = booking.ticketToken ? await ticketPdfAvailable(booking.ticketToken) : false;
+    const state = portalState(payment, booking, pdfAvailable);
     return res.json({
       payment: {
         id: payment.id,
@@ -267,7 +286,7 @@ router.post("/payments/portal/:token/upload-url", async (req, res) => {
       return res.status(400).json({ error: "File size must be 10 MB or less" });
     }
     const prefix = `payment-proofs/${portal.booking.id}/${portal.payment.id}`;
-    const target = storage.createDirectUploadTarget({ name, size, contentType, prefix });
+    const target = storage.createDirectUploadTarget({ name, size, contentType, prefix, visibility: "private" });
     return res.json({ uploadURL: target.uploadURL, objectPath: target.objectPath, metadata: { name, size, contentType } });
   } catch (err) {
     console.error("[payments.portal] upload-url:", err);
@@ -307,8 +326,11 @@ router.post("/payments/portal/:token/proof", async (req, res) => {
       sortOrder: index,
     }));
     for (const file of clean) {
-      const expectedPrefix = `/objects/payment-proofs/${portal.booking.id}/${portal.payment.id}/`;
-      if (!file.objectPath.startsWith(expectedPrefix)) return res.status(400).json({ error: "Invalid attachment path" });
+      const allowedPrefixes = [
+        `/private-objects/payment-proofs/${portal.booking.id}/${portal.payment.id}/`,
+        `/objects/payment-proofs/${portal.booking.id}/${portal.payment.id}/`,
+      ];
+      if (!allowedPrefixes.some((prefix) => file.objectPath.startsWith(prefix))) return res.status(400).json({ error: "Invalid attachment path" });
       if (!PROOF_TYPES.has(file.mimeType)) return res.status(400).json({ error: "Unsupported attachment type" });
       if (file.sizeBytes <= 0 || file.sizeBytes > MAX_PROOF_BYTES) return res.status(400).json({ error: "Invalid attachment size" });
       if (!(await storage.objectExists(file.objectPath))) return res.status(400).json({ error: "Uploaded attachment was not found" });
@@ -582,7 +604,16 @@ router.get("/admin/payment-requests/attachments/:id", authMiddleware, async (req
     const id = String(req.params.id || "").trim();
     const [attachment] = await db.select().from(paymentRequestAttachments).where(eq(paymentRequestAttachments.id, id));
     if (!attachment) return res.status(404).json({ error: "Not found" });
-    const response = await storage.proxyObject(attachment.objectPath);
+    const migrated = await mediaStorage.findCloudinaryAssetByLegacyRef(attachment.objectPath);
+    let response: globalThis.Response;
+    try {
+      response = migrated
+        ? await mediaStorage.proxyAsset(migrated)
+        : await storage.proxyObject(attachment.objectPath);
+    } catch (error) {
+      if (!migrated) throw error;
+      response = await storage.proxyObject(attachment.objectPath);
+    }
     copyProxyHeaders(response, res);
     res.status(response.status);
     if (response.body) Readable.fromWeb(response.body as ReadableStream).pipe(res);

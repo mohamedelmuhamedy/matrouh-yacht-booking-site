@@ -26,3 +26,4 @@ export * from "./abandoned_carts";
 export * from "./customer_photos";
 export * from "./manual_tickets";
 export * from "./payments";
+export * from "./media_assets";

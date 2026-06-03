@@ -3,10 +3,11 @@ import { db, customerPhotos, bookings } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
-import { ObjectStorageService, StorageUploadError } from "../lib/objectStorage";
+import { StorageUploadError } from "../lib/objectStorage";
+import { MediaStorageService } from "../lib/mediaStorage";
 
 const router = Router();
-const objectStorage = new ObjectStorageService();
+const mediaStorage = new MediaStorageService();
 
 const PHOTO_MIME_EXT: Record<string, string> = {
   "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
@@ -36,9 +37,17 @@ router.post("/customer-photos/upload", async (req, res) => {
       return res.status(409).json({ error: `الحد الأقصى ${MAX_PHOTOS_PER_BOOKING} صورة لكل رحلة` });
     }
 
-    const objectPath = objectStorage.createObjectPath(`customer${PHOTO_MIME_EXT[contentType]}`);
-    await objectStorage.uploadRequestStream({ objectPath, contentType, stream: req, contentLength: len });
-    const photoUrl = objectStorage.getPublicUrl(objectPath);
+    const uploaded = await mediaStorage.uploadPublic({
+      category: "customer-photos",
+      originalFilename: `customer${PHOTO_MIME_EXT[contentType]}`,
+      contentType,
+      stream: req,
+      contentLength: len,
+      maxBytes: MAX_PHOTO_BYTES,
+      ownerType: "booking",
+      ownerId: String(b.id),
+    });
+    const photoUrl = uploaded.publicUrl || uploaded.url;
 
     const [row] = await db.insert(customerPhotos).values({
       bookingId: b.id, photoUrl, caption: "",

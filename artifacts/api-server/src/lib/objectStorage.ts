@@ -6,13 +6,16 @@ import { pool } from "@workspace/db";
 
 const DEFAULT_SUPABASE_URL = "https://aiodvunlslvsmeskgjok.supabase.co";
 const DEFAULT_BUCKET = "uploads";
+const DEFAULT_PRIVATE_BUCKET = "private-uploads";
 const DEFAULT_CACHE_CONTROL = "3600";
+type StorageVisibility = "public" | "private";
 
 interface UploadTokenPayload extends jwt.JwtPayload {
   type: "storage-upload";
   objectPath: string;
   contentType: string;
   size: number;
+  visibility?: StorageVisibility;
 }
 
 export class ObjectNotFoundError extends Error {
@@ -43,9 +46,12 @@ export class StorageUploadError extends Error {
 }
 
 export class ObjectStorageService {
-  private bucketReadyPromise: Promise<void> | null = null;
+  private bucketReadyPromises = new Map<StorageVisibility, Promise<void>>();
 
-  getBucketName(): string {
+  getBucketName(visibility: StorageVisibility = "public"): string {
+    if (visibility === "private") {
+      return process.env.SUPABASE_PRIVATE_STORAGE_BUCKET || DEFAULT_PRIVATE_BUCKET;
+    }
     return process.env.SUPABASE_STORAGE_BUCKET || DEFAULT_BUCKET;
   }
 
@@ -85,34 +91,35 @@ export class ObjectStorageService {
     return secret;
   }
 
-  async ensureBucketExists(): Promise<void> {
-    if (!this.bucketReadyPromise) {
-      this.bucketReadyPromise = this.ensureBucketExistsInternal().catch((error) => {
-        this.bucketReadyPromise = null;
+  async ensureBucketExists(visibility: StorageVisibility = "public"): Promise<void> {
+    if (!this.bucketReadyPromises.has(visibility)) {
+      const promise = this.ensureBucketExistsInternal(visibility).catch((error) => {
+        this.bucketReadyPromises.delete(visibility);
         throw error;
       });
+      this.bucketReadyPromises.set(visibility, promise);
     }
-    await this.bucketReadyPromise;
+    await this.bucketReadyPromises.get(visibility);
   }
 
-  private async ensureBucketExistsInternal(): Promise<void> {
-    const bucket = this.getBucketName();
+  private async ensureBucketExistsInternal(visibility: StorageVisibility): Promise<void> {
+    const bucket = this.getBucketName(visibility);
     await pool.query(
       `
         insert into storage.buckets (id, name, public)
-        values ($1, $1, true)
+        values ($1, $1, $2)
         on conflict (id)
-        do update set public = true
+        do update set public = $2
       `,
-      [bucket],
+      [bucket, visibility === "public"],
     );
   }
 
-  createObjectPath(fileName?: string, prefix = ""): string {
+  createObjectPath(fileName?: string, prefix = "", visibility: StorageVisibility = "public"): string {
     const safePrefix = this.sanitizeSegment(prefix);
     const safeExt = this.sanitizeExtension(fileName);
     const prefixPath = safePrefix ? `${safePrefix}/` : "";
-    return `/objects/${prefixPath}${randomUUID()}${safeExt}`;
+    return `${visibility === "private" ? "/private-objects" : "/objects"}/${prefixPath}${randomUUID()}${safeExt}`;
   }
 
   normalizeObjectEntityPath(rawPath: string): string {
@@ -124,6 +131,10 @@ export class ObjectStorageService {
     }
 
     if (rawPath.startsWith("/objects/")) {
+      return rawPath;
+    }
+
+    if (rawPath.startsWith("/private-objects/")) {
       return rawPath;
     }
 
@@ -139,7 +150,7 @@ export class ObjectStorageService {
 
     if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
       const url = new URL(rawPath);
-      const publicPrefix = `/storage/v1/object/public/${this.getBucketName()}/`;
+      const publicPrefix = `/storage/v1/object/public/${this.getBucketName("public")}/`;
       if (url.pathname.startsWith(publicPrefix)) {
         const objectKey = decodeURIComponent(url.pathname.slice(publicPrefix.length));
         return `/objects/${objectKey}`;
@@ -154,9 +165,12 @@ export class ObjectStorageService {
   }
 
   getPublicUrl(objectPath: string): string {
+    if (this.getVisibilityFromObjectPath(objectPath) !== "public") {
+      throw new ObjectNotFoundError();
+    }
     const objectKey = this.getObjectKey(objectPath);
     return `${this.getSupabaseUrl()}/storage/v1/object/public/${encodeURIComponent(
-      this.getBucketName(),
+      this.getBucketName("public"),
     )}/${this.encodeObjectKey(objectKey)}`;
   }
 
@@ -165,14 +179,17 @@ export class ObjectStorageService {
     size: number;
     contentType: string;
     prefix?: string;
+    visibility?: StorageVisibility;
   }): { uploadURL: string; objectPath: string; publicUrl: string } {
-    const objectPath = this.createObjectPath(input.name, input.prefix);
+    const visibility = input.visibility || "public";
+    const objectPath = this.createObjectPath(input.name, input.prefix, visibility);
     const token = jwt.sign(
       {
         type: "storage-upload",
         objectPath,
         contentType: input.contentType,
         size: input.size,
+        visibility,
       } satisfies UploadTokenPayload,
       this.getUploadTokenSecret(),
       { expiresIn: "30m" },
@@ -181,7 +198,7 @@ export class ObjectStorageService {
     return {
       uploadURL: `/api/storage/uploads/direct?token=${encodeURIComponent(token)}`,
       objectPath,
-      publicUrl: this.getPublicUrl(objectPath),
+      publicUrl: visibility === "public" ? this.getPublicUrl(objectPath) : "",
     };
   }
 
@@ -209,12 +226,14 @@ export class ObjectStorageService {
     contentLength?: number;
     maxBytes?: number;
     cacheControl?: string;
+    visibility?: StorageVisibility;
   }): Promise<{ objectPath: string; publicUrl: string }> {
-    await this.ensureBucketExists();
+    const visibility = input.visibility || this.getVisibilityFromObjectPath(input.objectPath);
+    await this.ensureBucketExists(visibility);
 
     const objectKey = this.getObjectKey(input.objectPath);
     const uploadUrl = `${this.getSupabaseUrl()}/storage/v1/object/${encodeURIComponent(
-      this.getBucketName(),
+      this.getBucketName(visibility),
     )}/${this.encodeObjectKey(objectKey)}`;
 
     const headers: Record<string, string> = {
@@ -260,7 +279,7 @@ export class ObjectStorageService {
 
     return {
       objectPath: input.objectPath,
-      publicUrl: this.getPublicUrl(input.objectPath),
+      publicUrl: visibility === "public" ? this.getPublicUrl(input.objectPath) : "",
     };
   }
 
@@ -271,10 +290,11 @@ export class ObjectStorageService {
   }
 
   async deleteObject(objectPath: string): Promise<void> {
-    await this.ensureBucketExists();
+    const visibility = this.getVisibilityFromObjectPath(objectPath);
+    await this.ensureBucketExists(visibility);
     const objectKey = this.getObjectKey(objectPath);
     const deleteUrl = `${this.getSupabaseUrl()}/storage/v1/object/${encodeURIComponent(
-      this.getBucketName(),
+      this.getBucketName(visibility),
     )}/${this.encodeObjectKey(objectKey)}`;
 
     const response = await fetch(deleteUrl, {
@@ -298,10 +318,12 @@ export class ObjectStorageService {
 
   async objectExists(rawPath: string): Promise<boolean> {
     const normalized = this.normalizeObjectEntityPath(rawPath);
-    if (!normalized.startsWith("/objects/")) return false;
+    if (!normalized.startsWith("/objects/") && !normalized.startsWith("/private-objects/")) return false;
+    const visibility = this.getVisibilityFromObjectPath(normalized);
 
-    const response = await fetch(this.getPublicUrl(normalized), {
+    const response = await fetch(this.getFetchUrl(normalized, visibility), {
       method: "HEAD",
+      headers: visibility === "private" ? this.getServiceRoleHeaders() : undefined,
       signal: AbortSignal.timeout(15_000),
     });
     return response.ok;
@@ -309,14 +331,16 @@ export class ObjectStorageService {
 
   async proxyObject(objectPath: string, rangeHeader?: string): Promise<Response> {
     const normalized = this.normalizeObjectEntityPath(objectPath);
-    if (!normalized.startsWith("/objects/")) {
+    if (!normalized.startsWith("/objects/") && !normalized.startsWith("/private-objects/")) {
       throw new ObjectNotFoundError();
     }
+    const visibility = this.getVisibilityFromObjectPath(normalized);
 
     const headers: Record<string, string> = {};
     if (rangeHeader) headers.Range = rangeHeader;
+    if (visibility === "private") Object.assign(headers, this.getServiceRoleHeaders());
 
-    const response = await fetch(this.getPublicUrl(normalized), {
+    const response = await fetch(this.getFetchUrl(normalized, visibility), {
       method: "GET",
       headers,
       signal: AbortSignal.timeout(5 * 60_000),
@@ -339,15 +363,38 @@ export class ObjectStorageService {
 
   private getObjectKey(rawPath: string): string {
     const normalized = this.normalizeObjectEntityPath(rawPath);
-    if (!normalized.startsWith("/objects/")) {
+    const visibility = this.getVisibilityFromObjectPath(normalized);
+    if (visibility !== "public" && visibility !== "private") {
       throw new ObjectNotFoundError();
     }
 
-    const objectKey = normalized.slice("/objects/".length);
+    const objectKey = normalized.slice(visibility === "private" ? "/private-objects/".length : "/objects/".length);
     if (!objectKey) {
       throw new ObjectNotFoundError();
     }
     return objectKey;
+  }
+
+  private getVisibilityFromObjectPath(objectPath: string): StorageVisibility {
+    const normalized = this.normalizeObjectEntityPath(objectPath);
+    if (normalized.startsWith("/private-objects/")) return "private";
+    if (normalized.startsWith("/objects/")) return "public";
+    throw new ObjectNotFoundError();
+  }
+
+  private getFetchUrl(objectPath: string, visibility: StorageVisibility): string {
+    const objectKey = this.getObjectKey(objectPath);
+    if (visibility === "public") return this.getPublicUrl(objectPath);
+    return `${this.getSupabaseUrl()}/storage/v1/object/${encodeURIComponent(
+      this.getBucketName("private"),
+    )}/${this.encodeObjectKey(objectKey)}`;
+  }
+
+  private getServiceRoleHeaders(): Record<string, string> {
+    return {
+      Authorization: `Bearer ${this.getServiceRoleKey()}`,
+      apikey: this.getServiceRoleKey(),
+    };
   }
 
   private sanitizeSegment(value: string): string {

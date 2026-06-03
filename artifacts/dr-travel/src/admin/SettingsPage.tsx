@@ -537,7 +537,7 @@ export default function SettingsPage() {
     try {
       const reqRes = await adminFetch("/storage/uploads/request-url", {
         method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "settings/logo" }),
       });
       if (!reqRes.ok) {
         const err = await reqRes.json().catch(() => ({}));
@@ -570,7 +570,7 @@ export default function SettingsPage() {
     try {
       const reqRes = await adminFetch("/storage/uploads/request-url", {
         method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "settings/hero" }),
       });
       if (!reqRes.ok) {
         const err = await reqRes.json().catch(() => ({}));

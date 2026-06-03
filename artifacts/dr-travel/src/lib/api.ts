@@ -14,6 +14,19 @@ function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
+function isSupabasePublicStorageUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.pathname.includes("/storage/v1/object/public/");
+  } catch {
+    return false;
+  }
+}
+
+function mediaPublicUrl(ref: string): string {
+  return apiUrl(`/api/media/public?ref=${encodeURIComponent(ref)}`);
+}
+
 export function apiUrl(path: string): string {
   if (!path) return apiBaseUrl || "/";
   if (ABSOLUTE_URL_PATTERN.test(path) || path.startsWith("//")) return path;
@@ -38,12 +51,15 @@ export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
 
 export function resolveApiAssetUrl(path?: string | null): string {
   if (!path) return "";
+  if ((ABSOLUTE_URL_PATTERN.test(path) || path.startsWith("//")) && isSupabasePublicStorageUrl(path)) {
+    return mediaPublicUrl(path);
+  }
   if (ABSOLUTE_URL_PATTERN.test(path) || path.startsWith("//")) return path;
   if (path.startsWith("/api/")) return apiUrl(path);
 
   const normalizedPath = normalizePath(path);
   if (normalizedPath.startsWith("/objects/") || normalizedPath.startsWith("/uploads/")) {
-    return apiUrl(`/api/storage/objects?objectPath=${encodeURIComponent(normalizedPath)}`);
+    return mediaPublicUrl(normalizedPath);
   }
 
   return normalizedPath;
@@ -51,11 +67,14 @@ export function resolveApiAssetUrl(path?: string | null): string {
 
 export function storageObjectApiPath(objectPath?: string | null): string {
   if (!objectPath) return "";
+  if ((ABSOLUTE_URL_PATTERN.test(objectPath) || objectPath.startsWith("//")) && isSupabasePublicStorageUrl(objectPath)) {
+    return `/api/media/public?ref=${encodeURIComponent(objectPath)}`;
+  }
   if (ABSOLUTE_URL_PATTERN.test(objectPath) || objectPath.startsWith("//")) return objectPath;
   if (objectPath.startsWith("/api/")) return objectPath;
 
   const normalizedPath = normalizePath(objectPath);
-  return `/api/storage/objects?objectPath=${encodeURIComponent(normalizedPath)}`;
+  return `/api/media/public?ref=${encodeURIComponent(normalizedPath)}`;
 }
 
 export function storageObjectUrl(objectPath?: string | null): string {

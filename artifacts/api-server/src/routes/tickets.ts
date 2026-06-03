@@ -1,15 +1,18 @@
 import { Router } from "express";
-import { db, bookings, siteSettings, manualTickets } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, bookings, siteSettings, manualTickets, mediaAssets } from "@workspace/db";
+import { and, desc, eq, or } from "drizzle-orm";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import express from "express";
 import jwt from "jsonwebtoken";
+import { Readable } from "node:stream";
 import { authMiddleware, getJwtSecret } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { recordAudit } from "../lib/audit";
 import { canIssueTicketForBooking } from "../lib/payments";
+import { MediaStorageService } from "../lib/mediaStorage";
+import { ObjectNotFoundError, ObjectStorageService } from "../lib/objectStorage";
 import {
   generateTicketNumber,
   signTicket,
@@ -41,12 +44,45 @@ function firstNameOnly(name: string | null | undefined): string {
 }
 
 const router = Router();
+const mediaStorage = new MediaStorageService();
+const objectStorage = new ObjectStorageService();
 
 const TICKETS_DIR = path.resolve(process.cwd(), "data", "tickets");
 function ensureDir() {
   try { fs.mkdirSync(TICKETS_DIR, { recursive: true }); } catch {}
 }
 ensureDir();
+
+async function findTicketPdfAsset(token: string) {
+  const [asset] = await db
+    .select()
+    .from(mediaAssets)
+    .where(and(
+      eq(mediaAssets.ownerType, "ticket_pdf"),
+      eq(mediaAssets.ownerId, token),
+      eq(mediaAssets.visibility, "private"),
+      eq(mediaAssets.status, "active"),
+      or(
+        eq(mediaAssets.provider, "supabase_legacy"),
+        and(eq(mediaAssets.provider, "cloudinary"), eq(mediaAssets.migrationStatus, "verified")),
+      ),
+    ))
+    .orderBy(desc(mediaAssets.createdAt))
+    .limit(1);
+  return asset || null;
+}
+
+async function isTicketPdfAvailable(token: string): Promise<boolean> {
+  if (await findTicketPdfAsset(token)) return true;
+  return fs.existsSync(path.join(TICKETS_DIR, `${token}.pdf`));
+}
+
+function copyProxyHeaders(source: globalThis.Response, res: express.Response): void {
+  for (const name of ["content-type", "content-length", "cache-control", "etag", "last-modified"]) {
+    const value = source.headers.get(name);
+    if (value) res.setHeader(name, value);
+  }
+}
 
 export interface IssuedTicket {
   token: string;
@@ -353,12 +389,34 @@ router.get("/tickets/:token.pdf", async (req, res) => {
       if (!guard.ok) return res.status(409).json({ error: guard.reason, code: "PAYMENT_REQUIRED" });
     }
 
-    // Removed authorization check: PDF tickets by token are now fully public.
+    const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
+    const safeName = b.ticketNumber || `dr-travel-ticket-${b.id}`;
+    const privateAsset = await findTicketPdfAsset(token);
+    if (privateAsset?.objectPath) {
+      try {
+        const response = privateAsset.provider === "cloudinary"
+          ? await mediaStorage.proxyAsset(privateAsset, typeof req.headers.range === "string" ? req.headers.range : undefined)
+          : await objectStorage.proxyObject(privateAsset.objectPath);
+        copyProxyHeaders(response, res);
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `${disposition}; filename="${safeName}.pdf"`);
+        res.setHeader("Cache-Control", "private, no-store");
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.status(response.status);
+        if (response.body) Readable.fromWeb(response.body as ReadableStream).pipe(res);
+        else res.end();
+        return;
+      } catch (error) {
+        if (!(error instanceof ObjectNotFoundError)) {
+          console.error("[ticket.pdf] private media proxy failed; falling back to legacy PDF:", error);
+        }
+      }
+    }
+
+    // Legacy fallback for PDFs generated before private object storage.
     const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
     if (!fs.existsSync(pdfPath)) return res.status(404).json({ error: "PDF not yet generated" });
     const stat = fs.statSync(pdfPath);
-    const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
-    const safeName = b.ticketNumber || `dr-travel-ticket-${b.id}`;
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Length", String(stat.size));
     res.setHeader("Content-Disposition", `${disposition}; filename="${safeName}.pdf"`);
@@ -403,8 +461,7 @@ router.get("/tickets/:token", async (req, res) => {
     for (const row of settingsRows) {
       if (PUBLIC_SETTING_KEYS.has(row.key)) settings[row.key] = row.value || "";
     }
-    const pdfPath = path.join(TICKETS_DIR, `${token}.pdf`);
-    const pdfAvailable = fs.existsSync(pdfPath);
+    const pdfAvailable = await isTicketPdfAvailable(token);
 
     if (!fullAccess) {
       // Token-only access: enough to render the holder's own ticket but no
@@ -643,11 +700,32 @@ router.post(
       ensureDir();
       const pdfPath = path.join(TICKETS_DIR, `${issued.token}.pdf`);
       fs.writeFileSync(pdfPath, body);
+      let storedPdf: { mediaAssetId?: string; objectPath?: string } | null = null;
+      let privateStorageError = "";
+      try {
+        storedPdf = await mediaStorage.uploadPrivateBuffer({
+          buffer: body,
+          contentType: "application/pdf",
+          originalFilename: `${issued.token}.pdf`,
+          category: "ticket-pdfs",
+          prefix: "ticket-pdfs",
+          ownerType: "ticket_pdf",
+          ownerId: issued.token,
+        });
+      } catch (error) {
+        privateStorageError = error instanceof Error ? error.message : "private storage upload failed";
+        console.error("[ticket.pdf] private storage upload failed:", error);
+      }
       await recordAudit(req, {
         action: "ticket.pdf_upload",
         entity: "booking",
         entityId: id,
-        metadata: { bytes: body.length },
+        metadata: {
+          bytes: body.length,
+          mediaAssetId: storedPdf?.mediaAssetId,
+          objectPath: storedPdf?.objectPath,
+          privateStorageError,
+        },
       });
       return res.json({
         ok: true,

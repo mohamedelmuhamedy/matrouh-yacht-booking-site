@@ -276,7 +276,7 @@ export default function PackageFormPage() {
     try {
       const reqRes = await adminFetch("/storage/uploads/request-url", {
         method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "packages" }),
       });
       if (!reqRes.ok) {
         const err = await reqRes.json().catch(() => ({}));

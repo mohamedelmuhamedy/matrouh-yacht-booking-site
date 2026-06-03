@@ -6,6 +6,10 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "setup-admin": "tsx ./src/setup-admin.ts",
+    "media:migration": "tsx ./src/media-migration.ts",
+    "media:inventory": "tsx ./src/media-migration.ts inventory",
+    "media:migrate": "tsx ./src/media-migration.ts migrate",
+    "media:verify": "tsx ./src/media-migration.ts verify",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

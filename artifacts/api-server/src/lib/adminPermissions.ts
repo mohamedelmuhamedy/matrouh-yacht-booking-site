@@ -206,6 +206,7 @@ function permissionForAdminRequest(req: Request): AdminPermission | null {
   if (path.startsWith("/admin/reward") || path.startsWith("/admin/referral")) return "rewards.manage";
   if (path.startsWith("/admin/gallery")) return "gallery.manage";
   if (path.startsWith("/admin/reviews")) return "reviews.manage";
+  if (path.startsWith("/admin/media")) return "media.upload";
   if (path.startsWith("/admin/testimonials")) return "testimonials.manage";
   if (path.startsWith("/admin/hero-slides")) return "hero_slides.manage";
   if (path.startsWith("/admin/share")) return "share_card.manage";

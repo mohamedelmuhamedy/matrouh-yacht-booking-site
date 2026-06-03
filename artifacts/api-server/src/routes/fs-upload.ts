@@ -8,9 +8,11 @@ import {
   ObjectStorageService,
   StorageUploadError,
 } from "../lib/objectStorage";
+import { MediaStorageService } from "../lib/mediaStorage";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
+const mediaStorage = new MediaStorageService();
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
@@ -54,24 +56,24 @@ router.post("/admin/storage/upload", authMiddleware, requireRole("operator"), re
   }
 
   try {
-    const objectPath = objectStorageService.createObjectPath(
-      `upload${MIME_TO_EXT[contentType]}`,
-    );
-
-    await objectStorageService.uploadRequestStream({
-      objectPath,
+    const category = String(req.query.category || req.headers["x-media-category"] || "admin").trim();
+    const originalFilename = String(req.headers["x-file-name"] || `upload${MIME_TO_EXT[contentType]}`).trim();
+    const uploaded = await mediaStorage.uploadPublic({
+      category,
+      originalFilename,
       contentType,
       stream: req,
       contentLength,
       maxBytes,
     });
-
-    const publicUrl = objectStorageService.getPublicUrl(objectPath);
     res.json({
-      url: publicUrl,
-      objectPath,
-      publicUrl,
-      proxyUrl: objectStorageService.toApiObjectUrl(objectPath),
+      url: uploaded.url,
+      objectPath: uploaded.objectPath,
+      publicUrl: uploaded.publicUrl,
+      proxyUrl: uploaded.proxyUrl,
+      deliveryUrl: uploaded.deliveryUrl,
+      provider: uploaded.provider,
+      mediaAssetId: uploaded.mediaAssetId,
     });
   } catch (error) {
     console.error("Admin storage upload failed:", error);

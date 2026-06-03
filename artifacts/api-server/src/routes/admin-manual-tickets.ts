@@ -9,8 +9,10 @@ import { requireRole } from "../middleware/roles";
 import { ensureManualTicketToken, ensureTicketToken } from "./tickets";
 import { recordAudit } from "../lib/audit";
 import { checkCapacity } from "./admin-capacity";
+import { MediaStorageService } from "../lib/mediaStorage";
 
 const router = Router();
+const mediaStorage = new MediaStorageService();
 const TICKETS_DIR = path.resolve(process.cwd(), "data", "tickets");
 
 const VALID_STATUSES = ["new", "contacted", "confirmed", "client_confirmed", "completed", "cancelled"];
@@ -505,11 +507,32 @@ router.post(
       ensureDir();
       const pdfPath = path.join(TICKETS_DIR, `${issued.token}.pdf`);
       fs.writeFileSync(pdfPath, body);
+      let storedPdf: { mediaAssetId?: string; objectPath?: string } | null = null;
+      let privateStorageError = "";
+      try {
+        storedPdf = await mediaStorage.uploadPrivateBuffer({
+          buffer: body,
+          contentType: "application/pdf",
+          originalFilename: `${issued.token}.pdf`,
+          category: "ticket-pdfs",
+          prefix: "ticket-pdfs",
+          ownerType: "ticket_pdf",
+          ownerId: issued.token,
+        });
+      } catch (error) {
+        privateStorageError = error instanceof Error ? error.message : "private storage upload failed";
+        console.error("[manual-tickets] private PDF storage failed:", error);
+      }
       await recordAudit(req, {
         action: "manual_ticket.pdf_upload",
         entity: existing.kind === "manual" ? "manual_ticket" : "booking",
         entityId: id,
-        metadata: { bytes: body.length },
+        metadata: {
+          bytes: body.length,
+          mediaAssetId: storedPdf?.mediaAssetId,
+          objectPath: storedPdf?.objectPath,
+          privateStorageError,
+        },
       });
       return res.json({
         ok: true,

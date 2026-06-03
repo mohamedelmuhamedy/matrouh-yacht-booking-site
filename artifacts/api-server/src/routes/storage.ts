@@ -6,12 +6,14 @@ import {
   StorageConfigurationError,
   StorageUploadError,
 } from "../lib/objectStorage";
+import { MediaStorageService } from "../lib/mediaStorage";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { requirePermission } from "../lib/adminPermissions";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
+const mediaStorage = new MediaStorageService();
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
@@ -49,10 +51,11 @@ function copyProxyHeaders(source: globalThis.Response, res: Response): void {
 }
 
 router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (req: Request, res: Response) => {
-  const { name, size, contentType } = req.body as {
+  const { name, size, contentType, category } = req.body as {
     name?: string;
     size?: number;
     contentType?: string;
+    category?: string;
   };
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -89,7 +92,12 @@ router.post("/storage/uploads/request-url", authMiddleware, requireRole("operato
 
   try {
     const { uploadURL, objectPath, publicUrl } =
-      objectStorageService.createDirectUploadTarget({ name, size, contentType });
+      objectStorageService.createDirectUploadTarget({
+        name,
+        size,
+        contentType,
+        prefix: typeof category === "string" ? category : undefined,
+      });
     res.json({ uploadURL, objectPath, publicUrl, metadata: { name, size, contentType } });
   } catch (error) {
     console.error("Error generating upload URL:", error);
@@ -133,7 +141,24 @@ router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
       stream: req,
       contentLength,
       maxBytes: payload.size,
+      visibility: payload.visibility,
     });
+
+    if ((payload.visibility || "public") === "public") {
+      const objectKey = payload.objectPath.startsWith("/objects/")
+        ? payload.objectPath.slice("/objects/".length)
+        : "";
+      const category = objectKey.includes("/")
+        ? objectKey.split("/").slice(0, -1).join("/") || "direct-upload"
+        : "direct-upload";
+      await mediaStorage.recordLegacyPublicAsset({
+        category,
+        contentType: payload.contentType,
+        sizeBytes: contentLength,
+        objectPath: payload.objectPath,
+        publicUrl: objectStorageService.getPublicUrl(payload.objectPath),
+      });
+    }
 
     res.status(200).end();
   } catch (error) {
@@ -177,6 +202,11 @@ router.get("/storage/objects", async (req: Request, res: Response) => {
   const objectPath = (req.query.objectPath as string) || "";
   if (!objectPath) {
     res.status(400).json({ error: "objectPath query param required" });
+    return;
+  }
+
+  if (objectPath.startsWith("/private-objects/")) {
+    res.status(404).json({ error: "Not found" });
     return;
   }
 
