@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
-import { apiFetch, apiUrl, resolveApiAssetUrl } from "../lib/api";
+import { apiFetch, resolveApiAssetUrl } from "../lib/api";
+import { uploadAdminMedia } from "./adminMediaUpload";
 
 const EMPTY_PKG = {
   slug: "", icon: "🏖️", titleAr: "", titleEn: "", descriptionAr: "", descriptionEn: "",
@@ -274,22 +275,12 @@ export default function PackageFormPage() {
     setUploading(true);
     setUploadError("");
     try {
-      const reqRes = await adminFetch("/storage/uploads/request-url", {
-        method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "packages" }),
-      });
-      if (!reqRes.ok) {
-        const err = await reqRes.json().catch(() => ({}));
-        setUploadError(err.error || "فشل طلب رفع الصورة");
+      const result = await uploadAdminMedia(file, "packages");
+      if ("error" in result) {
+        setUploadError(result.error || "فشل رفع الصورة");
         return;
       }
-      const { uploadURL, publicUrl } = await reqRes.json();
-      const uploadRes = await fetch(apiUrl(uploadURL), {
-        method: "PUT", headers: { "Content-Type": file.type }, body: file,
-      });
-      if (!uploadRes.ok) { setUploadError("فشل رفع الملف إلى التخزين"); return; }
-      if (!publicUrl) { setUploadError("لم يتم استلام رابط الملف"); return; }
-      setForm(f => ({ ...f, images: [...f.images, publicUrl] }));
+      setForm(f => ({ ...f, images: [...f.images, result.url] }));
     } catch (e: any) {
       setUploadError(e.message || "خطأ في الرفع");
     } finally {

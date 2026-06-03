@@ -50,12 +50,15 @@ router.get("/admin/media/assets", authMiddleware, requireRole("operator"), requi
 });
 
 router.get("/admin/media/config", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (_req, res) => {
-  const publicProvider = (process.env.MEDIA_PUBLIC_PROVIDER || "supabase_legacy").trim().toLowerCase();
   const cloudinaryConfigured = Boolean(
     process.env.CLOUDINARY_CLOUD_NAME &&
     process.env.CLOUDINARY_API_KEY &&
     process.env.CLOUDINARY_API_SECRET,
   );
+  const configuredProvider = (process.env.MEDIA_PUBLIC_PROVIDER || "").trim().toLowerCase();
+  const publicProvider = cloudinaryConfigured && configuredProvider !== "supabase_legacy"
+    ? "cloudinary"
+    : configuredProvider || "cloudinary_required";
 
   return res.json({
     publicProvider,

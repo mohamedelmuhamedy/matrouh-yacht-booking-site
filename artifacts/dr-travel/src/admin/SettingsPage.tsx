@@ -3,7 +3,8 @@ import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
 import logoFallback from "@assets/435995000_395786973220549_2208241063212175938_n_1773309907139.jpg";
-import { apiUrl, resolveApiAssetUrl } from "../lib/api";
+import { resolveApiAssetUrl } from "../lib/api";
+import { uploadAdminMedia } from "./adminMediaUpload";
 import {
   ARABIC_FONT_OPTIONS,
   DEFAULT_ARABIC_FONT,
@@ -535,23 +536,10 @@ export default function SettingsPage() {
     setLogoUploading(true);
     setLogoError("");
     try {
-      const reqRes = await adminFetch("/storage/uploads/request-url", {
-        method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "settings/logo" }),
-      });
-      if (!reqRes.ok) {
-        const err = await reqRes.json().catch(() => ({}));
-        setLogoError(err.error || "فشل طلب رفع الشعار");
-        return;
-      }
-      const { uploadURL, publicUrl } = await reqRes.json();
-      const uploadRes = await fetch(apiUrl(uploadURL), {
-        method: "PUT", headers: { "Content-Type": file.type }, body: file,
-      });
-      if (!uploadRes.ok) { setLogoError("فشل رفع الملف"); return; }
-      if (!publicUrl) { setLogoError("لم يتم استلام رابط الملف"); return; }
+      const result = await uploadAdminMedia(file, "settings/logo");
+      if ("error" in result) { setLogoError(result.error || "فشل رفع الشعار"); return; }
 
-      const next = { ...settingsRef.current, logo_url: publicUrl };
+      const next = { ...settingsRef.current, logo_url: result.url };
       settingsRef.current = next;
       setSettings({ ...next });
       const ok = await save(next);
@@ -568,23 +556,10 @@ export default function SettingsPage() {
     setHeroBgUploading(true);
     setHeroBgError("");
     try {
-      const reqRes = await adminFetch("/storage/uploads/request-url", {
-        method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "settings/hero" }),
-      });
-      if (!reqRes.ok) {
-        const err = await reqRes.json().catch(() => ({}));
-        setHeroBgError(err.error || "فشل طلب رفع الصورة");
-        return;
-      }
-      const { uploadURL, publicUrl } = await reqRes.json();
-      const uploadRes = await fetch(apiUrl(uploadURL), {
-        method: "PUT", headers: { "Content-Type": file.type }, body: file,
-      });
-      if (!uploadRes.ok) { setHeroBgError("فشل رفع الملف"); return; }
-      if (!publicUrl) { setHeroBgError("لم يتم استلام رابط الملف"); return; }
+      const result = await uploadAdminMedia(file, "settings/hero");
+      if ("error" in result) { setHeroBgError(result.error || "فشل رفع الصورة"); return; }
 
-      const next = { ...settingsRef.current, hero_bg_url: publicUrl };
+      const next = { ...settingsRef.current, hero_bg_url: result.url };
       settingsRef.current = next;
       setSettings({ ...next });
       const ok = await save(next, true);

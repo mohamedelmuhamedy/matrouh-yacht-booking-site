@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pool } from "@workspace/db";
+import sharp from "sharp";
 
 type Visibility = "public" | "private";
 
@@ -28,6 +29,7 @@ type MigrationReport = {
   totalAssetsFound: number;
   totalAssetsMigrated: number;
   totalAssetsVerified: number;
+  totalAssetsOptimized: number;
   skipped: Array<{ id: string; ref: string; reason: string }>;
   failures: Array<{ id: string; ref: string; error: string }>;
 };
@@ -36,6 +38,8 @@ const OUT_DIR = path.resolve(process.cwd(), "artifacts", "media-migration");
 const DEFAULT_SITE_URL = "https://drtravel-matrouh.com";
 const PUBLIC_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "uploads";
 const PRIVATE_BUCKET = process.env.SUPABASE_PRIVATE_STORAGE_BUCKET || "private-uploads";
+const CLOUDINARY_MAX_UPLOAD_BYTES = Number(process.env.CLOUDINARY_MAX_UPLOAD_BYTES || 10 * 1024 * 1024);
+const CLOUDINARY_OPTIMIZED_TARGET_BYTES = Number(process.env.CLOUDINARY_OPTIMIZED_TARGET_BYTES || 9 * 1024 * 1024);
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -66,6 +70,7 @@ function cleanRef(value: unknown): string {
 function looksLikeMediaRef(value: string): boolean {
   if (!value) return false;
   if (/^(data|blob|mailto|tel):/i.test(value)) return false;
+  if (value.startsWith("/api/storage/objects?") || value.startsWith("/api/uploads/")) return true;
   if (value.startsWith("/objects/") || value.startsWith("/private-objects/") || value.startsWith("/uploads/")) return true;
   if (!/^https?:\/\//i.test(value)) return false;
   if (value.includes("/storage/v1/object/")) return true;
@@ -95,6 +100,28 @@ function cloudinaryResourceType(contentType: string): "image" | "video" | "raw" 
   return "raw";
 }
 
+function isImageContentType(contentType: string): boolean {
+  return contentType.split(";")[0]?.trim().toLowerCase().startsWith("image/") || false;
+}
+
+function isVideoContentType(contentType: string): boolean {
+  return contentType.split(";")[0]?.trim().toLowerCase().startsWith("video/") || false;
+}
+
+function isPublicVisualCandidate(item: InventoryItem): boolean {
+  if (item.visibility !== "public") return false;
+  if (isSensitivePublicItem(item)) return false;
+  return isImageContentType(item.contentType) || isVideoContentType(item.contentType);
+}
+
+function isSensitivePublicItem(item: InventoryItem): boolean {
+  const ref = `${item.category} ${item.ref} ${item.legacyObjectPath}`.toLowerCase();
+  if (ref.includes("payment-proof") || ref.includes("payment_proof")) return true;
+  if (item.category === "ticket-pdfs" || item.ownerType === "ticket_pdf") return true;
+  if (item.contentType === "application/pdf") return true;
+  return false;
+}
+
 function filenameFromRef(ref: string): string {
   try {
     const url = new URL(ref, "https://local.invalid");
@@ -110,6 +137,11 @@ function supabaseUrl(): string {
 }
 
 function normalizeObjectPath(ref: string): string {
+  if (ref.startsWith("/api/storage/objects?")) {
+    const parsed = new URL(ref, "https://local.invalid");
+    return parsed.searchParams.get("objectPath") || "";
+  }
+  if (ref.startsWith("/api/uploads/")) return `/objects/uploads/${ref.slice("/api/uploads/".length)}`;
   if (ref.startsWith("/objects/") || ref.startsWith("/private-objects/")) return ref;
   if (ref.startsWith("/uploads/")) return `/objects/uploads/${ref.slice("/uploads/".length)}`;
   if (/^https?:\/\//i.test(ref)) {
@@ -170,6 +202,15 @@ async function ensureMediaSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS media_assets_legacy_url_idx ON media_assets (legacy_url)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS media_assets_legacy_object_path_idx ON media_assets (legacy_object_path)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS media_assets_provider_object_idx ON media_assets (provider, object_key)`);
+}
+
+async function ensureSupabaseBucket(bucket: string, isPublic: boolean): Promise<void> {
+  await pool.query(
+    `insert into storage.buckets (id, name, public)
+     values ($1, $1, $2)
+     on conflict (id) do update set public = $2`,
+    [bucket, isPublic],
+  );
 }
 
 async function queryRows<T = Record<string, unknown>>(sql: string): Promise<T[]> {
@@ -374,6 +415,31 @@ async function fetchSupabaseObject(objectPath: string): Promise<{ buffer: Buffer
   return { buffer: Buffer.from(await response.arrayBuffer()), contentType: response.headers.get("content-type") || "" };
 }
 
+async function uploadPrivateSupabaseObject(input: {
+  objectPath: string;
+  buffer: Buffer;
+  contentType: string;
+}): Promise<void> {
+  await ensureSupabaseBucket(PRIVATE_BUCKET, false);
+  const key = input.objectPath.replace(/^\/private-objects\//, "");
+  const url = `${supabaseUrl()}/storage/v1/object/${encodeURIComponent(PRIVATE_BUCKET)}/${key.split("/").map(encodeURIComponent).join("/")}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${requiredEnv("SUPABASE_SERVICE_ROLE_KEY")}`,
+      apikey: requiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+      "Content-Type": input.contentType,
+      "Cache-Control": "private, max-age=0, no-store",
+      "x-upsert": "false",
+    },
+    body: new Uint8Array(input.buffer),
+    signal: AbortSignal.timeout(5 * 60_000),
+  });
+  if (!response.ok && response.status !== 409) {
+    throw new Error(`Private Supabase upload failed ${response.status}: ${await response.text()}`);
+  }
+}
+
 async function fetchHttpAsset(url: string): Promise<{ buffer: Buffer; contentType: string }> {
   const response = await fetch(url, { signal: AbortSignal.timeout(5 * 60_000) });
   if (!response.ok) throw new Error(`HTTP fetch failed ${response.status}: ${url}`);
@@ -398,6 +464,53 @@ async function readAsset(item: InventoryItem): Promise<{ buffer: Buffer; content
   if (item.legacyUrl) return await fetchHttpAsset(item.legacyUrl);
   if (/^https?:\/\//i.test(item.ref)) return await fetchHttpAsset(item.ref);
   throw new Error("No readable source for asset");
+}
+
+async function preparePublicVisualForCloudinary(
+  item: InventoryItem,
+  buffer: Buffer,
+  contentType: string,
+): Promise<{ buffer: Buffer; contentType: string; optimized: boolean; originalSize: number }> {
+  const cleanType = contentType.split(";")[0]?.trim().toLowerCase() || item.contentType || "application/octet-stream";
+  if (!isImageContentType(cleanType) || buffer.byteLength <= CLOUDINARY_MAX_UPLOAD_BYTES) {
+    return { buffer, contentType: cleanType, optimized: false, originalSize: buffer.byteLength };
+  }
+
+  if (cleanType === "image/svg+xml" || cleanType === "image/gif") {
+    throw new Error(`Public image is larger than Cloudinary limit and cannot be safely optimized automatically (${formatNumber(buffer.byteLength)} bytes)`);
+  }
+
+  const metadata = await sharp(buffer, { failOn: "none" }).metadata();
+  const targetWidth = metadata.width && metadata.width > 2600 ? 2600 : metadata.width;
+  const hasAlpha = Boolean(metadata.hasAlpha);
+  const outputType = hasAlpha ? "image/webp" : "image/jpeg";
+  let best: Buffer | null = null;
+
+  for (const quality of [88, 82, 76, 70, 64, 58]) {
+    let pipeline = sharp(buffer, { failOn: "none" }).rotate();
+    if (targetWidth && metadata.width && targetWidth < metadata.width) {
+      pipeline = pipeline.resize({ width: targetWidth, withoutEnlargement: true });
+    }
+    const candidate = hasAlpha
+      ? await pipeline.webp({ quality, effort: 5 }).toBuffer()
+      : await pipeline.jpeg({ quality, mozjpeg: true }).toBuffer();
+    best = candidate;
+    if (candidate.byteLength <= CLOUDINARY_OPTIMIZED_TARGET_BYTES) {
+      return { buffer: candidate, contentType: outputType, optimized: true, originalSize: buffer.byteLength };
+    }
+  }
+
+  if (best && best.byteLength < buffer.byteLength && best.byteLength <= CLOUDINARY_MAX_UPLOAD_BYTES) {
+    return { buffer: best, contentType: outputType, optimized: true, originalSize: buffer.byteLength };
+  }
+
+  throw new Error(
+    `Image optimization could not get below Cloudinary limit. Original=${formatNumber(buffer.byteLength)} optimized=${formatNumber(best?.byteLength || 0)} bytes`,
+  );
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function signUploadParams(params: Record<string, string | number>, apiSecret: string): string {
@@ -525,7 +638,7 @@ async function existingMapping(item: InventoryItem): Promise<boolean> {
     `SELECT id FROM media_assets
      WHERE provider = 'cloudinary'
        AND status = 'active'
-       AND migration_status = 'verified'
+       AND migration_status IN ('migrated', 'verified')
        AND (
          ($1 <> '' AND legacy_url = $1)
          OR ($2 <> '' AND legacy_object_path = $2)
@@ -581,6 +694,8 @@ async function insertMapping(item: InventoryItem, buffer: Buffer, contentType: s
         format: payload.format,
         width: payload.width,
         height: payload.height,
+        optimized: cloudinary.optimized || false,
+        originalSizeBytes: cloudinary.originalSizeBytes || buffer.byteLength,
         source: item.source,
         tableName: item.tableName,
         rowId: item.rowId,
@@ -597,12 +712,15 @@ async function verifyAssetByUrl(url: string): Promise<boolean> {
   return body.byteLength > 0;
 }
 
-async function verifyCloudinaryMappings(): Promise<{ verified: number; failures: Array<{ id: string; ref: string; error: string }> }> {
+async function verifyCloudinaryMappings(options: { publicOnly?: boolean } = {}): Promise<{ verified: number; failures: Array<{ id: string; ref: string; error: string }> }> {
   const cfg = cloudinaryConfig();
   const rows = await queryRows<any>(
     `SELECT id, visibility, delivery_url, secure_url, legacy_url, legacy_object_path, provider_metadata
      FROM media_assets
-     WHERE provider = 'cloudinary' AND status = 'active' AND migration_status IN ('migrated', 'verified')`,
+     WHERE provider = 'cloudinary'
+       AND status = 'active'
+       AND migration_status IN ('migrated', 'verified')
+       ${options.publicOnly ? "AND visibility = 'public'" : ""}`,
   );
   let verified = 0;
   const failures: Array<{ id: string; ref: string; error: string }> = [];
@@ -638,6 +756,381 @@ function parseLimit(): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+function quoteIdent(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+type RewriteReport = {
+  startedAt: string;
+  finishedAt?: string;
+  updatedRows: number;
+  updatedRefs: number;
+  missingMappings: Array<{ table: string; id: string; column: string; ref: string }>;
+  unchangedRefs: number;
+};
+
+let activeRewriteClient: { query: typeof pool.query } | null = null;
+
+async function rewriteQuery(sql: string, params?: unknown[]): Promise<void> {
+  await (activeRewriteClient || pool).query(sql, params);
+}
+
+async function loadVerifiedPublicReplacementMap(): Promise<Map<string, string>> {
+  const rows = await queryRows<any>(
+    `SELECT legacy_url, legacy_object_path, delivery_url, public_url, secure_url
+     FROM media_assets
+     WHERE provider = 'cloudinary'
+       AND visibility = 'public'
+       AND status = 'active'
+       AND migration_status = 'verified'`,
+  );
+  const map = new Map<string, string>();
+  for (const row of rows) {
+    const delivery = cleanRef(row.delivery_url || row.public_url || row.secure_url);
+    if (!delivery) continue;
+    for (const ref of [row.legacy_url, row.legacy_object_path]) {
+      const clean = cleanRef(ref);
+      if (!clean) continue;
+      map.set(clean, delivery);
+      const normalized = normalizeObjectPath(clean);
+      if (normalized) {
+        map.set(normalized, delivery);
+        map.set(publicSupabaseUrlFromObjectPath(normalized), delivery);
+      }
+    }
+  }
+  return map;
+}
+
+function isCloudinaryRef(ref: string): boolean {
+  return /res\.cloudinary\.com/i.test(ref) || ref.startsWith("cloudinary://");
+}
+
+function replacementForRef(
+  ref: unknown,
+  replacements: Map<string, string>,
+  report: RewriteReport,
+  context: { table: string; id: string; column: string },
+): string {
+  const clean = cleanRef(ref);
+  if (!clean || !looksLikeMediaRef(clean) || isCloudinaryRef(clean)) {
+    report.unchangedRefs += clean ? 1 : 0;
+    return clean;
+  }
+
+  const normalized = normalizeObjectPath(clean);
+  const replacement = replacements.get(clean)
+    || (normalized ? replacements.get(normalized) : undefined)
+    || (normalized ? replacements.get(publicSupabaseUrlFromObjectPath(normalized)) : undefined);
+  if (replacement) return replacement;
+
+  report.missingMappings.push({ ...context, ref: clean });
+  return clean;
+}
+
+function rewriteStringArray(
+  value: unknown,
+  replacements: Map<string, string>,
+  report: RewriteReport,
+  context: { table: string; id: string; column: string },
+): { value: string[]; changed: boolean; refsChanged: number } {
+  const arr = Array.isArray(value) ? value : [];
+  let changed = false;
+  let refsChanged = 0;
+  const next = arr.map((item) => {
+    const before = cleanRef(item);
+    const after = replacementForRef(before, replacements, report, context);
+    if (after !== before) {
+      changed = true;
+      refsChanged += 1;
+    }
+    return after;
+  });
+  return { value: next, changed, refsChanged };
+}
+
+function rewriteSingle(
+  value: unknown,
+  replacements: Map<string, string>,
+  report: RewriteReport,
+  context: { table: string; id: string; column: string },
+): { value: string; changed: boolean; refsChanged: number } {
+  const before = cleanRef(value);
+  const after = replacementForRef(before, replacements, report, context);
+  return { value: after, changed: after !== before, refsChanged: after !== before ? 1 : 0 };
+}
+
+async function updateJsonbColumn(table: string, idColumn: string, id: string | number, column: string, value: unknown): Promise<void> {
+  await rewriteQuery(
+    `UPDATE ${quoteIdent(table)} SET ${quoteIdent(column)} = $1::jsonb WHERE ${quoteIdent(idColumn)} = $2`,
+    [JSON.stringify(value), id],
+  );
+}
+
+async function updateTextArrayColumn(table: string, idColumn: string, id: string | number, column: string, value: string[]): Promise<void> {
+  await rewriteQuery(
+    `UPDATE ${quoteIdent(table)} SET ${quoteIdent(column)} = $1::text[] WHERE ${quoteIdent(idColumn)} = $2`,
+    [value, id],
+  );
+}
+
+async function updateTextColumn(table: string, idColumn: string, id: string | number, column: string, value: string): Promise<void> {
+  await rewriteQuery(
+    `UPDATE ${quoteIdent(table)} SET ${quoteIdent(column)} = $1 WHERE ${quoteIdent(idColumn)} = $2`,
+    [value, id],
+  );
+}
+
+async function rewritePublicRefs(): Promise<RewriteReport> {
+  await ensureMediaSchema();
+  const replacements = await loadVerifiedPublicReplacementMap();
+  const report: RewriteReport = {
+    startedAt: new Date().toISOString(),
+    updatedRows: 0,
+    updatedRefs: 0,
+    missingMappings: [],
+    unchangedRefs: 0,
+  };
+
+  const client = await pool.connect();
+  activeRewriteClient = client as unknown as { query: typeof pool.query };
+  await client.query("BEGIN");
+  try {
+    for (const row of await queryRows<any>(`SELECT id, images FROM packages`)) {
+      const rewritten = rewriteStringArray(row.images, replacements, report, { table: "packages", id: String(row.id), column: "images" });
+      if (rewritten.changed) {
+        await updateJsonbColumn("packages", "id", row.id, "images", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, cover_image FROM gallery_albums`)) {
+      const rewritten = rewriteSingle(row.cover_image, replacements, report, { table: "gallery_albums", id: String(row.id), column: "cover_image" });
+      if (rewritten.changed) {
+        await updateTextColumn("gallery_albums", "id", row.id, "cover_image", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, url FROM gallery_items`)) {
+      const rewritten = rewriteSingle(row.url, replacements, report, { table: "gallery_items", id: String(row.id), column: "url" });
+      if (rewritten.changed) {
+        await updateTextColumn("gallery_items", "id", row.id, "url", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, url FROM hero_slides`)) {
+      const rewritten = rewriteSingle(row.url, replacements, report, { table: "hero_slides", id: String(row.id), column: "url" });
+      if (rewritten.changed) {
+        await updateTextColumn("hero_slides", "id", row.id, "url", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, image_url, about_image_url, features_image_url, cta_image_url, features FROM services`)) {
+      for (const column of ["image_url", "about_image_url", "features_image_url", "cta_image_url"]) {
+        const rewritten = rewriteSingle(row[column], replacements, report, { table: "services", id: String(row.id), column });
+        if (rewritten.changed) {
+          await updateTextColumn("services", "id", row.id, column, rewritten.value);
+          report.updatedRows += 1;
+          report.updatedRefs += rewritten.refsChanged;
+        }
+      }
+      const features = Array.isArray(row.features) ? row.features : [];
+      let featuresChanged = false;
+      let refsChanged = 0;
+      const nextFeatures = features.map((feature: any, index: number) => {
+        const before = cleanRef(feature?.image);
+        const after = replacementForRef(before, replacements, report, { table: "services", id: String(row.id), column: `features[${index}].image` });
+        if (after !== before) {
+          featuresChanged = true;
+          refsChanged += 1;
+        }
+        return { ...feature, image: after };
+      });
+      if (featuresChanged) {
+        await updateJsonbColumn("services", "id", row.id, "features", nextFeatures);
+        report.updatedRows += 1;
+        report.updatedRefs += refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, hero_image_url, accent_image_url, gallery_images FROM why_us_cards`)) {
+      for (const column of ["hero_image_url", "accent_image_url"]) {
+        const rewritten = rewriteSingle(row[column], replacements, report, { table: "why_us_cards", id: String(row.id), column });
+        if (rewritten.changed) {
+          await updateTextColumn("why_us_cards", "id", row.id, column, rewritten.value);
+          report.updatedRows += 1;
+          report.updatedRefs += rewritten.refsChanged;
+        }
+      }
+      const rewrittenGallery = rewriteStringArray(row.gallery_images, replacements, report, { table: "why_us_cards", id: String(row.id), column: "gallery_images" });
+      if (rewrittenGallery.changed) {
+        await updateJsonbColumn("why_us_cards", "id", row.id, "gallery_images", rewrittenGallery.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewrittenGallery.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT key, value FROM site_settings`)) {
+      const rewritten = rewriteSingle(row.value, replacements, report, { table: "site_settings", id: String(row.key), column: "value" });
+      if (rewritten.changed) {
+        await updateTextColumn("site_settings", "key", row.key, "value", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, avatar_url, photos FROM reviews`)) {
+      const avatar = rewriteSingle(row.avatar_url, replacements, report, { table: "reviews", id: String(row.id), column: "avatar_url" });
+      if (avatar.changed) {
+        await updateTextColumn("reviews", "id", row.id, "avatar_url", avatar.value);
+        report.updatedRows += 1;
+        report.updatedRefs += avatar.refsChanged;
+      }
+      const photos = rewriteStringArray(row.photos, replacements, report, { table: "reviews", id: String(row.id), column: "photos" });
+      if (photos.changed) {
+        await updateTextArrayColumn("reviews", "id", row.id, "photos", photos.value);
+        report.updatedRows += 1;
+        report.updatedRefs += photos.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, avatar, image_url FROM testimonials`)) {
+      for (const column of ["avatar", "image_url"]) {
+        const rewritten = rewriteSingle(row[column], replacements, report, { table: "testimonials", id: String(row.id), column });
+        if (rewritten.changed) {
+          await updateTextColumn("testimonials", "id", row.id, column, rewritten.value);
+          report.updatedRows += 1;
+          report.updatedRefs += rewritten.refsChanged;
+        }
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, photo_urls FROM booking_reviews`)) {
+      const rewritten = rewriteStringArray(row.photo_urls, replacements, report, { table: "booking_reviews", id: String(row.id), column: "photo_urls" });
+      if (rewritten.changed) {
+        await updateJsonbColumn("booking_reviews", "id", row.id, "photo_urls", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    for (const row of await queryRows<any>(`SELECT id, photo_url FROM customer_photos`)) {
+      const rewritten = rewriteSingle(row.photo_url, replacements, report, { table: "customer_photos", id: String(row.id), column: "photo_url" });
+      if (rewritten.changed) {
+        await updateTextColumn("customer_photos", "id", row.id, "photo_url", rewritten.value);
+        report.updatedRows += 1;
+        report.updatedRefs += rewritten.refsChanged;
+      }
+    }
+
+    if (report.missingMappings.length) {
+      throw new Error(`Cannot rewrite public media refs: ${report.missingMappings.length} refs have no verified Cloudinary mapping`);
+    }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    report.finishedAt = new Date().toISOString();
+    await writeJson("media-rewrite-public-refs-report.json", report);
+    throw error;
+  } finally {
+    activeRewriteClient = null;
+    client.release();
+  }
+
+  report.finishedAt = new Date().toISOString();
+  await writeJson("media-rewrite-public-refs-report.json", report);
+  return report;
+}
+
+async function scanActivePublicRefs(): Promise<{ totalActivePublicRefs: number; supabaseRefs: Array<InventoryItem>; nonCloudinaryRefs: Array<InventoryItem> }> {
+  const inventory = await collectInventory();
+  const active = inventory.filter((item) => item.source === "db" && item.visibility === "public" && !isSensitivePublicItem(item));
+  const supabaseRefs = active.filter((item) =>
+    item.ref.includes("/storage/v1/object/public")
+    || item.ref.startsWith("/objects/")
+    || item.ref.startsWith("/uploads/")
+    || item.ref.includes("/api/storage/objects"),
+  );
+  const nonCloudinaryRefs = active.filter((item) => !isCloudinaryRef(item.ref));
+  const report = { totalActivePublicRefs: active.length, supabaseRefs, nonCloudinaryRefs };
+  await writeJson("media-active-public-ref-scan.json", report);
+  return report;
+}
+
+async function movePaymentProofsToPrivateStorage(): Promise<{ moved: number; skipped: number; failures: Array<{ id: string; objectPath: string; error: string }> }> {
+  await ensureMediaSchema();
+  const rows = await queryRows<any>(
+    `SELECT id, payment_request_id, object_path, mime_type, original_filename, size_bytes
+     FROM payment_request_attachments
+     WHERE object_path LIKE '/objects/%'`,
+  );
+  const report = { moved: 0, skipped: 0, failures: [] as Array<{ id: string; objectPath: string; error: string }> };
+  for (const row of rows) {
+    const objectPath = cleanRef(row.object_path);
+    if (!objectPath.includes("payment-proofs")) {
+      report.skipped += 1;
+      continue;
+    }
+    try {
+      const read = await fetchSupabaseObject(objectPath);
+      const filename = filenameFromRef(row.original_filename || objectPath) || `${row.id}`;
+      const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 160) || `${row.id}`;
+      const newPath = `/private-objects/payment-proofs/${row.payment_request_id}/${row.id}-${safeName}`;
+      await uploadPrivateSupabaseObject({
+        objectPath: newPath,
+        buffer: read.buffer,
+        contentType: row.mime_type || read.contentType || "application/octet-stream",
+      });
+      await pool.query(`UPDATE payment_request_attachments SET object_path = $1 WHERE id = $2`, [newPath, row.id]);
+      report.moved += 1;
+    } catch (error) {
+      report.failures.push({
+        id: String(row.id),
+        objectPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  await writeJson("media-payment-proofs-private-report.json", report);
+  return report;
+}
+
+async function buildDeletionDryRunManifest(): Promise<{ generatedAt: string; deleteCandidates: InventoryItem[]; keep: InventoryItem[]; blockers: string[] }> {
+  const inventory = await collectInventory();
+  const scan = await scanActivePublicRefs();
+  const deleteCandidates = inventory.filter((item) =>
+    item.source === "supabase-storage"
+    && item.visibility === "public"
+    && isPublicVisualCandidate(item),
+  );
+  const keep = inventory.filter((item) =>
+    item.source === "supabase-storage"
+    && item.visibility === "public"
+    && !isPublicVisualCandidate(item),
+  );
+  const blockers: string[] = [];
+  if (scan.supabaseRefs.length) blockers.push(`${scan.supabaseRefs.length} active public DB refs still point to Supabase/local storage`);
+  const unverified = await queryRows<any>(
+    `SELECT legacy_url, legacy_object_path
+     FROM media_assets
+     WHERE provider = 'cloudinary'
+       AND visibility = 'public'
+       AND status = 'active'
+       AND migration_status <> 'verified'`,
+  );
+  if (unverified.length) blockers.push(`${unverified.length} public Cloudinary mappings are not verified`);
+  const manifest = { generatedAt: new Date().toISOString(), deleteCandidates, keep, blockers };
+  await writeJson("media-deletion-dry-run-manifest.json", manifest);
+  return manifest;
+}
+
 async function runInventory(): Promise<InventoryItem[]> {
   await ensureMediaSchema();
   const inventory = await collectInventory();
@@ -653,6 +1146,7 @@ async function runMigrate(): Promise<void> {
     totalAssetsFound: 0,
     totalAssetsMigrated: 0,
     totalAssetsVerified: 0,
+    totalAssetsOptimized: 0,
     skipped: [],
     failures: [],
   };
@@ -664,15 +1158,33 @@ async function runMigrate(): Promise<void> {
 
   for (const item of inventory) {
     try {
+      if (!isPublicVisualCandidate(item)) {
+        report.skipped.push({
+          id: item.id,
+          ref: item.ref,
+          reason: item.visibility !== "public"
+            ? "private_or_sensitive_not_cloudinary_public"
+            : isSensitivePublicItem(item)
+              ? "sensitive_public_object_requires_private_storage"
+              : "not_public_image_or_video",
+        });
+        continue;
+      }
       if (await existingMapping(item)) {
         report.skipped.push({ id: item.id, ref: item.ref, reason: "already_mapped" });
         continue;
       }
       const read = await readAsset(item);
-      const contentType = read.contentType.split(";")[0]?.trim() || item.contentType || "application/octet-stream";
+      const sourceContentType = read.contentType.split(";")[0]?.trim() || item.contentType || "application/octet-stream";
       if (!read.buffer.byteLength) throw new Error("source asset was empty");
-      const uploaded = await uploadToCloudinary(item, read.buffer, contentType);
-      await insertMapping(item, read.buffer, contentType, uploaded);
+      const prepared = await preparePublicVisualForCloudinary(item, read.buffer, sourceContentType);
+      if (prepared.optimized) report.totalAssetsOptimized += 1;
+      const uploaded = await uploadToCloudinary(item, prepared.buffer, prepared.contentType);
+      await insertMapping(item, prepared.buffer, prepared.contentType, {
+        ...uploaded,
+        optimized: prepared.optimized,
+        originalSizeBytes: prepared.originalSize,
+      });
       report.totalAssetsMigrated += 1;
       console.log(`[media-migration] migrated ${report.totalAssetsMigrated}/${inventory.length}: ${item.category} ${item.ref}`);
     } catch (error) {
@@ -682,7 +1194,7 @@ async function runMigrate(): Promise<void> {
     }
   }
 
-  const verification = await verifyCloudinaryMappings();
+  const verification = await verifyCloudinaryMappings({ publicOnly: true });
   report.totalAssetsVerified = verification.verified;
   report.failures.push(...verification.failures);
   report.finishedAt = new Date().toISOString();
@@ -692,9 +1204,29 @@ async function runMigrate(): Promise<void> {
 
 async function runVerify(): Promise<void> {
   await ensureMediaSchema();
-  const result = await verifyCloudinaryMappings();
+  const result = await verifyCloudinaryMappings({ publicOnly: true });
   await writeJson("media-verify-report.json", result);
   console.log(`[media-migration] verified=${result.verified} failures=${result.failures.length}`);
+}
+
+async function runRewritePublicRefs(): Promise<void> {
+  const report = await rewritePublicRefs();
+  console.log(`[media-migration] public refs rewritten: rows=${report.updatedRows} refs=${report.updatedRefs} missing=${report.missingMappings.length}`);
+}
+
+async function runScanPublicRefs(): Promise<void> {
+  const report = await scanActivePublicRefs();
+  console.log(`[media-migration] active public refs=${report.totalActivePublicRefs} supabaseRefs=${report.supabaseRefs.length} nonCloudinaryRefs=${report.nonCloudinaryRefs.length}`);
+}
+
+async function runMovePaymentProofsPrivate(): Promise<void> {
+  const report = await movePaymentProofsToPrivateStorage();
+  console.log(`[media-migration] payment proofs moved=${report.moved} skipped=${report.skipped} failures=${report.failures.length}`);
+}
+
+async function runDeletionDryRun(): Promise<void> {
+  const report = await buildDeletionDryRunManifest();
+  console.log(`[media-migration] deletion dry-run candidates=${report.deleteCandidates.length} keep=${report.keep.length} blockers=${report.blockers.length}`);
 }
 
 async function main(): Promise<void> {
@@ -702,6 +1234,10 @@ async function main(): Promise<void> {
   if (command === "inventory") await runInventory();
   else if (command === "migrate") await runMigrate();
   else if (command === "verify") await runVerify();
+  else if (command === "rewrite-public-refs") await runRewritePublicRefs();
+  else if (command === "scan-public-refs") await runScanPublicRefs();
+  else if (command === "move-payment-proofs-private") await runMovePaymentProofsPrivate();
+  else if (command === "deletion-dry-run") await runDeletionDryRun();
   else throw new Error(`Unknown command: ${command}`);
 }
 

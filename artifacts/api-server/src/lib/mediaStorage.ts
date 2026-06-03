@@ -61,37 +61,24 @@ export class MediaStorageService {
     const contentType = input.contentType.trim().toLowerCase();
     const category = this.sanitizeCategory(input.category || "general");
     const originalFilename = this.cleanFilename(input.originalFilename);
-    const useCloudinary = this.shouldUseCloudinary(contentType);
 
-    if (useCloudinary) {
-      const buffer = await this.readToBuffer(input.stream, input.maxBytes);
-      try {
-        return await this.uploadCloudinaryBuffer({
-          ...input,
-          stream: Readable.from(buffer),
-          contentType,
-          originalFilename,
-          category,
-          buffer,
-        });
-      } catch (error) {
-        console.error("[media] Cloudinary upload failed; falling back to Supabase legacy:", error);
-        return await this.uploadSupabasePublic({
-          ...input,
-          stream: Readable.from(buffer),
-          contentType,
-          originalFilename,
-          category,
-          contentLength: buffer.byteLength,
-        });
-      }
+    if (!this.isCloudinaryPublicContentType(contentType)) {
+      throw new StorageUploadError("Public media must be an image or video file", 400);
     }
 
-    return await this.uploadSupabasePublic({
+    if (!this.getCloudinaryConfig()) {
+      throw new StorageUploadError("Cloudinary public media storage is not configured", 500);
+    }
+
+    const buffer = await this.readToBuffer(input.stream, input.maxBytes);
+    return await this.uploadCloudinaryBuffer({
       ...input,
+      stream: Readable.from(buffer),
       contentType,
       originalFilename,
       category,
+      contentLength: buffer.byteLength,
+      buffer,
     });
   }
 
@@ -419,10 +406,8 @@ export class MediaStorageService {
     };
   }
 
-  private shouldUseCloudinary(contentType: string): boolean {
-    if ((process.env.MEDIA_PUBLIC_PROVIDER || "").trim().toLowerCase() !== "cloudinary") return false;
-    if (!this.getCloudinaryConfig()) return false;
-    return contentType.startsWith("image/");
+  private isCloudinaryPublicContentType(contentType: string): boolean {
+    return contentType.startsWith("image/") || contentType.startsWith("video/");
   }
 
   private getCloudinaryConfig(): CloudinaryConfig | null {

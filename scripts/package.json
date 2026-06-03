@@ -10,12 +10,17 @@
     "media:inventory": "tsx ./src/media-migration.ts inventory",
     "media:migrate": "tsx ./src/media-migration.ts migrate",
     "media:verify": "tsx ./src/media-migration.ts verify",
+    "media:rewrite-public-refs": "tsx ./src/media-migration.ts rewrite-public-refs",
+    "media:scan-public-refs": "tsx ./src/media-migration.ts scan-public-refs",
+    "media:move-payment-proofs-private": "tsx ./src/media-migration.ts move-payment-proofs-private",
+    "media:deletion-dry-run": "tsx ./src/media-migration.ts deletion-dry-run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",
     "bcryptjs": "^2.4.3",
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "catalog:",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

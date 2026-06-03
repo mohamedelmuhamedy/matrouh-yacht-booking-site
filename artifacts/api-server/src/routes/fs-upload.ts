@@ -81,7 +81,7 @@ router.post("/admin/storage/upload", authMiddleware, requireRole("operator"), re
       res.status(error.statusCode).json({ error: error.message });
       return;
     }
-    res.status(500).json({ error: "فشل الرفع إلى Supabase Storage" });
+    res.status(500).json({ error: "فشل الرفع إلى Cloudinary" });
   }
 });
 

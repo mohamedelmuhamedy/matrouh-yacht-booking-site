@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { adminFetch } from "./AdminContext";
 import { useToast } from "../components/Toast";
-import { apiUrl } from "../lib/api";
+import { uploadAdminMedia } from "./adminMediaUpload";
 import ShareCard, { GRADIENT_PRESETS, THEME_OPTIONS } from "../components/ShareCard";
 import { AdminQRSection } from "../components/ShareCardQR";
 import ShareCardScanStats from "../components/ShareCardScanStats";
@@ -122,21 +122,10 @@ export default function AdminShareCardPage() {
     setBgUploading(true);
     setBgError("");
     try {
-      const reqRes = await adminFetch("/storage/uploads/request-url", {
-        method: "POST",
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, category: "share-card" }),
-      });
-      if (!reqRes.ok) {
-        const err = await reqRes.json().catch(() => ({}));
-        setBgError(err.error || "فشل رفع الصورة");
-        return;
-      }
-      const { uploadURL, publicUrl } = await reqRes.json();
-      const uploadRes = await fetch(apiUrl(uploadURL), { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      if (!uploadRes.ok) { setBgError("فشل رفع الملف"); return; }
-      if (!publicUrl) { setBgError("لم يتم استلام رابط الملف"); return; }
+      const result = await uploadAdminMedia(file, "share-card");
+      if ("error" in result) { setBgError(result.error || "فشل رفع الصورة"); return; }
 
-      const next = { ...settingsRef.current, card_bg_image_url: publicUrl, card_bg_type: "image" };
+      const next = { ...settingsRef.current, card_bg_image_url: result.url, card_bg_type: "image" };
       settingsRef.current = next;
       setSettings({ ...next });
       const ok = await save(next, true);

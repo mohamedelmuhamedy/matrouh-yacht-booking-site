@@ -3,33 +3,14 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import {
   ObjectNotFoundError,
   ObjectStorageService,
-  StorageConfigurationError,
   StorageUploadError,
 } from "../lib/objectStorage";
-import { MediaStorageService } from "../lib/mediaStorage";
 import { authMiddleware } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { requirePermission } from "../lib/adminPermissions";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
-const mediaStorage = new MediaStorageService();
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
-const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
-
-const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
-}
-
-function getMaxBytesForContentType(contentType: string): number {
-  return ALLOWED_VIDEO_TYPES.includes(contentType) ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-}
 
 function copyProxyHeaders(source: globalThis.Response, res: Response): void {
   const passthroughHeaders = [
@@ -50,63 +31,11 @@ function copyProxyHeaders(source: globalThis.Response, res: Response): void {
   }
 }
 
-router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (req: Request, res: Response) => {
-  const { name, size, contentType, category } = req.body as {
-    name?: string;
-    size?: number;
-    contentType?: string;
-    category?: string;
-  };
-
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    res.status(400).json({ error: "اسم الملف مطلوب", code: "MISSING_NAME" });
-    return;
-  }
-
-  if (!contentType || !ALLOWED_TYPES.includes(contentType)) {
-    const isVideo = contentType?.startsWith("video/");
-    res.status(400).json({
-      error: isVideo
-        ? `نوع الفيديو غير مدعوم: ${contentType}. الأنواع المدعومة: MP4, WebM, MOV`
-        : `نوع الملف غير مدعوم: ${contentType}. الأنواع المدعومة: JPEG, PNG, WebP, GIF`,
-      code: "UNSUPPORTED_TYPE",
-      allowed: ALLOWED_TYPES,
-    });
-    return;
-  }
-
-  if (typeof size !== "number" || size <= 0) {
-    res.status(400).json({ error: "حجم الملف غير صحيح", code: "INVALID_SIZE" });
-    return;
-  }
-
-  const maxBytes = getMaxBytesForContentType(contentType);
-  if (size > maxBytes) {
-    res.status(400).json({
-      error: `حجم الملف كبير جداً (${formatBytes(size)}). الحد الأقصى: ${formatBytes(maxBytes)}`,
-      code: "FILE_TOO_LARGE",
-      maxBytes,
-    });
-    return;
-  }
-
-  try {
-    const { uploadURL, objectPath, publicUrl } =
-      objectStorageService.createDirectUploadTarget({
-        name,
-        size,
-        contentType,
-        prefix: typeof category === "string" ? category : undefined,
-      });
-    res.json({ uploadURL, objectPath, publicUrl, metadata: { name, size, contentType } });
-  } catch (error) {
-    console.error("Error generating upload URL:", error);
-    const status = error instanceof StorageConfigurationError ? 500 : 500;
-    res.status(status).json({
-      error: "فشل في توليد رابط الرفع. تأكد من إعدادات Supabase Storage ثم حاول مرة أخرى.",
-      code: "STORAGE_ERROR",
-    });
-  }
+router.post("/storage/uploads/request-url", authMiddleware, requireRole("operator"), requirePermission("media.upload"), async (_req: Request, res: Response) => {
+  res.status(410).json({
+    error: "Public media uploads now use Cloudinary. Please upload through /api/admin/storage/upload.",
+    code: "PUBLIC_SUPABASE_UPLOAD_DISABLED",
+  });
 });
 
 router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
@@ -118,6 +47,14 @@ router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
 
   try {
     const payload = objectStorageService.verifyUploadToken(token);
+    if ((payload.visibility || "public") !== "private") {
+      res.status(410).json({
+        error: "Public Supabase direct uploads are disabled. Use the Cloudinary upload endpoint.",
+        code: "PUBLIC_SUPABASE_UPLOAD_DISABLED",
+      });
+      return;
+    }
+
     const contentType = (req.headers["content-type"] as string) || "";
     if (contentType !== payload.contentType) {
       res.status(400).json({ error: "نوع الملف لا يطابق الطلب الأصلي", code: "CONTENT_TYPE_MISMATCH" });
@@ -143,22 +80,6 @@ router.put("/storage/uploads/direct", async (req: Request, res: Response) => {
       maxBytes: payload.size,
       visibility: payload.visibility,
     });
-
-    if ((payload.visibility || "public") === "public") {
-      const objectKey = payload.objectPath.startsWith("/objects/")
-        ? payload.objectPath.slice("/objects/".length)
-        : "";
-      const category = objectKey.includes("/")
-        ? objectKey.split("/").slice(0, -1).join("/") || "direct-upload"
-        : "direct-upload";
-      await mediaStorage.recordLegacyPublicAsset({
-        category,
-        contentType: payload.contentType,
-        sizeBytes: contentLength,
-        objectPath: payload.objectPath,
-        publicUrl: objectStorageService.getPublicUrl(payload.objectPath),
-      });
-    }
 
     res.status(200).end();
   } catch (error) {
